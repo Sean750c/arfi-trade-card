@@ -19,7 +19,7 @@ export const useCountryStore = create<CountryState>((set) => ({
   fetchCountries: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await APIRequest.request<CountryListResponse>('/gc/public/countrylist');
+      const response = await APIRequest.request<CountryListResponse>('/gc/public/countrylist', 'POST');
       set({ 
         countries: response.data,
         selectedCountry: response.data[0] || null,
