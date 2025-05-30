@@ -35,7 +35,7 @@ export class APIRequest {
       };
   
       // Generate signature
-      const md5sign = this.generateSignature(requestParams);
+      const sign = this.generateSignature(requestParams);
       
       const headers = {
         'Content-Type': 'application/x-www-form-urlencoded' 
