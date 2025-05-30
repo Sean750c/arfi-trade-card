@@ -27,33 +27,33 @@ export class APIRequest {
     method: 'GET' | 'POST' = 'GET',
     params: Record<string, string> = {}
   ): Promise<T> {
-    // Add default parameters
-    const requestParams = {
-      ...params,
-      appid: 'ios-1.0',
-    };
-
-    // Generate signature
-    const md5sign = this.generateSignature(requestParams);
-
-    // Construct URL with parameters for GET requests
-    const url = new URL(endpoint, API_HOST);
-    if (method === 'GET') {
-      Object.entries({ ...requestParams, md5sign }).forEach(([key, value]) => {
-        url.searchParams.append(key, value);
-      });
-    }
-
     try {
-      const response = await fetch(url.toString(), {
+      // Add default parameters
+      const requestParams = {
+        ...params,
+        appid: 'web-v1',
+      };
+  
+      // Generate signature
+      const md5sign = this.generateSignature(requestParams);
+      
+      const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded' 
+      };
+
+      // 准备请求体 - 关键修改点2
+      const requestBody = {
+        ...requestParams,
+        sign
+      };
+      
+      const requestOptions: RequestInit = {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        ...(method === 'POST' && {
-          body: JSON.stringify({ ...requestParams, md5sign }),
-        }),
-      });
+        headers, // 直接使用对象，不是 Headers 实例
+        body: new URLSearchParams(requestBody).toString() // 转换为 URLSearchParams 并转换为字符串
+      };
+      
+      const response = await fetch(`${API_HOST}${endpoint}`, requestOptions);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
