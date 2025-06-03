@@ -49,4 +49,15 @@ export interface RegisterResponse {
   };
 }
 
+export interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    country: Country;
+  };
+}
+
 export type UserRegisterResponse = APIResponse<RegisterResponse>;
+export type UserLoginResponse = APIResponse<LoginResponse>;

@@ -9,6 +9,7 @@ import {
   useColorScheme,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
@@ -16,10 +17,12 @@ import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const { login, isLoading } = useAuthStore();
   
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
@@ -44,10 +47,14 @@ export default function LoginScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (validateForm()) {
-      // In a real app, we would make an API call here
-      router.replace('/(tabs)');
+      try {
+        await login(phoneNumber, password);
+        router.replace('/(tabs)');
+      } catch (error) {
+        Alert.alert('Login Failed', error instanceof Error ? error.message : 'Please try again');
+      }
     }
   };
 
@@ -109,6 +116,7 @@ export default function LoginScreen() {
             title="Log In"
             onPress={handleLogin}
             style={styles.loginButton}
+            loading={isLoading}
             fullWidth
           />
           
