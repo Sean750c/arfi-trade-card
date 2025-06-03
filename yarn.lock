@@ -1264,10 +1264,10 @@
   dependencies:
     "@radix-ui/react-compose-refs" "1.1.2"
 
-"@react-native-async-storage/async-storage@^1.22.3":
-  version "1.24.0"
-  resolved "https://registry.npmjs.org/@react-native-async-storage/async-storage/-/async-storage-1.24.0.tgz"
-  integrity sha512-W4/vbwUOYOjco0x3toB8QCr7EjIP6nE9G7o8PMguvvjYT5Awg09lyV4enACRx4s++PPulBiBSjL0KTFx2u0Z/g==
+"@react-native-async-storage/async-storage@1.22.3":
+  version "1.22.3"
+  resolved "https://registry.npmjs.org/@react-native-async-storage/async-storage/-/async-storage-1.22.3.tgz"
+  integrity sha512-Ov3wjuqxHd62tLYfgTjxj77YRYWra3A4Fi8uICIPcePgNO2WkS5B0ADXt9e/JLzSCNqVlXCq4Fir/gHmZTU9ww==
   dependencies:
     merge-options "^3.0.4"
 
