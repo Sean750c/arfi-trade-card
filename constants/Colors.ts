@@ -27,8 +27,8 @@ const Colors: Colors = {
     background: '#FFFFFF',
     card: '#FFFFFF',
     border: '#E5E7EB',
-    primary: '#6366F1',
-    secondary: '#EC4899',
+    primary: '#008751', // Nigerian Green
+    secondary: '#FFFFFF', // White
     success: '#22C55E',
     warning: '#F59E0B',
     error: '#EF4444',
@@ -41,8 +41,8 @@ const Colors: Colors = {
     background: '#111827',
     card: '#1F2937',
     border: '#374151',
-    primary: '#818CF8',
-    secondary: '#F472B6',
+    primary: '#008751', // Nigerian Green
+    secondary: '#FFFFFF', // White
     success: '#4ADE80',
     warning: '#FBBF24',
     error: '#F87171',
