@@ -8,7 +8,6 @@ import {
   ScrollView,
   TouchableOpacity,
   useColorScheme,
-  TextInput,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Bell, ChevronDown } from 'lucide-react-native';
@@ -28,7 +27,6 @@ export default function HomeScreen() {
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { isAuthenticated, user } = useAuthStore();
-  const [username, setUsername] = useState(user?.username || '');
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
@@ -66,18 +64,9 @@ export default function HomeScreen() {
                   <ChevronDown size={16} color={colors.text} />
                 </TouchableOpacity>
               )}
-              <TextInput
-                style={[styles.usernameInput, { 
-                  backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
-                  color: colors.text,
-                  borderColor: colors.border
-                }]}
-                placeholder="Username"
-                placeholderTextColor={colors.textSecondary}
-                value={username}
-                onChangeText={setUsername}
-                editable={!isAuthenticated}
-              />
+              <Text style={[styles.username, { color: colors.text }]}>
+                {isAuthenticated ? user?.username : 'Tourist'}
+              </Text>
             </View>
             {showCountryPicker && (
               <View style={[styles.countryDropdown, { backgroundColor: colors.card }]}>
@@ -185,6 +174,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     alignSelf: 'center',
   },
+  username: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+  },
   countryDropdown: {
     position: 'absolute',
     top: 70,
@@ -205,15 +198,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
-  },
-  usernameInput: {
-    flex: 1,
-    height: 36,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: Spacing.sm,
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
   },
   notificationButton: {
     width: 40,
