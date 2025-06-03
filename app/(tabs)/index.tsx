@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
   useColorScheme,
+  TextInput,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Bell, ChevronDown } from 'lucide-react-native';
@@ -17,25 +18,20 @@ import PromoBanner from '@/components/home/PromoBanner';
 import QuickActions from '@/components/home/QuickActions';
 import RecentTransactions from '@/components/home/RecentTransactions';
 import PromoTimer from '@/components/home/PromoTimer';
-import { useCountryStore } from '@/stores/useCountryStore'; // 新增导入
+import { useCountryStore } from '@/stores/useCountryStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { Country } from '@/types/api';
-
-// 删除模拟的国家数据
-// const countries = [
-//   { code: 'NG', name: 'Nigeria', flag: '🇳🇬' },
-//   { code: 'GH', name: 'Ghana', flag: '🇬🇭' },
-//   { code: 'KE', name: 'Kenya', flag: '🇰🇪' },
-// ];
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const [showCountryPicker, setShowCountryPicker] = useState(false);
-  // 从 useCountryStore 中获取数据
-  const { countries, selectedCountry, setSelectedCountry: setStoreSelectedCountry } = useCountryStore(); 
+  const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const [username, setUsername] = useState(user?.username || '');
 
   const handleCountrySelect = (country: Country) => {
-    setStoreSelectedCountry(country); // 使用 store 中的方法更新选中国家
+    setSelectedCountry(country);
     setShowCountryPicker(false);
   };
 
@@ -48,18 +44,41 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
-            <TouchableOpacity
-              style={[styles.countrySelector, { backgroundColor: `${colors.primary}10` }]}
-              onPress={() => setShowCountryPicker(!showCountryPicker)}
-            >
-              <Text style={styles.countryInfoContainer}>
-                <Image source={{ uri: selectedCountry?.image }} style={styles.flagImage} resizeMode="cover"/>
-                <Text style={[styles.countryText, { color: colors.text }]}>
-                  {selectedCountry?.name}
-                </Text>
-              </Text>
-              <ChevronDown size={16} color={colors.text} />
-            </TouchableOpacity>
+            <View style={styles.userInfoContainer}>
+              {isAuthenticated ? (
+                <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}10` }]}>
+                  <Image source={{ uri: user?.country?.image }} style={styles.flagImage} resizeMode="cover"/>
+                  <Text style={[styles.countryText, { color: colors.text }]}>
+                    {user?.country?.name}
+                  </Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.countrySelector, { backgroundColor: `${colors.primary}10` }]}
+                  onPress={() => setShowCountryPicker(!showCountryPicker)}
+                >
+                  <Text style={styles.countryInfoContainer}>
+                    <Image source={{ uri: selectedCountry?.image }} style={styles.flagImage} resizeMode="cover"/>
+                    <Text style={[styles.countryText, { color: colors.text }]}>
+                      {selectedCountry?.name}
+                    </Text>
+                  </Text>
+                  <ChevronDown size={16} color={colors.text} />
+                </TouchableOpacity>
+              )}
+              <TextInput
+                style={[styles.usernameInput, { 
+                  backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                  color: colors.text,
+                  borderColor: colors.border
+                }]}
+                placeholder="Username"
+                placeholderTextColor={colors.textSecondary}
+                value={username}
+                onChangeText={setUsername}
+                editable={!isAuthenticated}
+              />
+            </View>
             {showCountryPicker && (
               <View style={[styles.countryDropdown, { backgroundColor: colors.card }]}>
                 {countries.map((country) => (
@@ -123,18 +142,30 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     marginBottom: Spacing.xs,
   },
+  userInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   countrySelector: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
     borderRadius: 8,
-    alignSelf: 'flex-start',
+    minWidth: 120,
   },
-
+  countryDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: 8,
+    minWidth: 120,
+  },
   countryInfoContainer: {
     flexDirection: 'row',
-    alignItems: 'center', // 确保图标和文本垂直居中对齐
+    alignItems: 'center',
     marginRight: Spacing.xs,
   },
   flagImage: {
@@ -142,17 +173,17 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 12,
     marginRight: 10,
-    alignSelf: 'center', // 确保图标自身垂直居中
+    alignSelf: 'center',
   },
   countryText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    alignSelf: 'center', // 确保文本自身垂直居中
+    alignSelf: 'center',
   },
   countryOptionText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    alignSelf: 'center', // 确保下拉选项中的文本垂直居中
+    alignSelf: 'center',
   },
   countryDropdown: {
     position: 'absolute',
@@ -174,6 +205,15 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
+  },
+  usernameInput: {
+    flex: 1,
+    height: 36,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: Spacing.sm,
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
   },
   notificationButton: {
     width: 40,
