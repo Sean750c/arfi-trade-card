@@ -10,25 +10,28 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Mail, Phone } from 'lucide-react-native';
+import { ChevronLeft, Mail, Phone, ChevronDown } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { Country } from '@/types/api';
 
 type RegistrationType = 'email' | 'whatsapp';
 
 export default function RegisterScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
-  const { selectedCountry } = useCountryStore();
+  const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { register, isLoading } = useAuthStore();
   
   const [registrationType, setRegistrationType] = useState<RegistrationType>('email');
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     whatsapp: '',
@@ -49,8 +52,17 @@ export default function RegisterScreen() {
     }
   };
 
+  const handleCountrySelect = (country: Country) => {
+    setSelectedCountry(country);
+    setShowCountryPicker(false);
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+    
+    if (!selectedCountry) {
+      newErrors.country = 'Please select a country';
+    }
     
     if (registrationType === 'email') {
       if (!formData.email) {
@@ -213,6 +225,74 @@ export default function RegisterScreen() {
         </View>
 
         <View style={styles.formContainer}>
+          <View style={styles.countryPickerContainer}>
+            <Text style={[styles.label, { color: colors.text }]}>Country</Text>
+            <TouchableOpacity
+              style={[
+                styles.countrySelector,
+                { 
+                  backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                  borderColor: errors.country ? colors.error : colors.border,
+                },
+              ]}
+              onPress={() => setShowCountryPicker(!showCountryPicker)}
+            >
+              {selectedCountry ? (
+                <View style={styles.selectedCountry}>
+                  <Image 
+                    source={{ uri: selectedCountry.image }} 
+                    style={styles.countryFlag} 
+                    resizeMode="cover"
+                  />
+                  <Text style={[styles.countryName, { color: colors.text }]}>
+                    {selectedCountry.name}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
+                  Select your country
+                </Text>
+              )}
+              <ChevronDown size={20} color={colors.text} />
+            </TouchableOpacity>
+            {showCountryPicker && (
+              <View 
+                style={[
+                  styles.countryDropdown,
+                  { 
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                {countries.map((country) => (
+                  <TouchableOpacity
+                    key={country.id}
+                    style={[
+                      styles.countryOption,
+                      { borderBottomColor: colors.border },
+                    ]}
+                    onPress={() => handleCountrySelect(country)}
+                  >
+                    <Image 
+                      source={{ uri: country.image }} 
+                      style={styles.countryFlag} 
+                      resizeMode="cover"
+                    />
+                    <Text style={[styles.countryName, { color: colors.text }]}>
+                      {country.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+            {errors.country && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.country}
+              </Text>
+            )}
+          </View>
+
           {registrationType === 'email' ? (
             <Input
               label="Email Address"
@@ -251,16 +331,14 @@ export default function RegisterScreen() {
             />
           )}
 
-          {isVerificationSent && (
-            <Input
-              label="Verification Code"
-              placeholder="Enter verification code"
-              keyboardType="number-pad"
-              value={formData.verificationCode}
-              onChangeText={(value) => updateField('verificationCode', value)}
-              error={errors.verificationCode}
-            />
-          )}
+          <Input
+            label="Verification Code"
+            placeholder="Enter verification code"
+            keyboardType="number-pad"
+            value={formData.verificationCode}
+            onChangeText={(value) => updateField('verificationCode', value)}
+            error={errors.verificationCode}
+          />
           
           <Input
             label="Password"
@@ -382,6 +460,57 @@ const styles = StyleSheet.create({
   formContainer: {
     width: '100%',
   },
+  countryPickerContainer: {
+    marginBottom: Spacing.md,
+  },
+  label: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    marginBottom: Spacing.xs,
+  },
+  countrySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 48,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: Spacing.md,
+  },
+  selectedCountry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  countryFlag: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: Spacing.sm,
+  },
+  countryName: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+  },
+  placeholderText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+  },
+  countryDropdown: {
+    position: 'absolute',
+    top: 80,
+    left: 0,
+    right: 0,
+    borderRadius: 12,
+    borderWidth: 1,
+    maxHeight: 200,
+    zIndex: 1000,
+  },
+  countryOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+  },
   termsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -399,7 +528,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
-    marginBottom: Spacing.md,
+    marginTop: Spacing.xs,
   },
   registerButton: {
     marginTop: Spacing.md,
