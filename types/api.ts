@@ -23,41 +23,46 @@ export interface Country {
   rebate_money_register: string;
 }
 
+export interface InitData {
+  fqa_url: string;
+  vip_url: string;
+  share_link: string;
+  service_phone: string;
+  whatsapp_phone: string;
+  vip_phone: string;
+  email: string;
+  have_notice: boolean;
+  notice_count: number;
+  social_media_links: SocialMediaLink[];
+  hidden_flag: string;
+  comment_flag: string;
+  rating_flag: string;
+  init_version: number;
+  sell_link: string;
+  support_link: string;
+  whatsapp_enable: boolean;
+  facebook_disable: boolean;
+  register_type: string;
+  is_need_verify: string;
+  is_update: boolean;
+  force_update: boolean;
+  up_text: string;
+  apk_url: string;
+  ios_url: string;
+  apk_size: number;
+  widget_url: string;
+  auto_identify_card: boolean;
+  whatsapp_register: boolean;
+  whatsapp_chuanying: boolean;
+  platform_fee: string;
+  recommend_fee: string;
+}
+
+export interface SocialMediaLink {
+  code: string;
+  platform: string;
+  url: string;
+}
+
 export type CountryListResponse = APIResponse<Country[]>;
-
-export interface RegisterRequest {
-  register_type: '1' | '2' | '3';
-  country_id: string;
-  username: string;
-  password: string;
-  device_no: string;
-  channel_type: '1' | '7' | '8';
-  email?: string;
-  whatsapp?: string;
-  recommend_code?: string;
-  push_device_token?: string;
-  code?: string;
-}
-
-export interface RegisterResponse {
-  token: string;
-  user: {
-    id: string;
-    username: string;
-    email: string;
-    country: Country;
-  };
-}
-
-export interface LoginResponse {
-  token: string;
-  user: {
-    id: string;
-    username: string;
-    email: string;
-    country: Country;
-  };
-}
-
-export type UserRegisterResponse = APIResponse<RegisterResponse>;
-export type UserLoginResponse = APIResponse<LoginResponse>;
+export type InitResponse = APIResponse<InitData>;

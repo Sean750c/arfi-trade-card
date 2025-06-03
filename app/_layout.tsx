@@ -4,25 +4,31 @@ import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
+import { useAppStore } from '@/stores/useAppStore';
 
 export default function RootLayout() {
   const router = useRouter();
+  const initialize = useAppStore((state) => state.initialize);
   useFrameworkReady();
 
   useEffect(() => {
-    checkOnboardingStatus();
-  }, []);
-
-  const checkOnboardingStatus = async () => {
-    try {
-      const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
-      if (!hasCompletedOnboarding) {
-        router.replace('/onboarding');
+    const init = async () => {
+      try {
+        // Initialize app data
+        await initialize();
+        
+        // Check onboarding status
+        const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
+        if (!hasCompletedOnboarding) {
+          router.replace('/onboarding');
+        }
+      } catch (error) {
+        console.error('Initialization error:', error);
       }
-    } catch (error) {
-      console.error('Error checking onboarding status:', error);
-    }
-  };
+    };
+
+    init();
+  }, [initialize, router]);
 
   return (
     <>
