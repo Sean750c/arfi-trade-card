@@ -3,6 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
+  Image,
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
@@ -16,28 +17,25 @@ import PromoBanner from '@/components/home/PromoBanner';
 import QuickActions from '@/components/home/QuickActions';
 import RecentTransactions from '@/components/home/RecentTransactions';
 import PromoTimer from '@/components/home/PromoTimer';
+import { useCountryStore } from '@/stores/useCountryStore'; // 新增导入
+import { Country } from '@/types/api';
 
-// Mock user data - in a real app, this would come from your auth system
-const user = {
-  isLoggedIn: false,
-  country: null,
-};
-
-// Available countries
-const countries = [
-  { code: 'NG', name: 'Nigeria', flag: '🇳🇬' },
-  { code: 'GH', name: 'Ghana', flag: '🇬🇭' },
-  { code: 'KE', name: 'Kenya', flag: '🇰🇪' },
-];
+// 删除模拟的国家数据
+// const countries = [
+//   { code: 'NG', name: 'Nigeria', flag: '🇳🇬' },
+//   { code: 'GH', name: 'Ghana', flag: '🇬🇭' },
+//   { code: 'KE', name: 'Kenya', flag: '🇰🇪' },
+// ];
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const [showCountryPicker, setShowCountryPicker] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+  // 从 useCountryStore 中获取数据
+  const { countries, selectedCountry, setSelectedCountry: setStoreSelectedCountry } = useCountryStore(); 
 
-  const handleCountrySelect = (country: typeof countries[0]) => {
-    setSelectedCountry(country);
+  const handleCountrySelect = (country: Country) => {
+    setStoreSelectedCountry(country); // 使用 store 中的方法更新选中国家
     setShowCountryPicker(false);
   };
 
@@ -54,8 +52,11 @@ export default function HomeScreen() {
               style={[styles.countrySelector, { backgroundColor: `${colors.primary}10` }]}
               onPress={() => setShowCountryPicker(!showCountryPicker)}
             >
-              <Text style={[styles.countryText, { color: colors.text }]}>
-                {selectedCountry.flag} {selectedCountry.name}
+              <Text style={styles.countryInfoContainer}>
+                <Image source={{ uri: selectedCountry?.image }} style={styles.flagImage} resizeMode="cover"/>
+                <Text style={[styles.countryText, { color: colors.text }]}>
+                  {selectedCountry?.name}
+                </Text>
               </Text>
               <ChevronDown size={16} color={colors.text} />
             </TouchableOpacity>
@@ -70,8 +71,11 @@ export default function HomeScreen() {
                     ]}
                     onPress={() => handleCountrySelect(country)}
                   >
-                    <Text style={[styles.countryOptionText, { color: colors.text }]}>
-                      {country.flag} {country.name}
+                    <Text style={styles.countryInfoContainer}>
+                      <Image source={{ uri: country.image }} style={styles.flagImage} resizeMode="cover"/>
+                      <Text style={[styles.countryOptionText, { color: colors.text }]}>
+                        {country.name}
+                      </Text>
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -127,10 +131,28 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignSelf: 'flex-start',
   },
+
+  countryInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center', // 确保图标和文本垂直居中对齐
+    marginRight: Spacing.xs,
+  },
+  flagImage: {
+    width: 20,
+    height: 20,
+    borderRadius: 12,
+    marginRight: 10,
+    alignSelf: 'center', // 确保图标自身垂直居中
+  },
   countryText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    marginRight: Spacing.xs,
+    alignSelf: 'center', // 确保文本自身垂直居中
+  },
+  countryOptionText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    alignSelf: 'center', // 确保下拉选项中的文本垂直居中
   },
   countryDropdown: {
     position: 'absolute',
@@ -152,10 +174,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
-  },
-  countryOptionText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
   },
   notificationButton: {
     width: 40,

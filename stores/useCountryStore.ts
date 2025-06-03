@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Country } from '@/types/api';
 import { APIRequest } from '@/utils/api';
+import { CountryListResponse } from '@/types/api';
 
 interface CountryState {
   countries: Country[];

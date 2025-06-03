@@ -52,9 +52,9 @@ export class APIRequest {
         headers, // 直接使用对象，不是 Headers 实例
         body: new URLSearchParams(requestBody).toString() // 转换为 URLSearchParams 并转换为字符串
       };
-      
+      console.log('Request options:', requestOptions); // 调试用
       const response = await fetch(`${API_HOST}${endpoint}`, requestOptions);
-
+      console.log('Reponse data:', response); // 调试用
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
