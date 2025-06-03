@@ -9,33 +9,41 @@ import {
   useColorScheme,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Mail, Phone } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
+import { useCountryStore } from '@/stores/useCountryStore';
+import { useAuthStore } from '@/stores/useAuthStore';
+
+type RegistrationType = 'email' | 'whatsapp';
 
 export default function RegisterScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const { selectedCountry } = useCountryStore();
+  const { register, isLoading } = useAuthStore();
   
+  const [registrationType, setRegistrationType] = useState<RegistrationType>('email');
   const [formData, setFormData] = useState({
-    name: '',
-    phoneNumber: '',
     email: '',
+    whatsapp: '',
     password: '',
+    confirmPassword: '',
     referralCode: '',
+    verificationCode: '',
   });
   
   const [termsAccepted, setTermsAccepted] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isVerificationSent, setIsVerificationSent] = useState(false);
 
   const updateField = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
-    
-    // Clear error for this field when user types
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' });
     }
@@ -44,24 +52,32 @@ export default function RegisterScreen() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.name) {
-      newErrors.name = 'Full name is required';
-    }
-    
-    if (!formData.phoneNumber) {
-      newErrors.phoneNumber = 'WhatsApp number is required';
-    } else if (!/^\d{10,11}$/.test(formData.phoneNumber)) {
-      newErrors.phoneNumber = 'Please enter a valid phone number';
-    }
-    
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+    if (registrationType === 'email') {
+      if (!formData.email) {
+        newErrors.email = 'Email is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = 'Please enter a valid email address';
+      }
+    } else {
+      if (!formData.whatsapp) {
+        newErrors.whatsapp = 'WhatsApp number is required';
+      } else if (!/^\d{10,11}$/.test(formData.whatsapp)) {
+        newErrors.whatsapp = 'Please enter a valid phone number';
+      }
     }
     
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    if (!formData.verificationCode && isVerificationSent) {
+      newErrors.verificationCode = 'Verification code is required';
     }
     
     if (!termsAccepted) {
@@ -72,10 +88,39 @@ export default function RegisterScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleRegister = () => {
+  const handleSendVerificationCode = () => {
+    if (registrationType === 'email' && !formData.email) {
+      setErrors({ email: 'Please enter your email first' });
+      return;
+    }
+    if (registrationType === 'whatsapp' && !formData.whatsapp) {
+      setErrors({ whatsapp: 'Please enter your WhatsApp number first' });
+      return;
+    }
+    
+    // In a real app, you would make an API call here to send the verification code
+    setIsVerificationSent(true);
+    Alert.alert('Verification Code Sent', 'Please check your email/WhatsApp for the verification code');
+  };
+
+  const handleRegister = async () => {
     if (validateForm()) {
-      // In a real app, we would make an API call here
-      router.replace('/(tabs)');
+      try {
+        await register({
+          register_type: registrationType === 'email' ? '1' : '2',
+          country_id: selectedCountry?.id.toString() || '',
+          username: registrationType === 'email' ? formData.email : formData.whatsapp,
+          password: formData.password,
+          email: registrationType === 'email' ? formData.email : undefined,
+          whatsapp: registrationType === 'whatsapp' ? formData.whatsapp : undefined,
+          recommend_code: formData.referralCode || undefined,
+          code: formData.verificationCode,
+        });
+        
+        router.replace('/(tabs)');
+      } catch (error) {
+        Alert.alert('Registration Failed', error instanceof Error ? error.message : 'Please try again');
+      }
     }
   };
 
@@ -90,42 +135,132 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ChevronLeft size={24} color={colors.text} />
           </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Join AfriTrade to start trading gift cards
+            </Text>
+          </View>
         </View>
-        
+
+        <View style={styles.registrationTypeContainer}>
+          <TouchableOpacity
+            style={[
+              styles.typeOption,
+              {
+                backgroundColor:
+                  registrationType === 'email'
+                    ? `${colors.primary}20`
+                    : colorScheme === 'dark'
+                    ? colors.card
+                    : '#F9FAFB',
+                borderColor:
+                  registrationType === 'email' ? colors.primary : colors.border,
+              },
+            ]}
+            onPress={() => setRegistrationType('email')}
+          >
+            <Mail
+              size={20}
+              color={registrationType === 'email' ? colors.primary : colors.text}
+            />
+            <Text
+              style={[
+                styles.typeText,
+                {
+                  color: registrationType === 'email' ? colors.primary : colors.text,
+                },
+              ]}
+            >
+              Email
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.typeOption,
+              {
+                backgroundColor:
+                  registrationType === 'whatsapp'
+                    ? `${colors.primary}20`
+                    : colorScheme === 'dark'
+                    ? colors.card
+                    : '#F9FAFB',
+                borderColor:
+                  registrationType === 'whatsapp' ? colors.primary : colors.border,
+              },
+            ]}
+            onPress={() => setRegistrationType('whatsapp')}
+          >
+            <Phone
+              size={20}
+              color={registrationType === 'whatsapp' ? colors.primary : colors.text}
+            />
+            <Text
+              style={[
+                styles.typeText,
+                {
+                  color: registrationType === 'whatsapp' ? colors.primary : colors.text,
+                },
+              ]}
+            >
+              WhatsApp
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.formContainer}>
-          <Text style={[styles.formTitle, { color: colors.text }]}>Create Account</Text>
-          <Text style={[styles.formSubtitle, { color: colors.textSecondary }]}>
-            Sign up to start trading gift cards at the best rates
-          </Text>
-          
-          <Input
-            label="Full Name"
-            placeholder="Enter your full name"
-            value={formData.name}
-            onChangeText={(value) => updateField('name', value)}
-            error={errors.name}
-          />
-          
-          <Input
-            label="WhatsApp Number"
-            placeholder="Enter your WhatsApp number"
-            keyboardType="phone-pad"
-            value={formData.phoneNumber}
-            onChangeText={(value) => updateField('phoneNumber', value)}
-            error={errors.phoneNumber}
-          />
-          
-          <Input
-            label="Email (Optional)"
-            placeholder="Enter your email address"
-            keyboardType="email-address"
-            value={formData.email}
-            onChangeText={(value) => updateField('email', value)}
-            error={errors.email}
-          />
+          {registrationType === 'email' ? (
+            <Input
+              label="Email Address"
+              placeholder="Enter your email address"
+              keyboardType="email-address"
+              value={formData.email}
+              onChangeText={(value) => updateField('email', value)}
+              error={errors.email}
+              rightElement={
+                <Button
+                  title="Send Code"
+                  variant="outline"
+                  size="sm"
+                  onPress={handleSendVerificationCode}
+                  disabled={isVerificationSent}
+                />
+              }
+            />
+          ) : (
+            <Input
+              label="WhatsApp Number"
+              placeholder="Enter your WhatsApp number"
+              keyboardType="phone-pad"
+              value={formData.whatsapp}
+              onChangeText={(value) => updateField('whatsapp', value)}
+              error={errors.whatsapp}
+              rightElement={
+                <Button
+                  title="Send Code"
+                  variant="outline"
+                  size="sm"
+                  onPress={handleSendVerificationCode}
+                  disabled={isVerificationSent}
+                />
+              }
+            />
+          )}
+
+          {isVerificationSent && (
+            <Input
+              label="Verification Code"
+              placeholder="Enter verification code"
+              keyboardType="number-pad"
+              value={formData.verificationCode}
+              onChangeText={(value) => updateField('verificationCode', value)}
+              error={errors.verificationCode}
+            />
+          )}
           
           <Input
             label="Password"
@@ -134,6 +269,15 @@ export default function RegisterScreen() {
             value={formData.password}
             onChangeText={(value) => updateField('password', value)}
             error={errors.password}
+          />
+          
+          <Input
+            label="Confirm Password"
+            placeholder="Confirm your password"
+            secureTextEntry
+            value={formData.confirmPassword}
+            onChangeText={(value) => updateField('confirmPassword', value)}
+            error={errors.confirmPassword}
           />
           
           <Input
@@ -171,6 +315,7 @@ export default function RegisterScreen() {
             title="Create Account"
             onPress={handleRegister}
             style={styles.registerButton}
+            loading={isLoading}
             fullWidth
           />
           
@@ -196,20 +341,46 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     marginBottom: Spacing.lg,
+  },
+  backButton: {
+    marginRight: Spacing.md,
+  },
+  headerContent: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.xs,
+  },
+  subtitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+  },
+  registrationTypeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.lg,
+  },
+  typeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '48%',
+    paddingVertical: Spacing.md,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  typeText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    marginLeft: Spacing.xs,
   },
   formContainer: {
     width: '100%',
-  },
-  formTitle: {
-    fontSize: 24,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.sm,
-  },
-  formSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginBottom: Spacing.lg,
   },
   termsContainer: {
     flexDirection: 'row',
@@ -237,6 +408,7 @@ const styles = StyleSheet.create({
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   loginText: {
     fontSize: 14,
