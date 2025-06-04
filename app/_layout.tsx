@@ -5,10 +5,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useAppStore } from '@/stores/useAppStore';
+import { useCountryStore } from '@/stores/useCountryStore';
 
 export default function RootLayout() {
   const router = useRouter();
   const initialize = useAppStore((state) => state.initialize);
+  const fetchCountries = useCountryStore((state) => state.fetchCountries);
   useFrameworkReady();
 
   useEffect(() => {
@@ -16,6 +18,9 @@ export default function RootLayout() {
       try {
         // Initialize app data
         await initialize();
+        
+        // Fetch countries
+        await fetchCountries();
         
         // Check onboarding status
         const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
@@ -28,7 +33,7 @@ export default function RootLayout() {
     };
 
     init();
-  }, [initialize, router]);
+  }, [initialize, fetchCountries, router]);
 
   return (
     <>

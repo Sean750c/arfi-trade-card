@@ -12,12 +12,15 @@ interface CountryState {
   setSelectedCountry: (country: Country) => void;
 }
 
-export const useCountryStore = create<CountryState>((set) => ({
+export const useCountryStore = create<CountryState>((set, get) => ({
   countries: [],
   selectedCountry: null,
   isLoading: false,
   error: null,
   fetchCountries: async () => {
+    // Don't fetch if we already have countries
+    if (get().countries.length > 0) return;
+    
     set({ isLoading: true, error: null });
     try {
       const response = await APIRequest.request<CountryListResponse>('/gc/public/countrylist', 'POST');
