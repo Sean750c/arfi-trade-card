@@ -32,7 +32,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response = await AuthService.login(username, password);
       set({
         isAuthenticated: true,
-        user: response.user,
+        user: response.data.user,
         isLoading: false,
         error: null,
       });
@@ -51,7 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response = await AuthService.register(params);
       set({
         isAuthenticated: true,
-        user: response.user,
+        user: response.data.user,
         isLoading: false,
         error: null,
       });
