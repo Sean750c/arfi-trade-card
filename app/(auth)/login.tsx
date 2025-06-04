@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
@@ -66,81 +67,87 @@ export default function LoginScreen() {
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <ChevronLeft size={24} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-        
-        <View style={styles.logoContainer}>
-          <Image
-            source={{ uri: 'https://images.pexels.com/photos/6969809/pexels-photo-6969809.jpeg' }}
-            style={styles.logo}
-          />
-          <Text style={[styles.appName, { color: colors.text }]}>AfriTrade</Text>
-          <Text style={[styles.tagline, { color: colors.textSecondary }]}>
-            Trade gift cards at the best rates
-          </Text>
-        </View>
-        
-        <View style={styles.formContainer}>
-          <Text style={[styles.formTitle, { color: colors.text }]}>Log In</Text>
-          
-          <Input
-            label="Username"
-            placeholder="Enter your Username"
-            keyboardType="default"
-            value={username}
-            onChangeText={setUsername}
-            error={errors.username}
-          />
-          
-          <Input
-            label="Password"
-            placeholder="Enter your password"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            error={errors.password}
-          />
-          
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>
-              Forgot Password?
-            </Text>
-          </TouchableOpacity>
-          
-          <Button
-            title="Log In"
-            onPress={handleLogin}
-            style={styles.loginButton}
-            loading={isLoading}
-            fullWidth
-          />
-          
-          <View style={styles.orContainer}>
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-            <Text style={[styles.orText, { color: colors.textSecondary }]}>OR</Text>
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          </View>
-          
-          <Button
-            title="Continue with Google"
-            variant="outline"
-            onPress={() => {}}
-            style={styles.socialButton}
-            fullWidth
-          />
-          
-          <View style={styles.signupContainer}>
-            <Text style={[styles.signupText, { color: colors.textSecondary }]}>
-              Don't have an account?
-            </Text>
-            <TouchableOpacity onPress={() => router.push('/register')}>
-              <Text style={[styles.signupLink, { color: colors.primary }]}>Sign Up</Text>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.header}>
+            <TouchableOpacity 
+              onPress={() => router.back()} 
+              style={styles.backButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <ChevronLeft size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
-        </View>
+          
+          <View style={styles.logoContainer}>
+            <Image
+              source={{ uri: 'https://images.pexels.com/photos/6969809/pexels-photo-6969809.jpeg' }}
+              style={styles.logo}
+            />
+            <Text style={[styles.appName, { color: colors.text }]}>AfriTrade</Text>
+            <Text style={[styles.tagline, { color: colors.textSecondary }]}>
+              Trade gift cards at the best rates
+            </Text>
+          </View>
+          
+          <View style={styles.formContainer}>
+            <Text style={[styles.formTitle, { color: colors.text }]}>Log In</Text>
+            
+            <Input
+              label="Username"
+              placeholder="Enter your Username"
+              keyboardType="default"
+              value={username}
+              onChangeText={setUsername}
+              error={errors.username}
+            />
+            
+            <Input
+              label="Password"
+              placeholder="Enter your password"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              error={errors.password}
+            />
+            
+            <TouchableOpacity style={styles.forgotPassword}>
+              <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>
+                Forgot Password?
+              </Text>
+            </TouchableOpacity>
+            
+            <Button
+              title="Log In"
+              onPress={handleLogin}
+              style={styles.loginButton}
+              loading={isLoading}
+              fullWidth
+            />
+            
+            <View style={styles.orContainer}>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <Text style={[styles.orText, { color: colors.textSecondary }]}>OR</Text>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            </View>
+            
+            <Button
+              title="Continue with Google"
+              variant="outline"
+              onPress={() => {}}
+              style={styles.socialButton}
+              fullWidth
+            />
+            
+            <View style={styles.signupContainer}>
+              <Text style={[styles.signupText, { color: colors.textSecondary }]}>
+                Don't have an account?
+              </Text>
+              <TouchableOpacity onPress={() => router.push('/register')}>
+                <Text style={[styles.signupLink, { color: colors.primary }]}>Sign Up</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -150,11 +157,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  safeArea: {
+    flex: 1,
+  },
   contentContainer: {
-    padding: Spacing.lg,
+    flexGrow: 1,
+    paddingBottom: Spacing.xxl,
   },
   header: {
-    marginBottom: Spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Platform.OS === 'android' ? Spacing.xl + 20 : Spacing.lg,
+    paddingBottom: Spacing.md,
+    backgroundColor: 'transparent',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.sm,
+    borderRadius: 20,
   },
   logoContainer: {
     alignItems: 'center',
