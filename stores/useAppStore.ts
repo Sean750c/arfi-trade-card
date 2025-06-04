@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { InitData } from '@/types/api';
+import { InitData, InitResponse } from '@/types/api';
 import { APIRequest } from '@/utils/api';
 import { generateDeviceId } from '@/utils/device';
 
@@ -17,9 +17,9 @@ export const useAppStore = create<AppState>((set) => ({
   initialize: async () => {
     set({ isLoading: true, error: null });
     try {
-      const deviceNo = generateDeviceId();
-      const response = await APIRequest.request<InitData>(
-        '/gc/public/apinit',
+      const deviceNo = await generateDeviceId();
+      const response = await APIRequest.request<InitResponse>(
+        '/gc/public/appinit',
         'POST',
         {
           os_type: 'web',

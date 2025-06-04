@@ -24,6 +24,7 @@ interface AuthState {
     email?: string;
     whatsapp?: string;
     recommend_code?: string;
+    code?: string;
   }) => Promise<void>;
 }
 

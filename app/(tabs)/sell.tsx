@@ -89,7 +89,7 @@ export default function SellScreen() {
   const handleSubmit = () => {
     if (isFormValid()) {
       // In a real app, we'd send the card data to the server
-      router.push('/sell-confirmation');
+      router.push('/sell-confirmation' as any);
     }
   };
 

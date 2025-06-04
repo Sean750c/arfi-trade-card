@@ -1,5 +1,3 @@
-import { Country } from './country';
-
 export interface APIResponse<T> {
   success: boolean;
   code: string;
@@ -64,5 +62,42 @@ export interface SocialMediaLink {
   url: string;
 }
 
+export interface RegisterRequest {
+  register_type: '1' | '2' | '3';
+  country_id: string;
+  username: string;
+  password: string;
+  device_no: string;
+  channel_type: '1' | '7' | '8';
+  email?: string;
+  whatsapp?: string;
+  recommend_code?: string;
+  push_device_token?: string;
+  code?: string;
+}
+
+export interface RegisterResponse {
+  token: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    country: Country;
+  };
+}
+
+export interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    country: Country;
+  };
+}
+
+export type JSONReponse = APIResponse<JSON>;
 export type CountryListResponse = APIResponse<Country[]>;
 export type InitResponse = APIResponse<InitData>;
+export type UserRegisterResponse = APIResponse<RegisterResponse>;
+export type UserLoginResponse = APIResponse<LoginResponse>;

@@ -5,27 +5,23 @@ const APP_KEY = 'f55b967cad863f21a385e904dceae165';
 
 export class APIRequest {
   private static generateSignature(params: Record<string, string>): string {
-    // Sort parameters alphabetically
-    const sortedParams = Object.keys(params)
-      .sort()
-      .reduce((acc: Record<string, string>, key: string) => {
-        acc[key] = params[key];
-        return acc;
-      }, {});
-
-    // Create parameter string
-    const paramString = Object.entries(sortedParams)
+    // 1. 移除sign参数（如果存在）
+    const { sign, ...filteredParams } = params;
+    
+    // 2. 保持参数原始顺序（与服务器一致）
+    const paramString = Object.entries(filteredParams)
       .map(([key, value]) => `${key}=${value}`)
       .join('&');
-
-    // Generate signature
-    return md5(paramString + APP_KEY);
-  }
+    const signString = paramString + APP_KEY;
+    console.log('signString:', signString); // 调试用
+    // 3. 添加APP_KEY并生成MD5（确保与服务器的$appkey相同）
+    return md5(signString);
+}
 
   static async request<T>(
     endpoint: string,
     method: 'GET' | 'POST' = 'GET',
-    params: Record<string, string> = {}
+    params: Record<string, any> = {}
   ): Promise<T> {
     try {
       // Add default parameters
@@ -54,7 +50,7 @@ export class APIRequest {
       };
       console.log('Request options:', requestOptions); // 调试用
       const response = await fetch(`${API_HOST}${endpoint}`, requestOptions);
-      console.log('Reponse data:', response); // 调试用
+    
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -63,6 +59,7 @@ export class APIRequest {
       if (!data.success) {
         throw new Error(data.msg || 'API request failed');
       }
+      console.log('Reponse data:', data); // 调试用
 
       return data as T;
     } catch (error) {

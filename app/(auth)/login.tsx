@@ -24,17 +24,15 @@ export default function LoginScreen() {
   const colors = Colors[colorScheme];
   const { login, isLoading } = useAuthStore();
   
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<{ phone?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
 
   const validateForm = () => {
-    const newErrors: { phone?: string; password?: string } = {};
+    const newErrors: { username?: string; password?: string } = {};
     
-    if (!phoneNumber) {
-      newErrors.phone = 'WhatsApp number is required';
-    } else if (!/^\d{10,11}$/.test(phoneNumber)) {
-      newErrors.phone = 'Please enter a valid phone number';
+    if (!username) {
+      newErrors.username = 'Username is required';
     }
     
     if (!password) {
@@ -50,7 +48,7 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (validateForm()) {
       try {
-        await login(phoneNumber, password);
+        await login(username, password);
         router.replace('/(tabs)');
       } catch (error) {
         Alert.alert('Login Failed', error instanceof Error ? error.message : 'Please try again');
@@ -89,12 +87,12 @@ export default function LoginScreen() {
           <Text style={[styles.formTitle, { color: colors.text }]}>Log In</Text>
           
           <Input
-            label="WhatsApp Number"
-            placeholder="Enter your WhatsApp number"
-            keyboardType="phone-pad"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            error={errors.phone}
+            label="Username"
+            placeholder="Enter your Username"
+            keyboardType="default"
+            value={username}
+            onChangeText={setUsername}
+            error={errors.username}
           />
           
           <Input

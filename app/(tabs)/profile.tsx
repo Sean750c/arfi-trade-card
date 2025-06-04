@@ -34,7 +34,7 @@ export default function ProfileScreen() {
         styles.menuItem,
         { borderBottomColor: colors.border },
       ]}
-      onPress={() => item.route && router.push(item.route)}
+      onPress={() => item.route && router.push(item.route as any)}
     >
       <View style={[styles.menuIconContainer, { backgroundColor: `${colors.primary}15` }]}>
         {item.icon}

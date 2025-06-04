@@ -1,10 +1,16 @@
 import { APIRequest } from '@/utils/api';
 import { generateDeviceId } from '@/utils/device';
-import type { RegisterRequest, UserRegisterResponse, LoginResponse } from '@/types/api';
+import type { RegisterRequest, UserRegisterResponse, UserLoginResponse } from '@/types/api';
 
 export class AuthService {
   static async register(params: Omit<RegisterRequest, 'device_no' | 'channel_type'>) {
-    const deviceNo = generateDeviceId();
+    let deviceNo: string;
+    try {
+      deviceNo = await generateDeviceId();
+    } catch (error) {
+      // 设备ID生成失败时使用备用方案
+      deviceNo = `temp_${Date.now()}`;
+    }
 
     const requestData: RegisterRequest = {
       ...params,
@@ -33,10 +39,16 @@ export class AuthService {
   }
 
   static async login(username: string, password: string) {
-    const deviceNo = generateDeviceId();
+    let deviceNo: string;
+    try {
+      deviceNo = await generateDeviceId();
+    } catch (error) {
+      // 设备ID生成失败时使用备用方案
+      deviceNo = `temp_${Date.now()}`;
+    }
 
     try {
-      const response = await APIRequest.request<LoginResponse>(
+      const response = await APIRequest.request<UserLoginResponse>(
         '/gc/user/applogin',
         'POST',
         {
