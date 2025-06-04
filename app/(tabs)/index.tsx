@@ -43,32 +43,43 @@ export default function HomeScreen() {
           <View style={styles.headerLeft}>
             <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
             <View style={styles.userInfoContainer}>
-              {isAuthenticated ? (
+              {isAuthenticated && user ? (
                 <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}10` }]}>
-                  <Image source={{ uri: user?.country_logo_image }} style={styles.flagImage} resizeMode="cover"/>
+                  <Image 
+                    source={{ uri: user.country_logo_image }} 
+                    style={styles.flagImage} 
+                    resizeMode="cover"
+                  />
                   <Text style={[styles.countryText, { color: colors.text }]}>
-                    {user?.country_name}
+                    {user.country_name}
+                  </Text>
+                  <Text style={[styles.username, { color: colors.text }]}>
+                    {user.username}
                   </Text>
                 </View>
               ) : (
-                <TouchableOpacity
-                  style={[styles.countrySelector, { backgroundColor: `${colors.primary}10` }]}
-                  onPress={() => setShowCountryPicker(!showCountryPicker)}
-                >
-                  <Text style={styles.countryInfoContainer}>
-                    <Image source={{ uri: selectedCountry?.image }} style={styles.flagImage} resizeMode="cover"/>
-                    <Text style={[styles.countryText, { color: colors.text }]}>
-                      {selectedCountry?.name}
-                    </Text>
-                  </Text>
-                  <ChevronDown size={16} color={colors.text} />
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity
+                    style={[styles.countrySelector, { backgroundColor: `${colors.primary}10` }]}
+                    onPress={() => setShowCountryPicker(!showCountryPicker)}
+                  >
+                    <View style={styles.countryInfoContainer}>
+                      <Image 
+                        source={{ uri: selectedCountry?.image }} 
+                        style={styles.flagImage} 
+                        resizeMode="cover"
+                      />
+                      <Text style={[styles.countryText, { color: colors.text }]}>
+                        {selectedCountry?.name}
+                      </Text>
+                    </View>
+                    <ChevronDown size={16} color={colors.text} />
+                  </TouchableOpacity>
+                  <Text style={[styles.username, { color: colors.text }]}>Tourist</Text>
+                </>
               )}
-              <Text style={[styles.username, { color: colors.text }]}>
-                {isAuthenticated ? user?.username : 'Tourist'}
-              </Text>
             </View>
-            {showCountryPicker && (
+            {showCountryPicker && !isAuthenticated && (
               <View style={[styles.countryDropdown, { backgroundColor: colors.card }]}>
                 {countries.map((country) => (
                   <TouchableOpacity
@@ -79,12 +90,12 @@ export default function HomeScreen() {
                     ]}
                     onPress={() => handleCountrySelect(country)}
                   >
-                    <Text style={styles.countryInfoContainer}>
+                    <View style={styles.countryInfoContainer}>
                       <Image source={{ uri: country.image }} style={styles.flagImage} resizeMode="cover"/>
                       <Text style={[styles.countryOptionText, { color: colors.text }]}>
                         {country.name}
                       </Text>
-                    </Text>
+                    </View>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -139,6 +150,7 @@ const styles = StyleSheet.create({
   countrySelector: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
     borderRadius: 8,
@@ -155,7 +167,6 @@ const styles = StyleSheet.create({
   countryInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: Spacing.xs,
   },
   flagImage: {
     width: 20,
