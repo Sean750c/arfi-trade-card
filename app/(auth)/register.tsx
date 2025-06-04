@@ -38,12 +38,10 @@ export default function RegisterScreen() {
     password: '',
     confirmPassword: '',
     referralCode: '',
-    verificationCode: '',
   });
   
   const [termsAccepted, setTermsAccepted] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isVerificationSent, setIsVerificationSent] = useState(false);
 
   const updateField = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
@@ -88,31 +86,12 @@ export default function RegisterScreen() {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     
-    if (!formData.verificationCode && isVerificationSent) {
-      newErrors.verificationCode = 'Verification code is required';
-    }
-    
     if (!termsAccepted) {
       newErrors.terms = 'You must accept the terms and conditions';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSendVerificationCode = () => {
-    if (registrationType === 'email' && !formData.email) {
-      setErrors({ email: 'Please enter your email first' });
-      return;
-    }
-    if (registrationType === 'whatsapp' && !formData.whatsapp) {
-      setErrors({ whatsapp: 'Please enter your WhatsApp number first' });
-      return;
-    }
-    
-    // In a real app, you would make an API call here to send the verification code
-    setIsVerificationSent(true);
-    Alert.alert('Verification Code Sent', 'Please check your email/WhatsApp for the verification code');
   };
 
   const handleRegister = async () => {
@@ -126,7 +105,6 @@ export default function RegisterScreen() {
           email: registrationType === 'email' ? formData.email : undefined,
           whatsapp: registrationType === 'whatsapp' ? formData.whatsapp : undefined,
           recommend_code: formData.referralCode || undefined,
-          code: formData.verificationCode,
         });
         
         router.replace('/(tabs)');
@@ -255,43 +233,44 @@ export default function RegisterScreen() {
               )}
               <ChevronDown size={20} color={colors.text} />
             </TouchableOpacity>
-            {showCountryPicker && (
-              <View 
-                style={[
-                  styles.countryDropdown,
-                  { 
-                    backgroundColor: colors.card,
-                    borderColor: colors.border,
-                  },
-                ]}
-              >
-                {countries.map((country) => (
-                  <TouchableOpacity
-                    key={country.id}
-                    style={[
-                      styles.countryOption,
-                      { borderBottomColor: colors.border },
-                    ]}
-                    onPress={() => handleCountrySelect(country)}
-                  >
-                    <Image 
-                      source={{ uri: country.image }} 
-                      style={styles.countryFlag} 
-                      resizeMode="cover"
-                    />
-                    <Text style={[styles.countryName, { color: colors.text }]}>
-                      {country.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
             {errors.country && (
               <Text style={[styles.errorText, { color: colors.error }]}>
                 {errors.country}
               </Text>
             )}
           </View>
+
+          {showCountryPicker && (
+            <View 
+              style={[
+                styles.countryDropdown,
+                { 
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              {countries.map((country) => (
+                <TouchableOpacity
+                  key={country.id}
+                  style={[
+                    styles.countryOption,
+                    { borderBottomColor: colors.border },
+                  ]}
+                  onPress={() => handleCountrySelect(country)}
+                >
+                  <Image 
+                    source={{ uri: country.image }} 
+                    style={styles.countryFlag} 
+                    resizeMode="cover"
+                  />
+                  <Text style={[styles.countryName, { color: colors.text }]}>
+                    {country.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {registrationType === 'email' ? (
             <Input
@@ -301,15 +280,6 @@ export default function RegisterScreen() {
               value={formData.email}
               onChangeText={(value) => updateField('email', value)}
               error={errors.email}
-              rightElement={
-                <Button
-                  title="Send Code"
-                  variant="outline"
-                  size="sm"
-                  onPress={handleSendVerificationCode}
-                  disabled={isVerificationSent}
-                />
-              }
             />
           ) : (
             <Input
@@ -319,26 +289,8 @@ export default function RegisterScreen() {
               value={formData.whatsapp}
               onChangeText={(value) => updateField('whatsapp', value)}
               error={errors.whatsapp}
-              rightElement={
-                <Button
-                  title="Send Code"
-                  variant="outline"
-                  size="sm"
-                  onPress={handleSendVerificationCode}
-                  disabled={isVerificationSent}
-                />
-              }
             />
           )}
-
-          <Input
-            label="Verification Code"
-            placeholder="Enter verification code"
-            keyboardType="number-pad"
-            value={formData.verificationCode}
-            onChangeText={(value) => updateField('verificationCode', value)}
-            error={errors.verificationCode}
-          />
           
           <Input
             label="Password"
@@ -462,6 +414,8 @@ const styles = StyleSheet.create({
   },
   countryPickerContainer: {
     marginBottom: Spacing.md,
+    position: 'relative',
+    zIndex: 1000,
   },
   label: {
     fontSize: 14,
@@ -497,7 +451,7 @@ const styles = StyleSheet.create({
   },
   countryDropdown: {
     position: 'absolute',
-    top: 80,
+    top: 85,
     left: 0,
     right: 0,
     borderRadius: 12,
