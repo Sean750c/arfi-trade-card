@@ -13,7 +13,7 @@ export class APIRequest {
       .map(([key, value]) => `${key}=${value}`)
       .join('&');
     const signString = paramString + APP_KEY;
-    console.log('signString:', signString); // 调试用
+    //console.log('signString:', signString); // 调试用
     // 3. 添加APP_KEY并生成MD5（确保与服务器的$appkey相同）
     return md5(signString);
 }
@@ -48,7 +48,7 @@ export class APIRequest {
         headers, // 直接使用对象，不是 Headers 实例
         body: new URLSearchParams(requestBody).toString() // 转换为 URLSearchParams 并转换为字符串
       };
-      console.log('Request options:', requestOptions); // 调试用
+      //console.log('Request options:', requestOptions); // 调试用
       const response = await fetch(`${API_HOST}${endpoint}`, requestOptions);
     
       if (!response.ok) {
@@ -59,7 +59,7 @@ export class APIRequest {
       if (!data.success) {
         throw new Error(data.msg || 'API request failed');
       }
-      console.log('Reponse data:', data); // 调试用
+      //console.log('Reponse data:', data); // 调试用
 
       return data as T;
     } catch (error) {
