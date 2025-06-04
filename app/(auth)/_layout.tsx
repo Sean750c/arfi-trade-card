@@ -17,12 +17,14 @@ export default function AuthLayout() {
         name="login" 
         options={{
           gestureEnabled: true,
+          gestureDirection: 'horizontal',
         }}
       />
       <Stack.Screen 
         name="register" 
         options={{
           gestureEnabled: true,
+          gestureDirection: 'horizontal',
         }}
       />
     </Stack>

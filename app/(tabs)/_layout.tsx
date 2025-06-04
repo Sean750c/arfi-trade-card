@@ -17,8 +17,8 @@ export default function TabLayout() {
           borderTopWidth: 1,
           borderTopColor: colors.border,
           backgroundColor: colors.card,
-          height: Platform.OS === 'ios' ? 88 : 60, // Increased height for iOS to account for home indicator
-          paddingBottom: Platform.OS === 'ios' ? 28 : 8, // Extra padding for iOS home indicator
+          height: Platform.OS === 'ios' ? 88 : 60,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
