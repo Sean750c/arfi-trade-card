@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Platform } from 'react-native';
 import { Chrome as Home, Gift, Wallet, User } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 
@@ -17,8 +17,8 @@ export default function TabLayout() {
           borderTopWidth: 1,
           borderTopColor: colors.border,
           backgroundColor: colors.card,
-          height: 60,
-          paddingBottom: 8,
+          height: Platform.OS === 'ios' ? 88 : 60, // Increased height for iOS to account for home indicator
+          paddingBottom: Platform.OS === 'ios' ? 28 : 8, // Extra padding for iOS home indicator
           paddingTop: 8,
         },
         tabBarLabelStyle: {

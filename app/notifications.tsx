@@ -7,6 +7,7 @@ import {
   FlatList,
   TouchableOpacity,
   useColorScheme,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
@@ -44,8 +45,12 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+      <View style={[styles.header, Platform.OS === 'android' && styles.androidHeader]}>
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          style={styles.backButton}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // Increased touch area
+        >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerContent}>
@@ -101,11 +106,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
+    paddingTop: Platform.OS === 'ios' ? Spacing.lg : Spacing.xl + 20, // Extra padding for Android status bar
     paddingBottom: Spacing.md,
+  },
+  androidHeader: {
+    paddingTop: Spacing.xl + 20, // Extra padding for Android status bar
   },
   backButton: {
     marginRight: Spacing.md,
+    padding: Spacing.xs, // Increased touch target
   },
   headerContent: {
     flex: 1,
