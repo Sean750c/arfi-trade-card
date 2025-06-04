@@ -21,6 +21,33 @@ export interface Country {
   rebate_money_register: string;
 }
 
+export interface User {
+  user_id: number;
+  token: string;
+  country_id: number;
+  channel_type: number;
+  avatar: string;
+  username: string;
+  nickname: string;
+  vip_level: number;
+  money: string;
+  rebate_money: string;
+  country_name: string;
+  currency_symbol: string;
+  currency_name: string;
+  national_flag: string;
+  withdrawal_method: number;
+  money_detail: number;
+  country_logo_image: string;
+  email: string;
+  is_email_bind: boolean;
+  whatsapp_bind: boolean;
+  code: string;
+  whatsapp_register: boolean;
+  password_null: boolean;
+  t_password_null: boolean;
+}
+
 export interface InitData {
   fqa_url: string;
   vip_url: string;
@@ -78,22 +105,12 @@ export interface RegisterRequest {
 
 export interface RegisterResponse {
   token: string;
-  user: {
-    id: string;
-    username: string;
-    email: string;
-    country: Country;
-  };
+  user: User;
 }
 
 export interface LoginResponse {
   token: string;
-  user: {
-    id: string;
-    username: string;
-    email: string;
-    country: Country;
-  };
+  user: User;
 }
 
 export type JSONReponse = APIResponse<JSON>;

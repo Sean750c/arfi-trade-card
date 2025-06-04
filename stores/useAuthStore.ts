@@ -1,13 +1,6 @@
 import { create } from 'zustand';
-import { Country } from '@/types/api';
+import { User } from '@/types/api';
 import { AuthService } from '@/services/auth';
-
-interface User {
-  id: string;
-  username: string;
-  email?: string;
-  country: Country | null;
-}
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -39,7 +32,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response = await AuthService.login(username, password);
       set({
         isAuthenticated: true,
-        user: response.user,
+        user: response.data.user,
         isLoading: false,
         error: null,
       });
@@ -58,7 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response = await AuthService.register(params);
       set({
         isAuthenticated: true,
-        user: response.user,
+        user: response.data.user,
         isLoading: false,
         error: null,
       });
