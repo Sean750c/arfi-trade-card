@@ -30,9 +30,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await AuthService.login(username, password);
+      // console.log('response data:', response);
       set({
         isAuthenticated: true,
-        user: response.data.user,
+        user: {
+          ...response, // 展开所有字段（包括 token 和用户信息）
+        },
         isLoading: false,
         error: null,
       });
@@ -51,7 +54,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response = await AuthService.register(params);
       set({
         isAuthenticated: true,
-        user: response.data.user,
+        user: {
+          ...response, // 展开所有字段（包括 token 和用户信息）
+        },
         isLoading: false,
         error: null,
       });

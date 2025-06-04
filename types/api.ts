@@ -103,18 +103,8 @@ export interface RegisterRequest {
   code?: string;
 }
 
-export interface RegisterResponse {
-  token: string;
-  user: User;
-}
-
-export interface LoginResponse {
-  token: string;
-  user: User;
-}
-
 export type JSONReponse = APIResponse<JSON>;
 export type CountryListResponse = APIResponse<Country[]>;
 export type InitResponse = APIResponse<InitData>;
-export type UserRegisterResponse = APIResponse<RegisterResponse>;
-export type UserLoginResponse = APIResponse<LoginResponse>;
+export type UserRegisterResponse = APIResponse<User>;
+export type UserLoginResponse = APIResponse<User>;

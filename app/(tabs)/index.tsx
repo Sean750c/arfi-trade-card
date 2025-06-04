@@ -42,43 +42,46 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
+            
+            {/* User Info Section */}
             <View style={styles.userInfoContainer}>
               {isAuthenticated && user ? (
-                <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}10` }]}>
-                  <Image 
-                    source={{ uri: user.country_logo_image }} 
-                    style={styles.flagImage} 
-                    resizeMode="cover"
-                  />
-                  <Text style={[styles.countryText, { color: colors.text }]}>
-                    {user.country_name}
-                  </Text>
+                <View style={styles.userInfoRow}>
+                  <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}10` }]}>
+                    <Image 
+                      source={{ uri: user.country_logo_image }} 
+                      style={styles.flagImage} 
+                      resizeMode="cover"
+                    />
+                    <Text style={[styles.countryText, { color: colors.text }]}>
+                      {user.country_name}
+                    </Text>
+                  </View>
                   <Text style={[styles.username, { color: colors.text }]}>
                     {user.username}
                   </Text>
                 </View>
               ) : (
-                <>
-                  <TouchableOpacity
-                    style={[styles.countrySelector, { backgroundColor: `${colors.primary}10` }]}
-                    onPress={() => setShowCountryPicker(!showCountryPicker)}
-                  >
-                    <View style={styles.countryInfoContainer}>
-                      <Image 
-                        source={{ uri: selectedCountry?.image }} 
-                        style={styles.flagImage} 
-                        resizeMode="cover"
-                      />
-                      <Text style={[styles.countryText, { color: colors.text }]}>
-                        {selectedCountry?.name}
-                      </Text>
-                    </View>
-                    <ChevronDown size={16} color={colors.text} />
-                  </TouchableOpacity>
-                  <Text style={[styles.username, { color: colors.text }]}>Tourist</Text>
-                </>
+                <TouchableOpacity
+                  style={[styles.countrySelector, { backgroundColor: `${colors.primary}10` }]}
+                  onPress={() => setShowCountryPicker(!showCountryPicker)}
+                >
+                  <View style={styles.countryInfoContainer}>
+                    <Image 
+                      source={{ uri: selectedCountry?.image }} 
+                      style={styles.flagImage} 
+                      resizeMode="cover"
+                    />
+                    <Text style={[styles.countryText, { color: colors.text }]}>
+                      {selectedCountry?.name}
+                    </Text>
+                  </View>
+                  <ChevronDown size={16} color={colors.text} />
+                </TouchableOpacity>
               )}
             </View>
+
+            {/* Country Picker Dropdown */}
             {showCountryPicker && !isAuthenticated && (
               <View style={[styles.countryDropdown, { backgroundColor: colors.card }]}>
                 {countries.map((country) => (
@@ -101,6 +104,8 @@ export default function HomeScreen() {
               </View>
             )}
           </View>
+
+          {/* Notification Button */}
           <TouchableOpacity
             style={[styles.notificationButton, { backgroundColor: `${colors.primary}10` }]}
             onPress={() => router.push('/notifications')}
@@ -112,6 +117,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Content Sections */}
         <PromoBanner />
         <QuickActions />
         <PromoTimer />
@@ -145,7 +151,11 @@ const styles = StyleSheet.create({
   userInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+  },
+  userInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
   },
   countrySelector: {
     flexDirection: 'row',
@@ -162,32 +172,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
     borderRadius: 8,
-    minWidth: 120,
   },
   countryInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.sm,
   },
   flagImage: {
     width: 20,
     height: 20,
     borderRadius: 12,
-    marginRight: 10,
-    alignSelf: 'center',
   },
   countryText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    alignSelf: 'center',
   },
   countryOptionText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    alignSelf: 'center',
   },
   username: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
   },
   countryDropdown: {
     position: 'absolute',
