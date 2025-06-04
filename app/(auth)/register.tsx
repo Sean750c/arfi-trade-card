@@ -102,9 +102,9 @@ export default function RegisterScreen() {
           country_id: selectedCountry?.id.toString() || '',
           username: registrationType === 'email' ? formData.email : formData.whatsapp,
           password: formData.password,
-          email: registrationType === 'email' ? formData.email : undefined,
-          whatsapp: registrationType === 'whatsapp' ? formData.whatsapp : undefined,
-          recommend_code: formData.referralCode || undefined,
+          email: registrationType === 'email' ? formData.email : '',
+          whatsapp: registrationType === 'whatsapp' ? formData.whatsapp : '',
+          recommend_code: formData.referralCode || '',
         });
         
         router.replace('/(tabs)');
@@ -203,7 +203,8 @@ export default function RegisterScreen() {
         </View>
 
         <View style={styles.formContainer}>
-          <View style={styles.countryPickerContainer}>
+          {/* 国家选择器包装容器 */}
+          <View style={styles.countryPickerWrapper}>
             <Text style={[styles.label, { color: colors.text }]}>Country</Text>
             <TouchableOpacity
               style={[
@@ -233,50 +234,52 @@ export default function RegisterScreen() {
               )}
               <ChevronDown size={20} color={colors.text} />
             </TouchableOpacity>
+            
+            {/* 下拉框容器 - 绝对定位相对于countryPickerWrapper */}
+            {showCountryPicker && (
+              <View 
+                style={[
+                  styles.countryDropdown,
+                  { 
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <ScrollView 
+                  style={styles.countryScrollView}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled={true}
+                >
+                  {countries.map((country) => (
+                    <TouchableOpacity
+                      key={country.id}
+                      style={[
+                        styles.countryOption,
+                        { borderBottomColor: colors.border },
+                      ]}
+                      onPress={() => handleCountrySelect(country)}
+                    >
+                      <Image 
+                        source={{ uri: country.image }} 
+                        style={styles.countryFlag} 
+                        resizeMode="cover"
+                      />
+                      <Text style={[styles.countryName, { color: colors.text }]}>
+                        {country.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+            
             {errors.country && (
               <Text style={[styles.errorText, { color: colors.error }]}>
                 {errors.country}
               </Text>
             )}
           </View>
-
-          {showCountryPicker && (
-            <View 
-              style={[
-                styles.countryDropdown,
-                { 
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                },
-              ]}
-            >
-              <ScrollView 
-                style={styles.countryScrollView}
-                showsVerticalScrollIndicator={false}
-                nestedScrollEnabled={true}
-              >
-                {countries.map((country) => (
-                  <TouchableOpacity
-                    key={country.id}
-                    style={[
-                      styles.countryOption,
-                      { borderBottomColor: colors.border },
-                    ]}
-                    onPress={() => handleCountrySelect(country)}
-                  >
-                    <Image 
-                      source={{ uri: country.image }} 
-                      style={styles.countryFlag} 
-                      resizeMode="cover"
-                    />
-                    <Text style={[styles.countryName, { color: colors.text }]}>
-                      {country.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
 
           {registrationType === 'email' ? (
             <Input
@@ -418,10 +421,11 @@ const styles = StyleSheet.create({
   formContainer: {
     width: '100%',
   },
-  countryPickerContainer: {
+  // 国家选择器包装容器样式
+  countryPickerWrapper: {
     marginBottom: Spacing.md,
-    position: 'relative',
     zIndex: 1000,
+    position: 'relative', // 关键：为下拉框提供定位上下文
   },
   label: {
     fontSize: 14,
@@ -455,15 +459,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
   },
+  // 下拉框样式
   countryDropdown: {
     position: 'absolute',
-    top: 85,
+    top: 70, // 从选择器底部开始计算
     left: 0,
     right: 0,
     maxHeight: 200,
     borderRadius: 12,
     borderWidth: 1,
-    overflow: 'hidden',
+    zIndex: 1001, // 高于选择器
+    elevation: 5, // Android阴影
+    shadowColor: '#000', // iOS阴影
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   countryScrollView: {
     maxHeight: 200,
