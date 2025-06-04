@@ -250,25 +250,31 @@ export default function RegisterScreen() {
                 },
               ]}
             >
-              {countries.map((country) => (
-                <TouchableOpacity
-                  key={country.id}
-                  style={[
-                    styles.countryOption,
-                    { borderBottomColor: colors.border },
-                  ]}
-                  onPress={() => handleCountrySelect(country)}
-                >
-                  <Image 
-                    source={{ uri: country.image }} 
-                    style={styles.countryFlag} 
-                    resizeMode="cover"
-                  />
-                  <Text style={[styles.countryName, { color: colors.text }]}>
-                    {country.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              <ScrollView 
+                style={styles.countryScrollView}
+                showsVerticalScrollIndicator={false}
+                nestedScrollEnabled={true}
+              >
+                {countries.map((country) => (
+                  <TouchableOpacity
+                    key={country.id}
+                    style={[
+                      styles.countryOption,
+                      { borderBottomColor: colors.border },
+                    ]}
+                    onPress={() => handleCountrySelect(country)}
+                  >
+                    <Image 
+                      source={{ uri: country.image }} 
+                      style={styles.countryFlag} 
+                      resizeMode="cover"
+                    />
+                    <Text style={[styles.countryName, { color: colors.text }]}>
+                      {country.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
           )}
 
@@ -454,10 +460,13 @@ const styles = StyleSheet.create({
     top: 85,
     left: 0,
     right: 0,
+    maxHeight: 200,
     borderRadius: 12,
     borderWidth: 1,
+    overflow: 'hidden',
+  },
+  countryScrollView: {
     maxHeight: 200,
-    zIndex: 1000,
   },
   countryOption: {
     flexDirection: 'row',
