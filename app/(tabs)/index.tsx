@@ -45,9 +45,9 @@ export default function HomeScreen() {
             <View style={styles.userInfoContainer}>
               {isAuthenticated ? (
                 <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}10` }]}>
-                  <Image source={{ uri: user?.country?.image }} style={styles.flagImage} resizeMode="cover"/>
+                  <Image source={{ uri: user?.country_logo_image }} style={styles.flagImage} resizeMode="cover"/>
                   <Text style={[styles.countryText, { color: colors.text }]}>
-                    {user?.country?.name}
+                    {user?.country_name}
                   </Text>
                 </View>
               ) : (
