@@ -134,6 +134,7 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <SafeAreaView style={styles.safeArea}>
+          {/* 头部区域 */}
           <View style={styles.header}>
             <TouchableOpacity 
               onPress={handleBack} 
@@ -150,6 +151,7 @@ export default function RegisterScreen() {
             </View>
           </View>
 
+          {/* 注册类型选择 */}
           <View style={styles.registrationTypeContainer}>
             <TouchableOpacity
               style={[
@@ -216,8 +218,10 @@ export default function RegisterScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* 表单区域 */}
           <View style={styles.formContainer}>
-            <View style={styles.countryPickerWrapper}>
+            {/* 国家选择器 */}
+            <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.text }]}>Country</Text>
               <TouchableOpacity
                 style={[
@@ -293,52 +297,62 @@ export default function RegisterScreen() {
               )}
             </View>
 
-            {registrationType === 'email' ? (
+            {/* 输入框组 */}
+            <View style={styles.inputGroup}>
+              {registrationType === 'email' ? (
+                <Input
+                  label="Email Address"
+                  placeholder="Enter your email address"
+                  keyboardType="email-address"
+                  value={formData.email}
+                  onChangeText={(value) => updateField('email', value)}
+                  error={errors.email}
+                />
+              ) : (
+                <Input
+                  label="WhatsApp Number"
+                  placeholder="Enter your WhatsApp number"
+                  keyboardType="phone-pad"
+                  value={formData.whatsapp}
+                  onChangeText={(value) => updateField('whatsapp', value)}
+                  error={errors.whatsapp}
+                />
+              )}
+            </View>
+            
+            <View style={styles.inputGroup}>
               <Input
-                label="Email Address"
-                placeholder="Enter your email address"
-                keyboardType="email-address"
-                value={formData.email}
-                onChangeText={(value) => updateField('email', value)}
-                error={errors.email}
+                label="Password"
+                placeholder="Create a password"
+                secureTextEntry
+                value={formData.password}
+                onChangeText={(value) => updateField('password', value)}
+                error={errors.password}
               />
-            ) : (
+            </View>
+            
+            <View style={styles.inputGroup}>
               <Input
-                label="WhatsApp Number"
-                placeholder="Enter your WhatsApp number"
-                keyboardType="phone-pad"
-                value={formData.whatsapp}
-                onChangeText={(value) => updateField('whatsapp', value)}
-                error={errors.whatsapp}
+                label="Confirm Password"
+                placeholder="Confirm your password"
+                secureTextEntry
+                value={formData.confirmPassword}
+                onChangeText={(value) => updateField('confirmPassword', value)}
+                error={errors.confirmPassword}
               />
-            )}
+            </View>
             
-            <Input
-              label="Password"
-              placeholder="Create a password"
-              secureTextEntry
-              value={formData.password}
-              onChangeText={(value) => updateField('password', value)}
-              error={errors.password}
-            />
+            <View style={styles.inputGroup}>
+              <Input
+                label="Referral Code (Optional)"
+                placeholder="Enter referral code if any"
+                value={formData.referralCode}
+                onChangeText={(value) => updateField('referralCode', value)}
+              />
+            </View>
             
-            <Input
-              label="Confirm Password"
-              placeholder="Confirm your password"
-              secureTextEntry
-              value={formData.confirmPassword}
-              onChangeText={(value) => updateField('confirmPassword', value)}
-              error={errors.confirmPassword}
-            />
-            
-            <Input
-              label="Referral Code (Optional)"
-              placeholder="Enter referral code if any"
-              value={formData.referralCode}
-              onChangeText={(value) => updateField('referralCode', value)}
-            />
-            
-            <View style={styles.termsContainer}>
+            {/* 条款同意 */}
+            <View style={[styles.inputGroup, styles.termsContainer]}>
               <Switch
                 value={termsAccepted}
                 onValueChange={setTermsAccepted}
@@ -355,21 +369,25 @@ export default function RegisterScreen() {
                   Privacy Policy
                 </Text>
               </Text>
+              {errors.terms && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {errors.terms}
+                </Text>
+              )}
             </View>
-            {errors.terms && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {errors.terms}
-              </Text>
-            )}
             
-            <Button
-              title="Create Account"
-              onPress={handleRegister}
-              style={styles.registerButton}
-              loading={isLoading}
-              fullWidth
-            />
+            {/* 注册按钮 */}
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Create Account"
+                onPress={handleRegister}
+                style={styles.registerButton}
+                loading={isLoading}
+                fullWidth
+              />
+            </View>
             
+            {/* 登录链接 */}
             <View style={styles.loginContainer}>
               <Text style={[styles.loginText, { color: colors.textSecondary }]}>
                 Already have an account?
@@ -395,14 +413,13 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     paddingBottom: Spacing.xxl,
+    paddingHorizontal: Spacing.lg, // 添加水平内边距
   },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingHorizontal: Spacing.lg,
     paddingTop: Platform.OS === 'android' ? Spacing.xl + 20 : Spacing.lg,
     paddingBottom: Spacing.md,
-    backgroundColor: 'transparent',
   },
   backButton: {
     width: 40,
@@ -414,21 +431,21 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
-    paddingRight: Spacing.lg,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28, // 增大标题字号
     fontFamily: 'Inter-Bold',
     marginBottom: Spacing.xs,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16, // 增大副标题字号
     fontFamily: 'Inter-Regular',
   },
   registrationTypeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg, // 与表单对齐
   },
   typeOption: {
     flexDirection: 'row',
@@ -440,20 +457,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   typeText: {
-    fontSize: 14,
+    fontSize: 16, // 增大类型选项字号
     fontFamily: 'Inter-Medium',
     marginLeft: Spacing.xs,
   },
   formContainer: {
     width: '100%',
   },
-  countryPickerWrapper: {
+  inputGroup: {
     marginBottom: Spacing.md,
-    zIndex: 1000,
-    position: 'relative',
+    paddingHorizontal: Spacing.lg, // 控制输入框宽度
   },
   label: {
-    fontSize: 14,
+    fontSize: 16, // 增大标签字号
     fontFamily: 'Inter-Medium',
     marginBottom: Spacing.xs,
   },
@@ -461,7 +477,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 48,
+    height: 56, // 增大高度
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: Spacing.md,
@@ -471,25 +487,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countryFlag: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28, // 增大国旗尺寸
+    height: 28,
+    borderRadius: 14,
     marginRight: Spacing.sm,
   },
   countryName: {
-    fontSize: 14,
+    fontSize: 16, // 增大国家名字号
     fontFamily: 'Inter-Regular',
   },
   placeholderText: {
-    fontSize: 14,
+    fontSize: 16, // 增大占位文字字号
     fontFamily: 'Inter-Regular',
   },
   countryDropdown: {
     position: 'absolute',
-    top: 70,
-    left: 0,
-    right: 0,
-    maxHeight: 200,
+    top: 80, // 调整位置
+    left: Spacing.lg, // 与输入框对齐
+    right: Spacing.lg,
+    maxHeight: 250, // 增大高度
     borderRadius: 12,
     borderWidth: 1,
     zIndex: 1001,
@@ -500,7 +516,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   countryScrollView: {
-    maxHeight: 200,
+    maxHeight: 250,
   },
   countryOption: {
     flexDirection: 'row',
@@ -511,38 +527,43 @@ const styles = StyleSheet.create({
   termsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.lg,
   },
   termsText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     marginLeft: Spacing.sm,
     flex: 1,
+    lineHeight: 20, // 增加行高
   },
   termsLink: {
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Inter-SemiBold',
   },
   errorText: {
-    fontSize: 12,
+    fontSize: 13, // 增大错误文字
     fontFamily: 'Inter-Regular',
     marginTop: Spacing.xs,
   },
-  registerButton: {
-    marginTop: Spacing.md,
+  buttonContainer: {
+    paddingHorizontal: Spacing.lg, // 控制按钮宽度
     marginBottom: Spacing.lg,
+  },
+  registerButton: {
+    height: 56, // 增大按钮高度
   },
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: Spacing.sm,
   },
   loginText: {
-    fontSize: 14,
+    fontSize: 16, // 增大字号
     fontFamily: 'Inter-Regular',
     marginRight: Spacing.xs,
   },
   loginLink: {
-    fontSize: 14,
+    fontSize: 16, // 增大字号
     fontFamily: 'Inter-SemiBold',
   },
 });

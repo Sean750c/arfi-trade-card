@@ -100,23 +100,27 @@ export default function LoginScreen() {
           <View style={styles.formContainer}>
             <Text style={[styles.formTitle, { color: colors.text }]}>Log In</Text>
             
-            <Input
-              label="Username"
-              placeholder="Enter your Username"
-              keyboardType="default"
-              value={username}
-              onChangeText={setUsername}
-              error={errors.username}
-            />
+            <View style={styles.inputContainer}>
+              <Input
+                label="Username"
+                placeholder="Enter your Username"
+                keyboardType="default"
+                value={username}
+                onChangeText={setUsername}
+                error={errors.username}
+              />
+            </View>
             
-            <Input
-              label="Password"
-              placeholder="Enter your password"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              error={errors.password}
-            />
+            <View style={styles.inputContainer}>
+              <Input
+                label="Password"
+                placeholder="Enter your password"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                error={errors.password}
+              />
+            </View>
             
             <TouchableOpacity style={styles.forgotPassword}>
               <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>
@@ -124,13 +128,15 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
             
-            <Button
-              title="Log In"
-              onPress={handleLogin}
-              style={styles.loginButton}
-              loading={isLoading}
-              fullWidth
-            />
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Log In"
+                onPress={handleLogin}
+                style={styles.loginButton}
+                loading={isLoading}
+                fullWidth
+              />
+            </View>
             
             <View style={styles.orContainer}>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -138,13 +144,15 @@ export default function LoginScreen() {
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
             </View>
             
-            <Button
-              title="Continue with Google"
-              variant="outline"
-              onPress={() => {}}
-              style={styles.socialButton}
-              fullWidth
-            />
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Continue with Google"
+                variant="outline"
+                onPress={() => {}}
+                style={styles.socialButton}
+                fullWidth
+              />
+            </View>
             
             <View style={styles.signupContainer}>
               <Text style={[styles.signupText, { color: colors.textSecondary }]}>
@@ -171,11 +179,11 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     paddingBottom: Spacing.xxl,
+    paddingHorizontal: Spacing.lg, // 添加水平内边距
   },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingHorizontal: Spacing.lg,
     paddingTop: Platform.OS === 'android' ? Spacing.xl + 20 : Spacing.lg,
     paddingBottom: Spacing.md,
     backgroundColor: 'transparent',
@@ -191,20 +199,21 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg, // 保持与表单一致的内边距
   },
   logo: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100, // 增大logo尺寸
+    height: 100,
+    borderRadius: 50,
     marginBottom: Spacing.md,
   },
   appName: {
-    fontSize: 24,
+    fontSize: 28, // 增大字体
     fontFamily: 'Inter-Bold',
     marginBottom: Spacing.xs,
   },
   tagline: {
-    fontSize: 14,
+    fontSize: 16, // 增大字体
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
   },
@@ -215,22 +224,33 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'Inter-SemiBold',
     marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg, // 与输入框对齐
+  },
+  inputContainer: {
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.lg, // 控制输入框宽度
   },
   forgotPassword: {
     alignSelf: 'flex-end',
     marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg, // 与输入框对齐
   },
   forgotPasswordText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
-  loginButton: {
+  buttonContainer: {
+    paddingHorizontal: Spacing.lg, // 控制按钮宽度
     marginBottom: Spacing.lg,
+  },
+  loginButton: {
+    // 按钮样式保留
   },
   orContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg, // 与输入框对齐
   },
   divider: {
     flex: 1,
@@ -242,12 +262,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
   },
   socialButton: {
-    marginBottom: Spacing.lg,
+    // 社交按钮样式保留
   },
   signupContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: Spacing.md,
+    paddingHorizontal: Spacing.lg, // 与输入框对齐
   },
   signupText: {
     fontSize: 14,
