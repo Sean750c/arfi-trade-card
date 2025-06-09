@@ -6,11 +6,13 @@ import { useRouter } from 'expo-router';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useAppStore } from '@/stores/useAppStore';
 import { useCountryStore } from '@/stores/useCountryStore';
+import { useBannerStore } from '@/stores/useBannerStore';
 
 export default function RootLayout() {
   const router = useRouter();
   const initialize = useAppStore((state) => state.initialize);
   const fetchCountries = useCountryStore((state) => state.fetchCountries);
+  const fetchBanners = useBannerStore((state) => state.fetchBanners);
   useFrameworkReady();
 
   useEffect(() => {
@@ -19,8 +21,11 @@ export default function RootLayout() {
         // Initialize app data
         await initialize();
         
-        // Fetch countries
-        await fetchCountries();
+        // Fetch countries and banners in parallel
+        await Promise.all([
+          fetchCountries(),
+          fetchBanners()
+        ]);
         
         // Check onboarding status
         const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
@@ -33,7 +38,7 @@ export default function RootLayout() {
     };
 
     init();
-  }, [initialize, fetchCountries, router]);
+  }, [initialize, fetchCountries, fetchBanners, router]);
 
   return (
     <>

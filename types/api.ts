@@ -48,6 +48,14 @@ export interface User {
   t_password_null: boolean;
 }
 
+export interface Banner {
+  id: number;
+  image: string;
+  action: string;
+  new_params: string;
+  params: string;
+}
+
 export interface InitData {
   fqa_url: string;
   vip_url: string;
@@ -108,3 +116,4 @@ export type CountryListResponse = APIResponse<Country[]>;
 export type InitResponse = APIResponse<InitData>;
 export type UserRegisterResponse = APIResponse<User>;
 export type UserLoginResponse = APIResponse<User>;
+export type BannerListResponse = APIResponse<Banner[]>;

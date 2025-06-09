@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useColorScheme, FlatList } from 'react-native';
 import { router } from 'expo-router';
-import { ArrowRight, Gift, ArrowDownLeft } from 'lucide-react-native';
+import { ArrowRight, Gift, ArrowDownLeft, Clock, CheckCircle, AlertCircle } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 
@@ -14,6 +14,7 @@ const transactions = [
     status: 'success',
     date: '2 hours ago',
     description: 'Steam Gift Card',
+    cardValue: '$40',
   },
   {
     id: '2',
@@ -22,6 +23,7 @@ const transactions = [
     status: 'pending',
     date: 'Yesterday',
     description: 'Amazon Gift Card',
+    cardValue: '$20',
   },
   {
     id: '3',
@@ -30,6 +32,7 @@ const transactions = [
     status: 'success',
     date: '3 days ago',
     description: 'Bank Withdrawal',
+    cardValue: null,
   },
 ];
 
@@ -50,12 +53,25 @@ export default function RecentTransactions() {
     }
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'success':
+        return <CheckCircle size={16} color={colors.success} />;
+      case 'pending':
+        return <Clock size={16} color={colors.warning} />;
+      case 'failed':
+        return <AlertCircle size={16} color={colors.error} />;
+      default:
+        return null;
+    }
+  };
+
   const getIconForType = (type: string) => {
     switch (type) {
       case 'gift_card':
-        return <Gift size={20} color={colors.secondary} />;
+        return <Gift size={20} color={colors.primary} />;
       case 'withdrawal':
-        return <ArrowDownLeft size={20} color={colors.primary} />;
+        return <ArrowDownLeft size={20} color={colors.secondary} />;
       default:
         return null;
     }
@@ -65,34 +81,60 @@ export default function RecentTransactions() {
     <TouchableOpacity
       style={[
         styles.transactionItem,
-        { borderBottomColor: colors.border },
+        { 
+          backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+          borderColor: colors.border,
+        },
       ]}
       onPress={() => router.push(`/(tabs)/wallet/transaction/${item.id}`)}
+      activeOpacity={0.7}
     >
-      <View style={[styles.iconContainer, { backgroundColor: `${colors.secondary}15` }]}>
+      <View style={[
+        styles.iconContainer, 
+        { backgroundColor: `${item.type === 'gift_card' ? colors.primary : colors.secondary}15` }
+      ]}>
         {getIconForType(item.type)}
       </View>
+      
       <View style={styles.transactionDetails}>
-        <Text style={[styles.transactionDesc, { color: colors.text }]}>{item.description}</Text>
-        <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>{item.date}</Text>
+        <View style={styles.transactionHeader}>
+          <Text style={[styles.transactionDesc, { color: colors.text }]}>
+            {item.description}
+          </Text>
+          {item.cardValue && (
+            <Text style={[styles.cardValue, { color: colors.textSecondary }]}>
+              {item.cardValue}
+            </Text>
+          )}
+        </View>
+        <View style={styles.transactionMeta}>
+          <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>
+            {item.date}
+          </Text>
+          <View style={styles.statusContainer}>
+            {getStatusIcon(item.status)}
+            <Text
+              style={[
+                styles.transactionStatus,
+                { color: getStatusColor(item.status) },
+              ]}
+            >
+              {item.status}
+            </Text>
+          </View>
+        </View>
       </View>
+      
       <View style={styles.amountContainer}>
         <Text
           style={[
             styles.transactionAmount,
-            { color: getStatusColor(item.status) },
+            { color: item.amount.includes('+') ? colors.success : colors.primary },
           ]}
         >
           {item.amount}
         </Text>
-        <Text
-          style={[
-            styles.transactionStatus,
-            { color: getStatusColor(item.status) },
-          ]}
-        >
-          {item.status}
-        </Text>
+        <ArrowRight size={16} color={colors.textSecondary} />
       </View>
     </TouchableOpacity>
   );
@@ -100,59 +142,64 @@ export default function RecentTransactions() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
         <TouchableOpacity
           style={styles.viewAllButton}
-          onPress={() => router.push('/(tabs)/wallet/transactions')}
+          onPress={() => router.push('/(tabs)/wallet')}
         >
           <Text style={[styles.viewAllText, { color: colors.primary }]}>View All</Text>
           <ArrowRight size={16} color={colors.primary} />
         </TouchableOpacity>
       </View>
       
-      <FlatList
-        data={transactions}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        scrollEnabled={false}
-      />
+      <View style={styles.transactionsList}>
+        {transactions.map((item) => (
+          <View key={item.id}>
+            {renderItem({ item })}
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
   },
   viewAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.xs,
   },
   viewAllText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    marginRight: Spacing.xs,
+    fontFamily: 'Inter-SemiBold',
+  },
+  transactionsList: {
+    gap: Spacing.sm,
   },
   transactionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
+    padding: Spacing.lg,
+    borderRadius: 16,
+    borderWidth: 1,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
@@ -160,26 +207,47 @@ const styles = StyleSheet.create({
   transactionDetails: {
     flex: 1,
   },
+  transactionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   transactionDesc: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+  cardValue: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    marginBottom: 2,
+  },
+  transactionMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   transactionDate: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
   },
-  amountContainer: {
-    alignItems: 'flex-end',
-  },
-  transactionAmount: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 2,
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   transactionStatus: {
     fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Inter-Medium',
     textTransform: 'capitalize',
+  },
+  amountContainer: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  transactionAmount: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
   },
 });
