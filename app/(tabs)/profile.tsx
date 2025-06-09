@@ -8,11 +8,14 @@ import {
   TouchableOpacity,
   useColorScheme,
   Image,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard } from 'lucide-react-native';
+import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
+import { useAuthStore } from '@/stores/useAuthStore';
+import Button from '@/components/UI/Button';
 
 type MenuItemType = {
   id: string;
@@ -21,11 +24,38 @@ type MenuItemType = {
   subtitle?: string;
   route?: string;
   badge?: React.ReactNode;
+  onPress?: () => void;
 };
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const { isAuthenticated, user, logout } = useAuthStore();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: () => {
+            logout();
+            // Optionally navigate to login or stay on profile
+          },
+        },
+      ]
+    );
+  };
+
+  const handleLogin = () => {
+    router.push('/(auth)/login');
+  };
 
   const renderMenuItem = (item: MenuItemType) => (
     <TouchableOpacity
@@ -34,7 +64,7 @@ export default function ProfileScreen() {
         styles.menuItem,
         { borderBottomColor: colors.border },
       ]}
-      onPress={() => item.route && router.push(item.route as any)}
+      onPress={item.onPress || (() => item.route && router.push(item.route as any))}
     >
       <View style={[styles.menuIconContainer, { backgroundColor: `${colors.primary}15` }]}>
         {item.icon}
@@ -54,7 +84,8 @@ export default function ProfileScreen() {
     </TouchableOpacity>
   );
 
-  const accountMenu: MenuItemType[] = [
+  // Menu items for authenticated users
+  const authenticatedAccountMenu: MenuItemType[] = [
     {
       id: '1',
       icon: <User size={20} color={colors.primary} />,
@@ -66,11 +97,11 @@ export default function ProfileScreen() {
       id: '2',
       icon: <Star size={20} color={colors.primary} />,
       title: 'VIP Membership',
-      subtitle: 'Level 2 (Silver)',
+      subtitle: `Level ${user?.vip_level || 1}`,
       route: '/profile/vip',
       badge: (
         <View style={[styles.vipBadge, { backgroundColor: colors.secondary }]}>
-          <Text style={styles.vipBadgeText}>2</Text>
+          <Text style={styles.vipBadgeText}>{user?.vip_level || 1}</Text>
         </View>
       ),
     },
@@ -83,13 +114,31 @@ export default function ProfileScreen() {
     },
   ];
 
+  // Menu items for guest users
+  const guestAccountMenu: MenuItemType[] = [
+    {
+      id: '1',
+      icon: <LogIn size={20} color={colors.primary} />,
+      title: 'Login to Your Account',
+      subtitle: 'Access your profile and transactions',
+      onPress: handleLogin,
+    },
+    {
+      id: '2',
+      icon: <User size={20} color={colors.primary} />,
+      title: 'Create Account',
+      subtitle: 'Join AfriTrade today',
+      route: '/(auth)/register',
+    },
+  ];
+
   const referralMenu: MenuItemType[] = [
     {
       id: '1',
       icon: <Users size={20} color={colors.primary} />,
       title: 'Refer & Earn',
       subtitle: 'Invite friends, earn cash rewards',
-      route: '/profile/refer',
+      route: '/refer',
     },
   ];
 
@@ -131,44 +180,101 @@ export default function ProfileScreen() {
           <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
         </View>
 
+        {/* Profile Section */}
         <View style={styles.profileSection}>
-          <Image
-            source={{ uri: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg' }}
-            style={styles.profileImage}
-          />
-          <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: colors.text }]}>Tunde Adeyemi</Text>
-            <Text style={[styles.profilePhone, { color: colors.textSecondary }]}>
-              +234 801 234 5678
-            </Text>
-          </View>
+          {isAuthenticated && user ? (
+            // Authenticated User Profile
+            <>
+              <Image
+                source={{ 
+                  uri: user.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg' 
+                }}
+                style={styles.profileImage}
+              />
+              <View style={styles.profileInfo}>
+                <Text style={[styles.profileName, { color: colors.text }]}>
+                  {user.nickname || user.username}
+                </Text>
+                <Text style={[styles.profileDetail, { color: colors.textSecondary }]}>
+                  {user.email || 'No email provided'}
+                </Text>
+                <View style={styles.profileStats}>
+                  <View style={styles.statItem}>
+                    <Text style={[styles.statValue, { color: colors.primary }]}>
+                      {user.currency_symbol}{user.money}
+                    </Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                      Balance
+                    </Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Text style={[styles.statValue, { color: colors.secondary }]}>
+                      VIP {user.vip_level}
+                    </Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                      Level
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </>
+          ) : (
+            // Guest User Profile
+            <View style={styles.guestProfile}>
+              <View style={[styles.guestAvatar, { backgroundColor: `${colors.primary}20` }]}>
+                <User size={40} color={colors.primary} />
+              </View>
+              <View style={styles.guestInfo}>
+                <Text style={[styles.guestTitle, { color: colors.text }]}>
+                  Welcome to AfriTrade
+                </Text>
+                <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>
+                  Login or create an account to get started
+                </Text>
+                <Button
+                  title="Get Started"
+                  onPress={handleLogin}
+                  style={styles.getStartedButton}
+                  size="sm"
+                />
+              </View>
+            </View>
+          )}
         </View>
 
+        {/* Menu Sections */}
         <View style={styles.menuSection}>
           <Text style={[styles.menuSectionTitle, { color: colors.text }]}>Account</Text>
-          {accountMenu.map(renderMenuItem)}
+          {isAuthenticated ? authenticatedAccountMenu.map(renderMenuItem) : guestAccountMenu.map(renderMenuItem)}
         </View>
 
-        <View style={styles.menuSection}>
-          <Text style={[styles.menuSectionTitle, { color: colors.text }]}>Referrals</Text>
-          {referralMenu.map(renderMenuItem)}
-        </View>
+        {/* Only show referral section for authenticated users */}
+        {isAuthenticated && (
+          <View style={styles.menuSection}>
+            <Text style={[styles.menuSectionTitle, { color: colors.text }]}>Referrals</Text>
+            {referralMenu.map(renderMenuItem)}
+          </View>
+        )}
 
         <View style={styles.menuSection}>
           <Text style={[styles.menuSectionTitle, { color: colors.text }]}>Other</Text>
           {otherMenu.map(renderMenuItem)}
         </View>
 
-        <TouchableOpacity
-          style={[
-            styles.logoutButton,
-            { borderColor: colors.error },
-          ]}
-          onPress={() => router.replace('/(auth)/login')}
-        >
-          <LogOut size={20} color={colors.error} />
-          <Text style={[styles.logoutText, { color: colors.error }]}>Log Out</Text>
-        </TouchableOpacity>
+        {/* Logout Button - Only for authenticated users */}
+        {isAuthenticated && (
+          <TouchableOpacity
+            style={[
+              styles.logoutButton,
+              { borderColor: colors.error },
+            ]}
+            onPress={handleLogout}
+          >
+            <LogOut size={20} color={colors.error} />
+            <Text style={[styles.logoutText, { color: colors.error }]}>Log Out</Text>
+          </TouchableOpacity>
+        )}
 
         <View style={styles.versionContainer}>
           <Text style={[styles.versionText, { color: colors.textSecondary }]}>
@@ -194,28 +300,79 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
   },
   profileSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
+    paddingBottom: Spacing.xl,
   },
   profileImage: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    marginRight: Spacing.lg,
+    marginBottom: Spacing.md,
+    alignSelf: 'center',
   },
   profileInfo: {
-    flex: 1,
+    alignItems: 'center',
   },
   profileName: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
     marginBottom: Spacing.xs,
   },
-  profilePhone: {
+  profileDetail: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
+    marginBottom: Spacing.md,
+  },
+  profileStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.lg,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+  },
+  statDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: '#E5E7EB',
+  },
+  guestProfile: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+  },
+  guestAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  guestInfo: {
+    alignItems: 'center',
+  },
+  guestTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.xs,
+  },
+  guestSubtitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+  },
+  getStartedButton: {
+    paddingHorizontal: Spacing.xl,
   },
   menuSection: {
     marginBottom: Spacing.lg,
