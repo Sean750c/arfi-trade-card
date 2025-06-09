@@ -33,7 +33,7 @@ export default function QuickActions() {
       subtitle: 'Live rates',
       icon: <TrendingUp size={24} color="#FFFFFF" />,
       route: '/rates',
-      color: colors.secondary,
+      color: '#8B5CF6',
     },
     {
       id: '3',
@@ -71,7 +71,7 @@ export default function QuickActions() {
               styles.actionItem,
               { backgroundColor: action.color },
             ]}
-            onPress={() => router.push(action.route)}
+            onPress={() => router.push(action.route as any)}
             activeOpacity={0.8}
           >
             <View style={styles.actionContent}>

@@ -33,13 +33,6 @@ export default function HomeScreen() {
     setShowCountryPicker(false);
   };
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  };
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
@@ -49,9 +42,6 @@ export default function HomeScreen() {
         {/* Enhanced Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={[styles.greeting, { color: colors.textSecondary }]}>
-              {getGreeting()} 👋
-            </Text>
             
             {/* User Info Section */}
             <View style={styles.userInfoContainer}>
@@ -62,8 +52,8 @@ export default function HomeScreen() {
                       {user.username}
                     </Text>
                     <View style={styles.vipContainer}>
-                      <Sparkles size={14} color={colors.secondary} />
-                      <Text style={[styles.vipLevel, { color: colors.secondary }]}>
+                      <Sparkles size={14} color={colors.primary} />
+                      <Text style={[styles.vipLevel, { color: colors.primary }]}>
                         VIP Level {user.vip_level}
                       </Text>
                     </View>
@@ -82,7 +72,7 @@ export default function HomeScreen() {
               ) : (
                 <View style={styles.guestContainer}>
                   <Text style={[styles.guestTitle, { color: colors.text }]}>
-                    Welcome to AfriTrade
+                    Welcome Back!
                   </Text>
                   <TouchableOpacity
                     style={[styles.countrySelector, { backgroundColor: `${colors.primary}15` }]}
