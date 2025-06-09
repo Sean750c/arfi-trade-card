@@ -9,6 +9,7 @@ import {
   useColorScheme,
   Image,
   Alert,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn } from 'lucide-react-native';
@@ -30,33 +31,42 @@ type MenuItemType = {
 export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user, logout, isLoading } = useAuthStore();
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: () => {
-            try {
-              logout();
-              console.log('User logged out successfully');
-              // The UI will automatically update due to the state change
-            } catch (error) {
-              console.error('Logout error:', error);
-              Alert.alert('Error', 'Failed to logout. Please try again.');
-            }
+    const confirmLogout = async () => {
+      try {
+        await logout();
+        // No need to navigate as the UI will update automatically
+      } catch (error) {
+        console.error('Logout error:', error);
+        Alert.alert('Error', 'Failed to logout completely. Please try again.');
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      // For web, use a simple confirm dialog
+      if (window.confirm('Are you sure you want to logout?')) {
+        confirmLogout();
+      }
+    } else {
+      // For mobile, use React Native Alert
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to logout?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
           },
-        },
-      ]
-    );
+          {
+            text: 'Logout',
+            style: 'destructive',
+            onPress: confirmLogout,
+          },
+        ]
+      );
+    }
   };
 
   const handleLogin = () => {
@@ -277,14 +287,18 @@ export default function ProfileScreen() {
               { 
                 borderColor: colors.error,
                 backgroundColor: 'transparent',
+                opacity: isLoading ? 0.6 : 1,
               },
             ]}
             onPress={handleLogout}
+            disabled={isLoading}
             activeOpacity={0.7}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
           >
             <LogOut size={20} color={colors.error} />
-            <Text style={[styles.logoutText, { color: colors.error }]}>Log Out</Text>
+            <Text style={[styles.logoutText, { color: colors.error }]}>
+              {isLoading ? 'Logging out...' : 'Log Out'}
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -448,6 +462,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     marginBottom: Spacing.lg,
+    minHeight: 56,
   },
   logoutText: {
     fontSize: 16,

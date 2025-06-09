@@ -8,7 +8,7 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   register: (params: {
     username: string;
     password: string;
@@ -21,7 +21,7 @@ interface AuthState {
   }) => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   user: null,
   isLoading: false,
@@ -30,11 +30,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await AuthService.login(username, password);
-      // console.log('response data:', response);
       set({
         isAuthenticated: true,
         user: {
-          ...response, // 展开所有字段（包括 token 和用户信息）
+          ...response,
         },
         isLoading: false,
         error: null,
@@ -47,7 +46,38 @@ export const useAuthStore = create<AuthState>((set) => ({
       throw error;
     }
   },
-  logout: () => set({ isAuthenticated: false, user: null, error: null }),
+  logout: async () => {
+    const { user } = get();
+    set({ isLoading: true, error: null });
+    
+    try {
+      // Call logout API if user has a token
+      if (user?.token) {
+        await AuthService.logout(user.token);
+      }
+      
+      // Clear local state regardless of API call result
+      set({ 
+        isAuthenticated: false, 
+        user: null, 
+        isLoading: false,
+        error: null 
+      });
+      
+      console.log('User logged out successfully');
+    } catch (error) {
+      // Even if API call fails, clear local state
+      set({ 
+        isAuthenticated: false, 
+        user: null, 
+        isLoading: false,
+        error: null 
+      });
+      
+      console.warn('Logout API call failed, but local state cleared:', error);
+      // Don't throw error here to ensure logout always succeeds locally
+    }
+  },
   register: async (params) => {
     set({ isLoading: true, error: null });
     try {
@@ -55,7 +85,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({
         isAuthenticated: true,
         user: {
-          ...response, // 展开所有字段（包括 token 和用户信息）
+          ...response,
         },
         isLoading: false,
         error: null,

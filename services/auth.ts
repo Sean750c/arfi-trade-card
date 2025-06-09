@@ -70,4 +70,27 @@ export class AuthService {
       throw new Error('Login failed');
     }
   }
+
+  static async logout(token: string) {
+    try {
+      const response = await APIRequest.request(
+        '/gc/user/applogout',
+        'POST',
+        {
+          token,
+        }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Logout failed');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Logout failed: ${error.message}`);
+      }
+      throw new Error('Logout failed');
+    }
+  }
 }
