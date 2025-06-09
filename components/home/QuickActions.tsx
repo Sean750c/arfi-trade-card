@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 import { router } from 'expo-router';
-import { Gift, TrendingUp, Users, CreditCard, Zap, BarChart3 } from 'lucide-react-native';
+import { Gift, TrendingUp, Users, CreditCard, Zap, ChartBar as BarChart3 } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 

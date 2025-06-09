@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useColorScheme, FlatList } from 'react-native';
 import { router } from 'expo-router';
-import { ArrowRight, Gift, ArrowDownLeft, Clock, CheckCircle, AlertCircle } from 'lucide-react-native';
+import { ArrowRight, Gift, ArrowDownLeft, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 
