@@ -45,8 +45,14 @@ export default function ProfileScreen() {
           text: 'Logout',
           style: 'destructive',
           onPress: () => {
-            logout();
-            // Optionally navigate to login or stay on profile
+            try {
+              logout();
+              console.log('User logged out successfully');
+              // The UI will automatically update due to the state change
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
           },
         },
       ]
@@ -65,6 +71,7 @@ export default function ProfileScreen() {
         { borderBottomColor: colors.border },
       ]}
       onPress={item.onPress || (() => item.route && router.push(item.route as any))}
+      activeOpacity={0.7}
     >
       <View style={[styles.menuIconContainer, { backgroundColor: `${colors.primary}15` }]}>
         {item.icon}
@@ -267,9 +274,14 @@ export default function ProfileScreen() {
           <TouchableOpacity
             style={[
               styles.logoutButton,
-              { borderColor: colors.error },
+              { 
+                borderColor: colors.error,
+                backgroundColor: 'transparent',
+              },
             ]}
             onPress={handleLogout}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <LogOut size={20} color={colors.error} />
             <Text style={[styles.logoutText, { color: colors.error }]}>Log Out</Text>
@@ -432,14 +444,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: 8,
-    borderWidth: 1,
+    paddingVertical: Spacing.lg,
+    borderRadius: 12,
+    borderWidth: 2,
     marginBottom: Spacing.lg,
   },
   logoutText: {
     fontSize: 16,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Inter-SemiBold',
     marginLeft: Spacing.sm,
   },
   versionContainer: {
