@@ -16,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import Card from '@/components/UI/Card';
+import AuthGuard from '@/components/UI/AuthGuard';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 
@@ -28,7 +29,7 @@ const giftCardTypes = [
   { id: '5', name: 'Other', rate: 'Varies' },
 ];
 
-export default function SellScreen() {
+function SellScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   
@@ -53,7 +54,6 @@ export default function SellScreen() {
     });
     
     if (!result.canceled) {
-      // Handle image
       setHasImage(true);
     }
   };
@@ -73,7 +73,6 @@ export default function SellScreen() {
     });
     
     if (!result.canceled) {
-      // Handle image
       setHasImage(true);
     }
   };
@@ -88,7 +87,6 @@ export default function SellScreen() {
   
   const handleSubmit = () => {
     if (isFormValid()) {
-      // In a real app, we'd send the card data to the server
       router.push('/sell-confirmation' as any);
     }
   };
@@ -345,6 +343,14 @@ export default function SellScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+export default function SellScreen() {
+  return (
+    <AuthGuard>
+      <SellScreenContent />
+    </AuthGuard>
   );
 }
 

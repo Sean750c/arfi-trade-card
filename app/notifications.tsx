@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
+import AuthGuard from '@/components/UI/AuthGuard';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 
@@ -39,7 +40,7 @@ const notifications = [
   },
 ];
 
-export default function NotificationsScreen() {
+function NotificationsScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
 
@@ -49,7 +50,7 @@ export default function NotificationsScreen() {
         <TouchableOpacity 
           onPress={() => router.back()} 
           style={styles.backButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // Increased touch area
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
@@ -98,6 +99,14 @@ export default function NotificationsScreen() {
   );
 }
 
+export default function NotificationsScreen() {
+  return (
+    <AuthGuard>
+      <NotificationsScreenContent />
+    </AuthGuard>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -106,15 +115,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Platform.OS === 'ios' ? Spacing.lg : Spacing.xl + 20, // Extra padding for Android status bar
+    paddingTop: Platform.OS === 'ios' ? Spacing.lg : Spacing.xl + 20,
     paddingBottom: Spacing.md,
   },
   androidHeader: {
-    paddingTop: Spacing.xl + 20, // Extra padding for Android status bar
+    paddingTop: Spacing.xl + 20,
   },
   backButton: {
     marginRight: Spacing.md,
-    padding: Spacing.xs, // Increased touch target
+    padding: Spacing.xs,
   },
   headerContent: {
     flex: 1,

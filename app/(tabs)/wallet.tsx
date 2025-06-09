@@ -12,6 +12,7 @@ import { router } from 'expo-router';
 import { ArrowUpRight, ArrowDownRight, Gift, Filter } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
 import Card from '@/components/UI/Card';
+import AuthGuard from '@/components/UI/AuthGuard';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 
@@ -64,7 +65,7 @@ const transactions = [
   },
 ];
 
-export default function WalletScreen() {
+function WalletScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   
@@ -251,6 +252,14 @@ export default function WalletScreen() {
         contentContainerStyle={styles.transactionsList}
       />
     </SafeAreaView>
+  );
+}
+
+export default function WalletScreen() {
+  return (
+    <AuthGuard>
+      <WalletScreenContent />
+    </AuthGuard>
   );
 }
 

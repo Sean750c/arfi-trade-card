@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
+import { useAuthProtection } from '@/hooks/useAuthProtection';
 import { useAppStore } from '@/stores/useAppStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useBannerStore } from '@/stores/useBannerStore';
@@ -13,7 +14,9 @@ export default function RootLayout() {
   const initialize = useAppStore((state) => state.initialize);
   const fetchCountries = useCountryStore((state) => state.fetchCountries);
   const fetchBanners = useBannerStore((state) => state.fetchBanners);
+  
   useFrameworkReady();
+  useAuthProtection(); // Add auth protection
 
   useEffect(() => {
     const init = async () => {
@@ -47,6 +50,9 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="notifications" options={{ headerShown: false }} />
+        <Stack.Screen name="rates" options={{ headerShown: false }} />
+        <Stack.Screen name="refer" options={{ headerShown: false }} />
       </Stack>
     </>
   );

@@ -15,6 +15,7 @@ import { Share, Copy, Users, User, ArrowRight, ChevronLeft } from 'lucide-react-
 import { router } from 'expo-router';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
+import AuthGuard from '@/components/UI/AuthGuard';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 
@@ -25,20 +26,18 @@ const referrals = [
   { id: '3', name: 'Alex Johnson', date: '2023-04-22', earnings: '₦1,000' },
 ];
 
-export default function ReferScreen() {
+function ReferScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   
   const [referralLink] = useState('https://afritrade.com/ref/tunde123');
   
   const handleCopyLink = () => {
-    // In a real app, you would use Clipboard.setString(referralLink)
     Alert.alert('Link Copied', 'Referral link copied to clipboard!');
   };
   
   const handleShare = async () => {
     try {
-      // In a real app, you would use the Share API
       if (Platform.OS === 'web') {
         Alert.alert('Share', 'Sharing is not available on web');
       } else {
@@ -273,6 +272,14 @@ export default function ReferScreen() {
         />
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+export default function ReferScreen() {
+  return (
+    <AuthGuard>
+      <ReferScreenContent />
+    </AuthGuard>
   );
 }
 
