@@ -10,7 +10,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Bell, ChevronDown, Sparkles } from 'lucide-react-native';
+import { Bell, ChevronDown, Sparkles, Eye, EyeOff } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import PromoBanner from '@/components/home/PromoBanner';
@@ -25,6 +25,7 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [balanceVisible, setBalanceVisible] = useState(true);
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { isAuthenticated, user } = useAuthStore();
 
@@ -33,66 +34,90 @@ export default function HomeScreen() {
     setShowCountryPicker(false);
   };
 
+  const toggleBalanceVisibility = () => {
+    setBalanceVisible(!balanceVisible);
+  };
+
+  const formatBalance = (amount: string) => {
+    if (!balanceVisible) {
+      return '****';
+    }
+    return amount;
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Enhanced Header */}
+        {/* Compact Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            
-            {/* User Info Section */}
-            <View style={styles.userInfoContainer}>
+            {/* Country Display - Always on Left */}
+            <View style={styles.locationContainer}>
               {isAuthenticated && user ? (
-                <View style={styles.userInfoRow}>
-                  <View style={styles.userMainInfo}>
-                    <Text style={[styles.userName, { color: colors.text }]}>
-                      {user.username}
-                    </Text>
-                    <View style={styles.vipContainer}>
-                      <Sparkles size={14} color={colors.primary} />
-                      <Text style={[styles.vipLevel, { color: colors.primary }]}>
-                        VIP Level {user.vip_level}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}15` }]}>
+                <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}15` }]}>
+                  <Image 
+                    source={{ uri: user.country_logo_image }} 
+                    style={styles.flagImage} 
+                    resizeMode="cover"
+                  />
+                  <Text style={[styles.countryText, { color: colors.text }]}>
+                    {user.country_name}
+                  </Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.countrySelector, { backgroundColor: `${colors.primary}15` }]}
+                  onPress={() => setShowCountryPicker(!showCountryPicker)}
+                >
+                  <View style={styles.countryInfoContainer}>
                     <Image 
-                      source={{ uri: user.country_logo_image }} 
+                      source={{ uri: selectedCountry?.image }} 
                       style={styles.flagImage} 
                       resizeMode="cover"
                     />
                     <Text style={[styles.countryText, { color: colors.text }]}>
-                      {user.country_name}
+                      {selectedCountry?.name}
+                    </Text>
+                  </View>
+                  <ChevronDown size={14} color={colors.text} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* User Info - Compact */}
+            {isAuthenticated && user && (
+              <View style={styles.userInfoCompact}>
+                <Text style={[styles.welcomeText, { color: colors.textSecondary }]}>
+                  Welcome back,
+                </Text>
+                <View style={styles.userNameRow}>
+                  <Text style={[styles.userName, { color: colors.text }]}>
+                    {user.username}
+                  </Text>
+                  <View style={styles.vipBadge}>
+                    <Sparkles size={12} color={colors.primary} />
+                    <Text style={[styles.vipText, { color: colors.primary }]}>
+                      VIP {user.vip_level}
                     </Text>
                   </View>
                 </View>
-              ) : (
-                <View style={styles.guestContainer}>
-                  <Text style={[styles.guestTitle, { color: colors.text }]}>
-                    Welcome Back!
-                  </Text>
-                  <TouchableOpacity
-                    style={[styles.countrySelector, { backgroundColor: `${colors.primary}15` }]}
-                    onPress={() => setShowCountryPicker(!showCountryPicker)}
-                  >
-                    <View style={styles.countryInfoContainer}>
-                      <Image 
-                        source={{ uri: selectedCountry?.image }} 
-                        style={styles.flagImage} 
-                        resizeMode="cover"
-                      />
-                      <Text style={[styles.countryText, { color: colors.text }]}>
-                        {selectedCountry?.name}
-                      </Text>
-                    </View>
-                    <ChevronDown size={16} color={colors.text} />
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
+              </View>
+            )}
+
+            {/* Guest Welcome */}
+            {!isAuthenticated && (
+              <View style={styles.guestWelcome}>
+                <Text style={[styles.guestTitle, { color: colors.text }]}>
+                  Welcome to AfriTrade
+                </Text>
+                <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>
+                  Trade gift cards at the best rates
+                </Text>
+              </View>
+            )}
 
             {/* Country Picker Dropdown */}
             {showCountryPicker && !isAuthenticated && (
@@ -135,7 +160,7 @@ export default function HomeScreen() {
             )}
           </View>
 
-          {/* Enhanced Notification Button */}
+          {/* Notification Button */}
           <TouchableOpacity
             style={[styles.notificationButton, { backgroundColor: `${colors.primary}15` }]}
             onPress={() => router.push('/notifications')}
@@ -147,7 +172,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Balance Card for Authenticated Users */}
+        {/* Compact Balance Card for Authenticated Users */}
         {isAuthenticated && user && (
           <View style={[
             styles.balanceCard,
@@ -157,16 +182,26 @@ export default function HomeScreen() {
             }
           ]}>
             <View style={styles.balanceHeader}>
-              <Text style={styles.balanceLabel}>Total Balance</Text>
-              <TouchableOpacity style={styles.eyeButton}>
-                <Text style={styles.eyeButtonText}>👁️</Text>
+              <View style={styles.balanceInfo}>
+                <Text style={styles.balanceLabel}>Total Balance</Text>
+                <Text style={styles.balanceAmount}>
+                  {user.currency_symbol}{formatBalance(user.money)}
+                </Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.eyeButton}
+                onPress={toggleBalanceVisibility}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                {balanceVisible ? (
+                  <Eye size={20} color="rgba(255, 255, 255, 0.8)" />
+                ) : (
+                  <EyeOff size={20} color="rgba(255, 255, 255, 0.8)" />
+                )}
               </TouchableOpacity>
             </View>
-            <Text style={styles.balanceAmount}>
-              {user.currency_symbol}{user.money}
-            </Text>
             <Text style={styles.rebateBalance}>
-              Rebate: {user.currency_symbol}{user.rebate_money}
+              Rebate: {user.currency_symbol}{formatBalance(user.rebate_money)}
             </Text>
           </View>
         )}
@@ -193,87 +228,94 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   headerLeft: {
     flex: 1,
     position: 'relative',
   },
-  greeting: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    marginBottom: Spacing.xs,
-  },
-  userInfoContainer: {
+  locationContainer: {
     marginBottom: Spacing.sm,
-  },
-  userInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  userMainInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    marginBottom: 4,
-  },
-  vipContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  vipLevel: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-  },
-  guestContainer: {
-    gap: Spacing.sm,
-  },
-  guestTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
   },
   countrySelector: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 12,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: 8,
     alignSelf: 'flex-start',
-    minWidth: 140,
+    minWidth: 120,
   },
   countryDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 12,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
   countryInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.xs,
   },
   flagImage: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
   },
   countryText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Inter-SemiBold',
   },
   countryOptionText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
+  userInfoCompact: {
+    gap: 2,
+  },
+  welcomeText: {
+    fontSize: 13,
+    fontFamily: 'Inter-Regular',
+  },
+  userNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  userName: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+  },
+  vipBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    backgroundColor: 'rgba(0, 135, 81, 0.1)',
+    borderRadius: 4,
+  },
+  vipText: {
+    fontSize: 10,
+    fontFamily: 'Inter-SemiBold',
+  },
+  guestWelcome: {
+    gap: 2,
+  },
+  guestTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+  },
+  guestSubtitle: {
+    fontSize: 13,
+    fontFamily: 'Inter-Regular',
+  },
   countryDropdown: {
     position: 'absolute',
-    top: 80,
+    top: 60,
     left: 0,
     right: 0,
     maxHeight: 200,
@@ -292,14 +334,14 @@ const styles = StyleSheet.create({
     maxHeight: 200,
   },
   countryOption: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
   },
   notificationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -308,55 +350,57 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -2,
     right: -2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
   notificationCount: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: 'Inter-Bold',
   },
   balanceCard: {
-    borderRadius: 20,
-    padding: Spacing.xl,
-    marginBottom: Spacing.xl,
+    borderRadius: 16,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 4,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   balanceHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  balanceInfo: {
+    flex: 1,
   },
   balanceLabel: {
     color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Inter-Medium',
-  },
-  eyeButton: {
-    padding: 4,
-  },
-  eyeButtonText: {
-    fontSize: 16,
+    marginBottom: 4,
   },
   balanceAmount: {
     color: '#FFFFFF',
-    fontSize: 32,
+    fontSize: 24,
     fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.xs,
+  },
+  eyeButton: {
+    padding: Spacing.xs,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   rebateBalance: {
     color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-Medium',
   },
 });

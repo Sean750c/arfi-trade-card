@@ -153,7 +153,7 @@ export default function PromoBanner() {
                 styles.paginationDot,
                 {
                   backgroundColor: index === activeIndex ? colors.primary : colors.tabIconDefault,
-                  width: index === activeIndex ? 24 : 8,
+                  width: index === activeIndex ? 20 : 6,
                 },
               ]}
               onPress={() => setActiveIndex(index)}
@@ -167,7 +167,7 @@ export default function PromoBanner() {
 
 const styles = StyleSheet.create({
   container: {
-    height: 200,
+    height: 160,
     marginBottom: Spacing.lg,
   },
   loadingContainer: {
@@ -180,68 +180,67 @@ const styles = StyleSheet.create({
   },
   loadingBanner: {
     width: '100%',
-    height: 180,
-    borderRadius: 16,
+    height: 140,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   errorBanner: {
     width: '100%',
-    height: 180,
-    borderRadius: 16,
+    height: 140,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.lg,
   },
   loadingText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-  },
-  errorText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    textAlign: 'center',
-    marginBottom: Spacing.md,
-  },
-  retryButton: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
+  errorText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: 6,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
   slide: {
-    height: 180,
+    height: 140,
     position: 'relative',
   },
   image: {
     width: '100%',
     height: '100%',
-    borderRadius: 16,
+    borderRadius: 12,
   },
   overlay: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '40%',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    height: '30%',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
   },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: Spacing.md,
+    marginTop: Spacing.sm,
   },
   paginationDot: {
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
-    transition: 'all 0.3s ease',
+    height: 6,
+    borderRadius: 3,
+    marginHorizontal: 3,
   },
 });
