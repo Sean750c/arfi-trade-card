@@ -25,7 +25,7 @@ export class NotificationService {
 
   static async markAsRead(noticeId: number, token: string) {
     try {
-      const response = await APIRequest.request(
+      const response = await APIRequest.request<NoticeListResponse>(
         '/gc/finder/readNotice',
         'POST',
         {

@@ -193,7 +193,7 @@ export default function HomeScreen() {
               disabled={initLoading}
             >
               {initLoading ? (
-                <ActivityIndicator size="small\" color={colors.primary} />
+                <ActivityIndicator size="small" color={colors.primary} />
               ) : (
                 <RefreshCw size={18} color={colors.primary} />
               )}
@@ -208,7 +208,7 @@ export default function HomeScreen() {
               {(initData?.notice_count || 0) > 0 && (
                 <View style={[styles.notificationBadge, { backgroundColor: colors.error }]}>
                   <Text style={styles.notificationCount}>
-                    {initData.notice_count > 99 ? '99+' : initData.notice_count}
+                    {initData?.notice_count || 0 > 99 ? '99+' : initData?.notice_count}
                   </Text>
                 </View>
               )}
