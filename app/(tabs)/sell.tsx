@@ -15,11 +15,28 @@ import {
   TextInput,
   Modal,
   FlatList,
-  PanResponder,
-  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Plus, Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, X, ArrowLeft, Star, Medal, Award, Zap, CircleHelp as HelpCircle, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { 
+  Plus, 
+  Calculator, 
+  MessageCircle, 
+  Crown, 
+  ChevronRight, 
+  ChevronDown, 
+  Trophy, 
+  TrendingUp, 
+  Phone, 
+  Camera, 
+  Image as ImageIcon, 
+  CircleCheck as CheckCircle, 
+  X,
+  ArrowLeft,
+  Star,
+  Medal,
+  Award,
+  Zap
+} from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Button from '@/components/UI/Button';
 import AuthGuard from '@/components/UI/AuthGuard';
@@ -27,8 +44,6 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { APIRequest } from '@/utils/api';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface SelectedCard {
   id: string;
@@ -58,12 +73,6 @@ interface RankingUser {
   avatar: string;
 }
 
-interface FAQ {
-  id: number;
-  question: string;
-  answer: string;
-}
-
 function SellScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
@@ -76,47 +85,11 @@ function SellScreenContent() {
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [showVIPModal, setShowVIPModal] = useState(false);
   const [showRankingModal, setShowRankingModal] = useState(false);
-  const [showHelpModal, setShowHelpModal] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState<Coupon[]>([]);
   const [loadingCoupons, setLoadingCoupons] = useState(false);
   
-  // Draggable help button state
-  const helpButtonPosition = useRef(new Animated.ValueXY({ x: screenWidth - 80, y: screenHeight - 200 })).current;
-  const helpButtonScale = useRef(new Animated.Value(1)).current;
-
-  // FAQ data
-  const faqData: FAQ[] = [
-    {
-      id: 1,
-      question: "What types of gift cards do you accept?",
-      answer: "We accept a wide variety of gift cards including Amazon, iTunes, Google Play, Steam, Visa, Mastercard, and many more. Check our rates page for the complete list."
-    },
-    {
-      id: 2,
-      question: "How long does it take to process my cards?",
-      answer: "Most transactions are processed within 5-15 minutes. Complex transactions may take up to 1 hour during peak times."
-    },
-    {
-      id: 3,
-      question: "What information do I need to provide?",
-      answer: "You need to provide clear photos of both sides of your gift card, including the card number and security code. Additional verification may be required for high-value cards."
-    },
-    {
-      id: 4,
-      question: "How do I get better rates?",
-      answer: "Upgrade your VIP level by increasing your monthly trading volume. Higher VIP levels get better exchange rates and exclusive bonuses."
-    },
-    {
-      id: 5,
-      question: "Is my transaction secure?",
-      answer: "Yes, we use bank-level encryption and security measures. All transactions are monitored and protected by our advanced fraud detection system."
-    },
-    {
-      id: 6,
-      question: "Can I cancel a transaction?",
-      answer: "Transactions can only be cancelled before processing begins. Once processing starts, cancellation is not possible for security reasons."
-    }
-  ];
+  const customerServiceAnim = useRef(new Animated.Value(1)).current;
+  const sellButtonAnim = useRef(new Animated.Value(0)).current;
 
   // Mock VIP data
   const vipLevels: VIPLevel[] = [
@@ -154,38 +127,34 @@ function SellScreenContent() {
     { id: 4, username: user?.username || 'You', rank: 15, volume: '$12,450', badge: 'Silver', avatar: user?.avatar || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg' },
   ];
 
-  // Create PanResponder for draggable help button
-  const helpButtonPanResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        Animated.spring(helpButtonScale, {
-          toValue: 1.1,
+  // Animations
+  useEffect(() => {
+    const customerPulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(customerServiceAnim, {
+          toValue: 1.05,
+          duration: 2000,
           useNativeDriver: true,
-        }).start();
-      },
-      onPanResponderMove: Animated.event(
-        [null, { dx: helpButtonPosition.x, dy: helpButtonPosition.y }],
-        { useNativeDriver: false }
-      ),
-      onPanResponderRelease: (evt, gestureState) => {
-        Animated.spring(helpButtonScale, {
+        }),
+        Animated.timing(customerServiceAnim, {
           toValue: 1,
+          duration: 2000,
           useNativeDriver: true,
-        }).start();
+        }),
+      ])
+    );
+    customerPulse.start();
 
-        // Snap to edges
-        const { dx, dy } = gestureState;
-        const finalX = dx > screenWidth / 2 ? screenWidth - 60 : 20;
-        const finalY = Math.max(100, Math.min(screenHeight - 200, dy));
+    // Floating sell button entrance animation
+    Animated.spring(sellButtonAnim, {
+      toValue: 1,
+      tension: 100,
+      friction: 8,
+      useNativeDriver: true,
+    }).start();
 
-        Animated.spring(helpButtonPosition, {
-          toValue: { x: finalX, y: finalY },
-          useNativeDriver: false,
-        }).start();
-      },
-    })
-  ).current;
+    return () => customerPulse.stop();
+  }, []);
 
   // Fetch available coupons
   const fetchAvailableCoupons = async () => {
@@ -360,7 +329,7 @@ function SellScreenContent() {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      {/* Left side: Return button */}
+      {/* Return button in top-left */}
       <TouchableOpacity
         style={[styles.returnButton, { backgroundColor: `${colors.primary}15` }]}
         onPress={() => router.back()}
@@ -368,9 +337,17 @@ function SellScreenContent() {
         <ArrowLeft size={20} color={colors.primary} />
       </TouchableOpacity>
 
+      {/* Calculator button next to return */}
+      <TouchableOpacity
+        style={[styles.calculatorButton, { backgroundColor: colors.primary }]}
+        onPress={() => router.push('/calculator' as any)}
+      >
+        <Calculator size={20} color="#FFFFFF" />
+      </TouchableOpacity>
+
       <View style={styles.headerSpacer} />
 
-      {/* Right side: Contact us button */}
+      {/* Contact us button in upper right */}
       <TouchableOpacity 
         onPress={() => Alert.alert('Contact Us', 'Get help via WhatsApp, Email, or Live Chat.')}
         style={[styles.contactButton, { backgroundColor: colors.primary }]}
@@ -381,235 +358,163 @@ function SellScreenContent() {
     </View>
   );
 
-  const renderLeftColumn = () => (
-    <View style={styles.leftColumn}>
-      {/* Card Upload Section */}
-      <View style={styles.uploadSection}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Card Information</Text>
-        
-        <TextInput
+  const renderCardUploadSection = () => (
+    <View style={styles.uploadSection}>
+      <Text style={[styles.uploadHint, { color: colors.textSecondary }]}>
+        You can enter card info here or leave it blank
+      </Text>
+      
+      <TextInput
+        style={[
+          styles.cardInfoInput,
+          {
+            color: colors.text,
+            backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+            borderColor: colors.border,
+          },
+        ]}
+        placeholder="Enter card details, codes, or any additional information..."
+        placeholderTextColor={colors.textSecondary}
+        value={cardInfo}
+        onChangeText={setCardInfo}
+        multiline
+        numberOfLines={2}
+        textAlignVertical="top"
+      />
+      
+      <Text style={[styles.uploadLimit, { color: colors.textSecondary }]}>
+        Upload gift cards, no more than 10 at a time
+      </Text>
+      
+      <TouchableOpacity
+        style={[
+          styles.uploadButton,
+          { 
+            backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+            borderColor: colors.border,
+          },
+        ]}
+        onPress={addCardImage}
+      >
+        <Plus size={32} color={colors.textSecondary} />
+      </TouchableOpacity>
+      
+      {/* Display uploaded cards */}
+      {selectedCards.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardPreviewContainer}>
+          {selectedCards.map((card) => (
+            <View key={card.id} style={styles.cardPreview}>
+              <Image source={{ uri: card.image }} style={styles.cardPreviewImage} />
+              <TouchableOpacity
+                style={[styles.removeCardButton, { backgroundColor: colors.error }]}
+                onPress={() => removeCard(card.id)}
+              >
+                <X size={12} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+    </View>
+  );
+
+  const renderWalletSelection = () => (
+    <View style={styles.walletSection}>
+      <View style={styles.walletHeader}>
+        <Crown size={20} color={colors.primary} />
+        <Text style={[styles.walletTitle, { color: colors.text }]}>Select Wallet</Text>
+      </View>
+      
+      <View style={styles.walletOptions}>
+        <TouchableOpacity
           style={[
-            styles.cardInfoInput,
+            styles.walletOption,
             {
-              color: colors.text,
-              backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+              backgroundColor: selectedWallet === 'NGN' ? colors.primary : 'transparent',
               borderColor: colors.border,
             },
           ]}
-          placeholder="Enter card details, codes, or any additional information..."
-          placeholderTextColor={colors.textSecondary}
-          value={cardInfo}
-          onChangeText={setCardInfo}
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-        />
-        
-        <Text style={[styles.uploadHint, { color: colors.textSecondary }]}>
-          Upload gift cards (max 10 per transaction)
-        </Text>
+          onPress={() => setSelectedWallet('NGN')}
+        >
+          <Text style={[
+            styles.walletOptionText,
+            { color: selectedWallet === 'NGN' ? '#FFFFFF' : colors.text }
+          ]}>
+            NGN
+          </Text>
+        </TouchableOpacity>
         
         <TouchableOpacity
           style={[
-            styles.uploadButton,
-            { 
-              backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+            styles.walletOption,
+            {
+              backgroundColor: selectedWallet === 'USDT' ? colors.primary : 'transparent',
               borderColor: colors.border,
             },
           ]}
-          onPress={addCardImage}
+          onPress={() => setSelectedWallet('USDT')}
         >
-          <Plus size={24} color={colors.primary} />
-          <Text style={[styles.uploadButtonText, { color: colors.primary }]}>Add Card Image</Text>
-        </TouchableOpacity>
-        
-        {/* Display uploaded cards */}
-        {selectedCards.length > 0 && (
-          <View style={styles.cardPreviewGrid}>
-            {selectedCards.map((card) => (
-              <View key={card.id} style={styles.cardPreview}>
-                <Image source={{ uri: card.image }} style={styles.cardPreviewImage} />
-                <TouchableOpacity
-                  style={[styles.removeCardButton, { backgroundColor: colors.error }]}
-                  onPress={() => removeCard(card.id)}
-                >
-                  <X size={12} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-
-      {/* Wallet Selection */}
-      <View style={styles.walletSection}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Select Wallet</Text>
-        
-        <View style={styles.walletOptions}>
-          <TouchableOpacity
-            style={[
-              styles.walletOption,
-              {
-                backgroundColor: selectedWallet === 'NGN' ? colors.primary : 'transparent',
-                borderColor: selectedWallet === 'NGN' ? colors.primary : colors.border,
-              },
-            ]}
-            onPress={() => setSelectedWallet('NGN')}
-          >
-            <Text style={[
-              styles.walletOptionText,
-              { color: selectedWallet === 'NGN' ? '#FFFFFF' : colors.text }
-            ]}>
-              NGN Wallet
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[
-              styles.walletOption,
-              {
-                backgroundColor: selectedWallet === 'USDT' ? colors.primary : 'transparent',
-                borderColor: selectedWallet === 'USDT' ? colors.primary : colors.border,
-              },
-            ]}
-            onPress={() => setSelectedWallet('USDT')}
-          >
-            <Text style={[
-              styles.walletOptionText,
-              { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }
-            ]}>
-              USDT Wallet
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Discount Code */}
-      <View style={styles.discountSection}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Discount Code</Text>
-        
-        <TouchableOpacity 
-          style={[
-            styles.discountSelector,
-            { 
-              backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
-              borderColor: colors.border,
-            }
-          ]}
-          onPress={() => {
-            fetchAvailableCoupons();
-            setShowCouponModal(true);
-          }}
-        >
-          <Text style={[styles.discountText, { color: colors.text }]}>
-            {selectedCoupon ? `${selectedCoupon.name} (${selectedCoupon.discount})` : 'Select discount code'}
+          <Text style={[
+            styles.walletOptionText,
+            { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }
+          ]}>
+            USDT
           </Text>
-          <ChevronDown size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  const renderRightColumn = () => (
-    <View style={styles.rightColumn}>
-      {/* Calculator Button */}
-      <TouchableOpacity
-        style={[styles.calculatorCard, { backgroundColor: colors.primary }]}
-        onPress={() => router.push('/calculator' as any)}
-      >
-        <Calculator size={24} color="#FFFFFF" />
-        <Text style={styles.calculatorText}>Rate Calculator</Text>
-        <Text style={styles.calculatorSubtext}>Calculate your earnings</Text>
-      </TouchableOpacity>
+  const renderDiscountSection = () => (
+    <TouchableOpacity 
+      style={[
+        styles.discountSection,
+        { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }
+      ]}
+      onPress={() => {
+        fetchAvailableCoupons();
+        setShowCouponModal(true);
+      }}
+    >
+      <View style={styles.discountContent}>
+        <Text style={[styles.discountText, { color: colors.text }]}>
+          {selectedCoupon ? `${selectedCoupon.name} (${selectedCoupon.discount})` : 'Discount Code'}
+        </Text>
+      </View>
+      <ChevronDown size={20} color={colors.textSecondary} />
+    </TouchableOpacity>
+  );
 
-      {/* VIP Section */}
+  const renderVipSection = () => (
+    <View style={styles.vipSection}>
       <TouchableOpacity 
-        style={[styles.vipCard, { backgroundColor: `${colors.primary}15` }]}
+        style={[styles.vipItem, { backgroundColor: colors.primary }]}
         onPress={() => setShowVIPModal(true)}
       >
-        <View style={styles.vipHeader}>
-          <Crown size={20} color={colors.primary} />
-          <Text style={[styles.vipTitle, { color: colors.primary }]}>VIP Benefits</Text>
+        <View style={styles.vipContent}>
+          <Crown size={20} color="#FFD700" />
+          <View style={styles.vipTextContainer}>
+            <Text style={styles.vipText}>VIP{user?.vip_level || 1} Bonus</Text>
+            <Text style={styles.vipBonus}>+{vipLevels.find(v => v.level === (user?.vip_level || 1))?.bonus || '0.25%'}</Text>
+          </View>
         </View>
-        <Text style={[styles.vipLevel, { color: colors.text }]}>
-          Level {user?.vip_level || 1}
-        </Text>
-        <Text style={[styles.vipBonus, { color: colors.primary }]}>
-          +{vipLevels.find(v => v.level === (user?.vip_level || 1))?.bonus || '0.25%'} Bonus
-        </Text>
-        <Text style={[styles.vipDescription, { color: colors.textSecondary }]}>
-          Tap to view all VIP benefits and requirements
-        </Text>
+        <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
       </TouchableOpacity>
-
-      {/* Ranking Section */}
+      
       <TouchableOpacity 
-        style={[styles.rankingCard, { backgroundColor: `${colors.secondary}15` }]}
+        style={[styles.rankingItem, { backgroundColor: '#1E40AF' }]}
         onPress={() => setShowRankingModal(true)}
       >
-        <View style={styles.rankingHeader}>
-          <Trophy size={20} color={colors.secondary} />
-          <Text style={[styles.rankingTitle, { color: colors.secondary }]}>Your Ranking</Text>
+        <View style={styles.vipContent}>
+          <Trophy size={20} color="#FFFFFF" />
+          <View style={styles.vipTextContainer}>
+            <Text style={styles.vipText}>Ranking</Text>
+            <Text style={styles.vipBonus}>#15</Text>
+          </View>
         </View>
-        <Text style={[styles.rankingPosition, { color: colors.text }]}>
-          #{rankingData.find(r => r.username === (user?.username || 'You'))?.rank || 15}
-        </Text>
-        <Text style={[styles.rankingVolume, { color: colors.secondary }]}>
-          {rankingData.find(r => r.username === (user?.username || 'You'))?.volume || '$12,450'}
-        </Text>
-        <Text style={[styles.rankingDescription, { color: colors.textSecondary }]}>
-          View full leaderboard and achievements
-        </Text>
-      </TouchableOpacity>
-
-      {/* Sell Button */}
-      <TouchableOpacity
-        style={[
-          styles.sellButton,
-          { 
-            backgroundColor: isFormValid() ? colors.primary : colors.border,
-          }
-        ]}
-        onPress={handleSubmit}
-        disabled={!isFormValid()}
-        activeOpacity={0.8}
-      >
-        <Zap size={20} color="#FFFFFF" />
-        <Text style={styles.sellButtonText}>Sell Cards</Text>
+        <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
       </TouchableOpacity>
     </View>
-  );
-
-  const renderHelpModal = () => (
-    <Modal
-      visible={showHelpModal}
-      transparent
-      animationType="slide"
-      onRequestClose={() => setShowHelpModal(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-          <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Frequently Asked Questions</Text>
-            <TouchableOpacity onPress={() => setShowHelpModal(false)}>
-              <X size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-          
-          <FlatList
-            data={faqData}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={[styles.faqItem, { borderBottomColor: colors.border }]}>
-                <Text style={[styles.faqQuestion, { color: colors.text }]}>{item.question}</Text>
-                <Text style={[styles.faqAnswer, { color: colors.textSecondary }]}>{item.answer}</Text>
-              </View>
-            )}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-      </View>
-    </Modal>
   );
 
   const renderVIPModal = () => (
@@ -822,40 +727,59 @@ function SellScreenContent() {
           contentContainerStyle={styles.scrollContent}
         >
           {renderHeader()}
-          
-          <View style={styles.mainContent}>
-            {renderLeftColumn()}
-            {renderRightColumn()}
-          </View>
+          {renderCardUploadSection()}
+          {renderWalletSelection()}
+          {renderDiscountSection()}
+          {renderVipSection()}
         </ScrollView>
 
-        {/* Draggable Help Button */}
-        <Animated.View
+        {/* Floating Sell Button */}
+        <Animated.View 
           style={[
-            styles.helpButton,
+            styles.floatingSellButton,
             {
               transform: [
-                { translateX: helpButtonPosition.x },
-                { translateY: helpButtonPosition.y },
-                { scale: helpButtonScale }
+                { scale: sellButtonAnim },
+                { translateY: sellButtonAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [100, 0]
+                })}
               ]
             }
           ]}
-          {...helpButtonPanResponder.panHandlers}
         >
           <TouchableOpacity
-            style={[styles.helpButtonInner, { backgroundColor: colors.secondary }]}
-            onPress={() => setShowHelpModal(true)}
+            style={[
+              styles.sellButton,
+              { 
+                backgroundColor: isFormValid() ? colors.primary : colors.border,
+                shadowColor: colors.primary,
+              }
+            ]}
+            onPress={handleSubmit}
+            disabled={!isFormValid()}
             activeOpacity={0.8}
           >
-            <HelpCircle size={20} color="#FFFFFF" />
+            <Zap size={24} color="#FFFFFF" />
+            <Text style={styles.sellButtonText}>Sell Cards</Text>
           </TouchableOpacity>
         </Animated.View>
+
+        {/* Floating Customer Service Button */}
+        <View style={styles.floatingButtons}>
+          <Animated.View style={{ transform: [{ scale: customerServiceAnim }] }}>
+            <TouchableOpacity
+              style={[styles.customerServiceButton, { backgroundColor: '#25D366' }]}
+              onPress={() => Alert.alert('Customer Service', '24/7 support available via WhatsApp, Email, or Live Chat.')}
+            >
+              <MessageCircle size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
 
         {renderCouponModal()}
         {renderVIPModal()}
         {renderRankingModal()}
-        {renderHelpModal()}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -875,21 +799,34 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.lg,
-    paddingBottom: Spacing.xxl,
+    paddingBottom: 120, // Extra space for floating button
   },
 
-  // Header
+  // Header with proper layout
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
   },
   returnButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  calculatorButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
   },
   headerSpacer: {
     flex: 1,
@@ -897,9 +834,9 @@ const styles = StyleSheet.create({
   contactButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: 22,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: 20,
     gap: Spacing.xs,
   },
   contactText: {
@@ -908,36 +845,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
   },
 
-  // Main Content Layout
-  mainContent: {
-    flexDirection: 'row',
-    gap: Spacing.lg,
-  },
-
-  // Left Column (60% width)
-  leftColumn: {
-    flex: 0.6,
-    gap: Spacing.lg,
-  },
-
-  // Right Column (40% width)
-  rightColumn: {
-    flex: 0.4,
-    gap: Spacing.md,
-  },
-
-  // Section Titles
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.md,
-  },
-
   // Upload Section
   uploadSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    borderRadius: 16,
-    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
+  },
+  uploadHint: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    marginBottom: Spacing.md,
+    textAlign: 'center',
   },
   cardInfoInput: {
     borderWidth: 1,
@@ -945,38 +861,33 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    minHeight: 80,
-    marginBottom: Spacing.md,
+    minHeight: 60,
+    marginBottom: Spacing.lg,
   },
-  uploadHint: {
+  uploadLimit: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     marginBottom: Spacing.md,
     textAlign: 'center',
   },
   uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.lg,
+    width: 80,
+    height: 80,
     borderRadius: 12,
     borderWidth: 2,
     borderStyle: 'dashed',
-    gap: Spacing.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
     marginBottom: Spacing.md,
   },
-  uploadButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  cardPreviewGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
+  cardPreviewContainer: {
+    marginTop: Spacing.md,
   },
   cardPreview: {
-    width: 80,
-    height: 50,
+    width: 60,
+    height: 40,
+    marginRight: Spacing.sm,
     borderRadius: 8,
     overflow: 'hidden',
     position: 'relative',
@@ -989,145 +900,109 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -5,
     right: -5,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   // Wallet Section
   walletSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    borderRadius: 16,
-    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
-  walletOptions: {
+  walletHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
     gap: Spacing.sm,
   },
+  walletTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+  walletOptions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
   walletOption: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: 12,
-    borderWidth: 2,
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 8,
+    borderWidth: 1,
     alignItems: 'center',
   },
   walletOptionText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
   },
 
   // Discount Section
   discountSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    borderRadius: 16,
-    padding: Spacing.lg,
-  },
-  discountSelector: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: Spacing.lg,
     borderRadius: 12,
-    borderWidth: 1,
+    marginBottom: Spacing.lg,
+  },
+  discountContent: {
+    flex: 1,
   },
   discountText: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
+  },
+
+  // VIP Section
+  vipSection: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.xl,
+  },
+  vipItem: {
     flex: 1,
-  },
-
-  // Calculator Card
-  calculatorCard: {
-    padding: Spacing.lg,
-    borderRadius: 16,
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderRadius: 12,
   },
-  calculatorText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-    marginTop: Spacing.sm,
+  rankingItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderRadius: 12,
   },
-  calculatorSubtext: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    marginTop: 4,
-  },
-
-  // VIP Card
-  vipCard: {
-    padding: Spacing.lg,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 135, 81, 0.2)',
-  },
-  vipHeader: {
+  vipContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    marginBottom: Spacing.sm,
   },
-  vipTitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
+  vipTextContainer: {
+    alignItems: 'flex-start',
   },
-  vipLevel: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    marginBottom: 4,
+  vipText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
   },
   vipBonus: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.sm,
-  },
-  vipDescription: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 16,
-  },
-
-  // Ranking Card
-  rankingCard: {
-    padding: Spacing.lg,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  rankingHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.sm,
-  },
-  rankingTitle: {
+    color: '#FFFFFF',
     fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  rankingPosition: {
-    fontSize: 20,
     fontFamily: 'Inter-Bold',
-    marginBottom: 4,
-  },
-  rankingVolume: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.sm,
-  },
-  rankingDescription: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 16,
   },
 
-  // Sell Button
+  // Floating Sell Button
+  floatingSellButton: {
+    position: 'absolute',
+    bottom: Spacing.xl,
+    left: Spacing.lg,
+    right: Spacing.lg,
+  },
   sellButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1135,11 +1010,10 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.lg,
     borderRadius: 16,
     gap: Spacing.sm,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 8,
   },
   sellButtonText: {
     color: '#FFFFFF',
@@ -1147,17 +1021,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
   },
 
-  // Draggable Help Button
-  helpButton: {
+  // Floating Customer Service
+  floatingButtons: {
     position: 'absolute',
-    width: 44,
-    height: 44,
-    zIndex: 1000,
+    bottom: 100,
+    right: Spacing.lg,
   },
-  helpButtonInner: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  customerServiceButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -1188,22 +1061,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontFamily: 'Inter-Bold',
-  },
-
-  // FAQ Styles
-  faqItem: {
-    paddingVertical: Spacing.lg,
-    borderBottomWidth: 1,
-  },
-  faqQuestion: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.sm,
-  },
-  faqAnswer: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
   },
 
   // VIP Modal Styles
