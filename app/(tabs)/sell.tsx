@@ -19,23 +19,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
-import { 
-  Plus, 
-  Calculator, 
-  Crown, 
-  ChevronRight, 
-  ChevronDown, 
-  Trophy, 
-  Phone, 
-  X,
-  ArrowLeft,
-  Star,
-  Medal,
-  Award,
-  Zap,
-  HelpCircle,
-  CircleCheck as CheckCircle,
-} from 'lucide-react-native';
+import { Plus, Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, X, ArrowLeft, Star, Medal, Award, Zap, CircleHelp as HelpCircle, CircleCheck as CheckCircle } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Button from '@/components/UI/Button';
 import AuthGuard from '@/components/UI/AuthGuard';
