@@ -59,6 +59,13 @@ export interface Banner {
   params: string;
 }
 
+// Updated banner response structure to match API
+export interface BannerData {
+  announcement_content: any[];
+  banner: Banner[];
+  home_activity: Record<string, any>;
+}
+
 export interface InitData {
   fqa_url: string;
   vip_url: string;
@@ -150,5 +157,5 @@ export type CountryListResponse = APIResponse<Country[]>;
 export type InitResponse = APIResponse<InitData>;
 export type UserRegisterResponse = APIResponse<User>;
 export type UserLoginResponse = APIResponse<User>;
-export type BannerListResponse = APIResponse<Banner[]>;
+export type BannerListResponse = APIResponse<BannerData>; // Updated to use BannerData
 export type NoticeListResponse = APIResponse<NoticeListData>;

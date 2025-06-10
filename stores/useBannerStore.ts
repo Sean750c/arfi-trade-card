@@ -20,8 +20,12 @@ export const useBannerStore = create<BannerState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await APIRequest.request<BannerListResponse>('/gc/public/homebanner', 'POST');
+      
+      // Extract banners from the nested structure
+      const banners = response.data.banner || [];
+      
       set({ 
-        banners: response.data,
+        banners,
         isLoading: false 
       });
     } catch (error) {
