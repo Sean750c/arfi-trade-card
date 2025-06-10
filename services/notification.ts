@@ -4,6 +4,7 @@ import type { NoticeListRequest, NoticeListResponse, NoticeListData } from '@/ty
 export class NotificationService {
   static async getNotifications(params: NoticeListRequest): Promise<NoticeListData> {
     try {
+      console.log('Fetching notifications with params:', params); // 调试用
       const response = await APIRequest.request<NoticeListResponse>(
         '/gc/finder/allNotice',
         'POST',

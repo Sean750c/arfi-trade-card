@@ -28,6 +28,7 @@ export class APIRequest {
       const requestParams = {
         ...params,
         appid: 'web-v1',
+        app_version: '2.2',
       };
   
       // Generate signature
