@@ -151,6 +151,39 @@ function SellScreenContent() {
     }
   };
 
+  const handleDiscountCodeInput = () => {
+    if (Platform.OS === 'web') {
+      // Use window.prompt for web platform
+      const code = window.prompt('Enter your discount code:', discountCode);
+      if (code !== null) {
+        setDiscountCode(code);
+        if (code.trim()) {
+          Alert.alert('Success', 'Discount code applied!');
+        }
+      }
+    } else {
+      // Use Alert.prompt for native platforms
+      Alert.prompt(
+        'Discount Code',
+        'Enter your discount code:',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Apply', 
+            onPress: (code) => {
+              if (code) {
+                setDiscountCode(code);
+                Alert.alert('Success', 'Discount code applied!');
+              }
+            }
+          },
+        ],
+        'plain-text',
+        discountCode
+      );
+    }
+  };
+
   const isFormValid = () => {
     return selectedCards.length > 0 || cardInfo.trim() !== '';
   };
@@ -306,26 +339,7 @@ function SellScreenContent() {
         styles.discountSection,
         { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }
       ]}
-      onPress={() => {
-        Alert.prompt(
-          'Discount Code',
-          'Enter your discount code:',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Apply', 
-              onPress: (code) => {
-                if (code) {
-                  setDiscountCode(code);
-                  Alert.alert('Success', 'Discount code applied!');
-                }
-              }
-            },
-          ],
-          'plain-text',
-          discountCode
-        );
-      }}
+      onPress={handleDiscountCodeInput}
     >
       <View style={styles.discountContent}>
         <Percent size={20} color={colors.primary} />
