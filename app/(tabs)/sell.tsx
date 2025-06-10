@@ -12,26 +12,21 @@ import {
   Image,
   Alert,
   Animated,
-  Dimensions,
+  TextInput,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
-  Upload, 
-  Camera, 
-  CircleCheck, 
+  Plus, 
   Calculator,
   MessageCircle,
   Crown,
-  Gift,
-  ChevronDown,
-  ChevronUp,
-  Info,
+  ChevronRight,
   Percent,
-  X,
-  Plus,
+  Trophy,
+  TrendingUp,
+  Phone,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import Card from '@/components/UI/Card';
 import AuthGuard from '@/components/UI/AuthGuard';
@@ -39,12 +34,9 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 
-const { width } = Dimensions.get('window');
-
 interface SelectedCard {
   id: string;
   image?: string;
-  amount?: string;
 }
 
 function SellScreenContent() {
@@ -53,13 +45,11 @@ function SellScreenContent() {
   const { user } = useAuthStore();
   
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>([]);
-  const [cardPassword, setCardPassword] = useState('');
-  const [remarks, setRemarks] = useState('');
+  const [cardInfo, setCardInfo] = useState('');
+  const [selectedWallet, setSelectedWallet] = useState<'NGN' | 'USDT'>('NGN');
   const [discountCode, setDiscountCode] = useState('');
-  const [showVipInfo, setShowVipInfo] = useState(false);
   
   const customerServiceAnim = useRef(new Animated.Value(1)).current;
-  const vipInfoAnim = useRef(new Animated.Value(0)).current;
 
   // Customer service pulse animation
   React.useEffect(() => {
@@ -82,50 +72,45 @@ function SellScreenContent() {
     return () => customerPulse.stop();
   }, []);
 
-  // VIP info animation
-  React.useEffect(() => {
-    Animated.timing(vipInfoAnim, {
-      toValue: showVipInfo ? 1 : 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  }, [showVipInfo]);
-
-  const addCardImage = async (method: 'camera' | 'gallery') => {
+  const addCardImage = async () => {
     if (selectedCards.length >= 10) {
       Alert.alert('Limit Reached', 'You can only add up to 10 cards per transaction.');
       return;
     }
 
+    Alert.alert(
+      'Add Card Image',
+      'Choose how to add your card image',
+      [
+        {
+          text: 'Camera',
+          onPress: () => openCamera(),
+        },
+        {
+          text: 'Gallery',
+          onPress: () => openGallery(),
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ]
+    );
+  };
+
+  const openCamera = async () => {
     try {
-      let result;
-      
-      if (method === 'camera') {
-        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-        if (!permissionResult.granted) {
-          Alert.alert('Permission Required', 'Camera permission is required to take photos.');
-          return;
-        }
-        
-        result = await ImagePicker.launchCameraAsync({
-          allowsEditing: true,
-          quality: 0.8,
-          aspect: [4, 3],
-        });
-      } else {
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!permissionResult.granted) {
-          Alert.alert('Permission Required', 'Photo library permission is required.');
-          return;
-        }
-        
-        result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          quality: 0.8,
-          aspect: [4, 3],
-        });
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Required', 'Camera permission is required to take photos.');
+        return;
       }
+      
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.8,
+        aspect: [4, 3],
+      });
       
       if (!result.canceled && result.assets[0]) {
         const newCard: SelectedCard = {
@@ -135,43 +120,49 @@ function SellScreenContent() {
         setSelectedCards([...selectedCards, newCard]);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to add image. Please try again.');
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
     }
   };
 
-  const removeCard = (cardId: string) => {
-    setSelectedCards(selectedCards.filter(card => card.id !== cardId));
-  };
-
-  const updateCardAmount = (cardId: string, amount: string) => {
-    setSelectedCards(selectedCards.map(card => 
-      card.id === cardId ? { ...card, amount } : card
-    ));
-  };
-
-  const calculateTotalAmount = () => {
-    return selectedCards.reduce((sum, card) => {
-      return sum + (parseFloat(card.amount || '0') || 0);
-    }, 0);
+  const openGallery = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Required', 'Photo library permission is required.');
+        return;
+      }
+      
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+        aspect: [4, 3],
+      });
+      
+      if (!result.canceled && result.assets[0]) {
+        const newCard: SelectedCard = {
+          id: Date.now().toString(),
+          image: result.assets[0].uri,
+        };
+        setSelectedCards([...selectedCards, newCard]);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to select image. Please try again.');
+    }
   };
 
   const isFormValid = () => {
-    return (
-      selectedCards.length > 0 &&
-      selectedCards.every(card => card.amount && parseFloat(card.amount) > 0) &&
-      cardPassword.trim() !== ''
-    );
+    return selectedCards.length > 0 || cardInfo.trim() !== '';
   };
 
   const handleSubmit = async () => {
     if (!isFormValid()) {
-      Alert.alert('Incomplete Form', 'Please add at least one card with amount and enter card password.');
+      Alert.alert('Incomplete Form', 'Please add at least one card image or enter card information.');
       return;
     }
 
     try {
       // Here you would call the /gc/order/appaddd endpoint
-      // For now, we'll show a success message
       Alert.alert(
         'Cards Submitted Successfully!', 
         'Your cards have been submitted for review. You will receive a notification once processed.',
@@ -189,213 +180,224 @@ function SellScreenContent() {
       
       // Reset form
       setSelectedCards([]);
-      setCardPassword('');
-      setRemarks('');
+      setCardInfo('');
       setDiscountCode('');
     } catch (error) {
       Alert.alert('Error', 'Failed to submit cards. Please try again.');
     }
   };
 
-  const renderVipSection = () => (
-    <Card style={[styles.vipCard, { backgroundColor: colors.primary }]}>
+  const renderHeader = () => (
+    <View style={styles.header}>
       <TouchableOpacity 
-        style={styles.vipHeader}
-        onPress={() => setShowVipInfo(!showVipInfo)}
-        activeOpacity={0.8}
+        onPress={() => Alert.alert('Contact Us', 'Get help via WhatsApp, Email, or Live Chat.')}
+        style={[styles.contactButton, { backgroundColor: colors.primary }]}
       >
-        <View style={styles.vipBadge}>
-          <Crown size={20} color="#FFD700" />
-          <Text style={styles.vipLevel}>VIP {user?.vip_level || 1}</Text>
-        </View>
-        <View style={styles.vipMainInfo}>
-          <Text style={styles.vipBalance}>
-            Balance: {user?.currency_symbol}{user?.money || '0'}
-          </Text>
-          <Text style={styles.vipBonus}>
-            +{user?.vip_level === 1 ? '2%' : user?.vip_level === 2 ? '3%' : '5%'} Bonus
-          </Text>
-        </View>
-        {showVipInfo ? <ChevronUp size={20} color="#FFFFFF" /> : <ChevronDown size={20} color="#FFFFFF" />}
+        <Phone size={16} color="#FFFFFF" />
+        <Text style={styles.contactText}>Contact Us</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderCardUploadSection = () => (
+    <View style={styles.uploadSection}>
+      <Text style={[styles.uploadHint, { color: colors.textSecondary }]}>
+        You can enter card info here or leave it blank
+      </Text>
+      
+      <TextInput
+        style={[
+          styles.cardInfoInput,
+          {
+            color: colors.text,
+            backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+            borderColor: colors.border,
+          },
+        ]}
+        placeholder="Enter card details, codes, or any additional information..."
+        placeholderTextColor={colors.textSecondary}
+        value={cardInfo}
+        onChangeText={setCardInfo}
+        multiline
+        numberOfLines={4}
+        textAlignVertical="top"
+      />
+      
+      <Text style={[styles.uploadLimit, { color: colors.textSecondary }]}>
+        Upload gift cards, no more than 10 at a time
+      </Text>
+      
+      <TouchableOpacity
+        style={[
+          styles.uploadButton,
+          { 
+            backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+            borderColor: colors.border,
+          },
+        ]}
+        onPress={addCardImage}
+      >
+        <Plus size={32} color={colors.textSecondary} />
       </TouchableOpacity>
       
-      <Animated.View style={[
-        styles.vipExpandedInfo,
-        {
-          maxHeight: vipInfoAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 120],
-          }),
-          opacity: vipInfoAnim,
-        }
-      ]}>
-        <View style={styles.vipBenefitsList}>
-          <Text style={styles.vipBenefitItem}>• Priority customer support</Text>
-          <Text style={styles.vipBenefitItem}>• Exclusive rate previews</Text>
-          <Text style={styles.vipBenefitItem}>• Faster processing times</Text>
-          <Text style={styles.vipBenefitItem}>• Special promotional offers</Text>
-        </View>
-      </Animated.View>
-    </Card>
-  );
-
-  const renderCardGallery = () => (
-    <View style={styles.cardGallerySection}>
-      <View style={styles.galleryHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Upload Card Images ({selectedCards.length}/10)
-        </Text>
-        <View style={styles.galleryActions}>
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.primary }]}
-            onPress={() => addCardImage('gallery')}
-          >
-            <Upload size={16} color="#FFFFFF" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.secondary }]}
-            onPress={() => addCardImage('camera')}
-          >
-            <Camera size={16} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {selectedCards.map((card) => (
-          <View key={card.id} style={styles.cardImageContainer}>
-            <Image source={{ uri: card.image }} style={styles.cardImage} />
-            <TouchableOpacity
-              style={styles.removeCardButton}
-              onPress={() => removeCard(card.id)}
-            >
-              <X size={16} color="#FFFFFF" />
-            </TouchableOpacity>
-            
-            <View style={styles.cardAmountOverlay}>
-              <Input
-                placeholder="Amount ($)"
-                value={card.amount || ''}
-                onChangeText={(value) => updateCardAmount(card.id, value)}
-                keyboardType="numeric"
-                containerStyle={styles.cardAmountInput}
-                inputStyle={styles.cardAmountInputText}
-              />
+      {/* Display uploaded cards */}
+      {selectedCards.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardPreviewContainer}>
+          {selectedCards.map((card) => (
+            <View key={card.id} style={styles.cardPreview}>
+              <Image source={{ uri: card.image }} style={styles.cardPreviewImage} />
             </View>
-          </View>
-        ))}
-        
-        {selectedCards.length < 10 && (
-          <TouchableOpacity
-            style={styles.addCardPlaceholder}
-            onPress={() => addCardImage('gallery')}
-          >
-            <Plus size={32} color={colors.textSecondary} />
-            <Text style={[styles.addCardText, { color: colors.textSecondary }]}>
-              Add Card
-            </Text>
-          </TouchableOpacity>
-        )}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 
-  const renderTransactionDetails = () => (
-    <View style={styles.transactionSection}>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Transaction Details</Text>
+  const renderWalletSelection = () => (
+    <View style={styles.walletSection}>
+      <View style={styles.walletHeader}>
+        <Crown size={20} color={colors.primary} />
+        <Text style={[styles.walletTitle, { color: colors.text }]}>Select Wallet</Text>
+      </View>
       
-      {/* Card Password */}
-      <Input
-        label="Card Password/PIN *"
-        placeholder="Enter card password or PIN"
-        value={cardPassword}
-        onChangeText={setCardPassword}
-        secureTextEntry
-      />
-
-      {/* Remarks with PIN option */}
-      <Input
-        label="Remarks (Optional)"
-        placeholder="Additional notes or card PIN if different..."
-        value={remarks}
-        onChangeText={setRemarks}
-        multiline
-        numberOfLines={2}
-        inputStyle={styles.remarksInput}
-      />
-
-      {/* Unified Discount Code */}
-      <Input
-        label="Discount Code (Optional)"
-        placeholder="Enter discount or promo code"
-        value={discountCode}
-        onChangeText={setDiscountCode}
-        rightElement={
-          <TouchableOpacity 
-            style={styles.verifyButton}
-            onPress={() => Alert.alert('Code Verified', 'Discount code applied successfully!')}
-          >
-            <Percent size={16} color={colors.primary} />
-          </TouchableOpacity>
-        }
-      />
-    </View>
-  );
-
-  const renderSummaryCard = () => (
-    <Card style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-      <View style={styles.summaryHeader}>
-        <Text style={[styles.summaryTitle, { color: colors.text }]}>
-          Transaction Summary
-        </Text>
-        <TouchableOpacity 
-          style={styles.infoButton}
-          onPress={() => Alert.alert('Rate Info', 'Final amount will be calculated based on current market rates at the time of processing.')}
+      <View style={styles.walletOptions}>
+        <TouchableOpacity
+          style={[
+            styles.walletOption,
+            {
+              backgroundColor: selectedWallet === 'NGN' ? colors.primary : 'transparent',
+              borderColor: colors.border,
+            },
+          ]}
+          onPress={() => setSelectedWallet('NGN')}
         >
-          <Info size={16} color={colors.textSecondary} />
+          <Text style={[
+            styles.walletOptionText,
+            { color: selectedWallet === 'NGN' ? '#FFFFFF' : colors.text }
+          ]}>
+            NGN
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.walletOption,
+            {
+              backgroundColor: selectedWallet === 'USDT' ? colors.primary : 'transparent',
+              borderColor: colors.border,
+            },
+          ]}
+          onPress={() => setSelectedWallet('USDT')}
+        >
+          <Text style={[
+            styles.walletOptionText,
+            { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }
+          ]}>
+            USDT
+          </Text>
         </TouchableOpacity>
       </View>
-      
-      <View style={styles.summaryDetails}>
-        <View style={styles.summaryRow}>
-          <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-            Total Cards:
-          </Text>
-          <Text style={[styles.summaryValue, { color: colors.text }]}>
-            {selectedCards.length}
-          </Text>
-        </View>
-        
-        <View style={styles.summaryRow}>
-          <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-            Total Amount:
-          </Text>
-          <Text style={[styles.summaryValue, { color: colors.text }]}>
-            ${calculateTotalAmount().toFixed(2)}
-          </Text>
-        </View>
-        
-        <View style={styles.summaryRow}>
-          <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-            VIP Bonus:
-          </Text>
-          <Text style={[styles.summaryValue, { color: colors.success }]}>
-            +{user?.vip_level === 1 ? '2%' : user?.vip_level === 2 ? '3%' : '5%'}
-          </Text>
-        </View>
-        
-        <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-        
-        <View style={styles.summaryRow}>
-          <Text style={[styles.summaryLabel, { color: colors.text, fontFamily: 'Inter-SemiBold' }]}>
-            Status:
-          </Text>
-          <Text style={[styles.summaryValue, { color: colors.warning, fontFamily: 'Inter-SemiBold' }]}>
-            Pending Review
-          </Text>
-        </View>
+    </View>
+  );
+
+  const renderDiscountSection = () => (
+    <TouchableOpacity 
+      style={[
+        styles.discountSection,
+        { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }
+      ]}
+      onPress={() => {
+        Alert.prompt(
+          'Discount Code',
+          'Enter your discount code:',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Apply', 
+              onPress: (code) => {
+                if (code) {
+                  setDiscountCode(code);
+                  Alert.alert('Success', 'Discount code applied!');
+                }
+              }
+            },
+          ],
+          'plain-text',
+          discountCode
+        );
+      }}
+    >
+      <View style={styles.discountContent}>
+        <Percent size={20} color={colors.primary} />
+        <Text style={[styles.discountText, { color: colors.text }]}>
+          {discountCode ? `Code: ${discountCode}` : 'Discount Code'}
+        </Text>
       </View>
-    </Card>
+      <ChevronRight size={20} color={colors.textSecondary} />
+    </TouchableOpacity>
+  );
+
+  const renderVipSection = () => (
+    <View style={styles.vipSection}>
+      <TouchableOpacity 
+        style={[styles.vipItem, { backgroundColor: colors.primary }]}
+        onPress={() => Alert.alert('VIP Benefits', `You are VIP Level ${user?.vip_level || 1} with exclusive benefits!`)}
+      >
+        <View style={styles.vipContent}>
+          <Crown size={20} color="#FFD700" />
+          <Text style={styles.vipText}>VIP1 rate 0.25%</Text>
+        </View>
+        <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
+      </TouchableOpacity>
+      
+      <TouchableOpacity 
+        style={[styles.vipItem, { backgroundColor: '#1E40AF' }]}
+        onPress={() => router.push('/rates')}
+      >
+        <View style={styles.vipContent}>
+          <TrendingUp size={20} color="#FFFFFF" />
+          <Text style={styles.vipText}>Rate 0%</Text>
+        </View>
+        <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderCompensationSection = () => (
+    <View style={styles.compensationSection}>
+      <TouchableOpacity 
+        style={styles.compensationItem}
+        onPress={() => Alert.alert('Overdue Compensation', 'Learn about our overdue compensation policy.')}
+      >
+        <View style={styles.compensationContent}>
+          <View style={[styles.compensationIcon, { backgroundColor: '#F59E0B' }]}>
+            <Text style={styles.compensationEmoji}>🔶</Text>
+          </View>
+          <Text style={[styles.compensationText, { color: colors.text }]}>
+            Overdue Compensation
+          </Text>
+          <Text style={[styles.compensationSubtext, { color: colors.textSecondary }]}>
+            Timeout Compensation...
+          </Text>
+        </View>
+        <ChevronRight size={20} color={colors.textSecondary} />
+      </TouchableOpacity>
+      
+      <TouchableOpacity 
+        style={styles.compensationItem}
+        onPress={() => Alert.alert('Trading Rankings', 'View current trading rankings and leaderboard.')}
+      >
+        <View style={styles.compensationContent}>
+          <View style={[styles.compensationIcon, { backgroundColor: '#10B981' }]}>
+            <Trophy size={16} color="#FFFFFF" />
+          </View>
+          <Text style={[styles.compensationText, { color: colors.text }]}>
+            Trading Rankings
+          </Text>
+        </View>
+        <ChevronRight size={20} color={colors.textSecondary} />
+      </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -408,29 +410,16 @@ function SellScreenContent() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text }]}>Sell Gift Cards</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Quick and secure card trading
-            </Text>
-          </View>
-
-          {/* VIP Section */}
+          {renderHeader()}
+          {renderCardUploadSection()}
+          {renderWalletSelection()}
+          {renderDiscountSection()}
           {renderVipSection()}
-          
-          {/* Card Gallery */}
-          {renderCardGallery()}
-          
-          {/* Transaction Details */}
-          {renderTransactionDetails()}
-          
-          {/* Summary Card */}
-          {renderSummaryCard()}
+          {renderCompensationSection()}
           
           {/* Submit Button */}
           <Button
-            title="Submit Cards for Review"
+            title="Sell"
             onPress={handleSubmit}
             disabled={!isFormValid()}
             style={[
@@ -448,7 +437,7 @@ function SellScreenContent() {
         <View style={styles.floatingButtons}>
           {/* Calculator Button */}
           <TouchableOpacity
-            style={[styles.calculatorButton, { backgroundColor: colors.secondary }]}
+            style={[styles.calculatorButton, { backgroundColor: colors.primary }]}
             onPress={() => router.push('/calculator' as any)}
           >
             <Calculator size={20} color="#FFFFFF" />
@@ -461,7 +450,7 @@ function SellScreenContent() {
               onPress={() => Alert.alert('Customer Service', '24/7 support available via WhatsApp, Email, or Live Chat.')}
             >
               <MessageCircle size={20} color="#FFFFFF" />
-              <Text style={styles.customerServiceText}>24/7</Text>
+              <Text style={styles.customerServiceText}>?</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -486,220 +475,205 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     paddingBottom: 100, // Space for floating buttons
   },
+
+  // Header
   header: {
+    alignItems: 'flex-end',
     marginBottom: Spacing.lg,
   },
-  title: {
-    fontSize: 28,
-    fontFamily: 'Inter-Bold',
-  },
-  subtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    marginTop: Spacing.xs,
-  },
-
-  // VIP Section
-  vipCard: {
-    marginBottom: Spacing.lg,
-    padding: Spacing.lg,
-    overflow: 'hidden',
-  },
-  vipHeader: {
+  contactButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  vipBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     borderRadius: 20,
+    gap: Spacing.xs,
   },
-  vipLevel: {
+  contactText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontFamily: 'Inter-Bold',
-    marginLeft: Spacing.xs,
-  },
-  vipMainInfo: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  vipBalance: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  vipBonus: {
-    color: '#FFD700',
-    fontSize: 14,
-    fontFamily: 'Inter-Bold',
-  },
-  vipExpandedInfo: {
-    overflow: 'hidden',
-    marginTop: Spacing.md,
-  },
-  vipBenefitsList: {
-    paddingTop: Spacing.sm,
-  },
-  vipBenefitItem: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
-    marginBottom: 2,
+    fontFamily: 'Inter-Medium',
   },
 
-  // Card Gallery
-  cardGallerySection: {
+  // Upload Section
+  uploadSection: {
+    marginBottom: Spacing.xl,
+  },
+  uploadHint: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+  },
+  cardInfoInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: Spacing.md,
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    minHeight: 100,
     marginBottom: Spacing.lg,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.md,
-  },
-  galleryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  galleryActions: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardImageContainer: {
-    width: 140,
-    height: 100,
-    marginRight: Spacing.md,
-    position: 'relative',
-  },
-  cardImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 12,
-  },
-  removeCardButton: {
-    position: 'absolute',
-    top: Spacing.xs,
-    right: Spacing.xs,
-    backgroundColor: '#FF4444',
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardAmountOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    padding: Spacing.xs,
-  },
-  cardAmountInput: {
-    marginBottom: 0,
-  },
-  cardAmountInputText: {
+  uploadLimit: {
     fontSize: 12,
-    color: '#FFFFFF',
-    backgroundColor: 'transparent',
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    height: 32,
+    fontFamily: 'Inter-Regular',
+    marginBottom: Spacing.md,
+    textAlign: 'center',
   },
-  addCardPlaceholder: {
-    width: 140,
-    height: 100,
+  uploadButton: {
+    width: 80,
+    height: 80,
     borderRadius: 12,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: '#D1D5DB',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  addCardText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    marginTop: Spacing.xs,
-  },
-
-  // Transaction Section
-  transactionSection: {
-    marginBottom: Spacing.lg,
-  },
-  remarksInput: {
-    height: 60,
-    textAlignVertical: 'top',
-    paddingTop: Spacing.sm,
-  },
-  verifyButton: {
-    padding: Spacing.sm,
-  },
-
-  // Summary Card
-  summaryCard: {
-    marginBottom: Spacing.lg,
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    alignSelf: 'center',
     marginBottom: Spacing.md,
   },
-  summaryTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+  cardPreviewContainer: {
+    marginTop: Spacing.md,
   },
-  infoButton: {
-    padding: Spacing.xs,
+  cardPreview: {
+    width: 60,
+    height: 40,
+    marginRight: Spacing.sm,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
-  summaryDetails: {
+  cardPreviewImage: {
+    width: '100%',
+    height: '100%',
+  },
+
+  // Wallet Section
+  walletSection: {
+    marginBottom: Spacing.lg,
+  },
+  walletHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
     gap: Spacing.sm,
   },
-  summaryRow: {
+  walletTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+  walletOptions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: Spacing.md,
+  },
+  walletOption: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 12,
+    borderWidth: 2,
     alignItems: 'center',
   },
-  summaryLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
+  walletOptionText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
   },
-  summaryValue: {
+
+  // Discount Section
+  discountSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.lg,
+    borderRadius: 12,
+    marginBottom: Spacing.lg,
+  },
+  discountContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  discountText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+  },
+
+  // VIP Section
+  vipSection: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  vipItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderRadius: 12,
+  },
+  vipContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  vipText: {
+    color: '#FFFFFF',
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
   },
-  summaryDivider: {
-    height: 1,
-    marginVertical: Spacing.sm,
+
+  // Compensation Section
+  compensationSection: {
+    marginBottom: Spacing.xl,
+  },
+  compensationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  compensationContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  compensationIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  compensationEmoji: {
+    fontSize: 16,
+  },
+  compensationText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    flex: 1,
+  },
+  compensationSubtext: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    marginLeft: Spacing.sm,
   },
 
   // Submit Button
   submitButton: {
     height: 56,
     marginBottom: Spacing.xl,
+    borderRadius: 12,
   },
 
   // Floating Buttons
   floatingButtons: {
     position: 'absolute',
     bottom: Spacing.lg,
-    right: Spacing.lg,
-    gap: Spacing.sm,
+    left: Spacing.lg,
+    flexDirection: 'row',
+    gap: Spacing.md,
   },
   calculatorButton: {
     width: 48,
@@ -714,9 +688,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   customerServiceButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -727,8 +701,8 @@ const styles = StyleSheet.create({
   },
   customerServiceText: {
     color: '#FFFFFF',
-    fontSize: 9,
+    fontSize: 16,
     fontFamily: 'Inter-Bold',
-    marginTop: 1,
+    position: 'absolute',
   },
 });
