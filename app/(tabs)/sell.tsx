@@ -17,21 +17,7 @@ import {
   FlatList,
 } from 'react-native';
 import { router } from 'expo-router';
-import { 
-  Plus, 
-  Calculator, 
-  MessageCircle, 
-  Crown, 
-  ChevronRight, 
-  ChevronDown,
-  Trophy, 
-  TrendingUp, 
-  Phone,
-  Camera,
-  Image as ImageIcon,
-  CheckCircle,
-  X
-} from 'lucide-react-native';
+import { Plus, Calculator, MessageCircle, Crown, ChevronRight, ChevronDown, Trophy, TrendingUp, Phone, Camera, Image as ImageIcon, CircleCheck as CheckCircle, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Button from '@/components/UI/Button';
 import AuthGuard from '@/components/UI/AuthGuard';
