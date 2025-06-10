@@ -114,6 +114,40 @@ export interface RegisterRequest {
   code?: string;
 }
 
+// Notification Types
+export interface NoticeOrder {
+  image?: string;
+  order_id?: string;
+  status?: string;
+}
+
+export interface Notice {
+  id: number;
+  notice_title: string;
+  notice_content: string;
+  notice_time: string;
+  notice_new: boolean;
+  notice_jump: string;
+  notice_action: string;
+  notice_order?: NoticeOrder;
+  type: 'motion' | 'system' | 'all';
+}
+
+export interface NoticeListRequest {
+  token: string;
+  type: 'all' | 'motion' | 'system';
+  page: number;
+  pageSize: number;
+}
+
+export interface NoticeListData {
+  list: Notice[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
 export type EmptyReponse = APIResponse<Data>;
 export type JSONReponse = APIResponse<JSON>;
 export type CountryListResponse = APIResponse<Country[]>;
@@ -121,3 +155,4 @@ export type InitResponse = APIResponse<InitData>;
 export type UserRegisterResponse = APIResponse<User>;
 export type UserLoginResponse = APIResponse<User>;
 export type BannerListResponse = APIResponse<Banner[]>;
+export type NoticeListResponse = APIResponse<NoticeListData>;

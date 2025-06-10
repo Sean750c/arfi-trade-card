@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,10 @@ import {
   ScrollView,
   TouchableOpacity,
   useColorScheme,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Bell, ChevronDown, Sparkles, Eye, EyeOff } from 'lucide-react-native';
+import { Bell, ChevronDown, Sparkles, Eye, EyeOff, RefreshCw } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import PromoBanner from '@/components/home/PromoBanner';
@@ -29,7 +30,20 @@ export default function HomeScreen() {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { isAuthenticated, user } = useAuthStore();
-  const { initData } = useAppStore();
+  const { initData, isLoading: initLoading, error: initError, initialize } = useAppStore();
+
+  // Initialize app data on component mount
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        await initialize();
+      } catch (error) {
+        console.error('Failed to initialize app:', error);
+      }
+    };
+
+    initializeApp();
+  }, [initialize]);
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
@@ -45,6 +59,14 @@ export default function HomeScreen() {
       return '****';
     }
     return amount;
+  };
+
+  const handleRefresh = async () => {
+    try {
+      await initialize();
+    } catch (error) {
+      console.error('Failed to refresh app data:', error);
+    }
   };
 
   return (
@@ -162,19 +184,52 @@ export default function HomeScreen() {
             )}
           </View>
 
-          {/* Notification Button */}
-          <TouchableOpacity
-            style={[styles.notificationButton, { backgroundColor: `${colors.primary}15` }]}
-            onPress={() => router.push('/notifications')}
-          >
-            <Bell size={20} color={colors.primary} />
-            { (initData?.notice_count || 0) > 0 && (
-              <View style={[styles.notificationBadge, { backgroundColor: colors.error }]}>
-                <Text style={styles.notificationCount}>{initData?.notice_count}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          {/* Header Actions */}
+          <View style={styles.headerActions}>
+            {/* Refresh Button */}
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
+              onPress={handleRefresh}
+              disabled={initLoading}
+            >
+              {initLoading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <RefreshCw size={18} color={colors.primary} />
+              )}
+            </TouchableOpacity>
+
+            {/* Notification Button */}
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
+              onPress={() => router.push('/notifications')}
+            >
+              <Bell size={18} color={colors.primary} />
+              {(initData?.notice_count || 0) > 0 && (
+                <View style={[styles.notificationBadge, { backgroundColor: colors.error }]}>
+                  <Text style={styles.notificationCount}>
+                    {initData.notice_count > 99 ? '99+' : initData.notice_count}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Initialization Error */}
+        {initError && (
+          <View style={[styles.errorContainer, { backgroundColor: `${colors.error}10` }]}>
+            <Text style={[styles.errorText, { color: colors.error }]}>
+              {initError}
+            </Text>
+            <TouchableOpacity 
+              onPress={handleRefresh}
+              style={[styles.retryButton, { backgroundColor: colors.error }]}
+            >
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Compact Balance Card for Authenticated Users */}
         {isAuthenticated && user && (
@@ -236,6 +291,18 @@ const styles = StyleSheet.create({
   },
   headerLeft: {
     flex: 1,
+    position: 'relative',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
     position: 'relative',
   },
   locationContainer: {
@@ -342,28 +409,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
   },
-  notificationButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
   notificationBadge: {
     position: 'absolute',
     top: -2,
     right: -2,
-    width: 16,
+    minWidth: 16,
     height: 16,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 4,
   },
   notificationCount: {
     color: '#FFFFFF',
     fontSize: 9,
     fontFamily: 'Inter-Bold',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderRadius: 8,
+    marginBottom: Spacing.lg,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    marginRight: Spacing.sm,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: 6,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
   },
   balanceCard: {
     borderRadius: 16,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,46 +8,248 @@ import {
   TouchableOpacity,
   useColorScheme,
   Platform,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Bell, Filter, Clock, CheckCircle, AlertCircle, Image as ImageIcon } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import { useAppStore } from '@/stores/useAppStore';
+import { useNotificationStore } from '@/stores/useNotificationStore';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { Notice } from '@/types/api';
 
-// Sample notifications data
-const notifications = [
-  {
-    id: '1',
-    title: 'Trade Completed',
-    message: 'Your Steam gift card trade has been completed successfully.',
-    time: '2 hours ago',
-    read: false,
-  },
-  {
-    id: '2',
-    title: 'New Rate Alert',
-    message: 'iTunes gift card rates have been updated. Check them out!',
-    time: '5 hours ago',
-    read: false,
-  },
-  {
-    id: '3',
-    title: 'Referral Bonus',
-    message: 'You earned ₦1,000 from your referral John Doe.',
-    time: '1 day ago',
-    read: false,
-  },
-];
+const NOTIFICATION_TYPES = [
+  { key: 'all', label: 'All' },
+  { key: 'motion', label: 'Activity' },
+  { key: 'system', label: 'System' },
+] as const;
 
 function NotificationsScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
-  const { initData } = useAppStore();
+  const { user } = useAuthStore();
+  const {
+    notifications,
+    isLoading,
+    isLoadingMore,
+    error,
+    hasMore,
+    activeType,
+    totalCount,
+    fetchNotifications,
+    loadMoreNotifications,
+    setActiveType,
+    markAsRead,
+    clearNotifications,
+  } = useNotificationStore();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Initial load
+  useEffect(() => {
+    if (user?.token) {
+      fetchNotifications(user.token, 'all', true);
+    }
+  }, [user?.token, fetchNotifications]);
+
+  // Handle refresh
+  const handleRefresh = useCallback(async () => {
+    if (!user?.token) return;
+    
+    setRefreshing(true);
+    try {
+      await fetchNotifications(user.token, activeType, true);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [user?.token, activeType, fetchNotifications]);
+
+  // Handle type change
+  const handleTypeChange = useCallback(async (type: 'all' | 'motion' | 'system') => {
+    if (!user?.token || type === activeType) return;
+    
+    setActiveType(type);
+    await fetchNotifications(user.token, type, true);
+  }, [user?.token, activeType, setActiveType, fetchNotifications]);
+
+  // Handle load more
+  const handleLoadMore = useCallback(async () => {
+    if (!user?.token || isLoadingMore || !hasMore) return;
+    
+    await loadMoreNotifications(user.token);
+  }, [user?.token, isLoadingMore, hasMore, loadMoreNotifications]);
+
+  // Handle notification press
+  const handleNotificationPress = useCallback(async (notification: Notice) => {
+    if (!user?.token) return;
+
+    // Mark as read if it's new
+    if (notification.notice_new) {
+      await markAsRead(notification.id, user.token);
+    }
+
+    // Handle navigation based on notice_action
+    try {
+      switch (notification.notice_action) {
+        case 'app_orderdetail':
+          // Navigate to order details
+          if (notification.notice_order?.order_id) {
+            router.push(`/orders/${notification.notice_order.order_id}` as any);
+          }
+          break;
+        case 'app_vip':
+          // Navigate to VIP section
+          router.push('/profile/vip' as any);
+          break;
+        case 'app_wallet':
+          // Navigate to wallet
+          router.push('/(tabs)/wallet');
+          break;
+        case 'app_profile':
+          // Navigate to profile
+          router.push('/(tabs)/profile');
+          break;
+        default:
+          // Handle custom URLs or other actions
+          if (notification.notice_jump) {
+            // For now, just show an alert with the jump URL
+            Alert.alert('Navigation', `Would navigate to: ${notification.notice_jump}`);
+          }
+          break;
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+      Alert.alert('Error', 'Failed to navigate to the requested page');
+    }
+  }, [user?.token, markAsRead]);
+
+  // Format timestamp
+  const formatTime = (timeString: string) => {
+    try {
+      const date = new Date(timeString);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      
+      return date.toLocaleDateString();
+    } catch {
+      return timeString;
+    }
+  };
+
+  // Get status icon
+  const getStatusIcon = (notification: Notice) => {
+    if (notification.notice_new) {
+      return <Bell size={16} color={colors.primary} />;
+    }
+    return <CheckCircle size={16} color={colors.success} />;
+  };
+
+  // Render notification item
+  const renderNotificationItem = ({ item }: { item: Notice }) => (
+    <TouchableOpacity
+      style={[
+        styles.notificationItem,
+        {
+          backgroundColor: item.notice_new ? `${colors.primary}05` : colors.background,
+          borderBottomColor: colors.border,
+        },
+      ]}
+      onPress={() => handleNotificationPress(item)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.notificationContent}>
+        <View style={styles.notificationHeader}>
+          <View style={styles.titleRow}>
+            <Text style={[styles.notificationTitle, { color: colors.text }]} numberOfLines={1}>
+              {item.notice_title}
+            </Text>
+            {getStatusIcon(item)}
+          </View>
+          <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>
+            {formatTime(item.notice_time)}
+          </Text>
+        </View>
+        
+        <Text style={[styles.notificationMessage, { color: colors.textSecondary }]} numberOfLines={2}>
+          {item.notice_content}
+        </Text>
+        
+        {item.notice_order?.image && (
+          <View style={styles.attachmentContainer}>
+            <ImageIcon size={16} color={colors.textSecondary} />
+            <Text style={[styles.attachmentText, { color: colors.textSecondary }]}>
+              Image attachment
+            </Text>
+          </View>
+        )}
+      </View>
+      
+      {item.notice_new && (
+        <View style={[styles.unreadIndicator, { backgroundColor: colors.primary }]} />
+      )}
+    </TouchableOpacity>
+  );
+
+  // Render empty state
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <Bell size={48} color={colors.textSecondary} />
+      <Text style={[styles.emptyTitle, { color: colors.text }]}>
+        No notifications
+      </Text>
+      <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
+        You're all caught up! New notifications will appear here.
+      </Text>
+    </View>
+  );
+
+  // Render error state
+  const renderErrorState = () => (
+    <View style={styles.errorContainer}>
+      <AlertCircle size={48} color={colors.error} />
+      <Text style={[styles.errorTitle, { color: colors.error }]}>
+        Failed to load notifications
+      </Text>
+      <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>
+        {error}
+      </Text>
+      <TouchableOpacity
+        style={[styles.retryButton, { backgroundColor: colors.primary }]}
+        onPress={handleRefresh}
+      >
+        <Text style={styles.retryButtonText}>Try Again</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Render footer
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={colors.primary} />
+        <Text style={[styles.footerText, { color: colors.textSecondary }]}>
+          Loading more...
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header */}
       <View style={[styles.header, Platform.OS === 'android' && styles.androidHeader]}>
         <TouchableOpacity 
           onPress={() => router.back()} 
@@ -59,44 +261,76 @@ function NotificationsScreenContent() {
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Notifications</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            You have {initData?.notice_count} unread notifications
+            {totalCount > 0 ? `${totalCount} total notifications` : 'No notifications'}
           </Text>
         </View>
       </View>
 
-      <FlatList
-        data={notifications}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+      {/* Type Filter */}
+      <View style={styles.filterContainer}>
+        {NOTIFICATION_TYPES.map((type) => (
           <TouchableOpacity
+            key={type.key}
             style={[
-              styles.notificationItem,
+              styles.filterButton,
               {
-                backgroundColor: item.read ? colors.background : `${colors.primary}05`,
-                borderBottomColor: colors.border,
+                backgroundColor: activeType === type.key ? colors.primary : 'transparent',
+                borderColor: colors.border,
               },
             ]}
+            onPress={() => handleTypeChange(type.key)}
           >
-            {!item.read && (
-              <View
-                style={[styles.unreadIndicator, { backgroundColor: colors.primary }]}
-              />
-            )}
-            <View style={styles.notificationContent}>
-              <Text style={[styles.notificationTitle, { color: colors.text }]}>
-                {item.title}
-              </Text>
-              <Text style={[styles.notificationMessage, { color: colors.textSecondary }]}>
-                {item.message}
-              </Text>
-              <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>
-                {item.time}
-              </Text>
-            </View>
+            <Text
+              style={[
+                styles.filterButtonText,
+                {
+                  color: activeType === type.key ? '#FFFFFF' : colors.text,
+                },
+              ]}
+            >
+              {type.label}
+            </Text>
           </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.notificationsList}
-      />
+        ))}
+      </View>
+
+      {/* Content */}
+      {error && !refreshing ? (
+        renderErrorState()
+      ) : (
+        <FlatList
+          data={notifications}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderNotificationItem}
+          ListEmptyComponent={!isLoading ? renderEmptyState : null}
+          ListFooterComponent={renderFooter}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+            />
+          }
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.1}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.listContainer,
+            notifications.length === 0 && !isLoading && styles.emptyListContainer,
+          ]}
+        />
+      )}
+
+      {/* Loading overlay for initial load */}
+      {isLoading && notifications.length === 0 && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            Loading notifications...
+          </Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -139,37 +373,155 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     marginTop: Spacing.xs,
   },
-  notificationsList: {
-    paddingTop: Spacing.md,
+  filterContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  filterButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+  },
+  listContainer: {
+    paddingBottom: Spacing.lg,
+  },
+  emptyListContainer: {
+    flexGrow: 1,
   },
   notificationItem: {
     flexDirection: 'row',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderBottomWidth: 1,
-  },
-  unreadIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginTop: 8,
-    marginRight: Spacing.md,
+    position: 'relative',
   },
   notificationContent: {
     flex: 1,
   },
+  notificationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.xs,
+  },
+  titleRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: Spacing.sm,
+  },
   notificationTitle: {
+    flex: 1,
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    marginBottom: 4,
-  },
-  notificationMessage: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginBottom: 4,
+    marginRight: Spacing.xs,
   },
   notificationTime: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
+  },
+  notificationMessage: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 20,
+    marginBottom: Spacing.xs,
+  },
+  attachmentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  attachmentText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+  },
+  unreadIndicator: {
+    position: 'absolute',
+    right: Spacing.lg,
+    top: '50%',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginTop: -4,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  emptyMessage: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  errorMessage: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: Spacing.lg,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+  footerLoader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  footerText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    marginTop: Spacing.md,
   },
 });
