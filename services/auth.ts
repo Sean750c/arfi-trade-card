@@ -1,6 +1,6 @@
 import { APIRequest } from '@/utils/api';
 import { generateDeviceId } from '@/utils/device';
-import type { RegisterRequest, UserRegisterResponse, UserLoginResponse } from '@/types/api';
+import type { RegisterRequest, UserRegisterResponse, UserLoginResponse, EmptyReponse } from '@/types/api';
 
 export class AuthService {
   static async register(params: Omit<RegisterRequest, 'device_no' | 'channel_type'>) {
@@ -73,7 +73,7 @@ export class AuthService {
 
   static async logout(token: string) {
     try {
-      const response = await APIRequest.request(
+      const response = await APIRequest.request<EmptyReponse>(
         '/gc/user/applogout',
         'POST',
         {

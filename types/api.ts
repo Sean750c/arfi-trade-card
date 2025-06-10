@@ -5,6 +5,9 @@ export interface APIResponse<T> {
   data: T;
 }
 
+export interface Data {
+}
+
 export interface Country {
   id: number;
   name: string;
@@ -111,6 +114,7 @@ export interface RegisterRequest {
   code?: string;
 }
 
+export type EmptyReponse = APIResponse<Data>;
 export type JSONReponse = APIResponse<JSON>;
 export type CountryListResponse = APIResponse<Country[]>;
 export type InitResponse = APIResponse<InitData>;
