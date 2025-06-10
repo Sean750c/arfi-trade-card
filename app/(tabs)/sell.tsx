@@ -17,7 +17,26 @@ import {
   FlatList,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Plus, Calculator, MessageCircle, Crown, ChevronRight, ChevronDown, Trophy, TrendingUp, Phone, Camera, Image as ImageIcon, CircleCheck as CheckCircle, X } from 'lucide-react-native';
+import { 
+  Plus, 
+  Calculator, 
+  MessageCircle, 
+  Crown, 
+  ChevronRight, 
+  ChevronDown, 
+  Trophy, 
+  TrendingUp, 
+  Phone, 
+  Camera, 
+  Image as ImageIcon, 
+  CircleCheck as CheckCircle, 
+  X,
+  ArrowLeft,
+  Star,
+  Medal,
+  Award,
+  Zap
+} from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Button from '@/components/UI/Button';
 import AuthGuard from '@/components/UI/AuthGuard';
@@ -38,6 +57,22 @@ interface Coupon {
   description: string;
 }
 
+interface VIPLevel {
+  level: number;
+  bonus: string;
+  requirements: string;
+  benefits: string[];
+}
+
+interface RankingUser {
+  id: number;
+  username: string;
+  rank: number;
+  volume: string;
+  badge: string;
+  avatar: string;
+}
+
 function SellScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
@@ -48,12 +83,51 @@ function SellScreenContent() {
   const [selectedWallet, setSelectedWallet] = useState<'NGN' | 'USDT'>('NGN');
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [showCouponModal, setShowCouponModal] = useState(false);
+  const [showVIPModal, setShowVIPModal] = useState(false);
+  const [showRankingModal, setShowRankingModal] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState<Coupon[]>([]);
   const [loadingCoupons, setLoadingCoupons] = useState(false);
   
   const customerServiceAnim = useRef(new Animated.Value(1)).current;
+  const sellButtonAnim = useRef(new Animated.Value(0)).current;
 
-  // Customer service pulse animation
+  // Mock VIP data
+  const vipLevels: VIPLevel[] = [
+    {
+      level: 1,
+      bonus: '0.25%',
+      requirements: 'Default level',
+      benefits: ['Basic support', 'Standard rates', 'Email notifications']
+    },
+    {
+      level: 2,
+      bonus: '0.5%',
+      requirements: '$5,000+ monthly volume',
+      benefits: ['Priority support', 'Enhanced rates', 'SMS notifications', 'Exclusive promotions']
+    },
+    {
+      level: 3,
+      bonus: '0.75%',
+      requirements: '$15,000+ monthly volume',
+      benefits: ['VIP support', 'Premium rates', 'Phone support', 'Early access to features']
+    },
+    {
+      level: 4,
+      bonus: '1.0%',
+      requirements: '$50,000+ monthly volume',
+      benefits: ['Dedicated manager', 'Best rates', '24/7 priority', 'Custom solutions']
+    }
+  ];
+
+  // Mock ranking data
+  const rankingData: RankingUser[] = [
+    { id: 1, username: 'TradeMaster', rank: 1, volume: '$125,000', badge: 'Diamond', avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg' },
+    { id: 2, username: 'CardKing', rank: 2, volume: '$98,500', badge: 'Platinum', avatar: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg' },
+    { id: 3, username: 'GiftCardPro', rank: 3, volume: '$87,200', badge: 'Gold', avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg' },
+    { id: 4, username: user?.username || 'You', rank: 15, volume: '$12,450', badge: 'Silver', avatar: user?.avatar || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg' },
+  ];
+
+  // Animations
   useEffect(() => {
     const customerPulse = Animated.loop(
       Animated.sequence([
@@ -70,6 +144,14 @@ function SellScreenContent() {
       ])
     );
     customerPulse.start();
+
+    // Floating sell button entrance animation
+    Animated.spring(sellButtonAnim, {
+      toValue: 1,
+      tension: 100,
+      friction: 8,
+      useNativeDriver: true,
+    }).start();
 
     return () => customerPulse.stop();
   }, []);
@@ -91,6 +173,7 @@ function SellScreenContent() {
         { id: 1, name: 'WELCOME10', discount: '10%', description: 'Welcome bonus for new users' },
         { id: 2, name: 'VIP5', discount: '5%', description: 'VIP member exclusive discount' },
         { id: 3, name: 'BULK20', discount: '20%', description: 'Bulk transaction bonus' },
+        { id: 4, name: 'WEEKEND15', discount: '15%', description: 'Weekend special offer' },
       ];
       
       setAvailableCoupons(mockCoupons);
@@ -196,7 +279,6 @@ function SellScreenContent() {
     }
 
     try {
-      // Here you would call the /gc/order/appaddd endpoint
       Alert.alert(
         'Cards Submitted Successfully!', 
         'Your cards have been submitted for review. You will receive a notification once processed.',
@@ -230,15 +312,40 @@ function SellScreenContent() {
     setShowCouponModal(false);
   };
 
+  const getBadgeIcon = (badge: string) => {
+    switch (badge) {
+      case 'Diamond':
+        return <Award size={16} color="#B9F2FF" />;
+      case 'Platinum':
+        return <Medal size={16} color="#E5E7EB" />;
+      case 'Gold':
+        return <Trophy size={16} color="#FCD34D" />;
+      case 'Silver':
+        return <Star size={16} color="#D1D5DB" />;
+      default:
+        return <Star size={16} color="#9CA3AF" />;
+    }
+  };
+
   const renderHeader = () => (
     <View style={styles.header}>
-      {/* Calculator button moved to upper left */}
+      {/* Return button in top-left */}
+      <TouchableOpacity
+        style={[styles.returnButton, { backgroundColor: `${colors.primary}15` }]}
+        onPress={() => router.back()}
+      >
+        <ArrowLeft size={20} color={colors.primary} />
+      </TouchableOpacity>
+
+      {/* Calculator button next to return */}
       <TouchableOpacity
         style={[styles.calculatorButton, { backgroundColor: colors.primary }]}
         onPress={() => router.push('/calculator' as any)}
       >
         <Calculator size={20} color="#FFFFFF" />
       </TouchableOpacity>
+
+      <View style={styles.headerSpacer} />
 
       {/* Contact us button in upper right */}
       <TouchableOpacity 
@@ -257,7 +364,6 @@ function SellScreenContent() {
         You can enter card info here or leave it blank
       </Text>
       
-      {/* Reduced height text input */}
       <TextInput
         style={[
           styles.cardInfoInput,
@@ -319,7 +425,6 @@ function SellScreenContent() {
         <Text style={[styles.walletTitle, { color: colors.text }]}>Select Wallet</Text>
       </View>
       
-      {/* Optimized compact wallet options */}
       <View style={styles.walletOptions}>
         <TouchableOpacity
           style={[
@@ -384,26 +489,164 @@ function SellScreenContent() {
     <View style={styles.vipSection}>
       <TouchableOpacity 
         style={[styles.vipItem, { backgroundColor: colors.primary }]}
-        onPress={() => Alert.alert('VIP Benefits', `VIP Level ${user?.vip_level || 1}\n\n• Exchange rate bonus: 0.25%\n• Priority support\n• Exclusive promotions\n• Faster processing times`)}
+        onPress={() => setShowVIPModal(true)}
       >
         <View style={styles.vipContent}>
           <Crown size={20} color="#FFD700" />
-          <Text style={styles.vipText}>VIP{user?.vip_level || 1} rate 0.25%</Text>
+          <View style={styles.vipTextContainer}>
+            <Text style={styles.vipText}>VIP{user?.vip_level || 1} Bonus</Text>
+            <Text style={styles.vipBonus}>+{vipLevels.find(v => v.level === (user?.vip_level || 1))?.bonus || '0.25%'}</Text>
+          </View>
         </View>
         <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={[styles.vipItem, { backgroundColor: '#1E40AF' }]}
-        onPress={() => Alert.alert('Live Rates', 'Current exchange rates:\n\n• Amazon: ₦620/$1\n• iTunes: ₦600/$1\n• Steam: ₦625/$1\n• Google Play: ₦590/$1\n\nActivity bonus: +2% this week!')}
+        style={[styles.rankingItem, { backgroundColor: '#1E40AF' }]}
+        onPress={() => setShowRankingModal(true)}
       >
         <View style={styles.vipContent}>
-          <TrendingUp size={20} color="#FFFFFF" />
-          <Text style={styles.vipText}>Rate 0%</Text>
+          <Trophy size={20} color="#FFFFFF" />
+          <View style={styles.vipTextContainer}>
+            <Text style={styles.vipText}>Ranking</Text>
+            <Text style={styles.vipBonus}>#15</Text>
+          </View>
         </View>
         <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
       </TouchableOpacity>
     </View>
+  );
+
+  const renderVIPModal = () => (
+    <Modal
+      visible={showVIPModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowVIPModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>VIP Benefits</Text>
+            <TouchableOpacity onPress={() => setShowVIPModal(false)}>
+              <X size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {vipLevels.map((level) => (
+              <View 
+                key={level.level} 
+                style={[
+                  styles.vipLevelCard,
+                  { 
+                    backgroundColor: level.level === (user?.vip_level || 1) ? `${colors.primary}15` : 'transparent',
+                    borderColor: level.level === (user?.vip_level || 1) ? colors.primary : colors.border,
+                  }
+                ]}
+              >
+                <View style={styles.vipLevelHeader}>
+                  <View style={styles.vipLevelInfo}>
+                    <Text style={[styles.vipLevelTitle, { color: colors.text }]}>
+                      VIP Level {level.level}
+                    </Text>
+                    <Text style={[styles.vipLevelBonus, { color: colors.primary }]}>
+                      +{level.bonus} Bonus
+                    </Text>
+                  </View>
+                  {level.level === (user?.vip_level || 1) && (
+                    <View style={[styles.currentBadge, { backgroundColor: colors.primary }]}>
+                      <Text style={styles.currentBadgeText}>Current</Text>
+                    </View>
+                  )}
+                </View>
+                
+                <Text style={[styles.vipRequirements, { color: colors.textSecondary }]}>
+                  {level.requirements}
+                </Text>
+                
+                <View style={styles.vipBenefits}>
+                  {level.benefits.map((benefit, index) => (
+                    <View key={index} style={styles.benefitRow}>
+                      <CheckCircle size={16} color={colors.success} />
+                      <Text style={[styles.benefitText, { color: colors.text }]}>{benefit}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const renderRankingModal = () => (
+    <Modal
+      visible={showRankingModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowRankingModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Trading Rankings</Text>
+            <TouchableOpacity onPress={() => setShowRankingModal(false)}>
+              <X size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.rankingStats}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: colors.primary }]}>#15</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Your Rank</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: colors.primary }]}>$12,450</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Volume</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: colors.primary }]}>Silver</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Badge</Text>
+            </View>
+          </View>
+          
+          <FlatList
+            data={rankingData}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <View 
+                style={[
+                  styles.rankingItem,
+                  { 
+                    backgroundColor: item.username === (user?.username || 'You') ? `${colors.primary}10` : 'transparent',
+                    borderBottomColor: colors.border 
+                  }
+                ]}
+              >
+                <View style={styles.rankPosition}>
+                  <Text style={[styles.rankNumber, { color: colors.text }]}>#{item.rank}</Text>
+                </View>
+                
+                <Image source={{ uri: item.avatar }} style={styles.rankAvatar} />
+                
+                <View style={styles.rankInfo}>
+                  <Text style={[styles.rankUsername, { color: colors.text }]}>{item.username}</Text>
+                  <Text style={[styles.rankVolume, { color: colors.textSecondary }]}>{item.volume}</Text>
+                </View>
+                
+                <View style={styles.rankBadge}>
+                  {getBadgeIcon(item.badge)}
+                  <Text style={[styles.rankBadgeText, { color: colors.textSecondary }]}>{item.badge}</Text>
+                </View>
+              </View>
+            )}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
+      </View>
+    </Modal>
   );
 
   const renderCouponModal = () => (
@@ -488,22 +731,39 @@ function SellScreenContent() {
           {renderWalletSelection()}
           {renderDiscountSection()}
           {renderVipSection()}
-          
-          {/* Submit Button */}
-          <Button
-            title="Sell"
-            onPress={handleSubmit}
-            disabled={!isFormValid()}
+        </ScrollView>
+
+        {/* Floating Sell Button */}
+        <Animated.View 
+          style={[
+            styles.floatingSellButton,
+            {
+              transform: [
+                { scale: sellButtonAnim },
+                { translateY: sellButtonAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [100, 0]
+                })}
+              ]
+            }
+          ]}
+        >
+          <TouchableOpacity
             style={[
-              styles.submitButton,
+              styles.sellButton,
               { 
                 backgroundColor: isFormValid() ? colors.primary : colors.border,
-                opacity: isFormValid() ? 1 : 0.6,
+                shadowColor: colors.primary,
               }
             ]}
-            fullWidth
-          />
-        </ScrollView>
+            onPress={handleSubmit}
+            disabled={!isFormValid()}
+            activeOpacity={0.8}
+          >
+            <Zap size={24} color="#FFFFFF" />
+            <Text style={styles.sellButtonText}>Sell Cards</Text>
+          </TouchableOpacity>
+        </Animated.View>
 
         {/* Floating Customer Service Button */}
         <View style={styles.floatingButtons}>
@@ -513,12 +773,13 @@ function SellScreenContent() {
               onPress={() => Alert.alert('Customer Service', '24/7 support available via WhatsApp, Email, or Live Chat.')}
             >
               <MessageCircle size={20} color="#FFFFFF" />
-              <Text style={styles.customerServiceText}>?</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
 
         {renderCouponModal()}
+        {renderVIPModal()}
+        {renderRankingModal()}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -538,15 +799,22 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.lg,
-    paddingBottom: 100,
+    paddingBottom: 120, // Extra space for floating button
   },
 
-  // Header
+  // Header with proper layout
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  returnButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   calculatorButton: {
     width: 40,
@@ -559,6 +827,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
+  },
+  headerSpacer: {
+    flex: 1,
   },
   contactButton: {
     flexDirection: 'row',
@@ -590,7 +861,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    minHeight: 60, // Reduced height
+    minHeight: 60,
     marginBottom: Spacing.lg,
   },
   uploadLimit: {
@@ -636,7 +907,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Wallet Section - Optimized
+  // Wallet Section
   walletSection: {
     marginBottom: Spacing.lg,
   },
@@ -667,7 +938,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
   },
 
-  // Discount Section - Dropdown style
+  // Discount Section
   discountSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -698,28 +969,62 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: 12,
   },
+  rankingItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderRadius: 12,
+  },
   vipContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
+  vipTextContainer: {
+    alignItems: 'flex-start',
+  },
   vipText: {
     color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
+  vipBonus: {
+    color: '#FFFFFF',
     fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: 'Inter-Bold',
   },
 
-  // Submit Button
-  submitButton: {
-    height: 56,
-    marginBottom: Spacing.xl,
-    borderRadius: 12,
+  // Floating Sell Button
+  floatingSellButton: {
+    position: 'absolute',
+    bottom: Spacing.xl,
+    left: Spacing.lg,
+    right: Spacing.lg,
+  },
+  sellButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.lg,
+    borderRadius: 16,
+    gap: Spacing.sm,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  sellButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
   },
 
-  // Floating Buttons
+  // Floating Customer Service
   floatingButtons: {
     position: 'absolute',
-    bottom: Spacing.lg,
+    bottom: 100,
     right: Spacing.lg,
   },
   customerServiceButton: {
@@ -733,13 +1038,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
-    position: 'relative',
-  },
-  customerServiceText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-    position: 'absolute',
   },
 
   // Modal Styles
@@ -752,7 +1050,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: Spacing.lg,
-    maxHeight: '70%',
+    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -764,6 +1062,125 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Inter-Bold',
   },
+
+  // VIP Modal Styles
+  vipLevelCard: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+  },
+  vipLevelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  vipLevelInfo: {
+    flex: 1,
+  },
+  vipLevelTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+  },
+  vipLevelBonus: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    marginTop: 2,
+  },
+  currentBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  currentBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'Inter-Bold',
+  },
+  vipRequirements: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    marginBottom: Spacing.sm,
+  },
+  vipBenefits: {
+    gap: Spacing.xs,
+  },
+  benefitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  benefitText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    flex: 1,
+  },
+
+  // Ranking Modal Styles
+  rankingStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: Spacing.lg,
+    paddingVertical: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+  },
+  statLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    marginTop: 4,
+  },
+  rankingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  rankPosition: {
+    width: 40,
+    alignItems: 'center',
+  },
+  rankNumber: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+  },
+  rankAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginHorizontal: Spacing.md,
+  },
+  rankInfo: {
+    flex: 1,
+  },
+  rankUsername: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+  rankVolume: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    marginTop: 2,
+  },
+  rankBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  rankBadgeText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
+
+  // Coupon Modal Styles
   loadingContainer: {
     padding: Spacing.xl,
     alignItems: 'center',
