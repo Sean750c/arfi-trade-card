@@ -48,6 +48,9 @@ function NotificationsScreenContent() {
 
   const [refreshing, setRefreshing] = useState(false);
 
+  // Safely handle notifications array - ensure it's always an array
+  const safeNotifications = notifications || [];
+
   // Initial load
   useEffect(() => {
     if (user?.token) {
@@ -299,7 +302,7 @@ function NotificationsScreenContent() {
         renderErrorState()
       ) : (
         <FlatList
-          data={notifications}
+          data={safeNotifications}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderNotificationItem}
           ListEmptyComponent={!isLoading ? renderEmptyState : null}
@@ -317,13 +320,13 @@ function NotificationsScreenContent() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.listContainer,
-            notifications.length === 0 && !isLoading && styles.emptyListContainer,
+            safeNotifications.length === 0 && !isLoading && styles.emptyListContainer,
           ]}
         />
       )}
 
       {/* Loading overlay for initial load */}
-      {isLoading && notifications.length === 0 && (
+      {isLoading && safeNotifications.length === 0 && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
