@@ -7,26 +7,36 @@ interface AppState {
   initData: InitData | null;
   isLoading: boolean;
   error: string | null;
-  initialize: () => Promise<void>;
+  initialize: (userToken?: string) => Promise<void>;
 }
 
 export const useAppStore = create<AppState>((set) => ({
   initData: null,
   isLoading: false,
   error: null,
-  initialize: async () => {
+  initialize: async (userToken?: string) => {
     set({ isLoading: true, error: null });
     try {
       const deviceNo = await generateDeviceId();
+      
+      // Prepare request parameters
+      const requestParams: any = {
+        os_type: 'web',
+        device_no: deviceNo,
+        device_type: 'web',
+      };
+      
+      // Include token if user is logged in
+      if (userToken) {
+        requestParams.token = userToken;
+      }
+      
       const response = await APIRequest.request<InitResponse>(
         '/gc/public/appinit',
         'POST',
-        {
-          os_type: 'web',
-          device_no: deviceNo,
-          device_type: 'web',
-        }
+        requestParams
       );
+      
       set({ initData: response.data, isLoading: false });
     } catch (error) {
       set({

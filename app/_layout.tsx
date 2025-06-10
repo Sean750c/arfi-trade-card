@@ -8,12 +8,14 @@ import { useAuthProtection } from '@/hooks/useAuthProtection';
 import { useAppStore } from '@/stores/useAppStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useBannerStore } from '@/stores/useBannerStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function RootLayout() {
   const router = useRouter();
-  const initialize = useAppStore((state) => state.initialize);
-  const fetchCountries = useCountryStore((state) => state.fetchCountries);
-  const fetchBanners = useBannerStore((state) => state.fetchBanners);
+  const { initialize } = useAppStore();
+  const { fetchCountries } = useCountryStore();
+  const { fetchBanners } = useBannerStore();
+  const { isAuthenticated, user } = useAuthStore();
   
   useFrameworkReady();
   useAuthProtection(); // Add auth protection
@@ -21,14 +23,15 @@ export default function RootLayout() {
   useEffect(() => {
     const init = async () => {
       try {
-        // Initialize app data
-        await initialize();
-        
-        // Fetch countries and banners in parallel
+        // Fetch countries and banners in parallel (these don't require auth)
         await Promise.all([
           fetchCountries(),
           fetchBanners()
         ]);
+        
+        // Initialize app data with user token if authenticated
+        const userToken = isAuthenticated && user?.token ? user.token : undefined;
+        await initialize(userToken);
         
         // Check onboarding status
         const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
@@ -41,7 +44,7 @@ export default function RootLayout() {
     };
 
     init();
-  }, [initialize, fetchCountries, fetchBanners, router]);
+  }, [initialize, fetchCountries, fetchBanners, router, isAuthenticated, user?.token]);
 
   return (
     <>

@@ -36,14 +36,16 @@ export default function HomeScreen() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        await initialize();
+        // Check if user is authenticated and pass token if available
+        const userToken = isAuthenticated && user?.token ? user.token : undefined;
+        await initialize(userToken);
       } catch (error) {
         console.error('Failed to initialize app:', error);
       }
     };
 
     initializeApp();
-  }, [initialize]);
+  }, [initialize, isAuthenticated, user?.token]);
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
@@ -63,7 +65,9 @@ export default function HomeScreen() {
 
   const handleRefresh = async () => {
     try {
-      await initialize();
+      // Include user token if authenticated
+      const userToken = isAuthenticated && user?.token ? user.token : undefined;
+      await initialize(userToken);
     } catch (error) {
       console.error('Failed to refresh app data:', error);
     }
