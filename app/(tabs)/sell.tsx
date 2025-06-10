@@ -15,12 +15,13 @@ import {
   TextInput,
   Modal,
   FlatList,
+  PanGestureHandler,
+  State,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
   Plus, 
   Calculator, 
-  MessageCircle, 
   Crown, 
   ChevronRight, 
   ChevronDown, 
@@ -35,7 +36,9 @@ import {
   Star,
   Medal,
   Award,
-  Zap
+  Zap,
+  HelpCircle,
+  Wallet
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Button from '@/components/UI/Button';
@@ -85,11 +88,13 @@ function SellScreenContent() {
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [showVIPModal, setShowVIPModal] = useState(false);
   const [showRankingModal, setShowRankingModal] = useState(false);
+  const [showFAQModal, setShowFAQModal] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState<Coupon[]>([]);
   const [loadingCoupons, setLoadingCoupons] = useState(false);
   
-  const customerServiceAnim = useRef(new Animated.Value(1)).current;
-  const sellButtonAnim = useRef(new Animated.Value(0)).current;
+  // Draggable help button position
+  const [helpButtonPosition, setHelpButtonPosition] = useState({ x: 20, y: 200 });
+  const helpButtonAnim = useRef(new Animated.ValueXY(helpButtonPosition)).current;
 
   // Mock VIP data
   const vipLevels: VIPLevel[] = [
@@ -127,33 +132,29 @@ function SellScreenContent() {
     { id: 4, username: user?.username || 'You', rank: 15, volume: '$12,450', badge: 'Silver', avatar: user?.avatar || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg' },
   ];
 
-  // Animations
+  // FAQ data
+  const faqData = [
+    {
+      question: 'How long does it take to process my card?',
+      answer: 'Most cards are processed within 5-15 minutes during business hours.'
+    },
+    {
+      question: 'What types of gift cards do you accept?',
+      answer: 'We accept iTunes, Amazon, Steam, Google Play, and many other popular gift cards.'
+    },
+    {
+      question: 'How do I get better rates?',
+      answer: 'Upgrade your VIP level by increasing your monthly trading volume to get better rates.'
+    },
+    {
+      question: 'Is my information secure?',
+      answer: 'Yes, we use bank-level encryption to protect all your personal and transaction data.'
+    }
+  ];
+
+  // Initialize help button position
   useEffect(() => {
-    const customerPulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(customerServiceAnim, {
-          toValue: 1.05,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(customerServiceAnim, {
-          toValue: 1,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    customerPulse.start();
-
-    // Floating sell button entrance animation
-    Animated.spring(sellButtonAnim, {
-      toValue: 1,
-      tension: 100,
-      friction: 8,
-      useNativeDriver: true,
-    }).start();
-
-    return () => customerPulse.stop();
+    helpButtonAnim.setValue(helpButtonPosition);
   }, []);
 
   // Fetch available coupons
@@ -327,6 +328,27 @@ function SellScreenContent() {
     }
   };
 
+  // Handle help button drag
+  const onGestureEvent = Animated.event(
+    [{ nativeEvent: { translationX: helpButtonAnim.x, translationY: helpButtonAnim.y } }],
+    { useNativeDriver: false }
+  );
+
+  const onHandlerStateChange = (event: any) => {
+    if (event.nativeEvent.state === State.END) {
+      const { translationX, translationY } = event.nativeEvent;
+      const newX = Math.max(0, Math.min(300, helpButtonPosition.x + translationX));
+      const newY = Math.max(100, Math.min(600, helpButtonPosition.y + translationY));
+      
+      setHelpButtonPosition({ x: newX, y: newY });
+      
+      Animated.spring(helpButtonAnim, {
+        toValue: { x: newX, y: newY },
+        useNativeDriver: false,
+      }).start();
+    }
+  };
+
   const renderHeader = () => (
     <View style={styles.header}>
       {/* Return button in top-left */}
@@ -335,14 +357,6 @@ function SellScreenContent() {
         onPress={() => router.back()}
       >
         <ArrowLeft size={20} color={colors.primary} />
-      </TouchableOpacity>
-
-      {/* Calculator button next to return */}
-      <TouchableOpacity
-        style={[styles.calculatorButton, { backgroundColor: colors.primary }]}
-        onPress={() => router.push('/calculator' as any)}
-      >
-        <Calculator size={20} color="#FFFFFF" />
       </TouchableOpacity>
 
       <View style={styles.headerSpacer} />
@@ -397,6 +411,9 @@ function SellScreenContent() {
         onPress={addCardImage}
       >
         <Plus size={32} color={colors.textSecondary} />
+        <Text style={[styles.uploadButtonText, { color: colors.textSecondary }]}>
+          Add Card Image
+        </Text>
       </TouchableOpacity>
       
       {/* Display uploaded cards */}
@@ -421,45 +438,73 @@ function SellScreenContent() {
   const renderWalletSelection = () => (
     <View style={styles.walletSection}>
       <View style={styles.walletHeader}>
-        <Crown size={20} color={colors.primary} />
+        <Wallet size={20} color={colors.primary} />
         <Text style={[styles.walletTitle, { color: colors.text }]}>Select Wallet</Text>
       </View>
       
-      <View style={styles.walletOptions}>
+      <View style={styles.walletGrid}>
         <TouchableOpacity
           style={[
-            styles.walletOption,
+            styles.walletGridOption,
             {
-              backgroundColor: selectedWallet === 'NGN' ? colors.primary : 'transparent',
-              borderColor: colors.border,
+              backgroundColor: selectedWallet === 'NGN' ? colors.primary : colorScheme === 'dark' ? colors.card : '#F9FAFB',
+              borderColor: selectedWallet === 'NGN' ? colors.primary : colors.border,
             },
           ]}
           onPress={() => setSelectedWallet('NGN')}
         >
+          <View style={[styles.walletIcon, { backgroundColor: selectedWallet === 'NGN' ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
+            <Text style={[styles.walletIconText, { color: selectedWallet === 'NGN' ? '#FFFFFF' : colors.primary }]}>₦</Text>
+          </View>
           <Text style={[
-            styles.walletOptionText,
+            styles.walletGridText,
             { color: selectedWallet === 'NGN' ? '#FFFFFF' : colors.text }
+          ]}>
+            Nigerian Naira
+          </Text>
+          <Text style={[
+            styles.walletGridSubtext,
+            { color: selectedWallet === 'NGN' ? 'rgba(255,255,255,0.8)' : colors.textSecondary }
           ]}>
             NGN
           </Text>
+          {selectedWallet === 'NGN' && (
+            <View style={styles.selectedIndicator}>
+              <CheckCircle size={16} color="#FFFFFF" />
+            </View>
+          )}
         </TouchableOpacity>
         
         <TouchableOpacity
           style={[
-            styles.walletOption,
+            styles.walletGridOption,
             {
-              backgroundColor: selectedWallet === 'USDT' ? colors.primary : 'transparent',
-              borderColor: colors.border,
+              backgroundColor: selectedWallet === 'USDT' ? colors.primary : colorScheme === 'dark' ? colors.card : '#F9FAFB',
+              borderColor: selectedWallet === 'USDT' ? colors.primary : colors.border,
             },
           ]}
           onPress={() => setSelectedWallet('USDT')}
         >
+          <View style={[styles.walletIcon, { backgroundColor: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
+            <Text style={[styles.walletIconText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.primary }]}>₮</Text>
+          </View>
           <Text style={[
-            styles.walletOptionText,
+            styles.walletGridText,
             { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }
+          ]}>
+            Tether USD
+          </Text>
+          <Text style={[
+            styles.walletGridSubtext,
+            { color: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.8)' : colors.textSecondary }
           ]}>
             USDT
           </Text>
+          {selectedWallet === 'USDT' && (
+            <View style={styles.selectedIndicator}>
+              <CheckCircle size={16} color="#FFFFFF" />
+            </View>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -478,8 +523,13 @@ function SellScreenContent() {
     >
       <View style={styles.discountContent}>
         <Text style={[styles.discountText, { color: colors.text }]}>
-          {selectedCoupon ? `${selectedCoupon.name} (${selectedCoupon.discount})` : 'Discount Code'}
+          {selectedCoupon ? `${selectedCoupon.name} (${selectedCoupon.discount})` : 'Select Discount Code'}
         </Text>
+        {selectedCoupon && (
+          <Text style={[styles.discountDescription, { color: colors.textSecondary }]}>
+            {selectedCoupon.description}
+          </Text>
+        )}
       </View>
       <ChevronDown size={20} color={colors.textSecondary} />
     </TouchableOpacity>
@@ -494,8 +544,8 @@ function SellScreenContent() {
         <View style={styles.vipContent}>
           <Crown size={20} color="#FFD700" />
           <View style={styles.vipTextContainer}>
-            <Text style={styles.vipText}>VIP{user?.vip_level || 1} Bonus</Text>
-            <Text style={styles.vipBonus}>+{vipLevels.find(v => v.level === (user?.vip_level || 1))?.bonus || '0.25%'}</Text>
+            <Text style={styles.vipText}>VIP{user?.vip_level || 1} Exchange Rate Bonus</Text>
+            <Text style={styles.vipBonus}>+{vipLevels.find(v => v.level === (user?.vip_level || 1))?.bonus || '0.25%'} Extra Rate</Text>
           </View>
         </View>
         <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
@@ -508,11 +558,38 @@ function SellScreenContent() {
         <View style={styles.vipContent}>
           <Trophy size={20} color="#FFFFFF" />
           <View style={styles.vipTextContainer}>
-            <Text style={styles.vipText}>Ranking</Text>
-            <Text style={styles.vipBonus}>#15</Text>
+            <Text style={styles.vipText}>Activity Rebate Program</Text>
+            <Text style={styles.vipBonus}>Earn up to 2% cashback</Text>
           </View>
         </View>
         <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderBottomActions = () => (
+    <View style={styles.bottomActions}>
+      <TouchableOpacity
+        style={[styles.calculatorBottomButton, { backgroundColor: colors.secondary, borderColor: colors.primary }]}
+        onPress={() => router.push('/calculator' as any)}
+      >
+        <Calculator size={20} color={colors.primary} />
+        <Text style={[styles.calculatorBottomText, { color: colors.primary }]}>Calculator</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.sellBottomButton,
+          { 
+            backgroundColor: isFormValid() ? colors.primary : colors.border,
+          }
+        ]}
+        onPress={handleSubmit}
+        disabled={!isFormValid()}
+        activeOpacity={0.8}
+      >
+        <Zap size={20} color="#FFFFFF" />
+        <Text style={styles.sellBottomText}>Sell Cards</Text>
       </TouchableOpacity>
     </View>
   );
@@ -527,7 +604,7 @@ function SellScreenContent() {
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
           <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>VIP Benefits</Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>VIP Exchange Rate Benefits</Text>
             <TouchableOpacity onPress={() => setShowVIPModal(false)}>
               <X size={24} color={colors.text} />
             </TouchableOpacity>
@@ -551,7 +628,7 @@ function SellScreenContent() {
                       VIP Level {level.level}
                     </Text>
                     <Text style={[styles.vipLevelBonus, { color: colors.primary }]}>
-                      +{level.bonus} Bonus
+                      +{level.bonus} Exchange Rate Bonus
                     </Text>
                   </View>
                   {level.level === (user?.vip_level || 1) && (
@@ -562,7 +639,7 @@ function SellScreenContent() {
                 </View>
                 
                 <Text style={[styles.vipRequirements, { color: colors.textSecondary }]}>
-                  {level.requirements}
+                  Requirements: {level.requirements}
                 </Text>
                 
                 <View style={styles.vipBenefits}>
@@ -591,59 +668,38 @@ function SellScreenContent() {
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
           <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Trading Rankings</Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Activity Rebate Program</Text>
             <TouchableOpacity onPress={() => setShowRankingModal(false)}>
               <X size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
           
-          <View style={styles.rankingStats}>
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.primary }]}>#15</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Your Rank</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.primary }]}>$12,450</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Volume</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.primary }]}>Silver</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Badge</Text>
+          <View style={styles.rebateInfo}>
+            <Text style={[styles.rebateTitle, { color: colors.text }]}>Earn Cashback on Every Trade</Text>
+            <Text style={[styles.rebateDescription, { color: colors.textSecondary }]}>
+              Get up to 2% cashback based on your monthly trading volume and VIP level.
+            </Text>
+            
+            <View style={styles.rebateTiers}>
+              <View style={styles.rebateTier}>
+                <Text style={[styles.rebateTierTitle, { color: colors.primary }]}>Bronze Tier</Text>
+                <Text style={[styles.rebateTierAmount, { color: colors.text }]}>0.5% Cashback</Text>
+                <Text style={[styles.rebateTierRequirement, { color: colors.textSecondary }]}>$1,000+ monthly</Text>
+              </View>
+              
+              <View style={styles.rebateTier}>
+                <Text style={[styles.rebateTierTitle, { color: colors.primary }]}>Silver Tier</Text>
+                <Text style={[styles.rebateTierAmount, { color: colors.text }]}>1.0% Cashback</Text>
+                <Text style={[styles.rebateTierRequirement, { color: colors.textSecondary }]}>$5,000+ monthly</Text>
+              </View>
+              
+              <View style={styles.rebateTier}>
+                <Text style={[styles.rebateTierTitle, { color: colors.primary }]}>Gold Tier</Text>
+                <Text style={[styles.rebateTierAmount, { color: colors.text }]}>2.0% Cashback</Text>
+                <Text style={[styles.rebateTierRequirement, { color: colors.textSecondary }]}>$15,000+ monthly</Text>
+              </View>
             </View>
           </View>
-          
-          <FlatList
-            data={rankingData}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View 
-                style={[
-                  styles.rankingItem,
-                  { 
-                    backgroundColor: item.username === (user?.username || 'You') ? `${colors.primary}10` : 'transparent',
-                    borderBottomColor: colors.border 
-                  }
-                ]}
-              >
-                <View style={styles.rankPosition}>
-                  <Text style={[styles.rankNumber, { color: colors.text }]}>#{item.rank}</Text>
-                </View>
-                
-                <Image source={{ uri: item.avatar }} style={styles.rankAvatar} />
-                
-                <View style={styles.rankInfo}>
-                  <Text style={[styles.rankUsername, { color: colors.text }]}>{item.username}</Text>
-                  <Text style={[styles.rankVolume, { color: colors.textSecondary }]}>{item.volume}</Text>
-                </View>
-                
-                <View style={styles.rankBadge}>
-                  {getBadgeIcon(item.badge)}
-                  <Text style={[styles.rankBadgeText, { color: colors.textSecondary }]}>{item.badge}</Text>
-                </View>
-              </View>
-            )}
-            showsVerticalScrollIndicator={false}
-          />
         </View>
       </View>
     </Modal>
@@ -716,6 +772,35 @@ function SellScreenContent() {
     </Modal>
   );
 
+  const renderFAQModal = () => (
+    <Modal
+      visible={showFAQModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowFAQModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Card Selling FAQ</Text>
+            <TouchableOpacity onPress={() => setShowFAQModal(false)}>
+              <X size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {faqData.map((faq, index) => (
+              <View key={index} style={[styles.faqItem, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.faqQuestion, { color: colors.text }]}>{faq.question}</Text>
+                <Text style={[styles.faqAnswer, { color: colors.textSecondary }]}>{faq.answer}</Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
@@ -733,53 +818,39 @@ function SellScreenContent() {
           {renderVipSection()}
         </ScrollView>
 
-        {/* Floating Sell Button */}
-        <Animated.View 
-          style={[
-            styles.floatingSellButton,
-            {
-              transform: [
-                { scale: sellButtonAnim },
-                { translateY: sellButtonAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [100, 0]
-                })}
-              ]
-            }
-          ]}
+        {/* Bottom Action Buttons */}
+        {renderBottomActions()}
+
+        {/* Draggable Help Button */}
+        <PanGestureHandler
+          onGestureEvent={onGestureEvent}
+          onHandlerStateChange={onHandlerStateChange}
         >
-          <TouchableOpacity
+          <Animated.View 
             style={[
-              styles.sellButton,
-              { 
-                backgroundColor: isFormValid() ? colors.primary : colors.border,
-                shadowColor: colors.primary,
+              styles.draggableHelpButton,
+              {
+                backgroundColor: colors.warning,
+                transform: [
+                  { translateX: helpButtonAnim.x },
+                  { translateY: helpButtonAnim.y }
+                ]
               }
             ]}
-            onPress={handleSubmit}
-            disabled={!isFormValid()}
-            activeOpacity={0.8}
           >
-            <Zap size={24} color="#FFFFFF" />
-            <Text style={styles.sellButtonText}>Sell Cards</Text>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* Floating Customer Service Button */}
-        <View style={styles.floatingButtons}>
-          <Animated.View style={{ transform: [{ scale: customerServiceAnim }] }}>
             <TouchableOpacity
-              style={[styles.customerServiceButton, { backgroundColor: '#25D366' }]}
-              onPress={() => Alert.alert('Customer Service', '24/7 support available via WhatsApp, Email, or Live Chat.')}
+              style={styles.helpButtonInner}
+              onPress={() => setShowFAQModal(true)}
             >
-              <MessageCircle size={20} color="#FFFFFF" />
+              <HelpCircle size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </Animated.View>
-        </View>
+        </PanGestureHandler>
 
         {renderCouponModal()}
         {renderVIPModal()}
         {renderRankingModal()}
+        {renderFAQModal()}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -799,15 +870,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.lg,
-    paddingBottom: 120, // Extra space for floating button
+    paddingBottom: 100, // Space for bottom buttons
   },
 
   // Header with proper layout
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
-    gap: Spacing.sm,
+    marginBottom: Spacing.xl,
   },
   returnButton: {
     width: 40,
@@ -815,18 +885,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  calculatorButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
   },
   headerSpacer: {
     flex: 1,
@@ -845,7 +903,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
   },
 
-  // Upload Section
+  // Upload Section - Left aligned
   uploadSection: {
     marginBottom: Spacing.xl,
   },
@@ -853,7 +911,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     marginBottom: Spacing.md,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   cardInfoInput: {
     borderWidth: 1,
@@ -863,23 +921,29 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     minHeight: 60,
     marginBottom: Spacing.lg,
+    width: '100%',
   },
   uploadLimit: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     marginBottom: Spacing.md,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   uploadButton: {
-    width: 80,
+    width: '100%',
     height: 80,
     borderRadius: 12,
     borderWidth: 2,
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
-    alignSelf: 'center',
     marginBottom: Spacing.md,
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  uploadButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
   },
   cardPreviewContainer: {
     marginTop: Spacing.md,
@@ -907,35 +971,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Wallet Section
+  // Wallet Section - Grid Layout
   walletSection: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   walletHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
     gap: Spacing.sm,
   },
   walletTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Inter-SemiBold',
   },
-  walletOptions: {
+  walletGrid: {
     flexDirection: 'row',
     gap: Spacing.md,
   },
-  walletOption: {
+  walletGridOption: {
     flex: 1,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 8,
-    borderWidth: 1,
+    padding: Spacing.lg,
+    borderRadius: 16,
+    borderWidth: 2,
     alignItems: 'center',
+    position: 'relative',
+    minHeight: 120,
   },
-  walletOptionText: {
-    fontSize: 14,
+  walletIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  walletIconText: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+  },
+  walletGridText: {
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
+    textAlign: 'center',
+    marginBottom: Spacing.xs,
+  },
+  walletGridSubtext: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
   },
 
   // Discount Section
@@ -945,7 +1034,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: Spacing.lg,
     borderRadius: 12,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   discountContent: {
     flex: 1,
@@ -953,91 +1042,117 @@ const styles = StyleSheet.create({
   discountText: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
+    marginBottom: 4,
+  },
+  discountDescription: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
   },
 
   // VIP Section
   vipSection: {
-    flexDirection: 'row',
     gap: Spacing.md,
     marginBottom: Spacing.xl,
   },
   vipItem: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.md,
+    padding: Spacing.lg,
     borderRadius: 12,
   },
   rankingItem: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.md,
+    padding: Spacing.lg,
     borderRadius: 12,
   },
   vipContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.md,
+    flex: 1,
   },
   vipTextContainer: {
-    alignItems: 'flex-start',
+    flex: 1,
   },
   vipText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: 'Inter-Medium',
+    marginBottom: 4,
   },
   vipBonus: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Inter-Bold',
   },
 
-  // Floating Sell Button
-  floatingSellButton: {
+  // Bottom Actions
+  bottomActions: {
     position: 'absolute',
-    bottom: Spacing.xl,
-    left: Spacing.lg,
-    right: Spacing.lg,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    backgroundColor: 'transparent',
   },
-  sellButton: {
+  calculatorBottomButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing.lg,
-    borderRadius: 16,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 12,
+    borderWidth: 2,
     gap: Spacing.sm,
+    flex: 0.4,
+  },
+  calculatorBottomText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+  sellBottomButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    borderRadius: 12,
+    gap: Spacing.sm,
+    flex: 0.6,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
-  sellButtonText: {
+  sellBottomText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Inter-Bold',
   },
 
-  // Floating Customer Service
-  floatingButtons: {
+  // Draggable Help Button
+  draggableHelpButton: {
     position: 'absolute',
-    bottom: 100,
-    right: Spacing.lg,
-  },
-  customerServiceButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
+    zIndex: 1000,
+  },
+  helpButtonInner: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
   },
 
   // Modal Styles
@@ -1117,67 +1232,45 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Ranking Modal Styles
-  rankingStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+  // Rebate Modal Styles
+  rebateInfo: {
+    padding: Spacing.md,
   },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
+  rebateTitle: {
     fontSize: 18,
     fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
   },
-  statLabel: {
-    fontSize: 12,
+  rebateDescription: {
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
-    marginTop: 4,
+    textAlign: 'center',
+    marginBottom: Spacing.xl,
+    lineHeight: 24,
   },
-  rankingItem: {
-    flexDirection: 'row',
+  rebateTiers: {
+    gap: Spacing.lg,
+  },
+  rebateTier: {
     alignItems: 'center',
-    padding: Spacing.md,
-    borderBottomWidth: 1,
+    padding: Spacing.lg,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 135, 81, 0.1)',
   },
-  rankPosition: {
-    width: 40,
-    alignItems: 'center',
-  },
-  rankNumber: {
+  rebateTierTitle: {
     fontSize: 16,
     fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.xs,
   },
-  rankAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginHorizontal: Spacing.md,
+  rebateTierAmount: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.xs,
   },
-  rankInfo: {
-    flex: 1,
-  },
-  rankUsername: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  rankVolume: {
+  rebateTierRequirement: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    marginTop: 2,
-  },
-  rankBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  rankBadgeText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
   },
 
   // Coupon Modal Styles
@@ -1229,5 +1322,21 @@ const styles = StyleSheet.create({
   clearCouponText: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
+  },
+
+  // FAQ Modal Styles
+  faqItem: {
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+  },
+  faqQuestion: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: Spacing.sm,
+  },
+  faqAnswer: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 20,
   },
 });
