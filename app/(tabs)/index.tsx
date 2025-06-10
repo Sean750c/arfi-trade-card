@@ -11,12 +11,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Bell, ChevronDown, Sparkles, Eye, EyeOff, RefreshCw, ChevronRight, TrendingUp } from 'lucide-react-native';
+import { Bell, ChevronDown, Sparkles, Eye, EyeOff, RefreshCw } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import PromoBanner from '@/components/home/PromoBanner';
 import QuickActions from '@/components/home/QuickActions';
 import RecentTransactions from '@/components/home/RecentTransactions';
+import PromoTimer from '@/components/home/PromoTimer';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useAppStore } from '@/stores/useAppStore';
@@ -27,7 +28,6 @@ export default function HomeScreen() {
   const colors = Colors[colorScheme];
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
-  const [showMoreContent, setShowMoreContent] = useState(false);
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { isAuthenticated, user } = useAuthStore();
   const { initData, isLoading: initLoading, error: initError, initialize } = useAppStore();
@@ -197,7 +197,7 @@ export default function HomeScreen() {
               disabled={initLoading}
             >
               {initLoading ? (
-                <ActivityIndicator size="small\" color={colors.primary} />
+                <ActivityIndicator size="small" color={colors.primary} />
               ) : (
                 <RefreshCw size={18} color={colors.primary} />
               )}
@@ -269,57 +269,11 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Essential Content Sections */}
+        {/* Content Sections */}
         <PromoBanner />
         <QuickActions />
-
-        {/* Market Insights - New Compact Section */}
-        <View style={styles.marketInsights}>
-          <View style={styles.insightHeader}>
-            <TrendingUp size={20} color={colors.primary} />
-            <Text style={[styles.insightTitle, { color: colors.text }]}>Market Insights</Text>
-            <TouchableOpacity onPress={() => router.push('/rates')}>
-              <Text style={[styles.viewRatesText, { color: colors.primary }]}>View All</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.ratePreview}>
-            <View style={styles.rateItem}>
-              <Text style={[styles.rateName, { color: colors.text }]}>iTunes</Text>
-              <Text style={[styles.rateValue, { color: colors.success }]}>₦610/$1</Text>
-            </View>
-            <View style={styles.rateItem}>
-              <Text style={[styles.rateName, { color: colors.text }]}>Steam</Text>
-              <Text style={[styles.rateValue, { color: colors.success }]}>₦625/$1</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Progressive Disclosure for Additional Content */}
-        <TouchableOpacity 
-          style={[styles.expandButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-          onPress={() => setShowMoreContent(!showMoreContent)}
-        >
-          <Text style={[styles.expandButtonText, { color: colors.text }]}>
-            {showMoreContent ? 'Show Less' : 'View Recent Activity'}
-          </Text>
-          <ChevronRight 
-            size={16} 
-            color={colors.text} 
-            style={{ 
-              transform: [{ rotate: showMoreContent ? '90deg' : '0deg' }] 
-            }} 
-          />
-        </TouchableOpacity>
-
-        {/* Collapsible Content */}
-        {showMoreContent && (
-          <View style={styles.expandedContent}>
-            <RecentTransactions />
-          </View>
-        )}
-
-        {/* Bottom Spacing */}
-        <View style={styles.bottomSpacing} />
+        <PromoTimer />
+        <RecentTransactions />
       </ScrollView>
     </SafeAreaView>
   );
@@ -540,65 +494,5 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
     fontFamily: 'Inter-Medium',
-  },
-  
-  // New Market Insights Section
-  marketInsights: {
-    marginBottom: Spacing.lg,
-    padding: Spacing.md,
-    backgroundColor: 'rgba(0, 135, 81, 0.05)',
-    borderRadius: 12,
-  },
-  insightHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  insightTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginLeft: Spacing.xs,
-    flex: 1,
-  },
-  viewRatesText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-  },
-  ratePreview: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  rateItem: {
-    alignItems: 'center',
-  },
-  rateName: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    marginBottom: 2,
-  },
-  rateValue: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-  },
-  
-  // Progressive Disclosure
-  expandButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Spacing.md,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: Spacing.md,
-  },
-  expandButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-  },
-  expandedContent: {
-    marginBottom: Spacing.lg,
-  },
-  bottomSpacing: {
-    height: Spacing.xl,
   },
 });
