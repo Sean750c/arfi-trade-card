@@ -19,6 +19,7 @@ import RecentTransactions from '@/components/home/RecentTransactions';
 import PromoTimer from '@/components/home/PromoTimer';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useAppStore } from '@/stores/useAppStore';
 import { Country } from '@/types/api';
 
 export default function HomeScreen() {
@@ -28,6 +29,7 @@ export default function HomeScreen() {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { isAuthenticated, user } = useAuthStore();
+  const { initData } = useAppStore();
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
@@ -166,9 +168,11 @@ export default function HomeScreen() {
             onPress={() => router.push('/notifications')}
           >
             <Bell size={20} color={colors.primary} />
-            <View style={[styles.notificationBadge, { backgroundColor: colors.error }]}>
-              <Text style={styles.notificationCount}>3</Text>
-            </View>
+            { (initData?.notice_count || 0) > 0 && (
+              <View style={[styles.notificationBadge, { backgroundColor: colors.error }]}>
+                <Text style={styles.notificationCount}>{initData?.notice_count}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 

@@ -21,6 +21,7 @@ interface ButtonProps extends TouchableOpacityProps {
   fullWidth?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  rightIcon?: React.ReactNode;
 }
 
 export default function Button({

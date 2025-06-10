@@ -14,6 +14,7 @@ import { ChevronLeft } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
+import { useAppStore } from '@/stores/useAppStore';
 
 // Sample notifications data
 const notifications = [
@@ -43,6 +44,7 @@ const notifications = [
 function NotificationsScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const { initData } = useAppStore();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -57,7 +59,7 @@ function NotificationsScreenContent() {
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Notifications</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            You have {notifications.filter(n => !n.read).length} unread notifications
+            You have {initData?.notice_count} unread notifications
           </Text>
         </View>
       </View>
