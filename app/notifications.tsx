@@ -13,7 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Bell, Filter, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Image as ImageIcon } from 'lucide-react-native';
+import { ChevronLeft, Bell, Filter, Clock, CheckCircle, AlertCircle, Image as ImageIcon } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
