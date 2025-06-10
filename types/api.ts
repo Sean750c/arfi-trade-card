@@ -125,12 +125,13 @@ export interface Notice {
   id: number;
   notice_title: string;
   notice_content: string;
-  notice_time: string;
+  notice_time: number; // Changed from string to number (timestamp)
   notice_new: boolean;
-  notice_jump: string;
+  notice_jump: boolean; // Changed from string to boolean
   notice_action: string;
   notice_order?: NoticeOrder;
-  type: 'motion' | 'system' | 'all';
+  notice_type: string; // Added notice_type field
+  notice_params?: string; // Added notice_params field
 }
 
 export interface NoticeListRequest {
@@ -140,13 +141,8 @@ export interface NoticeListRequest {
   pageSize: number;
 }
 
-export interface NoticeListData {
-  list: Notice[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-}
+// The API returns a direct array of notices, not an object with pagination metadata
+export type NoticeListData = Notice[];
 
 export type EmptyReponse = APIResponse<Data>;
 export type JSONReponse = APIResponse<JSON>;

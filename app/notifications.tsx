@@ -99,8 +99,8 @@ function NotificationsScreenContent() {
       switch (notification.notice_action) {
         case 'app_orderdetail':
           // Navigate to order details
-          if (notification.notice_order?.order_id) {
-            router.push(`/orders/${notification.notice_order.order_id}` as any);
+          if (notification.notice_params) {
+            router.push(`/orders/${notification.notice_params}` as any);
           }
           break;
         case 'app_vip':
@@ -118,8 +118,8 @@ function NotificationsScreenContent() {
         default:
           // Handle custom URLs or other actions
           if (notification.notice_jump) {
-            // For now, just show an alert with the jump URL
-            Alert.alert('Navigation', `Would navigate to: ${notification.notice_jump}`);
+            // For now, just show an alert with the action
+            Alert.alert('Navigation', `Action: ${notification.notice_action}`);
           }
           break;
       }
@@ -130,9 +130,9 @@ function NotificationsScreenContent() {
   }, [user?.token, markAsRead]);
 
   // Format timestamp
-  const formatTime = (timeString: string) => {
+  const formatTime = (timestamp: number) => {
     try {
-      const date = new Date(timeString);
+      const date = new Date(timestamp * 1000); // Convert from seconds to milliseconds
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / (1000 * 60));
@@ -146,7 +146,7 @@ function NotificationsScreenContent() {
       
       return date.toLocaleDateString();
     } catch {
-      return timeString;
+      return 'Unknown time';
     }
   };
 
@@ -264,7 +264,7 @@ function NotificationsScreenContent() {
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Notifications</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {totalCount > 0 ? `${totalCount} total notifications` : 'No notifications'}
+            {totalCount > 0 ? `${totalCount} notifications loaded` : 'No notifications'}
           </Text>
         </View>
       </View>

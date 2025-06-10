@@ -1,8 +1,8 @@
 import { APIRequest } from '@/utils/api';
-import type { NoticeListRequest, NoticeListResponse } from '@/types/api';
+import type { NoticeListRequest, NoticeListResponse, NoticeListData } from '@/types/api';
 
 export class NotificationService {
-  static async getNotifications(params: NoticeListRequest) {
+  static async getNotifications(params: NoticeListRequest): Promise<NoticeListData> {
     try {
       const response = await APIRequest.request<NoticeListResponse>(
         '/gc/finder/allNotice',
@@ -23,7 +23,7 @@ export class NotificationService {
     }
   }
 
-  static async markAsRead(noticeId: number, token: string) {
+  static async markAsRead(noticeId: number, token: string): Promise<NoticeListData> {
     try {
       const response = await APIRequest.request<NoticeListResponse>(
         '/gc/finder/readNotice',

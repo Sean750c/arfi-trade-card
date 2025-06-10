@@ -11,6 +11,7 @@ interface NotificationState {
   hasMore: boolean;
   activeType: 'all' | 'motion' | 'system';
   totalCount: number;
+  pageSize: number;
   
   // Actions
   fetchNotifications: (token: string, type?: 'all' | 'motion' | 'system', refresh?: boolean) => Promise<void>;
@@ -29,6 +30,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   hasMore: true,
   activeType: 'all',
   totalCount: 0,
+  pageSize: 20,
 
   fetchNotifications: async (token: string, type = 'all', refresh = false) => {
     const state = get();
@@ -40,7 +42,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         error: null, 
         currentPage: 1, 
         activeType: type,
-        notifications: refresh ? [] : state.notifications
+        notifications: refresh ? [] : state.notifications,
+        hasMore: true,
       });
     } else {
       set({ isLoading: true, error: null });
@@ -51,13 +54,16 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         token,
         type,
         page: 1,
-        pageSize: 20,
+        pageSize: state.pageSize,
       });
 
+      // Determine if there are more pages based on returned data length
+      const hasMore = data.length >= state.pageSize;
+
       set({
-        notifications: data.list,
-        totalCount: data.total,
-        hasMore: data.hasMore,
+        notifications: data,
+        totalCount: data.length, // We don't have total count from API, so use current length
+        hasMore,
         currentPage: 1,
         isLoading: false,
       });
@@ -82,13 +88,17 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         token,
         type: state.activeType,
         page: nextPage,
-        pageSize: 20,
+        pageSize: state.pageSize,
       });
 
+      // Determine if there are more pages based on returned data length
+      const hasMore = data.length >= state.pageSize;
+
       set({
-        notifications: [...state.notifications, ...data.list],
+        notifications: [...state.notifications, ...data],
         currentPage: nextPage,
-        hasMore: data.hasMore,
+        hasMore,
+        totalCount: state.totalCount + data.length,
         isLoadingMore: false,
       });
     } catch (error) {
