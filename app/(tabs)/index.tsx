@@ -197,7 +197,7 @@ export default function HomeScreen() {
               disabled={initLoading}
             >
               {initLoading ? (
-                <ActivityIndicator size="small" color={colors.primary} />
+                <ActivityIndicator size="small\" color={colors.primary} />
               ) : (
                 <RefreshCw size={18} color={colors.primary} />
               )}
