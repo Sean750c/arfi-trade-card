@@ -148,6 +148,43 @@ export interface NoticeListRequest {
   pageSize: number;
 }
 
+// Coupon Types for Discount Code API
+export interface Coupon {
+  code: string;
+  valid_start_time: number;
+  valid_end_time: number;
+  use_status: number; // 1. Not started 2. Normal 3. Expired 4. Exceeded usage limit
+  new_use_status: number;
+  max_use: number;
+  type: number;
+  discount_type: number;
+  discount_value: string;
+  used_times: number;
+  asc_sort: number;
+  coupon_amount: number;
+  coupon_type: string;
+  symbol: string;
+  enough_money: string;
+  enough_money_usd: string;
+}
+
+export interface CouponListRequest {
+  token: string;
+  type: number; // 0 all, 1 country currency related discount code, 2 USDT related discount code
+  page: number;
+  page_size: number;
+}
+
+export interface CouponListResponse {
+  success: boolean;
+  code: string;
+  msg: string;
+  total: number;
+  page: number;
+  page_size: number;
+  data: Coupon[];
+}
+
 // The API returns a direct array of notices, not an object with pagination metadata
 export type NoticeListData = Notice[];
 
