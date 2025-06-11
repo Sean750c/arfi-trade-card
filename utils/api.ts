@@ -2,7 +2,8 @@ import md5 from 'md5';
 import { Platform } from 'react-native';
 import { router } from 'expo-router';
 
-const API_HOST = 'https://test-giftcard8-api.gcard8.com';
+// Use environment variable for API host, with fallback to original value
+const API_HOST = process.env.EXPO_PUBLIC_API_URL || 'https://test-giftcard8-api.gcard8.com';
 
 // Platform-specific configurations
 const getAppConfig = () => {
@@ -92,10 +93,13 @@ export class APIRequest {
         body: new URLSearchParams(requestBody).toString()
       };
 
+      console.log(`Making API request to: ${API_HOST}${endpoint}`);
+      
       const response = await fetch(`${API_HOST}${endpoint}`, requestOptions);
     
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text().catch(() => 'Unknown error');
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       const data = await response.json();
@@ -112,6 +116,12 @@ export class APIRequest {
       return data as T;
     } catch (error) {
       console.error('API Request failed:', endpoint, error);
+      
+      // Provide more specific error messages
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error(`Network error: Unable to connect to API server at ${API_HOST}. Please check your internet connection and API configuration.`);
+      }
+      
       throw error;
     }
   }
