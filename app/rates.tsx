@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,97 +8,433 @@ import {
   TouchableOpacity,
   TextInput,
   useColorScheme,
+  ActivityIndicator,
+  RefreshControl,
+  Image,
+  Alert,
 } from 'react-native';
-import { Search, Filter, Star, ChevronLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { 
+  Search, 
+  Filter, 
+  Star, 
+  ChevronLeft, 
+  ChevronDown, 
+  TrendingUp,
+  Clock,
+  Zap,
+  Crown,
+  X
+} from 'lucide-react-native';
 import Card from '@/components/UI/Card';
+import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-
-// Sample gift card rates data
-const ratesData = [
-  {
-    id: '1',
-    name: 'iTunes US',
-    category: 'Apple',
-    denominations: '$50-$100',
-    rate: '₦610/$1',
-    isPromoted: true,
-  },
-  {
-    id: '2',
-    name: 'Amazon US',
-    category: 'Amazon',
-    denominations: '$25-$500',
-    rate: '₦605/$1',
-    isPromoted: false,
-  },
-  {
-    id: '3',
-    name: 'Steam',
-    category: 'Gaming',
-    denominations: '$20-$100',
-    rate: '₦620/$1',
-    isPromoted: true,
-  },
-  {
-    id: '4',
-    name: 'Google Play US',
-    category: 'Google',
-    denominations: '$10-$200',
-    rate: '₦590/$1',
-    isPromoted: false,
-  },
-  {
-    id: '5',
-    name: 'Sephora',
-    category: 'Retail',
-    denominations: '$25-$100',
-    rate: '₦580/$1',
-    isPromoted: false,
-  },
-];
-
-// Categories for filter
-const categories = [
-  'All',
-  'Apple',
-  'Amazon',
-  'Gaming',
-  'Google',
-  'Retail',
-];
+import { useRatesStore } from '@/stores/useRatesStore';
+import { useCountryStore } from '@/stores/useCountryStore';
+import { useAuthStore } from '@/stores/useAuthStore';
+import type { CategoryData, CardRate, CurrencyGroup } from '@/types/api';
 
 export default function RatesScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const { selectedCountry } = useCountryStore();
+  const { user } = useAuthStore();
   
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [filteredRates, setFilteredRates] = useState(ratesData);
-  
+  const {
+    categories,
+    currencies,
+    ratesData,
+    isLoading,
+    isLoadingMore,
+    error,
+    selectedCategory,
+    selectedCurrency,
+    searchQuery,
+    hasMore,
+    fetchCategories,
+    fetchCurrencies,
+    fetchRatesData,
+    loadMoreRates,
+    setSelectedCategory,
+    setSelectedCurrency,
+    setSearchQuery,
+    clearFilters,
+  } = useRatesStore();
+
+  const [showFilters, setShowFilters] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Get country ID from user or selected country
+  const countryId = user?.country_id || selectedCountry?.id || 1;
+
+  // Initial data fetch
   useEffect(() => {
-    let result = ratesData;
+    const initializeData = async () => {
+      try {
+        await Promise.all([
+          fetchCategories(),
+          fetchCurrencies(),
+          fetchRatesData(countryId, true),
+        ]);
+      } catch (error) {
+        console.error('Failed to initialize rates data:', error);
+      }
+    };
+
+    initializeData();
+  }, [fetchCategories, fetchCurrencies, fetchRatesData, countryId]);
+
+  // Refresh data when filters change
+  useEffect(() => {
+    if (categories.length > 0) {
+      fetchRatesData(countryId, true);
+    }
+  }, [selectedCategory, selectedCurrency, countryId, fetchRatesData]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchRatesData(countryId, true);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [countryId, fetchRatesData]);
+
+  const handleLoadMore = useCallback(() => {
+    if (!isLoadingMore && hasMore) {
+      loadMoreRates(countryId);
+    }
+  }, [isLoadingMore, hasMore, loadMoreRates, countryId]);
+
+  const handleCategoryFilter = (categoryId: number | null) => {
+    setSelectedCategory(categoryId);
+    setShowFilters(false);
+  };
+
+  const handleCurrencyFilter = (currency: string | null) => {
+    setSelectedCurrency(currency);
+    setShowFilters(false);
+  };
+
+  const getFilteredData = () => {
+    if (!ratesData) return [];
+    
+    let filteredData = ratesData.card_list;
     
     // Apply search filter
-    if (searchQuery) {
-      result = result.filter(
-        (item) =>
-          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.rate.toLowerCase().includes(searchQuery.toLowerCase())
+    if (searchQuery.trim()) {
+      filteredData = filteredData.filter(category =>
+        category.category_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        category.list.some(currencyGroup =>
+          currencyGroup.list.some(card =>
+            card.name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        )
       );
     }
     
-    // Apply category filter
-    if (selectedCategory !== 'All') {
-      result = result.filter((item) => item.category === selectedCategory);
-    }
+    return filteredData;
+  };
+
+  const renderCategoryCard = ({ item }: { item: CategoryData }) => (
+    <Card style={styles.categoryCard}>
+      {/* Category Header */}
+      <View style={styles.categoryHeader}>
+        <View style={styles.categoryInfo}>
+          <Image 
+            source={{ uri: item.category_logo_img }} 
+            style={styles.categoryImage}
+            resizeMode="contain"
+          />
+          <View style={styles.categoryDetails}>
+            <Text style={[styles.categoryName, { color: colors.text }]}>
+              {item.category_name}
+            </Text>
+            <Text style={[styles.categoryIntro, { color: colors.textSecondary }]}>
+              {item.category_introduction}
+            </Text>
+            {item.timeout_seconds !== '0min' && (
+              <View style={styles.timeoutBadge}>
+                <Clock size={12} color={colors.warning} />
+                <Text style={[styles.timeoutText, { color: colors.warning }]}>
+                  {item.timeout_seconds}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+        
+        {/* Top Rate Display */}
+        <View style={styles.topRateContainer}>
+          <View style={[styles.topRateBadge, { backgroundColor: colors.primary }]}>
+            <Star size={12} color="#FFFFFF" fill="#FFFFFF" />
+            <Text style={styles.topRateLabel}>Best Rate</Text>
+          </View>
+          <Text style={[styles.topRate, { color: colors.primary }]}>
+            {item.top_currency_symbol}{item.top_optimal_rate}
+          </Text>
+          <Text style={[styles.topCurrency, { color: colors.textSecondary }]}>
+            per {item.top_currency}
+          </Text>
+        </View>
+      </View>
+
+      {/* Currency Groups */}
+      <View style={styles.currencyGroups}>
+        {item.list.map((currencyGroup, index) => (
+          <View key={`${currencyGroup.currency}-${index}`} style={styles.currencyGroup}>
+            <View style={styles.currencyHeader}>
+              <Text style={[styles.currencyTitle, { color: colors.text }]}>
+                {currencyGroup.currency} Cards
+              </Text>
+              <Text style={[styles.cardCount, { color: colors.textSecondary }]}>
+                {currencyGroup.list.length} options
+              </Text>
+            </View>
+            
+            {currencyGroup.list.slice(0, 3).map((card, cardIndex) => (
+              <TouchableOpacity
+                key={card.card_id}
+                style={[
+                  styles.cardItem,
+                  { borderBottomColor: colors.border },
+                  cardIndex === currencyGroup.list.length - 1 && styles.lastCardItem,
+                ]}
+                onPress={() => {
+                  // Navigate to card details or calculator with pre-filled data
+                  router.push({
+                    pathname: '/calculator',
+                    params: { 
+                      cardId: card.card_id,
+                      categoryId: item.category_id 
+                    }
+                  } as any);
+                }}
+              >
+                <View style={styles.cardInfo}>
+                  <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
+                    {card.name}
+                  </Text>
+                  <View style={styles.rateDetails}>
+                    <Text style={[styles.baseRate, { color: colors.textSecondary }]}>
+                      Base: {card.currency_symbol}{card.rate.toFixed(2)}
+                    </Text>
+                    <View style={styles.vipBonus}>
+                      <Crown size={12} color={colors.secondary} />
+                      <Text style={[styles.vipBonusText, { color: colors.secondary }]}>
+                        +{card.all_per}%
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                
+                <View style={styles.optimalRateContainer}>
+                  <Text style={[styles.optimalRate, { color: colors.primary }]}>
+                    {card.currency_symbol}{card.optimal_rate}
+                  </Text>
+                  <View style={styles.rateIndicator}>
+                    <TrendingUp size={12} color={colors.success} />
+                    <Text style={[styles.rateLabel, { color: colors.success }]}>
+                      Best
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+            
+            {currencyGroup.list.length > 3 && (
+              <TouchableOpacity 
+                style={styles.showMoreButton}
+                onPress={() => {
+                  // Show all cards for this currency group
+                  Alert.alert('More Cards', `View all ${currencyGroup.list.length} ${currencyGroup.currency} cards`);
+                }}
+              >
+                <Text style={[styles.showMoreText, { color: colors.primary }]}>
+                  +{currencyGroup.list.length - 3} more cards
+                </Text>
+                <ChevronDown size={16} color={colors.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        ))}
+      </View>
+    </Card>
+  );
+
+  const renderFilterModal = () => (
+    showFilters && (
+      <View style={styles.filterOverlay}>
+        <View style={[styles.filterModal, { backgroundColor: colors.card }]}>
+          <View style={styles.filterHeader}>
+            <Text style={[styles.filterTitle, { color: colors.text }]}>
+              Filter Rates
+            </Text>
+            <TouchableOpacity onPress={() => setShowFilters(false)}>
+              <X size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Category Filter */}
+          <View style={styles.filterSection}>
+            <Text style={[styles.filterSectionTitle, { color: colors.text }]}>
+              Card Category
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.filterOption,
+                { 
+                  backgroundColor: !selectedCategory ? colors.primary : 'transparent',
+                  borderColor: colors.border,
+                }
+              ]}
+              onPress={() => handleCategoryFilter(null)}
+            >
+              <Text style={[
+                styles.filterOptionText,
+                { color: !selectedCategory ? '#FFFFFF' : colors.text }
+              ]}>
+                All Categories
+              </Text>
+            </TouchableOpacity>
+            
+            {categories.map((category) => (
+              <TouchableOpacity
+                key={category.category_id}
+                style={[
+                  styles.filterOption,
+                  { 
+                    backgroundColor: selectedCategory === category.category_id ? colors.primary : 'transparent',
+                    borderColor: colors.border,
+                  }
+                ]}
+                onPress={() => handleCategoryFilter(category.category_id)}
+              >
+                <Text style={[
+                  styles.filterOptionText,
+                  { color: selectedCategory === category.category_id ? '#FFFFFF' : colors.text }
+                ]}>
+                  {category.category_name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          
+          {/* Currency Filter */}
+          <View style={styles.filterSection}>
+            <Text style={[styles.filterSectionTitle, { color: colors.text }]}>
+              Currency
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.filterOption,
+                { 
+                  backgroundColor: !selectedCurrency ? colors.primary : 'transparent',
+                  borderColor: colors.border,
+                }
+              ]}
+              onPress={() => handleCurrencyFilter(null)}
+            >
+              <Text style={[
+                styles.filterOptionText,
+                { color: !selectedCurrency ? '#FFFFFF' : colors.text }
+              ]}>
+                All Currencies
+              </Text>
+            </TouchableOpacity>
+            
+            {currencies.map((currency) => (
+              <TouchableOpacity
+                key={currency.currency_id}
+                style={[
+                  styles.filterOption,
+                  { 
+                    backgroundColor: selectedCurrency === currency.currency_code ? colors.primary : 'transparent',
+                    borderColor: colors.border,
+                  }
+                ]}
+                onPress={() => handleCurrencyFilter(currency.currency_code)}
+              >
+                <Text style={[
+                  styles.filterOptionText,
+                  { color: selectedCurrency === currency.currency_code ? '#FFFFFF' : colors.text }
+                ]}>
+                  {currency.currency_symbol} {currency.currency_name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          
+          {/* Clear Filters */}
+          <Button
+            title="Clear All Filters"
+            variant="outline"
+            onPress={() => {
+              clearFilters();
+              setShowFilters(false);
+            }}
+            style={styles.clearFiltersButton}
+            fullWidth
+          />
+        </View>
+      </View>
+    )
+  );
+
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
     
-    setFilteredRates(result);
-  }, [searchQuery, selectedCategory]);
+    return (
+      <View style={styles.loadingFooter}>
+        <ActivityIndicator size="small" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+          Loading more rates...
+        </Text>
+      </View>
+    );
+  };
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <TrendingUp size={48} color={colors.textSecondary} />
+      <Text style={[styles.emptyTitle, { color: colors.text }]}>
+        No rates found
+      </Text>
+      <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
+        Try adjusting your filters or search terms
+      </Text>
+      <Button
+        title="Clear Filters"
+        variant="outline"
+        onPress={clearFilters}
+        style={styles.clearFiltersButton}
+      />
+    </View>
+  );
+
+  if (error && !ratesData) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.errorContainer}>
+          <Text style={[styles.errorText, { color: colors.error }]}>
+            {error}
+          </Text>
+          <Button
+            title="Retry"
+            onPress={() => fetchRatesData(countryId, true)}
+            style={styles.retryButton}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const filteredData = getFilteredData();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ChevronLeft size={24} color={colors.text} />
@@ -106,11 +442,18 @@ export default function RatesScreen() {
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Exchange Rates</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Current gift card rates
+            {ratesData ? `${filteredData.length} categories` : 'Loading rates...'}
           </Text>
         </View>
+        <TouchableOpacity
+          style={[styles.calculatorButton, { backgroundColor: colors.primary }]}
+          onPress={() => router.push('/calculator')}
+        >
+          <Zap size={20} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
       
+      {/* Search and Filter */}
       <View style={styles.searchContainer}>
         <View
           style={[
@@ -121,7 +464,7 @@ export default function RatesScreen() {
           <Search size={20} color={colors.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Search gift cards"
+            placeholder="Search gift cards..."
             placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -130,104 +473,78 @@ export default function RatesScreen() {
         <TouchableOpacity
           style={[
             styles.filterButton,
-            { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' },
+            { 
+              backgroundColor: (selectedCategory || selectedCurrency) ? colors.primary : (colorScheme === 'dark' ? colors.card : '#F9FAFB'),
+            },
           ]}
+          onPress={() => setShowFilters(true)}
         >
-          <Filter size={20} color={colors.text} />
+          <Filter size={20} color={(selectedCategory || selectedCurrency) ? '#FFFFFF' : colors.text} />
         </TouchableOpacity>
       </View>
       
-      <View style={styles.categoriesContainer}>
-        <FlatList
-          horizontal
-          data={categories}
-          keyExtractor={(item) => item}
-          showsHorizontalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.categoryItem,
-                {
-                  backgroundColor:
-                    selectedCategory === item
-                      ? colors.primary
-                      : colorScheme === 'dark'
-                      ? colors.card
-                      : '#F9FAFB',
-                },
-              ]}
-              onPress={() => setSelectedCategory(item)}
-            >
-              <Text
-                style={[
-                  styles.categoryText,
-                  {
-                    color: selectedCategory === item ? '#FFFFFF' : colors.text,
-                  },
-                ]}
-              >
-                {item}
+      {/* Active Filters Display */}
+      {(selectedCategory || selectedCurrency) && (
+        <View style={styles.activeFilters}>
+          {selectedCategory && (
+            <View style={[styles.activeFilter, { backgroundColor: colors.primary }]}>
+              <Text style={styles.activeFilterText}>
+                {categories.find(c => c.category_id === selectedCategory)?.category_name}
               </Text>
-            </TouchableOpacity>
+              <TouchableOpacity onPress={() => setSelectedCategory(null)}>
+                <X size={16} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
           )}
-          contentContainerStyle={styles.categoriesList}
-        />
-      </View>
+          {selectedCurrency && (
+            <View style={[styles.activeFilter, { backgroundColor: colors.secondary }]}>
+              <Text style={styles.activeFilterText}>
+                {currencies.find(c => c.currency_code === selectedCurrency)?.currency_name}
+              </Text>
+              <TouchableOpacity onPress={() => setSelectedCurrency(null)}>
+                <X size={16} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      )}
       
+      {/* Rates List */}
       <FlatList
-        data={filteredRates}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <Card style={styles.rateCard}>
-            <View style={styles.rateCardHeader}>
-              <Text style={[styles.cardName, { color: colors.text }]}>{item.name}</Text>
-              {item.isPromoted && (
-                <View style={[styles.promotedBadge, { backgroundColor: Colors[colorScheme].secondary }]}>
-                  <Star size={12} color="#FFFFFF" fill="#FFFFFF" />
-                  <Text style={styles.promotedText}>Best Rate</Text>
-                </View>
-              )}
-            </View>
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-            <View style={styles.rateDetails}>
-              <View style={styles.rateDetailItem}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                  Category
-                </Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>
-                  {item.category}
-                </Text>
-              </View>
-              <View style={styles.rateDetailItem}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                  Denominations
-                </Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>
-                  {item.denominations}
-                </Text>
-              </View>
-              <View style={styles.rateDetailItem}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                  Rate
-                </Text>
-                <Text
-                  style={[
-                    styles.rateValue,
-                    {
-                      color: item.isPromoted ? colors.primary : colors.text,
-                      fontFamily: item.isPromoted ? 'Inter-Bold' : 'Inter-SemiBold',
-                    },
-                  ]}
-                >
-                  {item.rate}
-                </Text>
-              </View>
-            </View>
-          </Card>
-        )}
-        contentContainerStyle={styles.ratesList}
+        data={filteredData}
+        keyExtractor={(item) => item.category_id.toString()}
+        renderItem={renderCategoryCard}
+        ListEmptyComponent={!isLoading ? renderEmptyState : null}
+        ListFooterComponent={renderFooter}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.1}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.listContainer,
+          filteredData.length === 0 && !isLoading && styles.emptyListContainer,
+        ]}
       />
+
+      {/* Loading overlay for initial load */}
+      {isLoading && !ratesData && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            Loading exchange rates...
+          </Text>
+        </View>
+      )}
+
+      {/* Filter Modal */}
+      {renderFilterModal()}
     </SafeAreaView>
   );
 }
@@ -245,6 +562,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginRight: Spacing.md,
+    padding: Spacing.xs,
   },
   headerContent: {
     flex: 1,
@@ -258,10 +576,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     marginTop: Spacing.xs,
   },
+  calculatorButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   searchContainer: {
     flexDirection: 'row',
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
+    gap: Spacing.sm,
   },
   searchInputContainer: {
     flex: 1,
@@ -269,8 +595,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     height: 44,
-    borderRadius: 8,
-    marginRight: Spacing.sm,
+    borderRadius: 12,
   },
   searchInput: {
     flex: 1,
@@ -284,73 +609,301 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 12,
   },
-  categoriesContainer: {
-    marginBottom: Spacing.md,
-  },
-  categoriesList: {
-    paddingHorizontal: Spacing.lg,
-  },
-  categoryItem: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 8,
-    marginRight: Spacing.sm,
-  },
-  categoryText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-  },
-  ratesList: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
-  rateCard: {
-    marginBottom: Spacing.md,
-  },
-  rateCardHeader: {
+  activeFilters: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
   },
-  cardName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  promotedBadge: {
+  activeFilter: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingVertical: Spacing.xs,
+    borderRadius: 16,
+    gap: Spacing.xs,
   },
-  promotedText: {
-    fontSize: 10,
-    fontFamily: 'Inter-Medium',
+  activeFilterText: {
     color: '#FFFFFF',
-    marginLeft: 2,
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
   },
-  divider: {
-    height: 1,
+  listContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+  },
+  emptyListContainer: {
+    flexGrow: 1,
+  },
+  
+  // Category Card Styles
+  categoryCard: {
+    marginBottom: Spacing.lg,
+    overflow: 'hidden',
+  },
+  categoryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.md,
+  },
+  categoryInfo: {
+    flexDirection: 'row',
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  categoryImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    marginRight: Spacing.md,
+  },
+  categoryDetails: {
+    flex: 1,
+  },
+  categoryName: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.xs,
+  },
+  categoryIntro: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 16,
+    marginBottom: Spacing.xs,
+  },
+  timeoutBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  timeoutText: {
+    fontSize: 11,
+    fontFamily: 'Inter-Medium',
+  },
+  topRateContainer: {
+    alignItems: 'flex-end',
+  },
+  topRateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginBottom: Spacing.xs,
+    gap: 2,
+  },
+  topRateLabel: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontFamily: 'Inter-Bold',
+  },
+  topRate: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    marginBottom: 2,
+  },
+  topCurrency: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+  },
+  
+  // Currency Groups
+  currencyGroups: {
+    gap: Spacing.md,
+  },
+  currencyGroup: {
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  currencyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: Spacing.sm,
+  },
+  currencyTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+  cardCount: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+  },
+  
+  // Card Items
+  cardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  lastCardItem: {
+    borderBottomWidth: 0,
+  },
+  cardInfo: {
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  cardName: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    marginBottom: Spacing.xs,
+    lineHeight: 18,
   },
   rateDetails: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
-  rateDetailItem: {},
-  detailLabel: {
+  baseRate: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
+  },
+  vipBonus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  vipBonusText: {
+    fontSize: 11,
+    fontFamily: 'Inter-Bold',
+  },
+  optimalRateContainer: {
+    alignItems: 'flex-end',
+  },
+  optimalRate: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
     marginBottom: 2,
   },
-  detailValue: {
+  rateIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  rateLabel: {
+    fontSize: 10,
+    fontFamily: 'Inter-Medium',
+  },
+  showMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  showMoreText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
+  
+  // Filter Modal
+  filterOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  filterModal: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: Spacing.lg,
+    maxHeight: '80%',
+  },
+  filterHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  filterTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+  },
+  filterSection: {
+    marginBottom: Spacing.lg,
+  },
+  filterSectionTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: Spacing.md,
+  },
+  filterOption: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: Spacing.sm,
+  },
+  filterOptionText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
-  rateValue: {
+  clearFiltersButton: {
+    marginTop: Spacing.md,
+  },
+  
+  // Loading and Error States
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  loadingFooter: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  loadingText: {
     fontSize: 14,
+    fontFamily: 'Inter-Regular',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  errorText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.xl,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  emptyMessage: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: Spacing.lg,
   },
 });
