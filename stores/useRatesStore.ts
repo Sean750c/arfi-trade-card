@@ -5,7 +5,7 @@ import { RatesService } from '@/services/rates';
 interface RatesState {
   // Data
   currencies: Currency[];
-  allRatesData: RatesData | null; // Store all data for frontend filtering
+  allRatesData: RatesData | null;
   
   // UI State
   isLoading: boolean;
@@ -13,12 +13,12 @@ interface RatesState {
   lastFetchTime: number;
   
   // Filters
-  selectedCurrency: string | null;
+  selectedCategory: number | null;
   searchQuery: string;
   
   // Actions
   fetchAllRatesData: (countryId: number, refresh?: boolean) => Promise<void>;
-  setSelectedCurrency: (currency: string | null) => void;
+  setSelectedCategory: (categoryId: number | null) => void;
   setSearchQuery: (query: string) => void;
   clearFilters: () => void;
   getFilteredData: () => CategoryData[];
@@ -32,7 +32,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
   isLoading: false,
   error: null,
   lastFetchTime: 0,
-  selectedCurrency: 'USD', // Default to USD as specified
+  selectedCategory: null,
   searchQuery: '',
 
   fetchAllRatesData: async (countryId: number, refresh = false) => {
@@ -52,7 +52,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
       // Fetch all data at once with a large page size to reduce backend calls
       const params = {
         country_id: countryId,
-        page: 0, // Pagination starts from 0
+        page: 0, // Pagination starts from 0 as specified
         page_size: 1000, // Large page size to get all data at once
       };
 
@@ -79,9 +79,9 @@ export const useRatesStore = create<RatesState>((set, get) => ({
     }
   },
 
-  setSelectedCurrency: (currency: string | null) => {
-    console.log('Setting selected currency:', currency);
-    set({ selectedCurrency: currency });
+  setSelectedCategory: (categoryId: number | null) => {
+    console.log('Setting selected category:', categoryId);
+    set({ selectedCategory: categoryId });
   },
 
   setSearchQuery: (query: string) => {
@@ -91,7 +91,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
   clearFilters: () => {
     console.log('Clearing all filters');
     set({
-      selectedCurrency: 'USD', // Reset to default USD
+      selectedCategory: null,
       searchQuery: '',
     });
   },
@@ -103,15 +103,11 @@ export const useRatesStore = create<RatesState>((set, get) => ({
     
     let filteredData = [...state.allRatesData.card_list];
     
-    // Apply currency filter (frontend filtering for better UX)
-    // Only filter by currency type within each category, not remove categories
-    if (state.selectedCurrency) {
-      filteredData = filteredData.map(category => ({
-        ...category,
-        list: category.list.filter(currencyGroup => 
-          currencyGroup.currency === state.selectedCurrency
-        )
-      })).filter(category => category.list.length > 0);
+    // Apply category filter (frontend filtering for better UX)
+    if (state.selectedCategory) {
+      filteredData = filteredData.filter(category => 
+        category.category_id === state.selectedCategory
+      );
     }
     
     // Apply search filter (frontend filtering for instant results)
@@ -119,6 +115,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
       const searchLower = state.searchQuery.toLowerCase();
       filteredData = filteredData.filter(category =>
         category.category_name.toLowerCase().includes(searchLower) ||
+        category.category_introduction.toLowerCase().includes(searchLower) ||
         category.list.some(currencyGroup =>
           currencyGroup.list.some(card =>
             card.name.toLowerCase().includes(searchLower)
@@ -137,7 +134,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
       isLoading: false,
       error: null,
       lastFetchTime: 0,
-      selectedCurrency: 'USD', // Reset to default USD
+      selectedCategory: null,
       searchQuery: '',
     });
   },

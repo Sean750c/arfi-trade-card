@@ -15,7 +15,8 @@ import {
   Clock,
   Crown,
   Gift,
-  Percent
+  Percent,
+  DollarSign,
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Colors from '@/constants/Colors';
@@ -24,20 +25,28 @@ import type { CategoryData, CardRate, CurrencyGroup, RateDetail } from '@/types/
 
 interface CategoryCardProps {
   category: CategoryData;
-  selectedCurrency: string | null;
-  onCurrencyFilter: (currency: string | null) => void;
   onCardPress: (cardId: number, categoryId: number) => void;
 }
 
 export default function CategoryCard({ 
   category, 
-  selectedCurrency, 
-  onCurrencyFilter, 
   onCardPress 
 }: CategoryCardProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  
+  // State for managing expanded currencies and selected tags
   const [expandedCurrencies, setExpandedCurrencies] = useState<Set<string>>(new Set());
+  const [selectedTags, setSelectedTags] = useState<Record<number, Set<string>>>(() => {
+    // Initialize with USD as default for all cards
+    const initialTags: Record<number, Set<string>> = {};
+    category.list.forEach(currencyGroup => {
+      currencyGroup.list.forEach(card => {
+        initialTags[card.card_id] = new Set(['USD']);
+      });
+    });
+    return initialTags;
+  });
 
   const toggleCurrencyExpansion = (currency: string) => {
     const newExpanded = new Set(expandedCurrencies);
@@ -47,6 +56,37 @@ export default function CategoryCard({
       newExpanded.add(currency);
     }
     setExpandedCurrencies(newExpanded);
+  };
+
+  const toggleCardTag = (cardId: number, currency: string) => {
+    setSelectedTags(prev => {
+      const cardTags = new Set(prev[cardId] || new Set());
+      
+      // If trying to deselect the last tag, prevent it
+      if (cardTags.has(currency) && cardTags.size === 1) {
+        return prev;
+      }
+      
+      if (cardTags.has(currency)) {
+        cardTags.delete(currency);
+      } else {
+        cardTags.add(currency);
+      }
+      
+      return {
+        ...prev,
+        [cardId]: cardTags,
+      };
+    });
+  };
+
+  // Get all unique currencies for this category
+  const getAllCurrencies = () => {
+    const currencies = new Set<string>();
+    category.list.forEach(group => {
+      currencies.add(group.currency);
+    });
+    return Array.from(currencies);
   };
 
   // Calculate VIP and coupon bonuses for display
@@ -62,123 +102,153 @@ export default function CategoryCard({
     };
   };
 
-  const renderCurrencyChips = (currencyGroups: CurrencyGroup[]) => {
-    const uniqueCurrencies = Array.from(new Set(currencyGroups.map(group => group.currency)));
-    
-    if (uniqueCurrencies.length <= 1) return null;
+  const renderCurrencyTags = (cardId: number, availableCurrencies: string[]) => {
+    const cardSelectedTags = selectedTags[cardId] || new Set(['USD']);
     
     return (
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
-        style={styles.currencyChips}
-        contentContainerStyle={styles.currencyChipsContent}
+        style={styles.currencyTags}
+        contentContainerStyle={styles.currencyTagsContent}
       >
-        {uniqueCurrencies.map((currency) => (
-          <TouchableOpacity
-            key={currency}
-            style={[
-              styles.currencyChip,
-              {
-                backgroundColor: selectedCurrency === currency ? colors.primary : `${colors.primary}15`,
-                borderColor: selectedCurrency === currency ? colors.primary : 'transparent',
-              }
-            ]}
-            onPress={() => onCurrencyFilter(selectedCurrency === currency ? null : currency)}
-          >
-            <Text style={[
-              styles.currencyChipText,
-              { color: selectedCurrency === currency ? '#FFFFFF' : colors.primary }
-            ]}>
-              {currency}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {availableCurrencies.map((currency) => {
+          const isSelected = cardSelectedTags.has(currency);
+          const isLastSelected = cardSelectedTags.size === 1 && isSelected;
+          
+          return (
+            <TouchableOpacity
+              key={currency}
+              style={[
+                styles.currencyTag,
+                {
+                  backgroundColor: isSelected ? colors.primary : `${colors.primary}15`,
+                  borderColor: isSelected ? colors.primary : 'transparent',
+                  opacity: isLastSelected ? 0.7 : 1, // Visual hint that last tag can't be removed
+                }
+              ]}
+              onPress={() => toggleCardTag(cardId, currency)}
+              disabled={isLastSelected}
+            >
+              <Text style={[
+                styles.currencyTagText,
+                { color: isSelected ? '#FFFFFF' : colors.primary }
+              ]}>
+                {currency}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     );
   };
 
-  const renderCardItem = (card: CardRate, isLast: boolean) => {
+  const renderCardItem = (card: CardRate, isLast: boolean, availableCurrencies: string[]) => {
     const bonuses = calculateBonuses(card.rate_detail);
+    const cardSelectedTags = selectedTags[card.card_id] || new Set(['USD']);
+    
+    // Only show card if its currency is selected
+    if (!cardSelectedTags.has(card.currency)) {
+      return null;
+    }
     
     return (
-      <TouchableOpacity
+      <View
         key={card.card_id}
         style={[
           styles.cardItem,
           { borderBottomColor: colors.border },
           isLast && styles.lastCardItem,
         ]}
-        onPress={() => onCardPress(card.card_id, category.category_id)}
       >
-        <View style={styles.cardInfo}>
-          <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
-            {card.name}
-          </Text>
+        {/* Card Header with Tags */}
+        <View style={styles.cardHeader}>
+          <TouchableOpacity
+            style={styles.cardMainInfo}
+            onPress={() => onCardPress(card.card_id, category.category_id)}
+          >
+            <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
+              {card.name}
+            </Text>
+            
+            {/* Rate Breakdown */}
+            <View style={styles.rateBreakdown}>
+              <View style={styles.baseRateContainer}>
+                <DollarSign size={12} color={colors.textSecondary} />
+                <Text style={[styles.baseRateLabel, { color: colors.textSecondary }]}>
+                  Base:
+                </Text>
+                <Text style={[styles.baseRate, { color: colors.text }]}>
+                  {card.currency_symbol}{card.rate.toFixed(2)}
+                </Text>
+              </View>
+              
+              {/* VIP Bonus */}
+              {bonuses.vipBonus > 0 && (
+                <View style={styles.bonusContainer}>
+                  <Crown size={12} color={colors.secondary} />
+                  <Text style={[styles.bonusText, { color: colors.secondary }]}>
+                    VIP +{bonuses.vipBonus}%
+                  </Text>
+                  <Text style={[styles.bonusAmount, { color: colors.secondary }]}>
+                    (+{card.currency_symbol}{bonuses.vipAmount.toFixed(2)})
+                  </Text>
+                </View>
+              )}
+              
+              {/* Coupon Bonus */}
+              {bonuses.couponBonus > 0 && (
+                <View style={styles.bonusContainer}>
+                  <Gift size={12} color={colors.success} />
+                  <Text style={[styles.bonusText, { color: colors.success }]}>
+                    Coupon +{bonuses.couponBonus}%
+                  </Text>
+                  <Text style={[styles.bonusAmount, { color: colors.success }]}>
+                    (+{card.currency_symbol}{bonuses.couponAmount.toFixed(2)})
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
           
-          {/* Rate Breakdown */}
-          <View style={styles.rateBreakdown}>
-            <View style={styles.baseRateContainer}>
-              <Text style={[styles.baseRateLabel, { color: colors.textSecondary }]}>
-                Base:
-              </Text>
-              <Text style={[styles.baseRate, { color: colors.text }]}>
-                {card.currency_symbol}{card.rate.toFixed(2)}
+          <View style={styles.optimalRateContainer}>
+            <Text style={[styles.optimalRate, { color: colors.primary }]}>
+              {card.currency_symbol}{card.optimal_rate}
+            </Text>
+            <View style={styles.rateIndicator}>
+              <TrendingUp size={12} color={colors.success} />
+              <Text style={[styles.rateLabel, { color: colors.success }]}>
+                Final Rate
               </Text>
             </View>
             
-            {/* VIP Bonus */}
-            {bonuses.vipBonus > 0 && (
-              <View style={styles.bonusContainer}>
-                <Crown size={12} color={colors.secondary} />
-                <Text style={[styles.bonusText, { color: colors.secondary }]}>
-                  VIP +{bonuses.vipBonus}%
-                </Text>
-                <Text style={[styles.bonusAmount, { color: colors.secondary }]}>
-                  (+{card.currency_symbol}{bonuses.vipAmount.toFixed(2)})
-                </Text>
-              </View>
-            )}
-            
-            {/* Coupon Bonus */}
-            {bonuses.couponBonus > 0 && (
-              <View style={styles.bonusContainer}>
-                <Gift size={12} color={colors.success} />
-                <Text style={[styles.bonusText, { color: colors.success }]}>
-                  Coupon +{bonuses.couponBonus}%
-                </Text>
-                <Text style={[styles.bonusAmount, { color: colors.success }]}>
-                  (+{card.currency_symbol}{bonuses.couponAmount.toFixed(2)})
+            {/* Total Bonus Percentage */}
+            {parseFloat(card.all_per) > 0 && (
+              <View style={[styles.totalBonusBadge, { backgroundColor: `${colors.primary}15` }]}>
+                <Percent size={10} color={colors.primary} />
+                <Text style={[styles.totalBonusText, { color: colors.primary }]}>
+                  +{card.all_per}%
                 </Text>
               </View>
             )}
           </View>
         </View>
         
-        <View style={styles.optimalRateContainer}>
-          <Text style={[styles.optimalRate, { color: colors.primary }]}>
-            {card.currency_symbol}{card.optimal_rate}
-          </Text>
-          <View style={styles.rateIndicator}>
-            <TrendingUp size={12} color={colors.success} />
-            <Text style={[styles.rateLabel, { color: colors.success }]}>
-              Final Rate
+        {/* Currency Tags for this card */}
+        {availableCurrencies.length > 1 && (
+          <View style={styles.cardTagsContainer}>
+            <Text style={[styles.tagsLabel, { color: colors.textSecondary }]}>
+              Available in:
             </Text>
+            {renderCurrencyTags(card.card_id, availableCurrencies)}
           </View>
-          
-          {/* Total Bonus Percentage */}
-          {parseFloat(card.all_per) > 0 && (
-            <View style={[styles.totalBonusBadge, { backgroundColor: `${colors.primary}15` }]}>
-              <Percent size={10} color={colors.primary} />
-              <Text style={[styles.totalBonusText, { color: colors.primary }]}>
-                +{card.all_per}%
-              </Text>
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
+        )}
+      </View>
     );
   };
+
+  // Get all currencies available for cards in this category
+  const allCurrencies = getAllCurrencies();
 
   return (
     <Card style={styles.categoryCard}>
@@ -201,7 +271,7 @@ export default function CategoryCard({
               <View style={styles.timeoutBadge}>
                 <Clock size={12} color={colors.warning} />
                 <Text style={[styles.timeoutText, { color: colors.warning }]}>
-                  {category.timeout_seconds}
+                  Processing: {category.timeout_seconds}
                 </Text>
               </View>
             )}
@@ -223,15 +293,9 @@ export default function CategoryCard({
         </View>
       </View>
 
-      {/* Currency Type Quick Filter */}
-      {renderCurrencyChips(category.list)}
-
       {/* Currency Groups */}
       <View style={styles.currencyGroups}>
         {category.list.map((currencyGroup, index) => {
-          const shouldShow = !selectedCurrency || currencyGroup.currency === selectedCurrency;
-          if (!shouldShow) return null;
-
           const isExpanded = expandedCurrencies.has(currencyGroup.currency);
           const displayLimit = isExpanded ? currencyGroup.list.length : 3;
           const hasMore = currencyGroup.list.length > 3;
@@ -248,7 +312,7 @@ export default function CategoryCard({
               </View>
               
               {currencyGroup.list.slice(0, displayLimit).map((card, cardIndex) => 
-                renderCardItem(card, cardIndex === displayLimit - 1 && !hasMore)
+                renderCardItem(card, cardIndex === displayLimit - 1 && !hasMore, allCurrencies)
               )}
               
               {hasMore && (
@@ -352,25 +416,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
   },
   
-  // Currency Chips
-  currencyChips: {
-    marginBottom: Spacing.md,
-  },
-  currencyChipsContent: {
-    paddingHorizontal: Spacing.sm,
-    gap: Spacing.sm,
-  },
-  currencyChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  currencyChipText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-  },
-  
   // Currency Groups
   currencyGroups: {
     gap: Spacing.md,
@@ -396,16 +441,19 @@ const styles = StyleSheet.create({
   
   // Card Items
   cardItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
   },
   lastCardItem: {
     borderBottomWidth: 0,
   },
-  cardInfo: {
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  cardMainInfo: {
     flex: 1,
     marginRight: Spacing.md,
   },
@@ -423,7 +471,7 @@ const styles = StyleSheet.create({
   baseRateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+    gap: 4,
   },
   baseRateLabel: {
     fontSize: 12,
@@ -476,6 +524,32 @@ const styles = StyleSheet.create({
   totalBonusText: {
     fontSize: 10,
     fontFamily: 'Inter-Bold',
+  },
+  
+  // Currency Tags
+  cardTagsContainer: {
+    marginTop: Spacing.sm,
+  },
+  tagsLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    marginBottom: Spacing.xs,
+  },
+  currencyTags: {
+    marginBottom: Spacing.xs,
+  },
+  currencyTagsContent: {
+    gap: Spacing.xs,
+  },
+  currencyTag: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  currencyTagText: {
+    fontSize: 11,
+    fontFamily: 'Inter-SemiBold',
   },
   
   showMoreButton: {

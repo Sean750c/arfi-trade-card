@@ -10,7 +10,6 @@ import {
   useColorScheme,
   ActivityIndicator,
   RefreshControl,
-  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
@@ -20,6 +19,7 @@ import {
   TrendingUp,
   Zap,
   X,
+  RotateCcw,
 } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
@@ -42,10 +42,10 @@ export default function RatesScreen() {
     allRatesData,
     isLoading,
     error,
-    selectedCurrency,
+    selectedCategory,
     searchQuery,
     fetchAllRatesData,
-    setSelectedCurrency,
+    setSelectedCategory,
     setSearchQuery,
     clearFilters,
     getFilteredData,
@@ -64,7 +64,6 @@ export default function RatesScreen() {
       console.log('Initializing rates page data (single call)...');
       const initializeData = async () => {
         try {
-          // Fetch all data in one call
           await fetchAllRatesData(countryId, true);
           setInitialized(true);
         } catch (error) {
@@ -85,8 +84,8 @@ export default function RatesScreen() {
     }
   }, [countryId, fetchAllRatesData]);
 
-  const handleCurrencyFilter = (currency: string | null) => {
-    setSelectedCurrency(currency);
+  const handleCategoryFilter = (categoryId: number | null) => {
+    setSelectedCategory(categoryId);
     setShowFilters(false);
   };
 
@@ -96,8 +95,6 @@ export default function RatesScreen() {
   const renderCategoryCard = ({ item }: { item: CategoryData }) => (
     <CategoryCard 
       category={item} 
-      selectedCurrency={selectedCurrency}
-      onCurrencyFilter={setSelectedCurrency}
       onCardPress={(cardId, categoryId) => {
         router.push({
           pathname: '/calculator',
@@ -117,12 +114,15 @@ export default function RatesScreen() {
         No exchange rates found
       </Text>
       <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
-        Try adjusting your search terms to find more rates
+        Try adjusting your search terms or filters to find more rates
       </Text>
       <Button
-        title="Clear Search"
+        title="Clear All Filters"
         variant="outline"
-        onPress={() => setSearchQuery('')}
+        onPress={() => {
+          clearFilters();
+          setSearchQuery('');
+        }}
         style={styles.clearFiltersButton}
       />
     </View>
@@ -182,31 +182,60 @@ export default function RatesScreen() {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <X size={16} color={colors.textSecondary} />
+            </TouchableOpacity>
+          )}
         </View>
         <TouchableOpacity
           style={[
             styles.filterButton,
             { 
-              backgroundColor: selectedCurrency ? colors.primary : (colorScheme === 'dark' ? colors.card : '#F9FAFB'),
+              backgroundColor: selectedCategory ? colors.primary : (colorScheme === 'dark' ? colors.card : '#F9FAFB'),
             },
           ]}
           onPress={() => setShowFilters(true)}
         >
-          <Filter size={20} color={selectedCurrency ? '#FFFFFF' : colors.text} />
+          <Filter size={20} color={selectedCategory ? '#FFFFFF' : colors.text} />
         </TouchableOpacity>
       </View>
       
-      {/* Active Currency Filter Display */}
-      {selectedCurrency && (
+      {/* Active Filters Display */}
+      {(selectedCategory || searchQuery) && (
         <View style={styles.activeFilters}>
-          <View style={[styles.activeFilter, { backgroundColor: colors.primary }]}>
-            <Text style={styles.activeFilterText}>
-              {currencies.find(c => c.currency_code === selectedCurrency)?.currency_name}
+          {selectedCategory && (
+            <View style={[styles.activeFilter, { backgroundColor: colors.primary }]}>
+              <Text style={styles.activeFilterText}>
+                {allRatesData?.card_list.find(c => c.category_id === selectedCategory)?.category_name}
+              </Text>
+              <TouchableOpacity onPress={() => setSelectedCategory(null)}>
+                <X size={16} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          )}
+          {searchQuery && (
+            <View style={[styles.activeFilter, { backgroundColor: colors.secondary }]}>
+              <Text style={styles.activeFilterText}>
+                Search: "{searchQuery}"
+              </Text>
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <X size={16} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          )}
+          <TouchableOpacity
+            style={[styles.clearAllButton, { borderColor: colors.border }]}
+            onPress={() => {
+              clearFilters();
+              setSearchQuery('');
+            }}
+          >
+            <RotateCcw size={14} color={colors.textSecondary} />
+            <Text style={[styles.clearAllText, { color: colors.textSecondary }]}>
+              Clear All
             </Text>
-            <TouchableOpacity onPress={() => setSelectedCurrency(null)}>
-              <X size={16} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         </View>
       )}
       
@@ -244,10 +273,10 @@ export default function RatesScreen() {
       {/* Filter Modal */}
       <FilterModal
         visible={showFilters}
-        currencies={currencies}
-        selectedCurrency={selectedCurrency}
+        categories={allRatesData?.card_list || []}
+        selectedCategory={selectedCategory}
         onClose={() => setShowFilters(false)}
-        onCurrencySelect={handleCurrencyFilter}
+        onCategorySelect={handleCategoryFilter}
         onClearFilters={() => {
           clearFilters();
           setShowFilters(false);
@@ -304,12 +333,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     height: 44,
     borderRadius: 12,
+    gap: Spacing.sm,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    marginLeft: Spacing.sm,
     height: '100%',
   },
   filterButton: {
@@ -324,6 +353,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
     gap: Spacing.sm,
+    flexWrap: 'wrap',
+    alignItems: 'center',
   },
   activeFilter: {
     flexDirection: 'row',
@@ -335,6 +366,19 @@ const styles = StyleSheet.create({
   },
   activeFilterText: {
     color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
+  clearAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 4,
+  },
+  clearAllText: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
   },
