@@ -10,32 +10,26 @@ import {
   useColorScheme,
   ActivityIndicator,
   RefreshControl,
-  Image,
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
   Search, 
   Filter, 
-  Star, 
   ChevronLeft, 
-  ChevronDown, 
   TrendingUp,
-  Clock,
   Zap,
-  Crown,
   X,
-  Gift,
-  Percent
 } from 'lucide-react-native';
-import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useRatesStore } from '@/stores/useRatesStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-import type { CategoryData, CardRate, CurrencyGroup, RateDetail } from '@/types/api';
+import CategoryCard from '@/components/rates/CategoryCard';
+import FilterModal from '@/components/rates/FilterModal';
+import type { CategoryData } from '@/types/api';
 
 export default function RatesScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -60,7 +54,6 @@ export default function RatesScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [initialized, setInitialized] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
 
   // Get country ID from user or selected country
   const countryId = user?.country_id || selectedCountry?.id || 1;
@@ -97,327 +90,24 @@ export default function RatesScreen() {
     setShowFilters(false);
   };
 
-  const toggleCategoryExpansion = (categoryId: number) => {
-    const newExpanded = new Set(expandedCategories);
-    if (newExpanded.has(categoryId)) {
-      newExpanded.delete(categoryId);
-    } else {
-      newExpanded.add(categoryId);
-    }
-    setExpandedCategories(newExpanded);
-  };
-
   // Get filtered data using the store's filtering logic
   const filteredData = getFilteredData();
 
-  // Calculate VIP and coupon bonuses for display
-  const calculateBonuses = (rateDetails: RateDetail[]) => {
-    const vipBonus = rateDetails.find(detail => detail.type === 'vip');
-    const couponBonus = rateDetails.find(detail => detail.type === 'coupon');
-    
-    return {
-      vipBonus: vipBonus ? parseFloat(vipBonus.per || '0') : 0,
-      couponBonus: couponBonus ? parseFloat(couponBonus.per || '0') : 0,
-      vipAmount: vipBonus ? parseFloat(vipBonus.rate?.toString() || '0') : 0,
-      couponAmount: couponBonus ? parseFloat(couponBonus.rate?.toString() || '0') : 0,
-    };
-  };
-
-  const renderCurrencyChips = (currencyGroups: CurrencyGroup[]) => {
-    const uniqueCurrencies = Array.from(new Set(currencyGroups.map(group => group.currency)));
-    
-    return (
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        style={styles.currencyChips}
-        contentContainerStyle={styles.currencyChipsContent}
-      >
-        {uniqueCurrencies.map((currency) => (
-          <TouchableOpacity
-            key={currency}
-            style={[
-              styles.currencyChip,
-              {
-                backgroundColor: selectedCurrency === currency ? colors.primary : `${colors.primary}15`,
-                borderColor: selectedCurrency === currency ? colors.primary : 'transparent',
-              }
-            ]}
-            onPress={() => handleCurrencyFilter(selectedCurrency === currency ? null : currency)}
-          >
-            <Text style={[
-              styles.currencyChipText,
-              { color: selectedCurrency === currency ? '#FFFFFF' : colors.primary }
-            ]}>
-              {currency}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    );
-  };
-
-  const renderCategoryCard = ({ item }: { item: CategoryData }) => {
-    const isExpanded = expandedCategories.has(item.category_id);
-    const hasMultipleCurrencies = item.list.length > 1;
-    
-    return (
-      <Card style={styles.categoryCard}>
-        {/* Category Header */}
-        <View style={styles.categoryHeader}>
-          <View style={styles.categoryInfo}>
-            <Image 
-              source={{ uri: item.category_logo_img }} 
-              style={styles.categoryImage}
-              resizeMode="contain"
-            />
-            <View style={styles.categoryDetails}>
-              <Text style={[styles.categoryName, { color: colors.text }]}>
-                {item.category_name}
-              </Text>
-              <Text style={[styles.categoryIntro, { color: colors.textSecondary }]}>
-                {item.category_introduction}
-              </Text>
-              {item.timeout_seconds !== '0min' && (
-                <View style={styles.timeoutBadge}>
-                  <Clock size={12} color={colors.warning} />
-                  <Text style={[styles.timeoutText, { color: colors.warning }]}>
-                    {item.timeout_seconds}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-          
-          {/* Top Rate Display */}
-          <View style={styles.topRateContainer}>
-            <View style={[styles.topRateBadge, { backgroundColor: colors.primary }]}>
-              <Star size={12} color="#FFFFFF" fill="#FFFFFF" />
-              <Text style={styles.topRateLabel}>Best Rate</Text>
-            </View>
-            <Text style={[styles.topRate, { color: colors.primary }]}>
-              {item.top_currency_symbol}{item.top_optimal_rate}
-            </Text>
-            <Text style={[styles.topCurrency, { color: colors.textSecondary }]}>
-              per {item.top_currency}
-            </Text>
-          </View>
-        </View>
-
-        {/* Currency Type Quick Filter */}
-        {hasMultipleCurrencies && renderCurrencyChips(item.list)}
-
-        {/* Currency Groups */}
-        <View style={styles.currencyGroups}>
-          {item.list.map((currencyGroup, index) => {
-            const shouldShow = !selectedCurrency || currencyGroup.currency === selectedCurrency;
-            if (!shouldShow) return null;
-
-            const displayLimit = isExpanded ? currencyGroup.list.length : 3;
-            const hasMore = currencyGroup.list.length > 3;
-
-            return (
-              <View key={`${currencyGroup.currency}-${index}`} style={styles.currencyGroup}>
-                <View style={styles.currencyHeader}>
-                  <Text style={[styles.currencyTitle, { color: colors.text }]}>
-                    {currencyGroup.currency} Cards
-                  </Text>
-                  <Text style={[styles.cardCount, { color: colors.textSecondary }]}>
-                    {currencyGroup.list.length} options
-                  </Text>
-                </View>
-                
-                {currencyGroup.list.slice(0, displayLimit).map((card, cardIndex) => {
-                  const bonuses = calculateBonuses(card.rate_detail);
-                  
-                  return (
-                    <TouchableOpacity
-                      key={card.card_id}
-                      style={[
-                        styles.cardItem,
-                        { borderBottomColor: colors.border },
-                        cardIndex === displayLimit - 1 && !hasMore && styles.lastCardItem,
-                      ]}
-                      onPress={() => {
-                        // Navigate to calculator with pre-filled data
-                        router.push({
-                          pathname: '/calculator',
-                          params: { 
-                            cardId: card.card_id,
-                            categoryId: item.category_id 
-                          }
-                        } as any);
-                      }}
-                    >
-                      <View style={styles.cardInfo}>
-                        <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
-                          {card.name}
-                        </Text>
-                        
-                        {/* Rate Breakdown */}
-                        <View style={styles.rateBreakdown}>
-                          <View style={styles.baseRateContainer}>
-                            <Text style={[styles.baseRateLabel, { color: colors.textSecondary }]}>
-                              Base:
-                            </Text>
-                            <Text style={[styles.baseRate, { color: colors.text }]}>
-                              {card.currency_symbol}{card.rate.toFixed(2)}
-                            </Text>
-                          </View>
-                          
-                          {/* VIP Bonus */}
-                          {bonuses.vipBonus > 0 && (
-                            <View style={styles.bonusContainer}>
-                              <Crown size={12} color={colors.secondary} />
-                              <Text style={[styles.bonusText, { color: colors.secondary }]}>
-                                VIP +{bonuses.vipBonus}%
-                              </Text>
-                              <Text style={[styles.bonusAmount, { color: colors.secondary }]}>
-                                (+{card.currency_symbol}{bonuses.vipAmount.toFixed(2)})
-                              </Text>
-                            </View>
-                          )}
-                          
-                          {/* Coupon Bonus */}
-                          {bonuses.couponBonus > 0 && (
-                            <View style={styles.bonusContainer}>
-                              <Gift size={12} color={colors.success} />
-                              <Text style={[styles.bonusText, { color: colors.success }]}>
-                                Coupon +{bonuses.couponBonus}%
-                              </Text>
-                              <Text style={[styles.bonusAmount, { color: colors.success }]}>
-                                (+{card.currency_symbol}{bonuses.couponAmount.toFixed(2)})
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                      </View>
-                      
-                      <View style={styles.optimalRateContainer}>
-                        <Text style={[styles.optimalRate, { color: colors.primary }]}>
-                          {card.currency_symbol}{card.optimal_rate}
-                        </Text>
-                        <View style={styles.rateIndicator}>
-                          <TrendingUp size={12} color={colors.success} />
-                          <Text style={[styles.rateLabel, { color: colors.success }]}>
-                            Final Rate
-                          </Text>
-                        </View>
-                        
-                        {/* Total Bonus Percentage */}
-                        {parseFloat(card.all_per) > 0 && (
-                          <View style={[styles.totalBonusBadge, { backgroundColor: `${colors.primary}15` }]}>
-                            <Percent size={10} color={colors.primary} />
-                            <Text style={[styles.totalBonusText, { color: colors.primary }]}>
-                              +{card.all_per}%
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-                
-                {hasMore && (
-                  <TouchableOpacity 
-                    style={styles.showMoreButton}
-                    onPress={() => toggleCategoryExpansion(item.category_id)}
-                  >
-                    <Text style={[styles.showMoreText, { color: colors.primary }]}>
-                      {isExpanded 
-                        ? 'Show Less' 
-                        : `+${currencyGroup.list.length - 3} more ${currencyGroup.currency} cards`
-                      }
-                    </Text>
-                    <ChevronDown 
-                      size={16} 
-                      color={colors.primary} 
-                      style={[
-                        styles.chevronIcon,
-                        isExpanded && styles.chevronIconRotated
-                      ]}
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
-            );
-          })}
-        </View>
-      </Card>
-    );
-  };
-
-  const renderFilterModal = () => (
-    showFilters && (
-      <View style={styles.filterOverlay}>
-        <View style={[styles.filterModal, { backgroundColor: colors.card }]}>
-          <View style={styles.filterHeader}>
-            <Text style={[styles.filterTitle, { color: colors.text }]}>
-              Filter by Currency
-            </Text>
-            <TouchableOpacity onPress={() => setShowFilters(false)}>
-              <X size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Currency Filter Only */}
-            <View style={styles.filterSection}>
-              <TouchableOpacity
-                style={[
-                  styles.filterOption,
-                  { 
-                    backgroundColor: !selectedCurrency ? colors.primary : 'transparent',
-                    borderColor: colors.border,
-                  }
-                ]}
-                onPress={() => handleCurrencyFilter(null)}
-              >
-                <Text style={[
-                  styles.filterOptionText,
-                  { color: !selectedCurrency ? '#FFFFFF' : colors.text }
-                ]}>
-                  All Currencies
-                </Text>
-              </TouchableOpacity>
-              
-              {currencies.map((currency) => (
-                <TouchableOpacity
-                  key={currency.currency_id}
-                  style={[
-                    styles.filterOption,
-                    { 
-                      backgroundColor: selectedCurrency === currency.currency_code ? colors.primary : 'transparent',
-                      borderColor: colors.border,
-                    }
-                  ]}
-                  onPress={() => handleCurrencyFilter(currency.currency_code)}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    { color: selectedCurrency === currency.currency_code ? '#FFFFFF' : colors.text }
-                  ]}>
-                    {currency.currency_symbol} {currency.currency_name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-          
-          {/* Clear Filters */}
-          <Button
-            title="Clear Filter"
-            variant="outline"
-            onPress={() => {
-              clearFilters();
-              setShowFilters(false);
-            }}
-            style={styles.clearFiltersButton}
-            fullWidth
-          />
-        </View>
-      </View>
-    )
+  const renderCategoryCard = ({ item }: { item: CategoryData }) => (
+    <CategoryCard 
+      category={item} 
+      selectedCurrency={selectedCurrency}
+      onCurrencyFilter={setSelectedCurrency}
+      onCardPress={(cardId, categoryId) => {
+        router.push({
+          pathname: '/calculator',
+          params: { 
+            cardId: cardId,
+            categoryId: categoryId 
+          }
+        } as any);
+      }}
+    />
   );
 
   const renderEmptyState = () => (
@@ -552,7 +242,17 @@ export default function RatesScreen() {
       )}
 
       {/* Filter Modal */}
-      {renderFilterModal()}
+      <FilterModal
+        visible={showFilters}
+        currencies={currencies}
+        selectedCurrency={selectedCurrency}
+        onClose={() => setShowFilters(false)}
+        onCurrencySelect={handleCurrencyFilter}
+        onClearFilters={() => {
+          clearFilters();
+          setShowFilters(false);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -644,263 +344,6 @@ const styles = StyleSheet.create({
   },
   emptyListContainer: {
     flexGrow: 1,
-  },
-  
-  // Currency Chips
-  currencyChips: {
-    marginBottom: Spacing.md,
-  },
-  currencyChipsContent: {
-    paddingHorizontal: Spacing.sm,
-    gap: Spacing.sm,
-  },
-  currencyChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  currencyChipText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-  },
-  
-  // Category Card Styles
-  categoryCard: {
-    marginBottom: Spacing.lg,
-    overflow: 'hidden',
-  },
-  categoryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.md,
-  },
-  categoryInfo: {
-    flexDirection: 'row',
-    flex: 1,
-    marginRight: Spacing.md,
-  },
-  categoryImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    marginRight: Spacing.md,
-  },
-  categoryDetails: {
-    flex: 1,
-  },
-  categoryName: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.xs,
-  },
-  categoryIntro: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 16,
-    marginBottom: Spacing.xs,
-  },
-  timeoutBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  timeoutText: {
-    fontSize: 11,
-    fontFamily: 'Inter-Medium',
-  },
-  topRateContainer: {
-    alignItems: 'flex-end',
-  },
-  topRateBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    borderRadius: 8,
-    marginBottom: Spacing.xs,
-    gap: 2,
-  },
-  topRateLabel: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontFamily: 'Inter-Bold',
-  },
-  topRate: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    marginBottom: 2,
-  },
-  topCurrency: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-  },
-  
-  // Currency Groups
-  currencyGroups: {
-    gap: Spacing.md,
-  },
-  currencyGroup: {
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  currencyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  currencyTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  cardCount: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-  },
-  
-  // Card Items
-  cardItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-  },
-  lastCardItem: {
-    borderBottomWidth: 0,
-  },
-  cardInfo: {
-    flex: 1,
-    marginRight: Spacing.md,
-  },
-  cardName: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    marginBottom: Spacing.sm,
-    lineHeight: 18,
-  },
-  
-  // Rate Breakdown
-  rateBreakdown: {
-    gap: Spacing.xs,
-  },
-  baseRateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  baseRateLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-  },
-  baseRate: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-  },
-  bonusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  bonusText: {
-    fontSize: 11,
-    fontFamily: 'Inter-Medium',
-  },
-  bonusAmount: {
-    fontSize: 11,
-    fontFamily: 'Inter-SemiBold',
-  },
-  
-  // Optimal Rate
-  optimalRateContainer: {
-    alignItems: 'flex-end',
-    gap: Spacing.xs,
-  },
-  optimalRate: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-  },
-  rateIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  rateLabel: {
-    fontSize: 10,
-    fontFamily: 'Inter-Medium',
-  },
-  totalBonusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    borderRadius: 8,
-    gap: 2,
-  },
-  totalBonusText: {
-    fontSize: 10,
-    fontFamily: 'Inter-Bold',
-  },
-  
-  showMoreButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.sm,
-    gap: Spacing.xs,
-  },
-  showMoreText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-  },
-  chevronIcon: {
-    transform: [{ rotate: '0deg' }],
-  },
-  chevronIconRotated: {
-    transform: [{ rotate: '180deg' }],
-  },
-  
-  // Filter Modal
-  filterOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  filterModal: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: Spacing.lg,
-    maxHeight: '60%',
-  },
-  filterHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  filterTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  filterSection: {
-    marginBottom: Spacing.lg,
-  },
-  filterOption: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: Spacing.sm,
-  },
-  filterOptionText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
   },
   clearFiltersButton: {
     marginTop: Spacing.md,
