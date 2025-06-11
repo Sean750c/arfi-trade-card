@@ -47,6 +47,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
     
     // Avoid repeated calls - cache for 5 minutes
     if (state.categories.length > 0 && Date.now() - state.lastFetchTime < 300000) {
+      console.log('Using cached categories');
       return;
     }
 
@@ -65,6 +66,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
     
     // Avoid repeated calls - cache for 5 minutes
     if (state.currencies.length > 0 && Date.now() - state.lastFetchTime < 300000) {
+      console.log('Using cached currencies');
       return;
     }
 
@@ -93,10 +95,14 @@ export const useRatesStore = create<RatesState>((set, get) => ({
 
     try {
       // Fetch all data at once with a large page size to reduce backend calls
+      // Start from page 1 as corrected (not 0)
       const params = {
         country_id: countryId,
-        page: 0, // Start from page 0 as specified
+        page: 1, // Corrected: pagination starts from 1
         page_size: 1000, // Large page size to get all data at once
+        // Apply current filters to the API call
+        ...(state.selectedCategory && { card_catgory: state.selectedCategory }), // Note: API uses 'card_catgory'
+        ...(state.selectedCurrency && { currency: state.selectedCurrency }),
       };
 
       console.log('Fetching all rates with params:', params);
@@ -148,14 +154,14 @@ export const useRatesStore = create<RatesState>((set, get) => ({
     
     let filteredData = [...state.allRatesData.card_list];
     
-    // Apply category filter
+    // Apply category filter (frontend filtering for better UX)
     if (state.selectedCategory) {
       filteredData = filteredData.filter(category => 
         category.category_id === state.selectedCategory
       );
     }
     
-    // Apply currency filter
+    // Apply currency filter (frontend filtering for better UX)
     if (state.selectedCurrency) {
       filteredData = filteredData.map(category => ({
         ...category,
@@ -165,7 +171,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
       })).filter(category => category.list.length > 0);
     }
     
-    // Apply search filter
+    // Apply search filter (frontend filtering for instant results)
     if (state.searchQuery.trim()) {
       const searchLower = state.searchQuery.toLowerCase();
       filteredData = filteredData.filter(category =>

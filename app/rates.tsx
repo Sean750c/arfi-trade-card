@@ -48,70 +48,59 @@ export default function RatesScreen() {
   const {
     categories,
     currencies,
-    ratesData,
+    allRatesData,
     isLoading,
-    isLoadingMore,
     error,
     selectedCategory,
     selectedCurrency,
     searchQuery,
-    hasMore,
     fetchCategories,
     fetchCurrencies,
-    fetchRatesData,
-    loadMoreRates,
+    fetchAllRatesData,
     setSelectedCategory,
     setSelectedCurrency,
     setSearchQuery,
     clearFilters,
+    getFilteredData,
   } = useRatesStore();
 
   const [showFilters, setShowFilters] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   // Get country ID from user or selected country
   const countryId = user?.country_id || selectedCountry?.id || 1;
 
-  // Initial data fetch
+  // Single initialization effect to prevent repeated calls
   useEffect(() => {
-    const initializeData = async () => {
-      console.log('Initializing rates page data...');
-      try {
-        await Promise.all([
-          fetchCategories(),
-          fetchCurrencies(),
-          fetchRatesData(countryId, true),
-        ]);
-      } catch (error) {
-        console.error('Failed to initialize rates data:', error);
-      }
-    };
+    if (!initialized) {
+      console.log('Initializing rates page data (single call)...');
+      const initializeData = async () => {
+        try {
+          // Fetch all data in parallel - only once
+          await Promise.all([
+            fetchCategories(),
+            fetchCurrencies(),
+            fetchAllRatesData(countryId, true),
+          ]);
+          setInitialized(true);
+        } catch (error) {
+          console.error('Failed to initialize rates data:', error);
+        }
+      };
 
-    initializeData();
-  }, [fetchCategories, fetchCurrencies, fetchRatesData, countryId]);
-
-  // Refresh data when filters change
-  useEffect(() => {
-    if (categories.length > 0) {
-      console.log('Filters changed, refreshing data...');
-      fetchRatesData(countryId, true);
+      initializeData();
     }
-  }, [selectedCategory, selectedCurrency, countryId, fetchRatesData]);
+  }, [initialized, fetchCategories, fetchCurrencies, fetchAllRatesData, countryId]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchRatesData(countryId, true);
+      await fetchAllRatesData(countryId, true);
     } finally {
       setRefreshing(false);
     }
-  }, [countryId, fetchRatesData]);
-
-  const handleLoadMore = useCallback(() => {
-    if (!isLoadingMore && hasMore) {
-      loadMoreRates(countryId);
-    }
-  }, [isLoadingMore, hasMore, loadMoreRates, countryId]);
+  }, [countryId, fetchAllRatesData]);
 
   const handleCategoryFilter = (categoryId: number | null) => {
     setSelectedCategory(categoryId);
@@ -123,25 +112,8 @@ export default function RatesScreen() {
     setShowFilters(false);
   };
 
-  const getFilteredData = () => {
-    if (!ratesData) return [];
-    
-    let filteredData = ratesData.card_list;
-    
-    // Apply search filter
-    if (searchQuery.trim()) {
-      filteredData = filteredData.filter(category =>
-        category.category_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        category.list.some(currencyGroup =>
-          currencyGroup.list.some(card =>
-            card.name.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        )
-      );
-    }
-    
-    return filteredData;
-  };
+  // Get filtered data using the store's filtering logic
+  const filteredData = getFilteredData();
 
   // Calculate VIP and coupon bonuses for display
   const calculateBonuses = (rateDetails: RateDetail[]) => {
@@ -458,19 +430,6 @@ export default function RatesScreen() {
     )
   );
 
-  const renderFooter = () => {
-    if (!isLoadingMore) return null;
-    
-    return (
-      <View style={styles.loadingFooter}>
-        <ActivityIndicator size="small" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-          Loading more rates...
-        </Text>
-      </View>
-    );
-  };
-
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <TrendingUp size={48} color={colors.textSecondary} />
@@ -489,7 +448,7 @@ export default function RatesScreen() {
     </View>
   );
 
-  if (error && !ratesData) {
+  if (error && !allRatesData) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.errorContainer}>
@@ -498,15 +457,13 @@ export default function RatesScreen() {
           </Text>
           <Button
             title="Retry"
-            onPress={() => fetchRatesData(countryId, true)}
+            onPress={() => fetchAllRatesData(countryId, true)}
             style={styles.retryButton}
           />
         </View>
       </SafeAreaView>
     );
   }
-
-  const filteredData = getFilteredData();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -518,7 +475,7 @@ export default function RatesScreen() {
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Exchange Rates</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {ratesData ? `${filteredData.length} categories available` : 'Loading rates...'}
+            {allRatesData ? `${filteredData.length} categories available` : 'Loading rates...'}
           </Text>
         </View>
         <TouchableOpacity
@@ -591,7 +548,6 @@ export default function RatesScreen() {
         keyExtractor={(item) => item.category_id.toString()}
         renderItem={renderCategoryCard}
         ListEmptyComponent={!isLoading ? renderEmptyState : null}
-        ListFooterComponent={renderFooter}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -600,8 +556,6 @@ export default function RatesScreen() {
             tintColor={colors.primary}
           />
         }
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.1}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.listContainer,
@@ -610,7 +564,7 @@ export default function RatesScreen() {
       />
 
       {/* Loading overlay for initial load */}
-      {isLoading && !ratesData && (
+      {isLoading && !allRatesData && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
@@ -965,16 +919,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
-  loadingFooter: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: Spacing.lg,
-    gap: Spacing.sm,
-  },
   loadingText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
+    marginTop: Spacing.md,
   },
   errorContainer: {
     flex: 1,
