@@ -185,6 +185,56 @@ export interface CouponListResponse {
   data: Coupon[];
 }
 
+// Calculator API Types
+export interface VIPLevel {
+  level: number;
+  rate: number;
+}
+
+export interface VIPDetail {
+  level: number;
+  rate: string;
+  next_level: number;
+  next_level_rate: string;
+  exp_efficiency: number;
+  upgrade_point: number;
+}
+
+export interface AmountOrderBonus {
+  bonus_amount: number;
+  order_amount: number;
+}
+
+export interface CardItem {
+  card_id: number;
+  rate: number;
+  usdt_rate: number;
+  name: string;
+  category_id: number;
+}
+
+export interface CardCategory {
+  category_name: string;
+  category_logo: string;
+  category_image: string;
+  sort: number;
+  list: CardItem[];
+}
+
+export interface CalculatorData {
+  first_order_bonus: number;
+  amount_order_bonus: AmountOrderBonus;
+  vip_info: number;
+  vip: VIPLevel[];
+  vip_detail: VIPDetail;
+  card_list: CardCategory[];
+}
+
+export interface CalculatorRequest {
+  country_id: number;
+  token?: string;
+}
+
 // The API returns a direct array of notices, not an object with pagination metadata
 export type NoticeListData = Notice[];
 
@@ -196,3 +246,4 @@ export type UserRegisterResponse = APIResponse<User>;
 export type UserLoginResponse = APIResponse<User>;
 export type BannerListResponse = APIResponse<BannerData>; // Updated to use BannerData
 export type NoticeListResponse = APIResponse<NoticeListData>;
+export type CalculatorResponse = APIResponse<CalculatorData>;
