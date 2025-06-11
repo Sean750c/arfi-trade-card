@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   Image,
-  Alert,
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -27,7 +26,6 @@ import {
   Crown,
   X,
   Gift,
-  DollarSign,
   Percent
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
@@ -46,18 +44,13 @@ export default function RatesScreen() {
   const { user } = useAuthStore();
   
   const {
-    categories,
     currencies,
     allRatesData,
     isLoading,
     error,
-    selectedCategory,
     selectedCurrency,
     searchQuery,
-    fetchCategories,
-    fetchCurrencies,
     fetchAllRatesData,
-    setSelectedCategory,
     setSelectedCurrency,
     setSearchQuery,
     clearFilters,
@@ -67,6 +60,7 @@ export default function RatesScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
 
   // Get country ID from user or selected country
   const countryId = user?.country_id || selectedCountry?.id || 1;
@@ -77,12 +71,8 @@ export default function RatesScreen() {
       console.log('Initializing rates page data (single call)...');
       const initializeData = async () => {
         try {
-          // Fetch all data in parallel - only once
-          await Promise.all([
-            fetchCategories(),
-            fetchCurrencies(),
-            fetchAllRatesData(countryId, true),
-          ]);
+          // Fetch all data in one call
+          await fetchAllRatesData(countryId, true);
           setInitialized(true);
         } catch (error) {
           console.error('Failed to initialize rates data:', error);
@@ -91,7 +81,7 @@ export default function RatesScreen() {
 
       initializeData();
     }
-  }, [initialized, fetchCategories, fetchCurrencies, fetchAllRatesData, countryId]);
+  }, [initialized, fetchAllRatesData, countryId]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -102,14 +92,19 @@ export default function RatesScreen() {
     }
   }, [countryId, fetchAllRatesData]);
 
-  const handleCategoryFilter = (categoryId: number | null) => {
-    setSelectedCategory(categoryId);
-    setShowFilters(false);
-  };
-
   const handleCurrencyFilter = (currency: string | null) => {
     setSelectedCurrency(currency);
     setShowFilters(false);
+  };
+
+  const toggleCategoryExpansion = (categoryId: number) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    setExpandedCategories(newExpanded);
   };
 
   // Get filtered data using the store's filtering logic
@@ -128,186 +123,229 @@ export default function RatesScreen() {
     };
   };
 
-  const renderCategoryCard = ({ item }: { item: CategoryData }) => (
-    <Card style={styles.categoryCard}>
-      {/* Category Header */}
-      <View style={styles.categoryHeader}>
-        <View style={styles.categoryInfo}>
-          <Image 
-            source={{ uri: item.category_logo_img }} 
-            style={styles.categoryImage}
-            resizeMode="contain"
-          />
-          <View style={styles.categoryDetails}>
-            <Text style={[styles.categoryName, { color: colors.text }]}>
-              {item.category_name}
+  const renderCurrencyChips = (currencyGroups: CurrencyGroup[]) => {
+    const uniqueCurrencies = Array.from(new Set(currencyGroups.map(group => group.currency)));
+    
+    return (
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.currencyChips}
+        contentContainerStyle={styles.currencyChipsContent}
+      >
+        {uniqueCurrencies.map((currency) => (
+          <TouchableOpacity
+            key={currency}
+            style={[
+              styles.currencyChip,
+              {
+                backgroundColor: selectedCurrency === currency ? colors.primary : `${colors.primary}15`,
+                borderColor: selectedCurrency === currency ? colors.primary : 'transparent',
+              }
+            ]}
+            onPress={() => handleCurrencyFilter(selectedCurrency === currency ? null : currency)}
+          >
+            <Text style={[
+              styles.currencyChipText,
+              { color: selectedCurrency === currency ? '#FFFFFF' : colors.primary }
+            ]}>
+              {currency}
             </Text>
-            <Text style={[styles.categoryIntro, { color: colors.textSecondary }]}>
-              {item.category_introduction}
-            </Text>
-            {item.timeout_seconds !== '0min' && (
-              <View style={styles.timeoutBadge}>
-                <Clock size={12} color={colors.warning} />
-                <Text style={[styles.timeoutText, { color: colors.warning }]}>
-                  {item.timeout_seconds}
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-        
-        {/* Top Rate Display */}
-        <View style={styles.topRateContainer}>
-          <View style={[styles.topRateBadge, { backgroundColor: colors.primary }]}>
-            <Star size={12} color="#FFFFFF" fill="#FFFFFF" />
-            <Text style={styles.topRateLabel}>Best Rate</Text>
-          </View>
-          <Text style={[styles.topRate, { color: colors.primary }]}>
-            {item.top_currency_symbol}{item.top_optimal_rate}
-          </Text>
-          <Text style={[styles.topCurrency, { color: colors.textSecondary }]}>
-            per {item.top_currency}
-          </Text>
-        </View>
-      </View>
-
-      {/* Currency Groups */}
-      <View style={styles.currencyGroups}>
-        {item.list.map((currencyGroup, index) => (
-          <View key={`${currencyGroup.currency}-${index}`} style={styles.currencyGroup}>
-            <View style={styles.currencyHeader}>
-              <Text style={[styles.currencyTitle, { color: colors.text }]}>
-                {currencyGroup.currency} Cards
-              </Text>
-              <Text style={[styles.cardCount, { color: colors.textSecondary }]}>
-                {currencyGroup.list.length} options
-              </Text>
-            </View>
-            
-            {currencyGroup.list.slice(0, 3).map((card, cardIndex) => {
-              const bonuses = calculateBonuses(card.rate_detail);
-              
-              return (
-                <TouchableOpacity
-                  key={card.card_id}
-                  style={[
-                    styles.cardItem,
-                    { borderBottomColor: colors.border },
-                    cardIndex === currencyGroup.list.length - 1 && styles.lastCardItem,
-                  ]}
-                  onPress={() => {
-                    // Navigate to calculator with pre-filled data
-                    router.push({
-                      pathname: '/calculator',
-                      params: { 
-                        cardId: card.card_id,
-                        categoryId: item.category_id 
-                      }
-                    } as any);
-                  }}
-                >
-                  <View style={styles.cardInfo}>
-                    <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
-                      {card.name}
-                    </Text>
-                    
-                    {/* Rate Breakdown */}
-                    <View style={styles.rateBreakdown}>
-                      <View style={styles.baseRateContainer}>
-                        <Text style={[styles.baseRateLabel, { color: colors.textSecondary }]}>
-                          Base:
-                        </Text>
-                        <Text style={[styles.baseRate, { color: colors.text }]}>
-                          {card.currency_symbol}{card.rate.toFixed(2)}
-                        </Text>
-                      </View>
-                      
-                      {/* VIP Bonus */}
-                      {bonuses.vipBonus > 0 && (
-                        <View style={styles.bonusContainer}>
-                          <Crown size={12} color={colors.secondary} />
-                          <Text style={[styles.bonusText, { color: colors.secondary }]}>
-                            VIP +{bonuses.vipBonus}%
-                          </Text>
-                          <Text style={[styles.bonusAmount, { color: colors.secondary }]}>
-                            (+{card.currency_symbol}{bonuses.vipAmount.toFixed(2)})
-                          </Text>
-                        </View>
-                      )}
-                      
-                      {/* Coupon Bonus */}
-                      {bonuses.couponBonus > 0 && (
-                        <View style={styles.bonusContainer}>
-                          <Gift size={12} color={colors.success} />
-                          <Text style={[styles.bonusText, { color: colors.success }]}>
-                            Coupon +{bonuses.couponBonus}%
-                          </Text>
-                          <Text style={[styles.bonusAmount, { color: colors.success }]}>
-                            (+{card.currency_symbol}{bonuses.couponAmount.toFixed(2)})
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                  
-                  <View style={styles.optimalRateContainer}>
-                    <Text style={[styles.optimalRate, { color: colors.primary }]}>
-                      {card.currency_symbol}{card.optimal_rate}
-                    </Text>
-                    <View style={styles.rateIndicator}>
-                      <TrendingUp size={12} color={colors.success} />
-                      <Text style={[styles.rateLabel, { color: colors.success }]}>
-                        Final Rate
-                      </Text>
-                    </View>
-                    
-                    {/* Total Bonus Percentage */}
-                    {parseFloat(card.all_per) > 0 && (
-                      <View style={[styles.totalBonusBadge, { backgroundColor: `${colors.primary}15` }]}>
-                        <Percent size={10} color={colors.primary} />
-                        <Text style={[styles.totalBonusText, { color: colors.primary }]}>
-                          +{card.all_per}%
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-            
-            {currencyGroup.list.length > 3 && (
-              <TouchableOpacity 
-                style={styles.showMoreButton}
-                onPress={() => {
-                  // Show all cards for this currency group
-                  Alert.alert(
-                    'More Cards', 
-                    `View all ${currencyGroup.list.length} ${currencyGroup.currency} cards for ${item.category_name}`,
-                    [
-                      { text: 'Cancel', style: 'cancel' },
-                      { 
-                        text: 'View All', 
-                        onPress: () => {
-                          // Navigate to filtered view
-                          setSelectedCategory(item.category_id);
-                          setSelectedCurrency(currencyGroup.currency);
-                        }
-                      }
-                    ]
-                  );
-                }}
-              >
-                <Text style={[styles.showMoreText, { color: colors.primary }]}>
-                  +{currencyGroup.list.length - 3} more {currencyGroup.currency} cards
-                </Text>
-                <ChevronDown size={16} color={colors.primary} />
-              </TouchableOpacity>
-            )}
-          </View>
+          </TouchableOpacity>
         ))}
-      </View>
-    </Card>
-  );
+      </ScrollView>
+    );
+  };
+
+  const renderCategoryCard = ({ item }: { item: CategoryData }) => {
+    const isExpanded = expandedCategories.has(item.category_id);
+    const hasMultipleCurrencies = item.list.length > 1;
+    
+    return (
+      <Card style={styles.categoryCard}>
+        {/* Category Header */}
+        <View style={styles.categoryHeader}>
+          <View style={styles.categoryInfo}>
+            <Image 
+              source={{ uri: item.category_logo_img }} 
+              style={styles.categoryImage}
+              resizeMode="contain"
+            />
+            <View style={styles.categoryDetails}>
+              <Text style={[styles.categoryName, { color: colors.text }]}>
+                {item.category_name}
+              </Text>
+              <Text style={[styles.categoryIntro, { color: colors.textSecondary }]}>
+                {item.category_introduction}
+              </Text>
+              {item.timeout_seconds !== '0min' && (
+                <View style={styles.timeoutBadge}>
+                  <Clock size={12} color={colors.warning} />
+                  <Text style={[styles.timeoutText, { color: colors.warning }]}>
+                    {item.timeout_seconds}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+          
+          {/* Top Rate Display */}
+          <View style={styles.topRateContainer}>
+            <View style={[styles.topRateBadge, { backgroundColor: colors.primary }]}>
+              <Star size={12} color="#FFFFFF" fill="#FFFFFF" />
+              <Text style={styles.topRateLabel}>Best Rate</Text>
+            </View>
+            <Text style={[styles.topRate, { color: colors.primary }]}>
+              {item.top_currency_symbol}{item.top_optimal_rate}
+            </Text>
+            <Text style={[styles.topCurrency, { color: colors.textSecondary }]}>
+              per {item.top_currency}
+            </Text>
+          </View>
+        </View>
+
+        {/* Currency Type Quick Filter */}
+        {hasMultipleCurrencies && renderCurrencyChips(item.list)}
+
+        {/* Currency Groups */}
+        <View style={styles.currencyGroups}>
+          {item.list.map((currencyGroup, index) => {
+            const shouldShow = !selectedCurrency || currencyGroup.currency === selectedCurrency;
+            if (!shouldShow) return null;
+
+            const displayLimit = isExpanded ? currencyGroup.list.length : 3;
+            const hasMore = currencyGroup.list.length > 3;
+
+            return (
+              <View key={`${currencyGroup.currency}-${index}`} style={styles.currencyGroup}>
+                <View style={styles.currencyHeader}>
+                  <Text style={[styles.currencyTitle, { color: colors.text }]}>
+                    {currencyGroup.currency} Cards
+                  </Text>
+                  <Text style={[styles.cardCount, { color: colors.textSecondary }]}>
+                    {currencyGroup.list.length} options
+                  </Text>
+                </View>
+                
+                {currencyGroup.list.slice(0, displayLimit).map((card, cardIndex) => {
+                  const bonuses = calculateBonuses(card.rate_detail);
+                  
+                  return (
+                    <TouchableOpacity
+                      key={card.card_id}
+                      style={[
+                        styles.cardItem,
+                        { borderBottomColor: colors.border },
+                        cardIndex === displayLimit - 1 && !hasMore && styles.lastCardItem,
+                      ]}
+                      onPress={() => {
+                        // Navigate to calculator with pre-filled data
+                        router.push({
+                          pathname: '/calculator',
+                          params: { 
+                            cardId: card.card_id,
+                            categoryId: item.category_id 
+                          }
+                        } as any);
+                      }}
+                    >
+                      <View style={styles.cardInfo}>
+                        <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
+                          {card.name}
+                        </Text>
+                        
+                        {/* Rate Breakdown */}
+                        <View style={styles.rateBreakdown}>
+                          <View style={styles.baseRateContainer}>
+                            <Text style={[styles.baseRateLabel, { color: colors.textSecondary }]}>
+                              Base:
+                            </Text>
+                            <Text style={[styles.baseRate, { color: colors.text }]}>
+                              {card.currency_symbol}{card.rate.toFixed(2)}
+                            </Text>
+                          </View>
+                          
+                          {/* VIP Bonus */}
+                          {bonuses.vipBonus > 0 && (
+                            <View style={styles.bonusContainer}>
+                              <Crown size={12} color={colors.secondary} />
+                              <Text style={[styles.bonusText, { color: colors.secondary }]}>
+                                VIP +{bonuses.vipBonus}%
+                              </Text>
+                              <Text style={[styles.bonusAmount, { color: colors.secondary }]}>
+                                (+{card.currency_symbol}{bonuses.vipAmount.toFixed(2)})
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {/* Coupon Bonus */}
+                          {bonuses.couponBonus > 0 && (
+                            <View style={styles.bonusContainer}>
+                              <Gift size={12} color={colors.success} />
+                              <Text style={[styles.bonusText, { color: colors.success }]}>
+                                Coupon +{bonuses.couponBonus}%
+                              </Text>
+                              <Text style={[styles.bonusAmount, { color: colors.success }]}>
+                                (+{card.currency_symbol}{bonuses.couponAmount.toFixed(2)})
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                      
+                      <View style={styles.optimalRateContainer}>
+                        <Text style={[styles.optimalRate, { color: colors.primary }]}>
+                          {card.currency_symbol}{card.optimal_rate}
+                        </Text>
+                        <View style={styles.rateIndicator}>
+                          <TrendingUp size={12} color={colors.success} />
+                          <Text style={[styles.rateLabel, { color: colors.success }]}>
+                            Final Rate
+                          </Text>
+                        </View>
+                        
+                        {/* Total Bonus Percentage */}
+                        {parseFloat(card.all_per) > 0 && (
+                          <View style={[styles.totalBonusBadge, { backgroundColor: `${colors.primary}15` }]}>
+                            <Percent size={10} color={colors.primary} />
+                            <Text style={[styles.totalBonusText, { color: colors.primary }]}>
+                              +{card.all_per}%
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+                
+                {hasMore && (
+                  <TouchableOpacity 
+                    style={styles.showMoreButton}
+                    onPress={() => toggleCategoryExpansion(item.category_id)}
+                  >
+                    <Text style={[styles.showMoreText, { color: colors.primary }]}>
+                      {isExpanded 
+                        ? 'Show Less' 
+                        : `+${currencyGroup.list.length - 3} more ${currencyGroup.currency} cards`
+                      }
+                    </Text>
+                    <ChevronDown 
+                      size={16} 
+                      color={colors.primary} 
+                      style={[
+                        styles.chevronIcon,
+                        isExpanded && styles.chevronIconRotated
+                      ]}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          })}
+        </View>
+      </Card>
+    );
+  };
 
   const renderFilterModal = () => (
     showFilters && (
@@ -315,7 +353,7 @@ export default function RatesScreen() {
         <View style={[styles.filterModal, { backgroundColor: colors.card }]}>
           <View style={styles.filterHeader}>
             <Text style={[styles.filterTitle, { color: colors.text }]}>
-              Filter Exchange Rates
+              Filter by Currency
             </Text>
             <TouchableOpacity onPress={() => setShowFilters(false)}>
               <X size={24} color={colors.text} />
@@ -323,56 +361,8 @@ export default function RatesScreen() {
           </View>
           
           <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Category Filter */}
+            {/* Currency Filter Only */}
             <View style={styles.filterSection}>
-              <Text style={[styles.filterSectionTitle, { color: colors.text }]}>
-                Card Category
-              </Text>
-              <TouchableOpacity
-                style={[
-                  styles.filterOption,
-                  { 
-                    backgroundColor: !selectedCategory ? colors.primary : 'transparent',
-                    borderColor: colors.border,
-                  }
-                ]}
-                onPress={() => handleCategoryFilter(null)}
-              >
-                <Text style={[
-                  styles.filterOptionText,
-                  { color: !selectedCategory ? '#FFFFFF' : colors.text }
-                ]}>
-                  All Categories
-                </Text>
-              </TouchableOpacity>
-              
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category.category_id}
-                  style={[
-                    styles.filterOption,
-                    { 
-                      backgroundColor: selectedCategory === category.category_id ? colors.primary : 'transparent',
-                      borderColor: colors.border,
-                    }
-                  ]}
-                  onPress={() => handleCategoryFilter(category.category_id)}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    { color: selectedCategory === category.category_id ? '#FFFFFF' : colors.text }
-                  ]}>
-                    {category.category_name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            
-            {/* Currency Filter */}
-            <View style={styles.filterSection}>
-              <Text style={[styles.filterSectionTitle, { color: colors.text }]}>
-                Currency Type
-              </Text>
               <TouchableOpacity
                 style={[
                   styles.filterOption,
@@ -416,7 +406,7 @@ export default function RatesScreen() {
           
           {/* Clear Filters */}
           <Button
-            title="Clear All Filters"
+            title="Clear Filter"
             variant="outline"
             onPress={() => {
               clearFilters();
@@ -437,12 +427,12 @@ export default function RatesScreen() {
         No exchange rates found
       </Text>
       <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
-        Try adjusting your filters or search terms to find more rates
+        Try adjusting your search terms to find more rates
       </Text>
       <Button
-        title="Clear Filters"
+        title="Clear Search"
         variant="outline"
-        onPress={clearFilters}
+        onPress={() => setSearchQuery('')}
         style={styles.clearFiltersButton}
       />
     </View>
@@ -507,38 +497,26 @@ export default function RatesScreen() {
           style={[
             styles.filterButton,
             { 
-              backgroundColor: (selectedCategory || selectedCurrency) ? colors.primary : (colorScheme === 'dark' ? colors.card : '#F9FAFB'),
+              backgroundColor: selectedCurrency ? colors.primary : (colorScheme === 'dark' ? colors.card : '#F9FAFB'),
             },
           ]}
           onPress={() => setShowFilters(true)}
         >
-          <Filter size={20} color={(selectedCategory || selectedCurrency) ? '#FFFFFF' : colors.text} />
+          <Filter size={20} color={selectedCurrency ? '#FFFFFF' : colors.text} />
         </TouchableOpacity>
       </View>
       
-      {/* Active Filters Display */}
-      {(selectedCategory || selectedCurrency) && (
+      {/* Active Currency Filter Display */}
+      {selectedCurrency && (
         <View style={styles.activeFilters}>
-          {selectedCategory && (
-            <View style={[styles.activeFilter, { backgroundColor: colors.primary }]}>
-              <Text style={styles.activeFilterText}>
-                {categories.find(c => c.category_id === selectedCategory)?.category_name}
-              </Text>
-              <TouchableOpacity onPress={() => setSelectedCategory(null)}>
-                <X size={16} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-          )}
-          {selectedCurrency && (
-            <View style={[styles.activeFilter, { backgroundColor: colors.secondary }]}>
-              <Text style={styles.activeFilterText}>
-                {currencies.find(c => c.currency_code === selectedCurrency)?.currency_name}
-              </Text>
-              <TouchableOpacity onPress={() => setSelectedCurrency(null)}>
-                <X size={16} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-          )}
+          <View style={[styles.activeFilter, { backgroundColor: colors.primary }]}>
+            <Text style={styles.activeFilterText}>
+              {currencies.find(c => c.currency_code === selectedCurrency)?.currency_name}
+            </Text>
+            <TouchableOpacity onPress={() => setSelectedCurrency(null)}>
+              <X size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
       
@@ -666,6 +644,25 @@ const styles = StyleSheet.create({
   },
   emptyListContainer: {
     flexGrow: 1,
+  },
+  
+  // Currency Chips
+  currencyChips: {
+    marginBottom: Spacing.md,
+  },
+  currencyChipsContent: {
+    paddingHorizontal: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  currencyChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  currencyChipText: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
   },
   
   // Category Card Styles
@@ -858,6 +855,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Medium',
   },
+  chevronIcon: {
+    transform: [{ rotate: '0deg' }],
+  },
+  chevronIconRotated: {
+    transform: [{ rotate: '180deg' }],
+  },
   
   // Filter Modal
   filterOverlay: {
@@ -873,7 +876,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: Spacing.lg,
-    maxHeight: '80%',
+    maxHeight: '60%',
   },
   filterHeader: {
     flexDirection: 'row',
@@ -887,11 +890,6 @@ const styles = StyleSheet.create({
   },
   filterSection: {
     marginBottom: Spacing.lg,
-  },
-  filterSectionTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.md,
   },
   filterOption: {
     paddingVertical: Spacing.md,
