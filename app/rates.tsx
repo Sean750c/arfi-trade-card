@@ -151,8 +151,8 @@ export default function RatesScreen() {
     return {
       vipBonus: vipBonus ? parseFloat(vipBonus.per || '0') : 0,
       couponBonus: couponBonus ? parseFloat(couponBonus.per || '0') : 0,
-      vipAmount: vipBonus ? vipBonus.rate : 0,
-      couponAmount: couponBonus ? couponBonus.rate : 0,
+      vipAmount: vipBonus ? parseFloat(vipBonus.rate?.toString() || '0') : 0,
+      couponAmount: couponBonus ? parseFloat(couponBonus.rate?.toString() || '0') : 0,
     };
   };
 
