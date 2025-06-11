@@ -7,14 +7,7 @@ import {
   useColorScheme,
   ScrollView,
 } from 'react-native';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Minus,
-  DollarSign,
-  BarChart3,
-  Clock,
-} from 'lucide-react-native';
+import { TrendingUp, TrendingDown, Minus, DollarSign, ChartBar as BarChart3, Clock } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { ExchangeMetric, Currency } from '@/types/exchange';

@@ -11,14 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
-import { 
-  ChevronLeft, 
-  TrendingUp, 
-  DollarSign,
-  RefreshCw,
-  BarChart3,
-  Zap,
-} from 'lucide-react-native';
+import { ChevronLeft, TrendingUp, DollarSign, RefreshCw, ChartBar as BarChart3, Zap } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import CurrencyCard from '@/components/exchange/CurrencyCard';
