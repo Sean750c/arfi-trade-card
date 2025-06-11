@@ -111,7 +111,7 @@ export class APIRequest {
 
       return data as T;
     } catch (error) {
-      console.error('API Request failed:', error);
+      console.error('API Request failed:', endpoint, error);
       throw error;
     }
   }

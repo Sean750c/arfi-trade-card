@@ -19,7 +19,7 @@ export class RatesService {
       if (!response.success) {
         throw new Error(response.msg || 'Failed to fetch card categories');
       }
-
+      console.log('Card Categories:', response.data); // Debugging informati
       return response.data;
     } catch (error) {
       if (error instanceof Error) {
@@ -39,7 +39,7 @@ export class RatesService {
       if (!response.success) {
         throw new Error(response.msg || 'Failed to fetch currencies');
       }
-
+      console.log('Currencies:', response.data); // Debugging information
       return response.data;
     } catch (error) {
       if (error instanceof Error) {
@@ -58,7 +58,7 @@ export class RatesService {
   }): Promise<RatesData> {
     try {
       const response = await APIRequest.request<RatesDataResponse>(
-        '/gc/v2/card/datalog',
+        '/gc/v2/card/catalog',
         'POST',
         params
       );
@@ -66,7 +66,7 @@ export class RatesService {
       if (!response.success) {
         throw new Error(response.msg || 'Failed to fetch rates data');
       }
-
+      console.log('Rates Data:', response.data); // Debugging information
       return response.data;
     } catch (error) {
       if (error instanceof Error) {

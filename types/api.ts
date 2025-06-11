@@ -287,6 +287,14 @@ export interface CardItem {
   category_id: number;
 }
 
+export interface CardCategory {
+  category_name: string;
+  category_logo: string;
+  category_image: string;
+  sort: number;
+  list: CardItem[];
+}
+
 export interface CalculatorData {
   first_order_bonus: number;
   amount_order_bonus: AmountOrderBonus;
