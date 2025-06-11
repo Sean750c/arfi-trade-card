@@ -58,7 +58,7 @@ export class RatesService {
     card_catgory?: number; // Note: API uses 'card_catgory' (typo in API)
     currency?: string;
   }): Promise<RatesData> {
-    try {c
+    try {
       console.log('Making rates API call with params:', params);
       
       const response = await APIRequest.request<RatesDataResponse>(
