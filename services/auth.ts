@@ -31,6 +31,11 @@ export class AuthService {
 
       return response.data;
     } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
       if (error instanceof Error) {
         throw new Error(`Registration failed: ${error.message}`);
       }
@@ -64,6 +69,11 @@ export class AuthService {
 
       return response.data;
     } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
       if (error instanceof Error) {
         throw new Error(`Login failed: ${error.message}`);
       }
@@ -87,6 +97,11 @@ export class AuthService {
 
       return response.data;
     } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
       if (error instanceof Error) {
         throw new Error(`Logout failed: ${error.message}`);
       }

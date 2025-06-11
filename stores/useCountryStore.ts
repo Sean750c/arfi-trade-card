@@ -30,6 +30,13 @@ export const useCountryStore = create<CountryState>((set, get) => ({
         isLoading: false 
       });
     } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        // Don't set error state for token expiration, as it's handled by redirect
+        set({ isLoading: false });
+        return;
+      }
+      
       set({ 
         error: error instanceof Error ? error.message : 'Failed to fetch countries',
         isLoading: false 

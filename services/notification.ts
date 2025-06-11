@@ -4,7 +4,7 @@ import type { NoticeListRequest, NoticeListResponse, NoticeListData } from '@/ty
 export class NotificationService {
   static async getNotifications(params: NoticeListRequest): Promise<NoticeListData> {
     try {
-      console.log('Fetching notifications with params:', params); // 调试用
+      console.log('Fetching notifications with params:', params);
       const response = await APIRequest.request<NoticeListResponse>(
         '/gc/finder/allNotice',
         'POST',
@@ -17,6 +17,11 @@ export class NotificationService {
 
       return response.data;
     } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
       if (error instanceof Error) {
         throw new Error(`Failed to fetch notifications: ${error.message}`);
       }
@@ -41,6 +46,11 @@ export class NotificationService {
 
       return response.data;
     } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
       if (error instanceof Error) {
         throw new Error(`Failed to mark notification as read: ${error.message}`);
       }

@@ -68,6 +68,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        // Don't set error state for token expiration, as it's handled by redirect
+        set({ isLoading: false });
+        return;
+      }
+      
       set({
         error: error instanceof Error ? error.message : 'Failed to fetch notifications',
         isLoading: false,
@@ -102,6 +109,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         isLoadingMore: false,
       });
     } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        // Don't set error state for token expiration, as it's handled by redirect
+        set({ isLoadingMore: false });
+        return;
+      }
+      
       set({
         error: error instanceof Error ? error.message : 'Failed to load more notifications',
         isLoadingMore: false,
@@ -127,6 +141,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       
       set({ notifications: updatedNotifications });
     } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        // Token expiration is handled by redirect, just log the error
+        console.error('Token expired while marking notification as read');
+        return;
+      }
+      
       console.error('Failed to mark notification as read:', error);
     }
   },

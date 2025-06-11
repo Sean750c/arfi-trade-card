@@ -9,6 +9,7 @@ interface AuthState {
   error: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  clearAuth: () => void; // Add method to clear auth state
   register: (params: {
     username: string;
     password: string;
@@ -77,6 +78,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.warn('Logout API call failed, but local state cleared:', error);
       // Don't throw error here to ensure logout always succeeds locally
     }
+  },
+  clearAuth: () => {
+    // Method to clear auth state when token expires
+    set({ 
+      isAuthenticated: false, 
+      user: null, 
+      isLoading: false,
+      error: null 
+    });
   },
   register: async (params) => {
     set({ isLoading: true, error: null });
