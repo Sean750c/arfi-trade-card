@@ -13,7 +13,6 @@ import { router } from 'expo-router';
 import { ChevronLeft, RefreshCw, ArrowRight } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
-import FloatingCalculator from '@/components/calculator/FloatingCalculator';
 import TwoLevelCardSelector from '@/components/calculator/TwoLevelCardSelector';
 import CompactAmountSelector from '@/components/calculator/CompactAmountSelector';
 import CompactCurrencySelector from '@/components/calculator/CompactCurrencySelector';
@@ -104,6 +103,15 @@ export default function CalculatorScreen() {
     fetchCalculatorData();
   };
 
+  const formatCalculatedAmount = () => {
+    if (!amountVisible) return '****';
+    const currencySymbol = currencies.find(c => c.code === selectedCurrency)?.symbol || '₦';
+    return `${currencySymbol}${calculatedAmount.toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    })}`;
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -145,8 +153,26 @@ export default function CalculatorScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Spacer for floating calculator */}
-        <View style={styles.floatingCalculatorSpacer} />
+        {/* Calculation Result Card */}
+        <Card style={[styles.resultCard, { backgroundColor: colors.primary }]}>
+          <View style={styles.resultHeader}>
+            <Text style={styles.resultLabel}>You will receive</Text>
+            <TouchableOpacity 
+              onPress={() => setAmountVisible(!amountVisible)}
+              style={styles.visibilityButton}
+            >
+              <Text style={styles.visibilityText}>
+                {amountVisible ? 'Hide' : 'Show'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.resultAmount}>
+            {formatCalculatedAmount()}
+          </Text>
+          <Text style={styles.resultCurrency}>
+            {currencies.find(c => c.code === selectedCurrency)?.name || 'Nigerian Naira'}
+          </Text>
+        </Card>
 
         {/* Main Content */}
         <View style={styles.content}>
@@ -260,15 +286,6 @@ export default function CalculatorScreen() {
           </View>
         </View>
       </ScrollView>
-
-      {/* Floating Calculator - Fixed at top */}
-      <FloatingCalculator
-        calculatedAmount={calculatedAmount}
-        selectedCurrency={selectedCurrency}
-        currencies={currencies}
-        visible={amountVisible}
-        onToggleVisibility={() => setAmountVisible(!amountVisible)}
-      />
     </SafeAreaView>
   );
 }
@@ -320,9 +337,52 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  floatingCalculatorSpacer: {
-    height: 80, // Space for floating calculator
+
+  // Result Card
+  resultCard: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+    alignItems: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
+  resultHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: Spacing.sm,
+  },
+  resultLabel: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+  },
+  visibilityButton: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+  },
+  visibilityText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
+  resultAmount: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.xs,
+  },
+  resultCurrency: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
+
   content: {
     paddingHorizontal: Spacing.lg,
   },
