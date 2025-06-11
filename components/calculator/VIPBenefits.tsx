@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Modal,
   useColorScheme,
+  ScrollView,
 } from 'react-native';
 import { Crown, ChevronDown, X, Star } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
@@ -61,57 +62,62 @@ export default function VIPBenefits({ vipDetail, vipLevels }: VIPBenefitsProps) 
               </TouchableOpacity>
             </View>
             
-            <View style={styles.currentLevel}>
-              <Text style={[styles.currentLevelTitle, { color: colors.text }]}>
-                Current Level: VIP {vipDetail.level}
-              </Text>
-              <Text style={[styles.currentLevelBonus, { color: colors.primary }]}>
-                +{vipDetail.rate}% Bonus Rate
-              </Text>
-              
-              {vipDetail.next_level && (
-                <View style={styles.nextLevelInfo}>
-                  <Text style={[styles.nextLevelText, { color: colors.textSecondary }]}>
-                    Next Level: VIP {vipDetail.next_level} (+{vipDetail.next_level_rate}%)
-                  </Text>
-                  <Text style={[styles.upgradePoints, { color: colors.textSecondary }]}>
-                    {vipDetail.upgrade_point} points to upgrade
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            <View style={styles.allLevels}>
-              <Text style={[styles.allLevelsTitle, { color: colors.text }]}>
-                All VIP Levels
-              </Text>
-              {vipLevels.map((level) => (
-                <View 
-                  key={level.level} 
-                  style={[
-                    styles.levelRow,
-                    { 
-                      backgroundColor: level.level === vipDetail.level 
-                        ? `${colors.primary}10` 
-                        : 'transparent',
-                      borderBottomColor: colors.border,
-                    }
-                  ]}
-                >
-                  <View style={styles.levelInfo}>
-                    <Text style={[styles.levelNumber, { color: colors.text }]}>
-                      VIP {level.level}
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+            >
+              <View style={styles.currentLevel}>
+                <Text style={[styles.currentLevelTitle, { color: colors.text }]}>
+                  Current Level: VIP {vipDetail.level}
+                </Text>
+                <Text style={[styles.currentLevelBonus, { color: colors.primary }]}>
+                  +{vipDetail.rate}% Bonus Rate
+                </Text>
+                
+                {vipDetail.next_level && (
+                  <View style={styles.nextLevelInfo}>
+                    <Text style={[styles.nextLevelText, { color: colors.textSecondary }]}>
+                      Next Level: VIP {vipDetail.next_level} (+{vipDetail.next_level_rate}%)
                     </Text>
-                    {level.level === vipDetail.level && (
-                      <Star size={14} color={colors.primary} fill={colors.primary} />
-                    )}
+                    <Text style={[styles.upgradePoints, { color: colors.textSecondary }]}>
+                      {vipDetail.upgrade_point} points to upgrade
+                    </Text>
                   </View>
-                  <Text style={[styles.levelRate, { color: colors.primary }]}>
-                    +{level.rate}%
-                  </Text>
-                </View>
-              ))}
-            </View>
+                )}
+              </View>
+
+              <View style={styles.allLevels}>
+                <Text style={[styles.allLevelsTitle, { color: colors.text }]}>
+                  All VIP Levels
+                </Text>
+                {vipLevels.map((level) => (
+                  <View 
+                    key={level.level} 
+                    style={[
+                      styles.levelRow,
+                      { 
+                        backgroundColor: level.level === vipDetail.level 
+                          ? `${colors.primary}10` 
+                          : 'transparent',
+                        borderBottomColor: colors.border,
+                      }
+                    ]}
+                  >
+                    <View style={styles.levelInfo}>
+                      <Text style={[styles.levelNumber, { color: colors.text }]}>
+                        VIP {level.level}
+                      </Text>
+                      {level.level === vipDetail.level && (
+                        <Star size={14} color={colors.primary} fill={colors.primary} />
+                      )}
+                    </View>
+                    <Text style={[styles.levelRate, { color: colors.primary }]}>
+                      +{level.rate}%
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -150,14 +156,16 @@ const styles = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: Spacing.lg,
-    maxHeight: '70%',
+    maxHeight: '85%', // Increased max height
+    minHeight: '60%', // Added minimum height
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
   },
   titleContainer: {
     flexDirection: 'row',
@@ -167,6 +175,10 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontFamily: 'Inter-Bold',
+  },
+  scrollContent: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xl, // Extra padding at bottom
   },
   currentLevel: {
     padding: Spacing.lg,
@@ -209,7 +221,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
     borderRadius: 8,

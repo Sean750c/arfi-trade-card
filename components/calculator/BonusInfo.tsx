@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from 'react-native';
-import { Gift, Star, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { Gift, Star, ChevronDown, ChevronUp, DollarSign, Users } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { AmountOrderBonus } from '@/types/api';
@@ -39,7 +39,7 @@ export default function BonusInfo({
         <View style={styles.bonusHeaderContent}>
           <Gift size={20} color={colors.success} />
           <Text style={[styles.bonusTitle, { color: colors.success }]}>
-            Available Bonuses
+            Available Bonuses & Rewards
           </Text>
         </View>
         {expanded ? (
@@ -51,38 +51,82 @@ export default function BonusInfo({
 
       {expanded && (
         <View style={styles.bonusContent}>
+          {/* First Order Bonus */}
           {firstOrderBonus > 0 && (
             <View style={[styles.bonusItem, { borderBottomColor: colors.border }]}>
               <View style={styles.bonusItemHeader}>
-                <Star size={16} color={colors.warning} />
-                <Text style={[styles.bonusItemTitle, { color: colors.text }]}>
-                  First Order Bonus
-                </Text>
+                <View style={[styles.bonusIcon, { backgroundColor: `${colors.warning}20` }]}>
+                  <Star size={16} color={colors.warning} />
+                </View>
+                <View style={styles.bonusItemContent}>
+                  <Text style={[styles.bonusItemTitle, { color: colors.text }]}>
+                    First Order Bonus
+                  </Text>
+                  <Text style={[styles.bonusDescription, { color: colors.textSecondary }]}>
+                    Welcome bonus for new traders
+                  </Text>
+                </View>
               </View>
               <Text style={[styles.bonusAmount, { color: colors.success }]}>
-                {currencySymbol}{firstOrderBonus}
+                +{currencySymbol}{firstOrderBonus}
               </Text>
             </View>
           )}
           
+          {/* Volume Bonus */}
           {amountOrderBonus.bonus_amount > 0 && (
-            <View style={styles.bonusItem}>
+            <View style={[styles.bonusItem, { borderBottomColor: colors.border }]}>
               <View style={styles.bonusItemHeader}>
-                <Gift size={16} color={colors.primary} />
-                <Text style={[styles.bonusItemTitle, { color: colors.text }]}>
-                  Volume Bonus
-                </Text>
+                <View style={[styles.bonusIcon, { backgroundColor: `${colors.primary}20` }]}>
+                  <DollarSign size={16} color={colors.primary} />
+                </View>
+                <View style={styles.bonusItemContent}>
+                  <Text style={[styles.bonusItemTitle, { color: colors.text }]}>
+                    Volume Cashback
+                  </Text>
+                  <Text style={[styles.bonusDescription, { color: colors.textSecondary }]}>
+                    Extra {currencySymbol}{amountOrderBonus.bonus_amount} for orders ≥ {currencySymbol}{amountOrderBonus.order_amount}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.volumeBonusDetails}>
-                <Text style={[styles.bonusAmount, { color: colors.success }]}>
-                  {currencySymbol}{amountOrderBonus.bonus_amount}
+              <Text style={[styles.bonusAmount, { color: colors.success }]}>
+                +{currencySymbol}{amountOrderBonus.bonus_amount}
+              </Text>
+            </View>
+          )}
+
+          {/* Referral Bonus Info */}
+          <View style={styles.bonusItem}>
+            <View style={styles.bonusItemHeader}>
+              <View style={[styles.bonusIcon, { backgroundColor: `${colors.secondary}20` }]}>
+                <Users size={16} color={colors.secondary} />
+              </View>
+              <View style={styles.bonusItemContent}>
+                <Text style={[styles.bonusItemTitle, { color: colors.text }]}>
+                  Referral Rewards
                 </Text>
-                <Text style={[styles.bonusRequirement, { color: colors.textSecondary }]}>
-                  On orders ≥ {currencySymbol}{amountOrderBonus.order_amount}
+                <Text style={[styles.bonusDescription, { color: colors.textSecondary }]}>
+                  Earn {currencySymbol}1,000 for each successful referral
                 </Text>
               </View>
             </View>
-          )}
+            <Text style={[styles.bonusAmount, { color: colors.secondary }]}>
+              +{currencySymbol}1,000
+            </Text>
+          </View>
+
+          {/* Bonus Terms */}
+          <View style={[styles.bonusTerms, { backgroundColor: `${colors.primary}05` }]}>
+            <Text style={[styles.bonusTermsTitle, { color: colors.primary }]}>
+              💡 Bonus Terms
+            </Text>
+            <Text style={[styles.bonusTermsText, { color: colors.text }]}>
+              • Bonuses are automatically credited to your account{'\n'}
+              • First order bonus applies to your initial transaction{'\n'}
+              • Volume bonuses stack with VIP rate bonuses{'\n'}
+              • Referral rewards paid when friend completes first trade
+            </Text>
+          </View>
         </View>
       )}
     </View>
@@ -119,28 +163,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     borderBottomWidth: 1,
   },
   bonusItemHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+    flex: 1,
+    gap: Spacing.sm,
+  },
+  bonusIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bonusItemContent: {
+    flex: 1,
   },
   bonusItemTitle: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
+    marginBottom: 2,
+  },
+  bonusDescription: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 16,
   },
   bonusAmount: {
     fontSize: 16,
     fontFamily: 'Inter-Bold',
   },
-  volumeBonusDetails: {
-    alignItems: 'flex-end',
+  bonusTerms: {
+    padding: Spacing.md,
+    borderRadius: 8,
+    marginTop: Spacing.sm,
   },
-  bonusRequirement: {
+  bonusTermsTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: Spacing.sm,
+  },
+  bonusTermsText: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
-    marginTop: 2,
+    lineHeight: 18,
   },
 });

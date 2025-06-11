@@ -68,7 +68,7 @@ export default function FloatingCalculator({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 100,
+    top: 0, // Fixed at the very top
     left: Spacing.lg,
     right: Spacing.lg,
     borderRadius: 12,

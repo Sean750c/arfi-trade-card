@@ -119,15 +119,6 @@ export default function CalculatorScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Floating Calculator */}
-      <FloatingCalculator
-        calculatedAmount={calculatedAmount}
-        selectedCurrency={selectedCurrency}
-        currencies={currencies}
-        visible={amountVisible}
-        onToggleVisibility={() => setAmountVisible(!amountVisible)}
-      />
-
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -269,6 +260,15 @@ export default function CalculatorScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Floating Calculator - Fixed at top */}
+      <FloatingCalculator
+        calculatedAmount={calculatedAmount}
+        selectedCurrency={selectedCurrency}
+        currencies={currencies}
+        visible={amountVisible}
+        onToggleVisibility={() => setAmountVisible(!amountVisible)}
+      />
     </SafeAreaView>
   );
 }
@@ -286,6 +286,9 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
+  },
+  scrollContent: {
+    paddingBottom: Spacing.xl,
   },
   header: {
     flexDirection: 'row',
@@ -316,9 +319,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  scrollContent: {
-    paddingBottom: Spacing.xl,
   },
   floatingCalculatorSpacer: {
     height: 80, // Space for floating calculator
