@@ -19,9 +19,11 @@ export class RatesService {
       if (!response.success) {
         throw new Error(response.msg || 'Failed to fetch card categories');
       }
-      console.log('Card Categories:', response.data); // Debugging informati
+      
+      console.log('Card Categories Response:', response);
       return response.data;
     } catch (error) {
+      console.error('Card Categories Error:', error);
       if (error instanceof Error) {
         throw new Error(`Failed to fetch card categories: ${error.message}`);
       }
@@ -39,9 +41,11 @@ export class RatesService {
       if (!response.success) {
         throw new Error(response.msg || 'Failed to fetch currencies');
       }
-      console.log('Currencies:', response.data); // Debugging information
+      
+      console.log('Currencies Response:', response);
       return response.data;
     } catch (error) {
+      console.error('Currencies Error:', error);
       if (error instanceof Error) {
         throw new Error(`Failed to fetch currencies: ${error.message}`);
       }
@@ -53,12 +57,14 @@ export class RatesService {
     country_id: number;
     page: number;
     page_size: number;
-    card_category?: number;
+    card_catgory?: number; // Note: API uses 'card_catgory' (typo in API)
     currency?: string;
   }): Promise<RatesData> {
     try {
+      console.log('Fetching rates with params:', params);
+      
       const response = await APIRequest.request<RatesDataResponse>(
-        '/gc/v2/card/catalog',
+        '/gc/v2/card/datalog', // Correct endpoint
         'POST',
         params
       );
@@ -66,9 +72,11 @@ export class RatesService {
       if (!response.success) {
         throw new Error(response.msg || 'Failed to fetch rates data');
       }
-      console.log('Rates Data:', response.data); // Debugging information
+      
+      console.log('Rates Data Response:', response);
       return response.data;
     } catch (error) {
+      console.error('Rates Data Error:', error);
       if (error instanceof Error) {
         throw new Error(`Failed to fetch rates data: ${error.message}`);
       }

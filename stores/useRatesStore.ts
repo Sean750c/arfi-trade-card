@@ -50,7 +50,9 @@ export const useRatesStore = create<RatesState>((set, get) => ({
 
   fetchCategories: async () => {
     try {
+      console.log('Fetching categories...');
       const categories = await RatesService.getCardCategories();
+      console.log('Categories fetched:', categories);
       set({ categories });
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -60,7 +62,9 @@ export const useRatesStore = create<RatesState>((set, get) => ({
 
   fetchCurrencies: async () => {
     try {
+      console.log('Fetching currencies...');
       const currencies = await RatesService.getCurrencies();
+      console.log('Currencies fetched:', currencies);
       set({ currencies });
     } catch (error) {
       console.error('Failed to fetch currencies:', error);
@@ -70,6 +74,8 @@ export const useRatesStore = create<RatesState>((set, get) => ({
 
   fetchRatesData: async (countryId: number, refresh = false) => {
     const state = get();
+    
+    console.log('Fetching rates data, refresh:', refresh, 'countryId:', countryId);
     
     if (refresh) {
       set({ 
@@ -84,15 +90,25 @@ export const useRatesStore = create<RatesState>((set, get) => ({
     }
 
     try {
-      const params = {
+      const params: any = {
         country_id: countryId,
         page: 1,
         page_size: 20,
-        ...(state.selectedCategory && { card_category: state.selectedCategory }),
-        ...(state.selectedCurrency && { currency: state.selectedCurrency }),
       };
 
+      // Add filters if selected (note the typo in API parameter name)
+      if (state.selectedCategory) {
+        params.card_catgory = state.selectedCategory; // API uses 'card_catgory'
+      }
+      
+      if (state.selectedCurrency) {
+        params.currency = state.selectedCurrency;
+      }
+
+      console.log('Final params for rates API:', params);
+
       const ratesData = await RatesService.getRatesData(params);
+      console.log('Rates data received:', ratesData);
       
       set({
         ratesData,
@@ -101,6 +117,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
+      console.error('Error fetching rates data:', error);
       set({
         error: error instanceof Error ? error.message : 'Failed to fetch rates data',
         isLoading: false,
@@ -117,13 +134,20 @@ export const useRatesStore = create<RatesState>((set, get) => ({
 
     try {
       const nextPage = state.currentPage + 1;
-      const params = {
+      const params: any = {
         country_id: countryId,
         page: nextPage,
         page_size: 20,
-        ...(state.selectedCategory && { card_category: state.selectedCategory }),
-        ...(state.selectedCurrency && { currency: state.selectedCurrency }),
       };
+
+      // Add filters if selected
+      if (state.selectedCategory) {
+        params.card_catgory = state.selectedCategory; // API uses 'card_catgory'
+      }
+      
+      if (state.selectedCurrency) {
+        params.currency = state.selectedCurrency;
+      }
 
       const newRatesData = await RatesService.getRatesData(params);
       
@@ -148,10 +172,12 @@ export const useRatesStore = create<RatesState>((set, get) => ({
   },
 
   setSelectedCategory: (categoryId: number | null) => {
+    console.log('Setting selected category:', categoryId);
     set({ selectedCategory: categoryId });
   },
 
   setSelectedCurrency: (currency: string | null) => {
+    console.log('Setting selected currency:', currency);
     set({ selectedCurrency: currency });
   },
 
@@ -160,6 +186,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
   },
 
   clearFilters: () => {
+    console.log('Clearing all filters');
     set({
       selectedCategory: null,
       selectedCurrency: null,

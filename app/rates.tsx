@@ -12,6 +12,7 @@ import {
   RefreshControl,
   Image,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
@@ -24,7 +25,10 @@ import {
   Clock,
   Zap,
   Crown,
-  X
+  X,
+  Gift,
+  DollarSign,
+  Percent
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
@@ -33,7 +37,7 @@ import Spacing from '@/constants/Spacing';
 import { useRatesStore } from '@/stores/useRatesStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-import type { CategoryData, CardRate, CurrencyGroup } from '@/types/api';
+import type { CategoryData, CardRate, CurrencyGroup, RateDetail } from '@/types/api';
 
 export default function RatesScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -71,6 +75,7 @@ export default function RatesScreen() {
   // Initial data fetch
   useEffect(() => {
     const initializeData = async () => {
+      console.log('Initializing rates page data...');
       try {
         await Promise.all([
           fetchCategories(),
@@ -88,6 +93,7 @@ export default function RatesScreen() {
   // Refresh data when filters change
   useEffect(() => {
     if (categories.length > 0) {
+      console.log('Filters changed, refreshing data...');
       fetchRatesData(countryId, true);
     }
   }, [selectedCategory, selectedCurrency, countryId, fetchRatesData]);
@@ -135,6 +141,19 @@ export default function RatesScreen() {
     }
     
     return filteredData;
+  };
+
+  // Calculate VIP and coupon bonuses for display
+  const calculateBonuses = (rateDetails: RateDetail[]) => {
+    const vipBonus = rateDetails.find(detail => detail.type === 'vip');
+    const couponBonus = rateDetails.find(detail => detail.type === 'coupon');
+    
+    return {
+      vipBonus: vipBonus ? parseFloat(vipBonus.per || '0') : 0,
+      couponBonus: couponBonus ? parseFloat(couponBonus.per || '0') : 0,
+      vipAmount: vipBonus ? vipBonus.rate : 0,
+      couponAmount: couponBonus ? couponBonus.rate : 0,
+    };
   };
 
   const renderCategoryCard = ({ item }: { item: CategoryData }) => (
@@ -193,66 +212,121 @@ export default function RatesScreen() {
               </Text>
             </View>
             
-            {currencyGroup.list.slice(0, 3).map((card, cardIndex) => (
-              <TouchableOpacity
-                key={card.card_id}
-                style={[
-                  styles.cardItem,
-                  { borderBottomColor: colors.border },
-                  cardIndex === currencyGroup.list.length - 1 && styles.lastCardItem,
-                ]}
-                onPress={() => {
-                  // Navigate to card details or calculator with pre-filled data
-                  router.push({
-                    pathname: '/calculator',
-                    params: { 
-                      cardId: card.card_id,
-                      categoryId: item.category_id 
-                    }
-                  } as any);
-                }}
-              >
-                <View style={styles.cardInfo}>
-                  <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
-                    {card.name}
-                  </Text>
-                  <View style={styles.rateDetails}>
-                    <Text style={[styles.baseRate, { color: colors.textSecondary }]}>
-                      Base: {card.currency_symbol}{card.rate.toFixed(2)}
+            {currencyGroup.list.slice(0, 3).map((card, cardIndex) => {
+              const bonuses = calculateBonuses(card.rate_detail);
+              
+              return (
+                <TouchableOpacity
+                  key={card.card_id}
+                  style={[
+                    styles.cardItem,
+                    { borderBottomColor: colors.border },
+                    cardIndex === currencyGroup.list.length - 1 && styles.lastCardItem,
+                  ]}
+                  onPress={() => {
+                    // Navigate to calculator with pre-filled data
+                    router.push({
+                      pathname: '/calculator',
+                      params: { 
+                        cardId: card.card_id,
+                        categoryId: item.category_id 
+                      }
+                    } as any);
+                  }}
+                >
+                  <View style={styles.cardInfo}>
+                    <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
+                      {card.name}
                     </Text>
-                    <View style={styles.vipBonus}>
-                      <Crown size={12} color={colors.secondary} />
-                      <Text style={[styles.vipBonusText, { color: colors.secondary }]}>
-                        +{card.all_per}%
-                      </Text>
+                    
+                    {/* Rate Breakdown */}
+                    <View style={styles.rateBreakdown}>
+                      <View style={styles.baseRateContainer}>
+                        <Text style={[styles.baseRateLabel, { color: colors.textSecondary }]}>
+                          Base:
+                        </Text>
+                        <Text style={[styles.baseRate, { color: colors.text }]}>
+                          {card.currency_symbol}{card.rate.toFixed(2)}
+                        </Text>
+                      </View>
+                      
+                      {/* VIP Bonus */}
+                      {bonuses.vipBonus > 0 && (
+                        <View style={styles.bonusContainer}>
+                          <Crown size={12} color={colors.secondary} />
+                          <Text style={[styles.bonusText, { color: colors.secondary }]}>
+                            VIP +{bonuses.vipBonus}%
+                          </Text>
+                          <Text style={[styles.bonusAmount, { color: colors.secondary }]}>
+                            (+{card.currency_symbol}{bonuses.vipAmount.toFixed(2)})
+                          </Text>
+                        </View>
+                      )}
+                      
+                      {/* Coupon Bonus */}
+                      {bonuses.couponBonus > 0 && (
+                        <View style={styles.bonusContainer}>
+                          <Gift size={12} color={colors.success} />
+                          <Text style={[styles.bonusText, { color: colors.success }]}>
+                            Coupon +{bonuses.couponBonus}%
+                          </Text>
+                          <Text style={[styles.bonusAmount, { color: colors.success }]}>
+                            (+{card.currency_symbol}{bonuses.couponAmount.toFixed(2)})
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   </View>
-                </View>
-                
-                <View style={styles.optimalRateContainer}>
-                  <Text style={[styles.optimalRate, { color: colors.primary }]}>
-                    {card.currency_symbol}{card.optimal_rate}
-                  </Text>
-                  <View style={styles.rateIndicator}>
-                    <TrendingUp size={12} color={colors.success} />
-                    <Text style={[styles.rateLabel, { color: colors.success }]}>
-                      Best
+                  
+                  <View style={styles.optimalRateContainer}>
+                    <Text style={[styles.optimalRate, { color: colors.primary }]}>
+                      {card.currency_symbol}{card.optimal_rate}
                     </Text>
+                    <View style={styles.rateIndicator}>
+                      <TrendingUp size={12} color={colors.success} />
+                      <Text style={[styles.rateLabel, { color: colors.success }]}>
+                        Final Rate
+                      </Text>
+                    </View>
+                    
+                    {/* Total Bonus Percentage */}
+                    {parseFloat(card.all_per) > 0 && (
+                      <View style={[styles.totalBonusBadge, { backgroundColor: `${colors.primary}15` }]}>
+                        <Percent size={10} color={colors.primary} />
+                        <Text style={[styles.totalBonusText, { color: colors.primary }]}>
+                          +{card.all_per}%
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                </View>
-              </TouchableOpacity>
-            ))}
+                </TouchableOpacity>
+              );
+            })}
             
             {currencyGroup.list.length > 3 && (
               <TouchableOpacity 
                 style={styles.showMoreButton}
                 onPress={() => {
                   // Show all cards for this currency group
-                  Alert.alert('More Cards', `View all ${currencyGroup.list.length} ${currencyGroup.currency} cards`);
+                  Alert.alert(
+                    'More Cards', 
+                    `View all ${currencyGroup.list.length} ${currencyGroup.currency} cards for ${item.category_name}`,
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { 
+                        text: 'View All', 
+                        onPress: () => {
+                          // Navigate to filtered view
+                          setSelectedCategory(item.category_id);
+                          setSelectedCurrency(currencyGroup.currency);
+                        }
+                      }
+                    ]
+                  );
                 }}
               >
                 <Text style={[styles.showMoreText, { color: colors.primary }]}>
-                  +{currencyGroup.list.length - 3} more cards
+                  +{currencyGroup.list.length - 3} more {currencyGroup.currency} cards
                 </Text>
                 <ChevronDown size={16} color={colors.primary} />
               </TouchableOpacity>
@@ -269,102 +343,104 @@ export default function RatesScreen() {
         <View style={[styles.filterModal, { backgroundColor: colors.card }]}>
           <View style={styles.filterHeader}>
             <Text style={[styles.filterTitle, { color: colors.text }]}>
-              Filter Rates
+              Filter Exchange Rates
             </Text>
             <TouchableOpacity onPress={() => setShowFilters(false)}>
               <X size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
           
-          {/* Category Filter */}
-          <View style={styles.filterSection}>
-            <Text style={[styles.filterSectionTitle, { color: colors.text }]}>
-              Card Category
-            </Text>
-            <TouchableOpacity
-              style={[
-                styles.filterOption,
-                { 
-                  backgroundColor: !selectedCategory ? colors.primary : 'transparent',
-                  borderColor: colors.border,
-                }
-              ]}
-              onPress={() => handleCategoryFilter(null)}
-            >
-              <Text style={[
-                styles.filterOptionText,
-                { color: !selectedCategory ? '#FFFFFF' : colors.text }
-              ]}>
-                All Categories
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Category Filter */}
+            <View style={styles.filterSection}>
+              <Text style={[styles.filterSectionTitle, { color: colors.text }]}>
+                Card Category
               </Text>
-            </TouchableOpacity>
-            
-            {categories.map((category) => (
               <TouchableOpacity
-                key={category.category_id}
                 style={[
                   styles.filterOption,
                   { 
-                    backgroundColor: selectedCategory === category.category_id ? colors.primary : 'transparent',
+                    backgroundColor: !selectedCategory ? colors.primary : 'transparent',
                     borderColor: colors.border,
                   }
                 ]}
-                onPress={() => handleCategoryFilter(category.category_id)}
+                onPress={() => handleCategoryFilter(null)}
               >
                 <Text style={[
                   styles.filterOptionText,
-                  { color: selectedCategory === category.category_id ? '#FFFFFF' : colors.text }
+                  { color: !selectedCategory ? '#FFFFFF' : colors.text }
                 ]}>
-                  {category.category_name}
+                  All Categories
                 </Text>
               </TouchableOpacity>
-            ))}
-          </View>
-          
-          {/* Currency Filter */}
-          <View style={styles.filterSection}>
-            <Text style={[styles.filterSectionTitle, { color: colors.text }]}>
-              Currency
-            </Text>
-            <TouchableOpacity
-              style={[
-                styles.filterOption,
-                { 
-                  backgroundColor: !selectedCurrency ? colors.primary : 'transparent',
-                  borderColor: colors.border,
-                }
-              ]}
-              onPress={() => handleCurrencyFilter(null)}
-            >
-              <Text style={[
-                styles.filterOptionText,
-                { color: !selectedCurrency ? '#FFFFFF' : colors.text }
-              ]}>
-                All Currencies
-              </Text>
-            </TouchableOpacity>
+              
+              {categories.map((category) => (
+                <TouchableOpacity
+                  key={category.category_id}
+                  style={[
+                    styles.filterOption,
+                    { 
+                      backgroundColor: selectedCategory === category.category_id ? colors.primary : 'transparent',
+                      borderColor: colors.border,
+                    }
+                  ]}
+                  onPress={() => handleCategoryFilter(category.category_id)}
+                >
+                  <Text style={[
+                    styles.filterOptionText,
+                    { color: selectedCategory === category.category_id ? '#FFFFFF' : colors.text }
+                  ]}>
+                    {category.category_name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             
-            {currencies.map((currency) => (
+            {/* Currency Filter */}
+            <View style={styles.filterSection}>
+              <Text style={[styles.filterSectionTitle, { color: colors.text }]}>
+                Currency Type
+              </Text>
               <TouchableOpacity
-                key={currency.currency_id}
                 style={[
                   styles.filterOption,
                   { 
-                    backgroundColor: selectedCurrency === currency.currency_code ? colors.primary : 'transparent',
+                    backgroundColor: !selectedCurrency ? colors.primary : 'transparent',
                     borderColor: colors.border,
                   }
                 ]}
-                onPress={() => handleCurrencyFilter(currency.currency_code)}
+                onPress={() => handleCurrencyFilter(null)}
               >
                 <Text style={[
                   styles.filterOptionText,
-                  { color: selectedCurrency === currency.currency_code ? '#FFFFFF' : colors.text }
+                  { color: !selectedCurrency ? '#FFFFFF' : colors.text }
                 ]}>
-                  {currency.currency_symbol} {currency.currency_name}
+                  All Currencies
                 </Text>
               </TouchableOpacity>
-            ))}
-          </View>
+              
+              {currencies.map((currency) => (
+                <TouchableOpacity
+                  key={currency.currency_id}
+                  style={[
+                    styles.filterOption,
+                    { 
+                      backgroundColor: selectedCurrency === currency.currency_code ? colors.primary : 'transparent',
+                      borderColor: colors.border,
+                    }
+                  ]}
+                  onPress={() => handleCurrencyFilter(currency.currency_code)}
+                >
+                  <Text style={[
+                    styles.filterOptionText,
+                    { color: selectedCurrency === currency.currency_code ? '#FFFFFF' : colors.text }
+                  ]}>
+                    {currency.currency_symbol} {currency.currency_name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
           
           {/* Clear Filters */}
           <Button
@@ -399,10 +475,10 @@ export default function RatesScreen() {
     <View style={styles.emptyContainer}>
       <TrendingUp size={48} color={colors.textSecondary} />
       <Text style={[styles.emptyTitle, { color: colors.text }]}>
-        No rates found
+        No exchange rates found
       </Text>
       <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
-        Try adjusting your filters or search terms
+        Try adjusting your filters or search terms to find more rates
       </Text>
       <Button
         title="Clear Filters"
@@ -412,6 +488,17 @@ export default function RatesScreen() {
       />
     </View>
   );
+
+  // Debug information
+  console.log('Render state:', {
+    isLoading,
+    error,
+    categoriesCount: categories.length,
+    currenciesCount: currencies.length,
+    ratesData: ratesData ? `${ratesData.card_list.length} categories` : 'null',
+    selectedCategory,
+    selectedCurrency,
+  });
 
   if (error && !ratesData) {
     return (
@@ -442,7 +529,7 @@ export default function RatesScreen() {
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Exchange Rates</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {ratesData ? `${filteredData.length} categories` : 'Loading rates...'}
+            {ratesData ? `${filteredData.length} categories available` : 'Loading rates...'}
           </Text>
         </View>
         <TouchableOpacity
@@ -464,7 +551,7 @@ export default function RatesScreen() {
           <Search size={20} color={colors.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Search gift cards..."
+            placeholder="Search gift cards and rates..."
             placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -736,7 +823,7 @@ const styles = StyleSheet.create({
   // Card Items
   cardItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
@@ -751,34 +838,49 @@ const styles = StyleSheet.create({
   cardName: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
     lineHeight: 18,
   },
-  rateDetails: {
+  
+  // Rate Breakdown
+  rateBreakdown: {
+    gap: Spacing.xs,
+  },
+  baseRateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.xs,
   },
-  baseRate: {
+  baseRateLabel: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
   },
-  vipBonus: {
+  baseRate: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+  },
+  bonusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
   },
-  vipBonusText: {
+  bonusText: {
     fontSize: 11,
-    fontFamily: 'Inter-Bold',
+    fontFamily: 'Inter-Medium',
   },
+  bonusAmount: {
+    fontSize: 11,
+    fontFamily: 'Inter-SemiBold',
+  },
+  
+  // Optimal Rate
   optimalRateContainer: {
     alignItems: 'flex-end',
+    gap: Spacing.xs,
   },
   optimalRate: {
     fontSize: 16,
     fontFamily: 'Inter-Bold',
-    marginBottom: 2,
   },
   rateIndicator: {
     flexDirection: 'row',
@@ -789,6 +891,19 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: 'Inter-Medium',
   },
+  totalBonusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: 8,
+    gap: 2,
+  },
+  totalBonusText: {
+    fontSize: 10,
+    fontFamily: 'Inter-Bold',
+  },
+  
   showMoreButton: {
     flexDirection: 'row',
     alignItems: 'center',
