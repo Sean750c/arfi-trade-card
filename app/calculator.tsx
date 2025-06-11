@@ -7,15 +7,16 @@ import {
   ScrollView,
   TouchableOpacity,
   useColorScheme,
-  TextInput,
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft, RefreshCw, ArrowRight } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
-import QuickCalculator from '@/components/calculator/QuickCalculator';
-import CardSelector from '@/components/calculator/CardSelector';
+import FloatingCalculator from '@/components/calculator/FloatingCalculator';
+import TwoLevelCardSelector from '@/components/calculator/TwoLevelCardSelector';
+import CompactAmountSelector from '@/components/calculator/CompactAmountSelector';
+import CompactCurrencySelector from '@/components/calculator/CompactCurrencySelector';
 import VIPBenefits from '@/components/calculator/VIPBenefits';
 import BonusInfo from '@/components/calculator/BonusInfo';
 import Colors from '@/constants/Colors';
@@ -45,6 +46,7 @@ export default function CalculatorScreen() {
   const [customAmount, setCustomAmount] = useState('');
   const [calculatedAmount, setCalculatedAmount] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [amountVisible, setAmountVisible] = useState(true);
 
   // Fetch calculator data on component mount
   useEffect(() => {
@@ -117,7 +119,19 @@ export default function CalculatorScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      {/* Floating Calculator */}
+      <FloatingCalculator
+        calculatedAmount={calculatedAmount}
+        selectedCurrency={selectedCurrency}
+        currencies={currencies}
+        visible={amountVisible}
+        onToggleVisibility={() => setAmountVisible(!amountVisible)}
+      />
+
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity 
@@ -140,124 +154,37 @@ export default function CalculatorScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Quick Calculator - Fixed at top */}
-        <QuickCalculator
-          calculatedAmount={calculatedAmount}
-          selectedCurrency={selectedCurrency}
-          currencies={currencies}
-        />
+        {/* Spacer for floating calculator */}
+        <View style={styles.floatingCalculatorSpacer} />
 
+        {/* Main Content */}
         <View style={styles.content}>
-          {/* Card Selection */}
+          {/* Card Selection - Two Level */}
           {calculatorData && (
-            <CardSelector
+            <TwoLevelCardSelector
               categories={calculatorData.card_list}
               selectedCard={selectedCard}
               onSelectCard={setSelectedCard}
             />
           )}
 
-          {/* Amount Selection */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Select Amount</Text>
-            
-            {/* Denomination Buttons */}
-            <View style={styles.denominationGrid}>
-              {denominations.map((denom) => (
-                <TouchableOpacity
-                  key={denom}
-                  style={[
-                    styles.denominationButton,
-                    {
-                      backgroundColor: selectedDenomination === denom && !customAmount
-                        ? colors.primary
-                        : colorScheme === 'dark' ? colors.card : '#F9FAFB',
-                      borderColor: selectedDenomination === denom && !customAmount 
-                        ? colors.primary 
-                        : colors.border,
-                    },
-                  ]}
-                  onPress={() => {
-                    setSelectedDenomination(denom);
-                    setCustomAmount('');
-                  }}
-                >
-                  <Text style={[
-                    styles.denominationText,
-                    { 
-                      color: selectedDenomination === denom && !customAmount 
-                        ? '#FFFFFF' 
-                        : colors.text 
-                    }
-                  ]}>
-                    {denom}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+          {/* Compact Amount Selection */}
+          <CompactAmountSelector
+            denominations={denominations}
+            selectedDenomination={selectedDenomination}
+            customAmount={customAmount}
+            onSelectDenomination={setSelectedDenomination}
+            onCustomAmountChange={setCustomAmount}
+          />
 
-            {/* Custom Amount Input */}
-            <View style={styles.customAmountContainer}>
-              <Text style={[styles.customAmountLabel, { color: colors.text }]}>
-                Or enter custom amount:
-              </Text>
-              <TextInput
-                style={[
-                  styles.customAmountInput,
-                  {
-                    color: colors.text,
-                    borderColor: customAmount ? colors.primary : colors.border,
-                    backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
-                  },
-                ]}
-                placeholder="Enter amount in USD"
-                placeholderTextColor={colors.textSecondary}
-                value={customAmount}
-                onChangeText={(text) => {
-                  setCustomAmount(text);
-                  if (text) setSelectedDenomination('');
-                }}
-                keyboardType="numeric"
-              />
-            </View>
-          </View>
+          {/* Compact Currency Selection */}
+          <CompactCurrencySelector
+            currencies={currencies}
+            selectedCurrency={selectedCurrency}
+            onSelectCurrency={setSelectedCurrency}
+          />
 
-          {/* Currency Selection */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Receive In</Text>
-            <View style={styles.currencyGrid}>
-              {currencies.map((currency) => (
-                <TouchableOpacity
-                  key={currency.code}
-                  style={[
-                    styles.currencyOption,
-                    {
-                      backgroundColor: selectedCurrency === currency.code
-                        ? `${colors.primary}20`
-                        : colorScheme === 'dark' ? colors.card : '#F9FAFB',
-                      borderColor: selectedCurrency === currency.code ? colors.primary : colors.border,
-                    },
-                  ]}
-                  onPress={() => setSelectedCurrency(currency.code)}
-                >
-                  <Text style={[
-                    styles.currencySymbol,
-                    { color: selectedCurrency === currency.code ? colors.primary : colors.text }
-                  ]}>
-                    {currency.symbol}
-                  </Text>
-                  <Text style={[
-                    styles.currencyName,
-                    { color: selectedCurrency === currency.code ? colors.primary : colors.text }
-                  ]}>
-                    {currency.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* VIP Benefits */}
+          {/* VIP Benefits - Collapsible */}
           {calculatorData && (
             <VIPBenefits
               vipDetail={calculatorData.vip_detail}
@@ -265,7 +192,7 @@ export default function CalculatorScreen() {
             />
           )}
 
-          {/* Bonus Information */}
+          {/* Bonus Information - Collapsible */}
           {calculatorData && (
             <BonusInfo
               firstOrderBonus={calculatorData.first_order_bonus}
@@ -282,7 +209,7 @@ export default function CalculatorScreen() {
                   Rate Details
                 </Text>
                 <Text style={[styles.lastUpdated, { color: colors.textSecondary }]}>
-                  Updated: {lastUpdated.toLocaleTimeString()}
+                  {lastUpdated.toLocaleTimeString()}
                 </Text>
               </View>
               
@@ -312,10 +239,10 @@ export default function CalculatorScreen() {
                 
                 <View style={styles.rateDetailRow}>
                   <Text style={[styles.rateDetailLabel, { color: colors.textSecondary }]}>
-                    Processing Time:
+                    Processing:
                   </Text>
                   <Text style={[styles.rateDetailValue, { color: colors.success }]}>
-                    5-15 minutes
+                    5-15 min
                   </Text>
                 </View>
               </View>
@@ -390,80 +317,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  content: {
-    paddingHorizontal: Spacing.lg,
+  scrollContent: {
     paddingBottom: Spacing.xl,
   },
-
-  // Sections
-  section: {
-    marginBottom: Spacing.lg,
+  floatingCalculatorSpacer: {
+    height: 80, // Space for floating calculator
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.md,
-  },
-
-  // Denominations
-  denominationGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  denominationButton: {
+  content: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: 12,
-    borderWidth: 2,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  denominationText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-
-  // Custom Amount
-  customAmountContainer: {
-    marginTop: Spacing.md,
-  },
-  customAmountLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    marginBottom: Spacing.sm,
-  },
-  customAmountInput: {
-    height: 48,
-    borderWidth: 2,
-    borderRadius: 12,
-    paddingHorizontal: Spacing.md,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-  },
-
-  // Currency Options
-  currencyGrid: {
-    gap: Spacing.sm,
-  },
-  currencyOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: 12,
-    borderWidth: 2,
-  },
-  currencySymbol: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    marginRight: Spacing.md,
-    minWidth: 40,
-  },
-  currencyName: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    flex: 1,
   },
 
   // Rate Info Card
