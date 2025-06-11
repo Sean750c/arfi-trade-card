@@ -489,17 +489,6 @@ export default function RatesScreen() {
     </View>
   );
 
-  // Debug information
-  console.log('Render state:', {
-    isLoading,
-    error,
-    categoriesCount: categories.length,
-    currenciesCount: currencies.length,
-    ratesData: ratesData ? `${ratesData.card_list.length} categories` : 'null',
-    selectedCategory,
-    selectedCurrency,
-  });
-
   if (error && !ratesData) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>

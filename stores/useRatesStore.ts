@@ -50,9 +50,9 @@ export const useRatesStore = create<RatesState>((set, get) => ({
 
   fetchCategories: async () => {
     try {
-      console.log('Fetching categories...');
+      //console.log('Fetching categories...');
       const categories = await RatesService.getCardCategories();
-      console.log('Categories fetched:', categories);
+      //console.log('Categories fetched:', categories);
       set({ categories });
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -62,9 +62,9 @@ export const useRatesStore = create<RatesState>((set, get) => ({
 
   fetchCurrencies: async () => {
     try {
-      console.log('Fetching currencies...');
+      //console.log('Fetching currencies...');
       const currencies = await RatesService.getCurrencies();
-      console.log('Currencies fetched:', currencies);
+      //console.log('Currencies fetched:', currencies);
       set({ currencies });
     } catch (error) {
       console.error('Failed to fetch currencies:', error);
@@ -75,7 +75,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
   fetchRatesData: async (countryId: number, refresh = false) => {
     const state = get();
     
-    console.log('Fetching rates data, refresh:', refresh, 'countryId:', countryId);
+    //console.log('Fetching rates data, refresh:', refresh, 'countryId:', countryId);
     
     if (refresh) {
       set({ 
