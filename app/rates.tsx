@@ -189,7 +189,7 @@ export default function RatesScreen() {
               
               return (
                 <TouchableOpacity
-                  key={card.card_id}
+                  key={`${item.category_id}-${currencyGroup.currency}-${card.card_id}`}
                   style={[
                     styles.cardItem,
                     { borderBottomColor: colors.border },
