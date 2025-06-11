@@ -6,31 +6,27 @@ interface RatesState {
   // Data
   categories: CardCategory[];
   currencies: Currency[];
-  ratesData: RatesData | null;
+  allRatesData: RatesData | null; // Store all data for frontend filtering
   
   // UI State
   isLoading: boolean;
-  isLoadingMore: boolean;
   error: string | null;
+  lastFetchTime: number;
   
   // Filters
   selectedCategory: number | null;
   selectedCurrency: string | null;
   searchQuery: string;
   
-  // Pagination
-  currentPage: number;
-  hasMore: boolean;
-  
   // Actions
   fetchCategories: () => Promise<void>;
   fetchCurrencies: () => Promise<void>;
-  fetchRatesData: (countryId: number, refresh?: boolean) => Promise<void>;
-  loadMoreRates: (countryId: number) => Promise<void>;
+  fetchAllRatesData: (countryId: number, refresh?: boolean) => Promise<void>;
   setSelectedCategory: (categoryId: number | null) => void;
   setSelectedCurrency: (currency: string | null) => void;
   setSearchQuery: (query: string) => void;
   clearFilters: () => void;
+  getFilteredData: () => CategoryData[];
   reset: () => void;
 }
 
@@ -38,21 +34,25 @@ export const useRatesStore = create<RatesState>((set, get) => ({
   // Initial state
   categories: [],
   currencies: [],
-  ratesData: null,
+  allRatesData: null,
   isLoading: false,
-  isLoadingMore: false,
   error: null,
+  lastFetchTime: 0,
   selectedCategory: null,
   selectedCurrency: null,
   searchQuery: '',
-  currentPage: 1,
-  hasMore: true,
 
   fetchCategories: async () => {
+    const state = get();
+    
+    // Avoid repeated calls - cache for 5 minutes
+    if (state.categories.length > 0 && Date.now() - state.lastFetchTime < 300000) {
+      return;
+    }
+
     try {
-      //console.log('Fetching categories...');
+      console.log('Fetching categories...');
       const categories = await RatesService.getCardCategories();
-      //console.log('Categories fetched:', categories);
       set({ categories });
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -61,10 +61,16 @@ export const useRatesStore = create<RatesState>((set, get) => ({
   },
 
   fetchCurrencies: async () => {
+    const state = get();
+    
+    // Avoid repeated calls - cache for 5 minutes
+    if (state.currencies.length > 0 && Date.now() - state.lastFetchTime < 300000) {
+      return;
+    }
+
     try {
-      //console.log('Fetching currencies...');
+      console.log('Fetching currencies...');
       const currencies = await RatesService.getCurrencies();
-      //console.log('Currencies fetched:', currencies);
       set({ currencies });
     } catch (error) {
       console.error('Failed to fetch currencies:', error);
@@ -72,101 +78,42 @@ export const useRatesStore = create<RatesState>((set, get) => ({
     }
   },
 
-  fetchRatesData: async (countryId: number, refresh = false) => {
+  fetchAllRatesData: async (countryId: number, refresh = false) => {
     const state = get();
     
-    //console.log('Fetching rates data, refresh:', refresh, 'countryId:', countryId);
-    
-    if (refresh) {
-      set({ 
-        isLoading: true, 
-        error: null, 
-        currentPage: 1, 
-        hasMore: true,
-        ratesData: null 
-      });
-    } else {
-      set({ isLoading: true, error: null });
+    // Avoid repeated calls unless refresh is explicitly requested
+    if (!refresh && state.allRatesData && Date.now() - state.lastFetchTime < 60000) {
+      console.log('Using cached rates data');
+      return;
     }
 
+    console.log('Fetching all rates data, refresh:', refresh, 'countryId:', countryId);
+    
+    set({ isLoading: true, error: null });
+
     try {
-      const params: any = {
+      // Fetch all data at once with a large page size to reduce backend calls
+      const params = {
         country_id: countryId,
-        page: 1,
-        page_size: 20,
+        page: 0, // Start from page 0 as specified
+        page_size: 1000, // Large page size to get all data at once
       };
 
-      // Add filters if selected (note the typo in API parameter name)
-      if (state.selectedCategory) {
-        params.card_catgory = state.selectedCategory; // API uses 'card_catgory'
-      }
-      
-      if (state.selectedCurrency) {
-        params.currency = state.selectedCurrency;
-      }
+      console.log('Fetching all rates with params:', params);
 
-      console.log('Final params for rates API:', params);
-
-      const ratesData = await RatesService.getRatesData(params);
-      console.log('Rates data received:', ratesData);
+      const allRatesData = await RatesService.getRatesData(params);
+      console.log('All rates data received:', allRatesData);
       
       set({
-        ratesData,
-        currentPage: 1,
-        hasMore: ratesData.card_list.length >= 20,
+        allRatesData,
         isLoading: false,
+        lastFetchTime: Date.now(),
       });
     } catch (error) {
-      console.error('Error fetching rates data:', error);
+      console.error('Error fetching all rates data:', error);
       set({
         error: error instanceof Error ? error.message : 'Failed to fetch rates data',
         isLoading: false,
-      });
-    }
-  },
-
-  loadMoreRates: async (countryId: number) => {
-    const state = get();
-    
-    if (state.isLoadingMore || !state.hasMore) return;
-
-    set({ isLoadingMore: true, error: null });
-
-    try {
-      const nextPage = state.currentPage + 1;
-      const params: any = {
-        country_id: countryId,
-        page: nextPage,
-        page_size: 20,
-      };
-
-      // Add filters if selected
-      if (state.selectedCategory) {
-        params.card_catgory = state.selectedCategory; // API uses 'card_catgory'
-      }
-      
-      if (state.selectedCurrency) {
-        params.currency = state.selectedCurrency;
-      }
-
-      const newRatesData = await RatesService.getRatesData(params);
-      
-      // Merge new data with existing data
-      const updatedRatesData = state.ratesData ? {
-        ...newRatesData,
-        card_list: [...state.ratesData.card_list, ...newRatesData.card_list]
-      } : newRatesData;
-
-      set({
-        ratesData: updatedRatesData,
-        currentPage: nextPage,
-        hasMore: newRatesData.card_list.length >= 20,
-        isLoadingMore: false,
-      });
-    } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'Failed to load more rates',
-        isLoadingMore: false,
       });
     }
   },
@@ -194,19 +141,57 @@ export const useRatesStore = create<RatesState>((set, get) => ({
     });
   },
 
+  getFilteredData: () => {
+    const state = get();
+    
+    if (!state.allRatesData) return [];
+    
+    let filteredData = [...state.allRatesData.card_list];
+    
+    // Apply category filter
+    if (state.selectedCategory) {
+      filteredData = filteredData.filter(category => 
+        category.category_id === state.selectedCategory
+      );
+    }
+    
+    // Apply currency filter
+    if (state.selectedCurrency) {
+      filteredData = filteredData.map(category => ({
+        ...category,
+        list: category.list.filter(currencyGroup => 
+          currencyGroup.currency === state.selectedCurrency
+        )
+      })).filter(category => category.list.length > 0);
+    }
+    
+    // Apply search filter
+    if (state.searchQuery.trim()) {
+      const searchLower = state.searchQuery.toLowerCase();
+      filteredData = filteredData.filter(category =>
+        category.category_name.toLowerCase().includes(searchLower) ||
+        category.list.some(currencyGroup =>
+          currencyGroup.list.some(card =>
+            card.name.toLowerCase().includes(searchLower)
+          )
+        )
+      );
+    }
+    
+    return filteredData;
+  },
+
   reset: () => {
     set({
       categories: [],
       currencies: [],
-      ratesData: null,
+      allRatesData: null,
       isLoading: false,
-      isLoadingMore: false,
       error: null,
+      lastFetchTime: 0,
       selectedCategory: null,
       selectedCurrency: null,
       searchQuery: '',
-      currentPage: 1,
-      hasMore: true,
     });
   },
 }));
