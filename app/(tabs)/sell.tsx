@@ -15,8 +15,6 @@ import {
   TextInput,
   Modal,
   FlatList,
-  PanGestureHandler,
-  State,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Plus, Calculator, Crown, ChevronRight, ChevronDown, Trophy, TrendingUp, Phone, Camera, Image as ImageIcon, CircleCheck as CheckCircle, X, ArrowLeft, Star, Medal, Award, Zap, CircleHelp as HelpCircle, Wallet } from 'lucide-react-native';
@@ -27,6 +25,17 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { APIRequest } from '@/utils/api';
+
+// Platform-specific imports for gesture handling
+let State: any;
+
+if (Platform.OS !== 'web') {
+  const gestureHandler = require('react-native-gesture-handler');
+  State = gestureHandler.State;
+} else {
+  // Web fallback - use regular View
+  State = { END: 'END' }; // Mock State object for web
+}
 
 interface SelectedCard {
   id: string;
@@ -308,26 +317,30 @@ function SellScreenContent() {
     }
   };
 
-  // Handle help button drag
-  const onGestureEvent = Animated.event(
-    [{ nativeEvent: { translationX: helpButtonAnim.x, translationY: helpButtonAnim.y } }],
-    { useNativeDriver: false }
-  );
+  // Handle help button drag - platform specific
+  const onGestureEvent = Platform.OS !== 'web' 
+    ? Animated.event(
+        [{ nativeEvent: { translationX: helpButtonAnim.x, translationY: helpButtonAnim.y } }],
+        { useNativeDriver: false }
+      )
+    : undefined;
 
-  const onHandlerStateChange = (event: any) => {
-    if (event.nativeEvent.state === State.END) {
-      const { translationX, translationY } = event.nativeEvent;
-      const newX = Math.max(0, Math.min(300, helpButtonPosition.x + translationX));
-      const newY = Math.max(100, Math.min(600, helpButtonPosition.y + translationY));
-      
-      setHelpButtonPosition({ x: newX, y: newY });
-      
-      Animated.spring(helpButtonAnim, {
-        toValue: { x: newX, y: newY },
-        useNativeDriver: false,
-      }).start();
-    }
-  };
+  const onHandlerStateChange = Platform.OS !== 'web' 
+    ? (event: any) => {
+        if (event.nativeEvent.state === State.END) {
+          const { translationX, translationY } = event.nativeEvent;
+          const newX = Math.max(0, Math.min(300, helpButtonPosition.x + translationX));
+          const newY = Math.max(100, Math.min(600, helpButtonPosition.y + translationY));
+          
+          setHelpButtonPosition({ x: newX, y: newY });
+          
+          Animated.spring(helpButtonAnim, {
+            toValue: { x: newX, y: newY },
+            useNativeDriver: false,
+          }).start();
+        }
+      }
+    : undefined;
 
   const renderHeader = () => (
     <View style={styles.header}>
@@ -801,32 +814,6 @@ function SellScreenContent() {
         {/* Bottom Action Buttons */}
         {renderBottomActions()}
 
-        {/* Draggable Help Button */}
-        <PanGestureHandler
-          onGestureEvent={onGestureEvent}
-          onHandlerStateChange={onHandlerStateChange}
-        >
-          <Animated.View 
-            style={[
-              styles.draggableHelpButton,
-              {
-                backgroundColor: colors.warning,
-                transform: [
-                  { translateX: helpButtonAnim.x },
-                  { translateY: helpButtonAnim.y }
-                ]
-              }
-            ]}
-          >
-            <TouchableOpacity
-              style={styles.helpButtonInner}
-              onPress={() => setShowFAQModal(true)}
-            >
-              <HelpCircle size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </Animated.View>
-        </PanGestureHandler>
-
         {renderCouponModal()}
         {renderVIPModal()}
         {renderRankingModal()}
@@ -1126,6 +1113,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
     zIndex: 1000,
+    top: 200,
+    left: 20,
   },
   helpButtonInner: {
     width: '100%',

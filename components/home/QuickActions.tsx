@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   secondaryActionItem: {
     width: '31%', // Three items per row with small gaps
     borderRadius: 16,
-    padding: Spacing.md, // Reduced padding
+    padding: Spacing.sm, // Reduced padding
     position: 'relative',
     overflow: 'hidden',
     minHeight: 85, // Compact height
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   secondaryContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: '100%',
+    height: 80,
   },
   secondaryIconContainer: {
     width: 36, // Smaller than primary
