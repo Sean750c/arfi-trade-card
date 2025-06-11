@@ -64,7 +64,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
         state.currencies.length > 0 ? Promise.resolve(state.currencies) : RatesService.getCurrencies(),
       ]);
       
-      console.log('All rates data received:', allRatesData);
+      // console.log('All rates data received:', allRatesData);
       
       set({
         allRatesData,

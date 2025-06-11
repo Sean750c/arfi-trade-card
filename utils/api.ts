@@ -93,7 +93,7 @@ export class APIRequest {
         body: new URLSearchParams(requestBody).toString()
       };
 
-      console.log(`Making API request to: ${API_HOST}${endpoint}`);
+      //console.log(`Making API request to: ${API_HOST}${endpoint}`);
       
       const response = await fetch(`${API_HOST}${endpoint}`, requestOptions);
     
