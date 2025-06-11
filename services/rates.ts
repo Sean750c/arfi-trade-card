@@ -64,7 +64,7 @@ export class RatesService {
       console.log('Fetching rates with params:', params);
       
       const response = await APIRequest.request<RatesDataResponse>(
-        '/gc/v2/card/datalog', // Correct endpoint
+        '/gc/v2/card/catalog ', // Correct endpoint
         'POST',
         params
       );
