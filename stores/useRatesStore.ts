@@ -98,7 +98,7 @@ export const useRatesStore = create<RatesState>((set, get) => ({
       // Start from page 1 as corrected (not 0)
       const params = {
         country_id: countryId,
-        page: 1, // Corrected: pagination starts from 1
+        page: 0, // Corrected: pagination starts from 1
         page_size: 1000, // Large page size to get all data at once
         // Apply current filters to the API call
         ...(state.selectedCategory && { card_catgory: state.selectedCategory }), // Note: API uses 'card_catgory'
