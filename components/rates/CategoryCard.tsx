@@ -21,7 +21,7 @@ import {
 import Card from '@/components/UI/Card';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import type { CategoryData, CardRate, CurrencyGroup, RateDetail } from '@/types/api';
+import type { CategoryData, CardRate, RateDetail } from '@/types/api';
 
 interface CategoryCardProps {
   category: CategoryData;
@@ -35,80 +35,33 @@ export default function CategoryCard({
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   
-  // State for managing expanded currencies and selected currency per card
-  const [expandedCurrencies, setExpandedCurrencies] = useState<Set<string>>(new Set());
-  const [selectedCurrencyPerCard, setSelectedCurrencyPerCard] = useState<Record<number, string>>(() => {
-    // Initialize with USD as default for all cards
-    const initialSelection: Record<number, string> = {};
-    category.list.forEach(currencyGroup => {
-      currencyGroup.list.forEach(card => {
-        // Find if this card has USD data, otherwise use the first available currency
-        const hasUSD = category.list.some(group => 
-          group.currency === 'USD' && 
-          group.list.some(c => c.card_id === card.card_id)
-        );
-        initialSelection[card.card_id] = hasUSD ? 'USD' : category.list[0]?.currency || 'USD';
-      });
-    });
-    return initialSelection;
+  // State for managing expanded cards
+  const [expandedCards, setExpandedCards] = useState(false);
+  // State for selected currency (single selection for all cards)
+  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+
+  // Get all unique currencies for this category, prioritizing USD
+  const allCurrencies = Array.from(
+    new Set(category.list.map(group => group.currency))
+  ).sort((a, b) => {
+    if (a === 'USD') return -1;
+    if (b === 'USD') return 1;
+    return a.localeCompare(b);
   });
 
-  const toggleCurrencyExpansion = (currency: string) => {
-    const newExpanded = new Set(expandedCurrencies);
-    if (newExpanded.has(currency)) {
-      newExpanded.delete(currency);
-    } else {
-      newExpanded.add(currency);
-    }
-    setExpandedCurrencies(newExpanded);
-  };
+  // Get all unique card IDs from all currency groups
+  const allUniqueCardIds = Array.from(
+    new Set(
+      category.list
+        .map(group => group.list.map(card => card.card_id))
+        .reduce((acc, cardIds) => acc.concat(cardIds), [])
+    )
+  );
 
-  const selectCurrencyForCard = (cardId: number, currency: string) => {
-    setSelectedCurrencyPerCard(prev => ({
-      ...prev,
-      [cardId]: currency,
-    }));
-  };
-
-  // Get all unique currencies for this category
-  const getAllCurrencies = () => {
-    const currencies = new Set<string>();
-    category.list.forEach(group => {
-      currencies.add(group.currency);
-    });
-    return Array.from(currencies).sort((a, b) => {
-      // Prioritize USD first
-      if (a === 'USD') return -1;
-      if (b === 'USD') return 1;
-      return a.localeCompare(b);
-    });
-  };
-
-  // Get available currencies for a specific card
-  const getAvailableCurrenciesForCard = (cardId: number) => {
-    const availableCurrencies = new Set<string>();
-    category.list.forEach(group => {
-      if (group.list.some(card => card.card_id === cardId)) {
-        availableCurrencies.add(group.currency);
-      }
-    });
-    return Array.from(availableCurrencies).sort((a, b) => {
-      // Prioritize USD first
-      if (a === 'USD') return -1;
-      if (b === 'USD') return 1;
-      return a.localeCompare(b);
-    });
-  };
-
-  // Get card data for specific currency
-  const getCardDataForCurrency = (cardId: number, currency: string): CardRate | null => {
-    for (const group of category.list) {
-      if (group.currency === currency) {
-        const card = group.list.find(c => c.card_id === cardId);
-        if (card) return card;
-      }
-    }
-    return null;
+  // Get card data for the selected currency
+  const getCardData = (cardId: number): CardRate | null => {
+    const currencyGroup = category.list.find(group => group.currency === selectedCurrency);
+    return currencyGroup?.list.find(card => card.card_id === cardId) || null;
   };
 
   // Calculate VIP and coupon bonuses for display
@@ -124,64 +77,11 @@ export default function CategoryCard({
     };
   };
 
-  const renderCurrencyTags = (cardId: number, availableCurrencies: string[]) => {
-    const selectedCurrency = selectedCurrencyPerCard[cardId] || 'USD';
-    
-    if (availableCurrencies.length <= 1) {
-      return null; // Don't show tags if only one currency available
-    }
-    
-    return (
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        style={styles.currencyTags}
-        contentContainerStyle={styles.currencyTagsContent}
-      >
-        {availableCurrencies.map((currency) => {
-          const isSelected = selectedCurrency === currency;
-          
-          return (
-            <TouchableOpacity
-              key={currency}
-              style={[
-                styles.currencyTag,
-                {
-                  backgroundColor: isSelected ? colors.primary : `${colors.primary}15`,
-                  borderColor: isSelected ? colors.primary : 'transparent',
-                }
-              ]}
-              onPress={() => selectCurrencyForCard(cardId, currency)}
-            >
-              <Text style={[
-                styles.currencyTagText,
-                { color: isSelected ? '#FFFFFF' : colors.primary }
-              ]}>
-                {currency}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    );
-  };
-
   const renderCardItem = (cardId: number, isLast: boolean) => {
-    const selectedCurrency = selectedCurrencyPerCard[cardId] || 'USD';
-    const availableCurrencies = getAvailableCurrenciesForCard(cardId);
-    const cardData = getCardDataForCurrency(cardId, selectedCurrency);
-    
-    // If no data for selected currency, try to find any available data
-    const fallbackCardData = cardData || category.list.find(group => 
-      group.list.some(card => card.card_id === cardId)
-    )?.list.find(card => card.card_id === cardId);
-    
-    if (!fallbackCardData) {
-      return null; // Skip if no data available
-    }
-    
-    const displayCard = cardData || fallbackCardData;
-    const bonuses = calculateBonuses(displayCard.rate_detail);
+    const cardData = getCardData(cardId);
+    if (!cardData) return null;
+
+    const bonuses = calculateBonuses(cardData.rate_detail);
     
     return (
       <View
@@ -199,7 +99,7 @@ export default function CategoryCard({
             onPress={() => onCardPress(cardId, category.category_id)}
           >
             <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
-              {displayCard.name}
+              {cardData.name}
             </Text>
             
             {/* Rate Breakdown */}
@@ -210,22 +110,22 @@ export default function CategoryCard({
                   Base:
                 </Text>
                 <Text style={[styles.baseRate, { color: colors.text }]}>
-                  {displayCard.currency_symbol}{displayCard.rate.toFixed(2)}
+                  {cardData.currency_symbol}{cardData.rate.toFixed(2)}
                 </Text>
                 <Text style={[styles.currencyLabel, { color: colors.textSecondary }]}>
-                  per {displayCard.currency}
+                  per {cardData.currency}
                 </Text>
               </View>
               
               {/* VIP Bonus */}
               {bonuses.vipBonus > 0 && (
                 <View style={styles.bonusContainer}>
-                  <Crown size={12} color={colors.secondary} />
-                  <Text style={[styles.bonusText, { color: colors.secondary }]}>
+                  <Crown size={12} color={colors.textSecondary} />
+                  <Text style={[styles.bonusText, { color: colors.textSecondary }]}>
                     VIP +{bonuses.vipBonus}%
                   </Text>
-                  <Text style={[styles.bonusAmount, { color: colors.secondary }]}>
-                    (+{displayCard.currency_symbol}{bonuses.vipAmount.toFixed(2)})
+                  <Text style={[styles.bonusAmount, { color: colors.textSecondary }]}>
+                    (+{cardData.currency_symbol}{bonuses.vipAmount.toFixed(2)})
                   </Text>
                 </View>
               )}
@@ -238,7 +138,7 @@ export default function CategoryCard({
                     Coupon +{bonuses.couponBonus}%
                   </Text>
                   <Text style={[styles.bonusAmount, { color: colors.success }]}>
-                    (+{displayCard.currency_symbol}{bonuses.couponAmount.toFixed(2)})
+                    (+{cardData.currency_symbol}{bonuses.couponAmount.toFixed(2)})
                   </Text>
                 </View>
               )}
@@ -247,7 +147,7 @@ export default function CategoryCard({
           
           <View style={styles.optimalRateContainer}>
             <Text style={[styles.optimalRate, { color: colors.primary }]}>
-              {displayCard.currency_symbol}{displayCard.optimal_rate}
+              {cardData.currency_symbol}{cardData.optimal_rate}
             </Text>
             <View style={styles.rateIndicator}>
               <TrendingUp size={12} color={colors.success} />
@@ -257,44 +157,19 @@ export default function CategoryCard({
             </View>
             
             {/* Total Bonus Percentage */}
-            {parseFloat(displayCard.all_per) > 0 && (
+            {parseFloat(cardData.all_per) > 0 && (
               <View style={[styles.totalBonusBadge, { backgroundColor: `${colors.primary}15` }]}>
                 <Percent size={10} color={colors.primary} />
                 <Text style={[styles.totalBonusText, { color: colors.primary }]}>
-                  +{displayCard.all_per}%
+                  +{cardData.all_per}%
                 </Text>
               </View>
             )}
           </View>
         </View>
-        
-        {/* Currency Tags for this card */}
-        {availableCurrencies.length > 1 && (
-          <View style={styles.cardTagsContainer}>
-            <Text style={[styles.tagsLabel, { color: colors.textSecondary }]}>
-              Available in:
-            </Text>
-            {renderCurrencyTags(cardId, availableCurrencies)}
-          </View>
-        )}
       </View>
     );
   };
-
-  // Get all unique card IDs from all currency groups
-  const getAllUniqueCardIds = () => {
-    const cardIds = new Set<number>();
-    category.list.forEach(group => {
-      group.list.forEach(card => {
-        cardIds.add(card.card_id);
-      });
-    });
-    return Array.from(cardIds);
-  };
-
-  // Get all currencies available for cards in this category
-  const allCurrencies = getAllCurrencies();
-  const allUniqueCardIds = getAllUniqueCardIds();
 
   return (
     <Card style={styles.categoryCard}>
@@ -339,6 +214,43 @@ export default function CategoryCard({
         </View>
       </View>
 
+      {/* Currency Selection */}
+      <View style={styles.currencySelectionContainer}>
+        <Text style={[styles.currencySelectionLabel, { color: colors.textSecondary }]}>
+          Display in:
+        </Text>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.currencyTagsContainer}
+        >
+          {allCurrencies.map(currency => (
+            <TouchableOpacity
+              key={currency}
+              style={[
+                styles.currencyTag,
+                {
+                  backgroundColor: selectedCurrency === currency 
+                    ? colors.primary 
+                    : `${colors.primary}15`,
+                  borderColor: selectedCurrency === currency 
+                    ? colors.primary 
+                    : 'transparent',
+                }
+              ]}
+              onPress={() => setSelectedCurrency(currency)}
+            >
+              <Text style={[
+                styles.currencyTagText,
+                { color: selectedCurrency === currency ? '#FFFFFF' : colors.primary }
+              ]}>
+                {currency}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       {/* Cards Display */}
       <View style={styles.cardsContainer}>
         <View style={styles.cardsHeader}>
@@ -346,35 +258,16 @@ export default function CategoryCard({
             Available Cards
           </Text>
           <Text style={[styles.cardCount, { color: colors.textSecondary }]}>
-            {allUniqueCardIds.length} cards • {allCurrencies.length} currencies
+            {allUniqueCardIds.length} cards
           </Text>
         </View>
         
-        {allUniqueCardIds.slice(0, expandedCurrencies.has('cards') ? allUniqueCardIds.length : 3).map((cardId, index) => 
-          renderCardItem(cardId, index === (expandedCurrencies.has('cards') ? allUniqueCardIds.length : 3) - 1)
-        )}
-        
-        {allUniqueCardIds.length > 3 && (
-          <TouchableOpacity 
-            style={styles.showMoreButton}
-            onPress={() => toggleCurrencyExpansion('cards')}
-          >
-            <Text style={[styles.showMoreText, { color: colors.primary }]}>
-              {expandedCurrencies.has('cards') 
-                ? 'Show Less' 
-                : `+${allUniqueCardIds.length - 3} more cards`
-              }
-            </Text>
-            <ChevronDown 
-              size={16} 
-              color={colors.primary} 
-              style={[
-                styles.chevronIcon,
-                expandedCurrencies.has('cards') && styles.chevronIconRotated
-              ]}
-            />
-          </TouchableOpacity>
-        )}
+        {allUniqueCardIds
+          .map((cardId, index, array) => 
+            renderCardItem(cardId, index === array.length - 1)
+          )
+        }
+
       </View>
     </Card>
   );
@@ -450,6 +343,29 @@ const styles = StyleSheet.create({
   topCurrency: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
+  },
+  
+  // Currency Selection
+  currencySelectionContainer: {
+    marginBottom: Spacing.md,
+  },
+  currencySelectionLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    marginBottom: Spacing.xs,
+  },
+  currencyTagsContainer: {
+    gap: Spacing.xs,
+  },
+  currencyTag: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  currencyTagText: {
+    fontSize: 11,
+    fontFamily: 'Inter-SemiBold',
   },
   
   // Cards Container
@@ -562,32 +478,6 @@ const styles = StyleSheet.create({
   totalBonusText: {
     fontSize: 10,
     fontFamily: 'Inter-Bold',
-  },
-  
-  // Currency Tags
-  cardTagsContainer: {
-    marginTop: Spacing.sm,
-  },
-  tagsLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    marginBottom: Spacing.xs,
-  },
-  currencyTags: {
-    marginBottom: Spacing.xs,
-  },
-  currencyTagsContent: {
-    gap: Spacing.xs,
-  },
-  currencyTag: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  currencyTagText: {
-    fontSize: 11,
-    fontFamily: 'Inter-SemiBold',
   },
   
   showMoreButton: {

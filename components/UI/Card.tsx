@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, useColorScheme } from 'react-native';
+import { View, StyleSheet, ViewStyle, useColorScheme, StyleProp  } from 'react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export default function Card({ children, style }: CardProps) {
