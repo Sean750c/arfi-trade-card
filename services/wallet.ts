@@ -3,7 +3,6 @@ import type {
   WalletBalanceResponse, 
   WalletTransactionsResponse,
   WalletBalanceData,
-  WalletTransaction,
   WalletTransactionRequest
 } from '@/types/api';
 
@@ -37,7 +36,7 @@ export class WalletService {
   static async getWalletTransactions(params: WalletTransactionRequest): Promise<WalletTransactionsResponse> {
     try {
       const response = await APIRequest.request<WalletTransactionsResponse>(
-        '/gc/wallet/moneyLogList',
+        '/gc/wallet/moreLogList',
         'POST',
         params
       );
