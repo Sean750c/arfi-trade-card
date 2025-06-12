@@ -3,7 +3,7 @@ import type {
   WalletBalanceResponse, 
   WalletTransactionsResponse,
   WalletBalanceData,
-  WalletTransactionsData,
+  WalletTransaction,
   WalletTransactionRequest
 } from '@/types/api';
 
@@ -34,7 +34,7 @@ export class WalletService {
     }
   }
 
-  static async getWalletTransactions(params: WalletTransactionRequest): Promise<WalletTransactionsData> {
+  static async getWalletTransactions(params: WalletTransactionRequest): Promise<WalletTransactionsResponse> {
     try {
       const response = await APIRequest.request<WalletTransactionsResponse>(
         '/gc/wallet/moneyLogList',
@@ -46,7 +46,7 @@ export class WalletService {
         throw new Error(response.msg || 'Failed to fetch wallet transactions');
       }
 
-      return response.data;
+      return response;
     } catch (error) {
       // Handle token expiration errors specifically
       if (error instanceof Error && error.message.includes('Session expired')) {

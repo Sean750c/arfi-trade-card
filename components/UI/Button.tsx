@@ -8,6 +8,7 @@ import {
   Platform,
   ViewStyle,
   TextStyle,
+  StyleProp,
 } from 'react-native';
 import { useColorScheme } from 'react-native';
 import Colors from '@/constants/Colors';
@@ -19,7 +20,7 @@ interface ButtonProps extends TouchableOpacityProps {
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   fullWidth?: boolean;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   textStyle?: TextStyle;
   rightIcon?: React.ReactNode;
 }

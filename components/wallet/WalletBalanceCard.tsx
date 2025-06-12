@@ -77,18 +77,6 @@ export default function WalletBalanceCard({
 
       {/* Balance Details Grid */}
       <View style={styles.balanceDetails}>
-        {/* Withdrawable Amount */}
-        <View style={styles.detailItem}>
-          <View style={styles.detailIcon}>
-            <TrendingUp size={16} color="rgba(255, 255, 255, 0.9)" />
-          </View>
-          <View style={styles.detailContent}>
-            <Text style={styles.detailLabel}>Withdrawable</Text>
-            <Text style={styles.detailAmount}>
-              {formatCurrency(balanceData.withdraw_amount)}
-            </Text>
-          </View>
-        </View>
 
         {/* Rebate Amount - Clickable */}
         <TouchableOpacity 
@@ -110,40 +98,6 @@ export default function WalletBalanceCard({
           </View>
         </TouchableOpacity>
 
-        {/* Frozen Amount */}
-        <View style={styles.detailItem}>
-          <View style={styles.detailIcon}>
-            <Award size={16} color="rgba(255, 255, 255, 0.9)" />
-          </View>
-          <View style={styles.detailContent}>
-            <Text style={styles.detailLabel}>Frozen</Text>
-            <Text style={styles.detailAmount}>
-              {formatCurrency(balanceData.frozen_amount)}
-            </Text>
-          </View>
-        </View>
-
-        {/* Points */}
-        <View style={styles.detailItem}>
-          <View style={styles.detailIcon}>
-            <Award size={16} color="rgba(255, 255, 255, 0.9)" />
-          </View>
-          <View style={styles.detailContent}>
-            <Text style={styles.detailLabel}>Points</Text>
-            <Text style={styles.detailAmount}>
-              {balanceVisible ? balanceData.point.toLocaleString() : '****'}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Status Indicators */}
-      <View style={styles.statusContainer}>
-        <View style={styles.statusItem}>
-          <Text style={styles.statusLabel}>Dealing Orders</Text>
-          <Text style={styles.statusValue}>{balanceData.dealing_cnt}</Text>
-        </View>
-        
         <View style={styles.statusItem}>
           <Text style={styles.statusLabel}>Exchange Rate</Text>
           <Text style={styles.statusValue}>1 USD = ₦{balanceData.rate}</Text>

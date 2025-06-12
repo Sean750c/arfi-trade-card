@@ -134,8 +134,8 @@ export default function TransactionList({
               item.type === 'withdraw' ? colors.error :
               item.type === 'order' ? colors.success :
               item.type === 'transfer' ? colors.primary :
-              item.type === 'recommend' ? colors.secondary :
-              item.type === 'vip' ? colors.warning :
+              item.type === 'admin' ? colors.secondary :
+              item.type === 'rank' ? colors.warning :
               colors.textSecondary
             }15`
           }

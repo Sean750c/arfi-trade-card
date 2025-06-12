@@ -7,7 +7,6 @@ import {
   useColorScheme,
   RefreshControl,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import Button from '@/components/UI/Button';
@@ -26,7 +25,7 @@ function WalletScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const { user } = useAuthStore();
-  
+
   const {
     balanceData,
     transactions,
@@ -47,7 +46,6 @@ function WalletScreenContent() {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Initial data fetch
   useEffect(() => {
     if (user?.token) {
       fetchBalance(user.token);
@@ -55,7 +53,6 @@ function WalletScreenContent() {
     }
   }, [user?.token, fetchBalance, fetchTransactions]);
 
-  // Refetch transactions when filters change
   useEffect(() => {
     if (user?.token) {
       fetchTransactions(user.token, true);
@@ -64,7 +61,7 @@ function WalletScreenContent() {
 
   const handleRefresh = useCallback(async () => {
     if (!user?.token) return;
-    
+
     setRefreshing(true);
     try {
       await Promise.all([
@@ -80,7 +77,9 @@ function WalletScreenContent() {
     setActiveWalletType(type);
   };
 
-  const handleTransactionTypeChange = (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip') => {
+  const handleTransactionTypeChange = (
+    type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip'
+  ) => {
     setActiveTransactionType(type);
   };
 
@@ -91,17 +90,14 @@ function WalletScreenContent() {
   }, [user?.token, loadMoreTransactions]);
 
   const handleTransactionPress = (transaction: WalletTransaction) => {
-    // Navigate to transaction details page
     router.push(`/wallet/transaction/${transaction.log_id}` as any);
   };
 
   const handleRebatePress = () => {
-    // Navigate to rebate details page
     router.push('/wallet/rebate-details' as any);
   };
 
   const handleWithdraw = () => {
-    // Navigate to withdrawal page
     router.push('/wallet/withdraw' as any);
   };
 
@@ -119,22 +115,19 @@ function WalletScreenContent() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Wallet</Text>
         </View>
 
-        {/* Wallet Tabs */}
-        <View style={styles.tabsSection}>
+        <View style={styles.card}>
           <WalletTabs
             activeWalletType={activeWalletType}
             onWalletTypeChange={handleWalletTypeChange}
           />
         </View>
 
-        {/* Balance Card */}
         {balanceData && (
-          <View style={styles.balanceSection}>
+          <View style={styles.card}>
             <WalletBalanceCard
               balanceData={balanceData}
               balanceVisible={balanceVisible}
@@ -144,45 +137,38 @@ function WalletScreenContent() {
           </View>
         )}
 
-        {/* Balance Error */}
         {balanceError && (
-          <View style={[styles.errorContainer, { backgroundColor: `${colors.error}10` }]}>
+          <View style={[styles.errorContainer, { backgroundColor: colors.error + '10' }]}>
             <Text style={[styles.errorText, { color: colors.error }]}>
-              {balanceError}
+              ⚠️ {balanceError}
             </Text>
           </View>
         )}
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtonsSection}>
+        <View style={styles.card}>
           <Button
             title="Withdraw"
             onPress={handleWithdraw}
-            style={styles.withdrawButton}
+            style={[styles.withdrawButton, { backgroundColor: colors.primary }]}
             fullWidth
           />
         </View>
 
-        {/* Transaction Filters */}
-        <View style={styles.filtersSection}>
+        <View style={styles.card}>
           <TransactionFilters
             activeType={activeTransactionType}
             onTypeChange={handleTransactionTypeChange}
           />
         </View>
 
-        {/* Transactions Header */}
         <View style={styles.transactionsHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Transaction History
-          </Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Transaction History</Text>
           <Text style={[styles.transactionCount, { color: colors.textSecondary }]}>
             {transactions.length} transactions
           </Text>
         </View>
       </ScrollView>
 
-      {/* Transaction List */}
       <View style={styles.transactionListContainer}>
         <TransactionList
           transactions={transactions}
@@ -216,45 +202,44 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingBottom: Spacing.sm,
   },
   title: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
   },
-  tabsSection: {
-    paddingHorizontal: Spacing.lg,
-  },
-  balanceSection: {
-    paddingHorizontal: Spacing.lg,
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: Spacing.md,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   errorContainer: {
     marginHorizontal: Spacing.lg,
     padding: Spacing.md,
     borderRadius: 8,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   errorText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     textAlign: 'center',
   },
-  actionButtonsSection: {
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
   withdrawButton: {
     height: 48,
-  },
-  filtersSection: {
-    paddingHorizontal: Spacing.lg,
   },
   transactionsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   sectionTitle: {
     fontSize: 18,
@@ -267,5 +252,6 @@ const styles = StyleSheet.create({
   transactionListContainer: {
     flex: 1,
     paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
   },
 });

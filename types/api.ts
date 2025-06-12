@@ -128,7 +128,7 @@ export type CardCategoryListResponse = APIResponse<CardCategory[]>;
 export type CurrencyListResponse = APIResponse<Currency[]>;
 export type RatesDataResponse = APIResponse<RatesData>;
 export type WalletBalanceResponse = APIResponse<WalletBalanceData>;
-export type WalletTransactionsResponse = APIResponse<WalletTransactionsData>;
+export type WalletTransactionsResponse = APIResponse<WalletTransaction[]>;
 
 // Existing types...
 export interface APIResponse<T> {
