@@ -1,14 +1,16 @@
 import { create } from 'zustand';
-import { WalletBalanceData, WalletTransaction, WalletTransactionsData } from '@/types/api';
+import { WalletBalanceData, WalletTransaction } from '@/types/api';
 import { WalletService } from '@/services/wallet';
 
 interface WalletState {
-  // Balance data
-  balanceData: WalletBalanceData | null;
+  // Balance data for both wallet types
+  ngnBalanceData: WalletBalanceData | null;
+  usdtBalanceData: WalletBalanceData | null;
   
   // Transactions data
   transactions: WalletTransaction[];
-  currentPage: number,
+  currentPage: number;
+  hasMore: boolean;
   
   // UI state
   isLoadingBalance: boolean;
@@ -27,14 +29,17 @@ interface WalletState {
   loadMoreTransactions: (token: string) => Promise<void>;
   setActiveWalletType: (type: '1' | '2') => void;
   setActiveTransactionType: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip') => void;
+  getCurrentBalanceData: () => WalletBalanceData | null;
   clearWalletData: () => void;
 }
 
 export const useWalletStore = create<WalletState>((set, get) => ({
   // Initial state
-  balanceData: null,
+  ngnBalanceData: null,
+  usdtBalanceData: null,
   transactions: [],
   currentPage: 0,
+  hasMore: true,
   isLoadingBalance: false,
   isLoadingTransactions: false,
   isLoadingMore: false,
@@ -48,12 +53,37 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     
     try {
       const balanceData = await WalletService.getWalletBalance(token);
-      set({ 
-        balanceData, 
-        isLoadingBalance: false,
-        // Set default wallet type based on API response
-        activeWalletType: balanceData.default_wallet_type as '1' | '2',
+      
+      // Store balance data based on default wallet type
+      const defaultType = balanceData.default_wallet_type as '1' | '2';
+      
+      if (defaultType === '1') {
+        set({ 
+          ngnBalanceData: balanceData,
+          isLoadingBalance: false,
+          activeWalletType: defaultType,
+        });
+      } else {
+        set({ 
+          usdtBalanceData: balanceData,
+          isLoadingBalance: false,
+          activeWalletType: defaultType,
+        });
+      }
+      
+      // For now, we'll use the same data for both types
+      // In a real app, you'd make separate API calls for each wallet type
+      set({
+        ngnBalanceData: balanceData,
+        usdtBalanceData: {
+          ...balanceData,
+          currency_name: 'USDT',
+          total_amount: parseFloat(balanceData.usd_amount),
+          withdraw_amount: parseFloat(balanceData.usd_amount),
+          rebate_amount: balanceData.usd_rebate_money,
+        },
       });
+      
     } catch (error) {
       // Handle token expiration errors specifically
       if (error instanceof Error && error.message.includes('Session expired')) {
@@ -76,6 +106,8 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         isLoadingTransactions: true, 
         transactionsError: null,
         transactions: [],
+        currentPage: 0,
+        hasMore: true,
       });
     } else {
       set({ isLoadingTransactions: true, transactionsError: null });
@@ -86,12 +118,16 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         token,
         type: state.activeTransactionType,
         wallet_type: state.activeWalletType,
-        page: 0, // Start from page 0
-        page_size: 10,
+        page: 0,
+        page_size: 20,
       });
-      // Handle paginati
+
+      const newTransactions = response.data || [];
+      
       set({
-        transactions: response.data,
+        transactions: newTransactions,
+        currentPage: 0,
+        hasMore: newTransactions.length >= 20,
         isLoadingTransactions: false,
       });
     } catch (error) {
@@ -111,7 +147,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   loadMoreTransactions: async (token: string) => {
     const state = get();
     
-    if (state.isLoadingMore) return;
+    if (state.isLoadingMore || !state.hasMore) return;
     
     const nextPage = state.currentPage + 1;
     
@@ -123,20 +159,20 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         type: state.activeTransactionType,
         wallet_type: state.activeWalletType,
         page: nextPage,
-        page_size: 10,
+        page_size: 20,
       });
 
-      const newTransactions = response.data;
+      const newTransactions = response.data || [];
 
       if (newTransactions.length === 0) {
-        // 没有更多了
-        set({ isLoadingMore: false });
+        set({ isLoadingMore: false, hasMore: false });
         return;
       }
 
       set({
-        transactions: [...state.transactions, ...response.data],
+        transactions: [...state.transactions, ...newTransactions],
         currentPage: nextPage,
+        hasMore: newTransactions.length >= 20,
         isLoadingMore: false,
       });
     } catch (error) {
@@ -154,18 +190,37 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   },
 
   setActiveWalletType: (type: '1' | '2') => {
-    set({ activeWalletType: type });
+    set({ 
+      activeWalletType: type,
+      // Reset transactions when switching wallet types
+      transactions: [],
+      currentPage: 0,
+      hasMore: true,
+    });
   },
 
   setActiveTransactionType: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip') => {
-    set({ activeTransactionType: type });
+    set({ 
+      activeTransactionType: type,
+      // Reset transactions when changing filter
+      transactions: [],
+      currentPage: 0,
+      hasMore: true,
+    });
+  },
+
+  getCurrentBalanceData: () => {
+    const state = get();
+    return state.activeWalletType === '1' ? state.ngnBalanceData : state.usdtBalanceData;
   },
 
   clearWalletData: () => {
     set({
-      balanceData: null,
+      ngnBalanceData: null,
+      usdtBalanceData: null,
       transactions: [],
       currentPage: 0,
+      hasMore: true,
       isLoadingBalance: false,
       isLoadingTransactions: false,
       isLoadingMore: false,

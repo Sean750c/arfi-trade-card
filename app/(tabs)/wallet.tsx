@@ -27,7 +27,6 @@ function WalletScreenContent() {
   const { user } = useAuthStore();
 
   const {
-    balanceData,
     transactions,
     isLoadingBalance,
     isLoadingTransactions,
@@ -41,10 +40,14 @@ function WalletScreenContent() {
     loadMoreTransactions,
     setActiveWalletType,
     setActiveTransactionType,
+    getCurrentBalanceData,
   } = useWalletStore();
 
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Get current balance data based on active wallet type
+  const balanceData = getCurrentBalanceData();
 
   useEffect(() => {
     if (user?.token) {
@@ -103,6 +106,20 @@ function WalletScreenContent() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: colors.text }]}>Wallet</Text>
+      </View>
+
+      {/* Wallet Tabs */}
+      <View style={styles.tabsContainer}>
+        <WalletTabs
+          activeWalletType={activeWalletType}
+          onWalletTypeChange={handleWalletTypeChange}
+        />
+      </View>
+
+      {/* Scrollable Content */}
       <ScrollView
         style={styles.scrollView}
         refreshControl={
@@ -115,19 +132,9 @@ function WalletScreenContent() {
         }
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Wallet</Text>
-        </View>
-
-        <View style={styles.card}>
-          <WalletTabs
-            activeWalletType={activeWalletType}
-            onWalletTypeChange={handleWalletTypeChange}
-          />
-        </View>
-
+        {/* Balance Card */}
         {balanceData && (
-          <View style={styles.card}>
+          <View style={styles.balanceContainer}>
             <WalletBalanceCard
               balanceData={balanceData}
               balanceVisible={balanceVisible}
@@ -137,6 +144,7 @@ function WalletScreenContent() {
           </View>
         )}
 
+        {/* Balance Error */}
         {balanceError && (
           <View style={[styles.errorContainer, { backgroundColor: colors.error + '10' }]}>
             <Text style={[styles.errorText, { color: colors.error }]}>
@@ -145,30 +153,36 @@ function WalletScreenContent() {
           </View>
         )}
 
-        <View style={styles.card}>
+        {/* Withdraw Button */}
+        <View style={styles.actionContainer}>
           <Button
-            title="Withdraw"
+            title="Withdraw Funds"
             onPress={handleWithdraw}
-            style={[styles.withdrawButton, { backgroundColor: colors.primary }]}
+            style={styles.withdrawButton}
             fullWidth
           />
         </View>
 
-        <View style={styles.card}>
+        {/* Transaction Filters */}
+        <View style={styles.filtersContainer}>
           <TransactionFilters
             activeType={activeTransactionType}
             onTypeChange={handleTransactionTypeChange}
           />
         </View>
 
+        {/* Transactions Header */}
         <View style={styles.transactionsHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Transaction History</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Transaction History
+          </Text>
           <Text style={[styles.transactionCount, { color: colors.textSecondary }]}>
             {transactions.length} transactions
           </Text>
         </View>
       </ScrollView>
 
+      {/* Transaction List */}
       <View style={styles.transactionListContainer}>
         <TransactionList
           transactions={transactions}
@@ -196,9 +210,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollView: {
-    flex: 0,
-  },
   header: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
@@ -208,31 +219,38 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'Inter-Bold',
   },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: Spacing.md,
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+  tabsContainer: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  scrollView: {
+    flex: 0,
+  },
+  balanceContainer: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   errorContainer: {
     marginHorizontal: Spacing.lg,
     padding: Spacing.md,
     borderRadius: 8,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   errorText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     textAlign: 'center',
   },
+  actionContainer: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
   withdrawButton: {
     height: 48,
+  },
+  filtersContainer: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   transactionsHeader: {
     flexDirection: 'row',
@@ -252,6 +270,5 @@ const styles = StyleSheet.create({
   transactionListContainer: {
     flex: 1,
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
   },
 });

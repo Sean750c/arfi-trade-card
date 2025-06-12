@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from 'react-native';
+import { DollarSign, Coins } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 
@@ -22,33 +23,47 @@ export default function WalletTabs({
   const colors = Colors[colorScheme];
 
   const tabs = [
-    { key: '1', label: 'NGN Wallet', symbol: '₦' },
-    { key: '2', label: 'USDT Wallet', symbol: 'USDT' },
+    { 
+      key: '1', 
+      label: 'NGN Wallet', 
+      symbol: '₦',
+      icon: <Coins size={16} color={activeWalletType === '1' ? '#FFFFFF' : colors.primary} />
+    },
+    { 
+      key: '2', 
+      label: 'USDT Wallet', 
+      symbol: 'USDT',
+      icon: <DollarSign size={16} color={activeWalletType === '2' ? '#FFFFFF' : colors.primary} />
+    },
   ];
 
   return (
-    <View style={styles.tabsContainer}>
+    <View style={[styles.tabsContainer, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}>
       {tabs.map((tab) => (
         <TouchableOpacity
           key={tab.key}
           style={[
             styles.tab,
             {
-              borderBottomColor: activeWalletType === tab.key ? colors.primary : 'transparent',
+              backgroundColor: activeWalletType === tab.key ? colors.primary : 'transparent',
             },
           ]}
           onPress={() => onWalletTypeChange(tab.key as '1' | '2')}
+          activeOpacity={0.7}
         >
-          <Text
-            style={[
-              styles.tabText,
-              {
-                color: activeWalletType === tab.key ? colors.primary : colors.textSecondary,
-              },
-            ]}
-          >
-            {tab.label}
-          </Text>
+          <View style={styles.tabContent}>
+            {tab.icon}
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color: activeWalletType === tab.key ? '#FFFFFF' : colors.text,
+                },
+              ]}
+            >
+              {tab.label}
+            </Text>
+          </View>
         </TouchableOpacity>
       ))}
     </View>
@@ -58,16 +73,23 @@ export default function WalletTabs({
 const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: 'row',
-    marginBottom: Spacing.lg,
+    borderRadius: 12,
+    padding: 4,
   },
   tab: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    marginRight: Spacing.lg,
-    borderBottomWidth: 2,
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 8,
+  },
+  tabContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
   },
   tabText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
   },
 });

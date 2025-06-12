@@ -38,7 +38,7 @@ export default function TransactionFilters({
         <View style={styles.titleContainer}>
           <Filter size={16} color={colors.text} />
           <Text style={[styles.title, { color: colors.text }]}>
-            Transaction Type
+            Filter by Type
           </Text>
         </View>
       </View>
@@ -81,7 +81,7 @@ export default function TransactionFilters({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   header: {
     flexDirection: 'row',
@@ -95,23 +95,23 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   title: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
   },
   filtersContainer: {
-    gap: Spacing.sm,
+    gap: Spacing.xs,
     paddingRight: Spacing.lg,
   },
   filterButton: {
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 20,
+    paddingVertical: Spacing.xs,
+    borderRadius: 16,
     borderWidth: 1,
-    minWidth: 80,
+    minWidth: 70,
     alignItems: 'center',
   },
   filterText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-Medium',
   },
 });
