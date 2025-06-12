@@ -66,10 +66,69 @@ export interface RatesData {
   first_card_name: string;
 }
 
+// Wallet API Types
+export interface WalletBalanceData {
+  total_amount: number;
+  usd_amount: string;
+  frozen_amount: number;
+  withdraw_amount: number;
+  transfer_rebate: string;
+  rebate_amount: number;
+  usd_rebate_money: number;
+  checkin_status: boolean;
+  lottery_status: boolean;
+  rank_status: boolean;
+  default_wallet_type: string;
+  dealing_cnt: number;
+  currency_name: string;
+  rate: string;
+  point: number;
+}
+
+export interface WalletTransaction {
+  currency_name: string;
+  currency_symbol: string;
+  log_id: number;
+  memo: string;
+  order_no: string;
+  create_time: number;
+  amount: number;
+  balance_amount: number;
+  order_amount: string;
+  platform_fee: string;
+  vip_rate: string;
+  remark: string;
+  name: string;
+  type: 'order' | 'withdraw' | 'admin' | 'transfer' | 'dispute' | 'activity' | 'rank' | 'platform';
+  order_status: string;
+  image: string;
+  account_no: string;
+  account_name: string;
+  bank_name: string;
+  bank_logo: string;
+}
+
+export interface WalletTransactionRequest {
+  token: string;
+  type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip';
+  wallet_type: '1' | '2'; // 1: national currency, 2: USDT
+  page: number;
+  page_size: number;
+}
+
+export interface WalletTransactionsData {
+  total: number;
+  page: number;
+  page_size: number;
+  data: WalletTransaction[];
+}
+
 // API Response types
 export type CardCategoryListResponse = APIResponse<CardCategory[]>;
 export type CurrencyListResponse = APIResponse<Currency[]>;
 export type RatesDataResponse = APIResponse<RatesData>;
+export type WalletBalanceResponse = APIResponse<WalletBalanceData>;
+export type WalletTransactionsResponse = APIResponse<WalletTransactionsData>;
 
 // Existing types...
 export interface APIResponse<T> {

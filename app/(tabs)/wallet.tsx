@@ -1,256 +1,199 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
-  TouchableOpacity,
-  FlatList,
   useColorScheme,
+  RefreshControl,
+  ScrollView,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ArrowUpRight, ArrowDownRight, Gift, Filter } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
-import Card from '@/components/UI/Card';
 import AuthGuard from '@/components/UI/AuthGuard';
+import WalletBalanceCard from '@/components/wallet/WalletBalanceCard';
+import WalletTabs from '@/components/wallet/WalletTabs';
+import TransactionFilters from '@/components/wallet/TransactionFilters';
+import TransactionList from '@/components/wallet/TransactionList';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-
-// Sample transaction data
-const transactions = [
-  {
-    id: '1',
-    type: 'withdrawal',
-    amount: '-₦35,000',
-    status: 'success',
-    date: '2023-06-18',
-    time: '14:30',
-    description: 'Withdrawal to Bank',
-  },
-  {
-    id: '2',
-    type: 'gift_card',
-    amount: '+₦25,000',
-    status: 'success',
-    date: '2023-06-17',
-    time: '10:15',
-    description: 'Steam Gift Card',
-  },
-  {
-    id: '3',
-    type: 'gift_card',
-    amount: '+₦12,500',
-    status: 'pending',
-    date: '2023-06-16',
-    time: '16:45',
-    description: 'Amazon Gift Card',
-  },
-  {
-    id: '4',
-    type: 'withdrawal',
-    amount: '-₦20,000',
-    status: 'success',
-    date: '2023-06-15',
-    time: '09:00',
-    description: 'Withdrawal to Bank',
-  },
-  {
-    id: '5',
-    type: 'gift_card',
-    amount: '+₦15,000',
-    status: 'success',
-    date: '2023-06-14',
-    time: '11:30',
-    description: 'iTunes Gift Card',
-  },
-];
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useWalletStore } from '@/stores/useWalletStore';
+import type { WalletTransaction } from '@/types/api';
 
 function WalletScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const { user } = useAuthStore();
   
-  const [activeTab, setActiveTab] = useState('NGN');
-  
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'success':
-        return colors.success;
-      case 'pending':
-        return colors.warning;
-      case 'failed':
-        return colors.error;
-      default:
-        return colors.text;
+  const {
+    balanceData,
+    transactions,
+    isLoadingBalance,
+    isLoadingTransactions,
+    isLoadingMore,
+    balanceError,
+    transactionsError,
+    activeWalletType,
+    activeTransactionType,
+    fetchBalance,
+    fetchTransactions,
+    loadMoreTransactions,
+    setActiveWalletType,
+    setActiveTransactionType,
+  } = useWalletStore();
+
+  const [balanceVisible, setBalanceVisible] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Initial data fetch
+  useEffect(() => {
+    if (user?.token) {
+      fetchBalance(user.token);
+      fetchTransactions(user.token, true);
     }
+  }, [user?.token, fetchBalance, fetchTransactions]);
+
+  // Refetch transactions when filters change
+  useEffect(() => {
+    if (user?.token) {
+      fetchTransactions(user.token, true);
+    }
+  }, [activeWalletType, activeTransactionType, user?.token, fetchTransactions]);
+
+  const handleRefresh = useCallback(async () => {
+    if (!user?.token) return;
+    
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        fetchBalance(user.token),
+        fetchTransactions(user.token, true),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [user?.token, fetchBalance, fetchTransactions]);
+
+  const handleWalletTypeChange = (type: '1' | '2') => {
+    setActiveWalletType(type);
   };
-  
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'withdrawal':
-        return <ArrowUpRight size={20} color={colors.error} />;
-      case 'gift_card':
-        return <Gift size={20} color={colors.success} />;
-      default:
-        return <ArrowDownRight size={20} color={colors.success} />;
+
+  const handleTransactionTypeChange = (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip') => {
+    setActiveTransactionType(type);
+  };
+
+  const handleLoadMore = useCallback(() => {
+    if (user?.token) {
+      loadMoreTransactions(user.token);
     }
+  }, [user?.token, loadMoreTransactions]);
+
+  const handleTransactionPress = (transaction: WalletTransaction) => {
+    // Navigate to transaction details page
+    router.push(`/wallet/transaction/${transaction.log_id}` as any);
+  };
+
+  const handleRebatePress = () => {
+    // Navigate to rebate details page
+    router.push('/wallet/rebate-details' as any);
+  };
+
+  const handleWithdraw = () => {
+    // Navigate to withdrawal page
+    router.push('/wallet/withdraw' as any);
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Wallet</Text>
-      </View>
-      
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            {
-              borderBottomColor: activeTab === 'NGN' ? colors.primary : 'transparent',
-            },
-          ]}
-          onPress={() => setActiveTab('NGN')}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              {
-                color: activeTab === 'NGN' ? colors.primary : colors.textSecondary,
-              },
-            ]}
-          >
-            NGN Wallet
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            {
-              borderBottomColor: activeTab === 'USDT' ? colors.primary : 'transparent',
-            },
-          ]}
-          onPress={() => setActiveTab('USDT')}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              {
-                color: activeTab === 'USDT' ? colors.primary : colors.textSecondary,
-              },
-            ]}
-          >
-            USDT Wallet
-          </Text>
-        </TouchableOpacity>
-      </View>
-      
-      <Card style={styles.balanceCard}>
-        <Text style={[styles.balanceLabel, { color: colors.textSecondary }]}>
-          Available Balance
-        </Text>
-        <Text style={[styles.balanceAmount, { color: colors.text }]}>
-          {activeTab === 'NGN' ? '₦120,500.00' : 'USDT 215.75'}
-        </Text>
-        
-        <View style={styles.rebateContainer}>
-          <Text style={[styles.rebateLabel, { color: colors.textSecondary }]}>
-            Rebate Balance:
-          </Text>
-          <Text style={[styles.rebateAmount, { color: colors.primary }]}>
-            {activeTab === 'NGN' ? '₦1,250.00' : 'USDT 0.00'}
-          </Text>
-        </View>
-        
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Deposit"
-            style={styles.actionButton}
-            onPress={() => router.push('/wallet/deposit')}
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: colors.text }]}>Wallet</Text>
+        </View>
+
+        {/* Wallet Tabs */}
+        <View style={styles.tabsSection}>
+          <WalletTabs
+            activeWalletType={activeWalletType}
+            onWalletTypeChange={handleWalletTypeChange}
+          />
+        </View>
+
+        {/* Balance Card */}
+        {balanceData && (
+          <View style={styles.balanceSection}>
+            <WalletBalanceCard
+              balanceData={balanceData}
+              balanceVisible={balanceVisible}
+              onToggleVisibility={() => setBalanceVisible(!balanceVisible)}
+              onRebatePress={handleRebatePress}
+            />
+          </View>
+        )}
+
+        {/* Balance Error */}
+        {balanceError && (
+          <View style={[styles.errorContainer, { backgroundColor: `${colors.error}10` }]}>
+            <Text style={[styles.errorText, { color: colors.error }]}>
+              {balanceError}
+            </Text>
+          </View>
+        )}
+
+        {/* Action Buttons */}
+        <View style={styles.actionButtonsSection}>
           <Button
             title="Withdraw"
-            variant="outline"
-            style={styles.actionButton}
-            onPress={() => router.push('/wallet/withdraw')}
+            onPress={handleWithdraw}
+            style={styles.withdrawButton}
+            fullWidth
           />
         </View>
-      </Card>
-      
-      <View style={styles.transactionsHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Transaction History
-        </Text>
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' },
-          ]}
-        >
-          <Filter size={18} color={colors.text} />
-        </TouchableOpacity>
+
+        {/* Transaction Filters */}
+        <View style={styles.filtersSection}>
+          <TransactionFilters
+            activeType={activeTransactionType}
+            onTypeChange={handleTransactionTypeChange}
+          />
+        </View>
+
+        {/* Transactions Header */}
+        <View style={styles.transactionsHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Transaction History
+          </Text>
+          <Text style={[styles.transactionCount, { color: colors.textSecondary }]}>
+            {transactions.length} transactions
+          </Text>
+        </View>
+      </ScrollView>
+
+      {/* Transaction List */}
+      <View style={styles.transactionListContainer}>
+        <TransactionList
+          transactions={transactions}
+          isLoading={isLoadingTransactions}
+          isLoadingMore={isLoadingMore}
+          error={transactionsError}
+          onLoadMore={handleLoadMore}
+          onRefresh={handleRefresh}
+          onTransactionPress={handleTransactionPress}
+        />
       </View>
-      
-      <FlatList
-        data={transactions}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.transactionItem,
-              { borderBottomColor: colors.border },
-            ]}
-            onPress={() => router.push(`/wallet/transaction/${item.id}`)}
-          >
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor:
-                    item.type === 'withdrawal'
-                      ? `${colors.error}15`
-                      : `${colors.success}15`,
-                },
-              ]}
-            >
-              {getTypeIcon(item.type)}
-            </View>
-            
-            <View style={styles.transactionDetails}>
-              <Text style={[styles.transactionDescription, { color: colors.text }]}>
-                {item.description}
-              </Text>
-              <Text
-                style={[styles.transactionDate, { color: colors.textSecondary }]}
-              >
-                {item.date} • {item.time}
-              </Text>
-            </View>
-            
-            <View style={styles.transactionAmount}>
-              <Text
-                style={[
-                  styles.amountText,
-                  {
-                    color:
-                      item.amount.includes('+') ? colors.success : colors.error,
-                  },
-                ]}
-              >
-                {item.amount}
-              </Text>
-              <Text
-                style={[
-                  styles.statusText,
-                  { color: getStatusColor(item.status) },
-                ]}
-              >
-                {item.status}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.transactionsList}
-      />
     </SafeAreaView>
   );
 }
@@ -267,6 +210,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollView: {
+    flex: 0,
+  },
   header: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
@@ -276,55 +222,32 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'Inter-Bold',
   },
-  tabsContainer: {
-    flexDirection: 'row',
+  tabsSection: {
+    paddingHorizontal: Spacing.lg,
+  },
+  balanceSection: {
+    paddingHorizontal: Spacing.lg,
+  },
+  errorContainer: {
+    marginHorizontal: Spacing.lg,
+    padding: Spacing.md,
+    borderRadius: 8,
+    marginBottom: Spacing.lg,
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
+  },
+  actionButtonsSection: {
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
   },
-  tab: {
-    paddingVertical: Spacing.sm,
-    marginRight: Spacing.xl,
-    borderBottomWidth: 2,
+  withdrawButton: {
+    height: 48,
   },
-  tabText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-  },
-  balanceCard: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  balanceLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginBottom: Spacing.xs,
-  },
-  balanceAmount: {
-    fontSize: 28,
-    fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.sm,
-  },
-  rebateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  rebateLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginRight: Spacing.xs,
-  },
-  rebateAmount: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  actionButton: {
-    flex: 1,
-    marginHorizontal: Spacing.xs,
+  filtersSection: {
+    paddingHorizontal: Spacing.lg,
   },
   transactionsHeader: {
     flexDirection: 'row',
@@ -337,53 +260,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
   },
-  filterButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+  transactionCount: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
   },
-  transactionsList: {
-    paddingHorizontal: Spacing.lg,
-  },
-  transactionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.md,
-  },
-  transactionDetails: {
+  transactionListContainer: {
     flex: 1,
-  },
-  transactionDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    marginBottom: 2,
-  },
-  transactionDate: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-  },
-  transactionAmount: {
-    alignItems: 'flex-end',
-  },
-  amountText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 2,
-  },
-  statusText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    textTransform: 'capitalize',
+    paddingHorizontal: Spacing.lg,
   },
 });
