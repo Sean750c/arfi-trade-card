@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { WalletBalanceData, WalletTransaction } from '@/types/api';
+import { WalletBalanceData, WalletTransaction, WalletTransactionsData } from '@/types/api';
 import { WalletService } from '@/services/wallet';
 
 interface WalletState {
@@ -8,8 +8,7 @@ interface WalletState {
   
   // Transactions data
   transactions: WalletTransaction[];
-  currentPage: number;
-  hasMoreTransactions: boolean;
+  currentPage: number,
   
   // UI state
   isLoadingBalance: boolean;
@@ -36,7 +35,6 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   balanceData: null,
   transactions: [],
   currentPage: 0,
-  hasMoreTransactions: true,
   isLoadingBalance: false,
   isLoadingTransactions: false,
   isLoadingMore: false,
@@ -78,8 +76,6 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         isLoadingTransactions: true, 
         transactionsError: null,
         transactions: [],
-        currentPage: 0,
-        hasMoreTransactions: true,
       });
     } else {
       set({ isLoadingTransactions: true, transactionsError: null });
@@ -91,16 +87,11 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         type: state.activeTransactionType,
         wallet_type: state.activeWalletType,
         page: 0, // Start from page 0
-        page_size: 20,
+        page_size: 10,
       });
-
-      const newTransactions = response.data;
-      const hasMore = newTransactions.length >= 20;
-
+      // Handle paginati
       set({
-        transactions: newTransactions,
-        currentPage: 0,
-        hasMoreTransactions: hasMore,
+        transactions: response.data,
         isLoadingTransactions: false,
       });
     } catch (error) {
@@ -120,7 +111,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   loadMoreTransactions: async (token: string) => {
     const state = get();
     
-    if (state.isLoadingMore || !state.hasMoreTransactions) return;
+    if (state.isLoadingMore) return;
     
     const nextPage = state.currentPage + 1;
     
@@ -132,24 +123,20 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         type: state.activeTransactionType,
         wallet_type: state.activeWalletType,
         page: nextPage,
-        page_size: 20,
+        page_size: 10,
       });
 
       const newTransactions = response.data;
-      const hasMore = newTransactions.length >= 20;
 
       if (newTransactions.length === 0) {
-        set({ 
-          isLoadingMore: false,
-          hasMoreTransactions: false,
-        });
+        // 没有更多了
+        set({ isLoadingMore: false });
         return;
       }
 
       set({
-        transactions: [...state.transactions, ...newTransactions],
+        transactions: [...state.transactions, ...response.data],
         currentPage: nextPage,
-        hasMoreTransactions: hasMore,
         isLoadingMore: false,
       });
     } catch (error) {
@@ -167,23 +154,11 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   },
 
   setActiveWalletType: (type: '1' | '2') => {
-    set({ 
-      activeWalletType: type,
-      // Reset transactions when switching wallet type
-      transactions: [],
-      currentPage: 0,
-      hasMoreTransactions: true,
-    });
+    set({ activeWalletType: type });
   },
 
   setActiveTransactionType: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip') => {
-    set({ 
-      activeTransactionType: type,
-      // Reset transactions when switching transaction type
-      transactions: [],
-      currentPage: 0,
-      hasMoreTransactions: true,
-    });
+    set({ activeTransactionType: type });
   },
 
   clearWalletData: () => {
@@ -191,7 +166,6 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       balanceData: null,
       transactions: [],
       currentPage: 0,
-      hasMoreTransactions: true,
       isLoadingBalance: false,
       isLoadingTransactions: false,
       isLoadingMore: false,
