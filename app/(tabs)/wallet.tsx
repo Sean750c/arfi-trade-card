@@ -11,7 +11,7 @@ import {
   Animated,
 } from 'react-native';
 import { router } from 'expo-router';
-import { AlertCircle } from 'lucide-react-native';
+import { CircleAlert as AlertCircle } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
 import AuthGuard from '@/components/UI/AuthGuard';
 import WalletBalanceCard from '@/components/wallet/WalletBalanceCard';

@@ -8,7 +8,7 @@ import {
   Animated,
   Modal,
 } from 'react-native';
-import { Eye, EyeOff, Gift, TrendingUp, Award, HelpCircle, X, Info } from 'lucide-react-native';
+import { Eye, EyeOff, Gift, TrendingUp, Award, CircleHelp as HelpCircle, X, Info } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
