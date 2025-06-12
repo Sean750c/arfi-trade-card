@@ -37,7 +37,7 @@ export class WalletService {
   static async getWalletTransactions(params: WalletTransactionRequest): Promise<WalletTransactionsData> {
     try {
       const response = await APIRequest.request<WalletTransactionsResponse>(
-        '/gc/wallet/moneyLogList ',
+        '/gc/wallet/moneyLogList',
         'POST',
         params
       );
