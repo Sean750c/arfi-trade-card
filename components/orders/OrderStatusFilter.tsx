@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from 'react-native';
-import { Clock, CheckCircle, CircleX } from 'lucide-react-native';
+import { Clock, CircleCheck as CheckCircle, CircleX } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 

@@ -7,16 +7,7 @@ import {
   useColorScheme,
   Image,
 } from 'react-native';
-import { 
-  ChevronRight,
-  Clock,
-  CircleCheck as CheckCircle,
-  CircleX as XCircle,
-  Gift,
-  DollarSign,
-  Calendar,
-  ImageIcon,
-} from 'lucide-react-native';
+import { ChevronRight, Clock, CircleCheck as CheckCircle, CircleX as XCircle, Gift, DollarSign, Calendar, Image as ImageIcon } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { OrderListItem } from '@/types/api';

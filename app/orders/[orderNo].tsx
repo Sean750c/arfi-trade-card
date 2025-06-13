@@ -13,23 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { 
-  ChevronLeft, 
-  Calendar,
-  DollarSign,
-  Gift,
-  Clock,
-  CircleCheck as CheckCircle,
-  CircleAlert as AlertCircle,
-  CircleX as XCircle,
-  Copy,
-  Share,
-  Eye,
-  Tag,
-  Crown,
-  Sparkles,
-  ImageIcon,
-} from 'lucide-react-native';
+import { ChevronLeft, Calendar, DollarSign, Gift, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, CircleX as XCircle, Copy, Share, Eye, Tag, Crown, Sparkles, Image as ImageIcon } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
