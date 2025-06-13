@@ -27,18 +27,24 @@ export default function WalletTabs({
       key: '1', 
       label: 'NGN Wallet', 
       symbol: '₦',
-      icon: <Coins size={16} color={activeWalletType === '1' ? '#FFFFFF' : colors.primary} />
+      icon: <Coins size={18} color={activeWalletType === '1' ? '#FFFFFF' : colors.primary} />
     },
     { 
       key: '2', 
       label: 'USDT Wallet', 
       symbol: 'USDT',
-      icon: <DollarSign size={16} color={activeWalletType === '2' ? '#FFFFFF' : colors.primary} />
+      icon: <DollarSign size={18} color={activeWalletType === '2' ? '#FFFFFF' : colors.primary} />
     },
   ];
 
   return (
-    <View style={[styles.tabsContainer, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}>
+    <View style={[
+      styles.tabsContainer, 
+      { 
+        backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+        shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+      }
+    ]}>
       {tabs.map((tab) => (
         <TouchableOpacity
           key={tab.key}
@@ -46,6 +52,11 @@ export default function WalletTabs({
             styles.tab,
             {
               backgroundColor: activeWalletType === tab.key ? colors.primary : 'transparent',
+              shadowColor: activeWalletType === tab.key ? colors.primary : 'transparent',
+              shadowOffset: activeWalletType === tab.key ? { width: 0, height: 4 } : { width: 0, height: 0 },
+              shadowOpacity: activeWalletType === tab.key ? 0.3 : 0,
+              shadowRadius: activeWalletType === tab.key ? 8 : 0,
+              elevation: activeWalletType === tab.key ? 6 : 0,
             },
           ]}
           onPress={() => onWalletTypeChange(tab.key as '1' | '2')}
@@ -73,23 +84,27 @@ export default function WalletTabs({
 const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: 'row',
-    borderRadius: 12,
-    padding: 4,
+    borderRadius: 16,
+    padding: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   tab: {
     flex: 1,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   tabContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.xs,
+    gap: Spacing.sm,
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Inter-SemiBold',
   },
 });

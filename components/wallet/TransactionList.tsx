@@ -118,8 +118,9 @@ export default function TransactionList({
       style={[
         styles.transactionItem,
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
           borderColor: colors.border,
+          shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.08)',
         },
       ]}
       onPress={() => onTransactionPress(item)}
@@ -137,7 +138,17 @@ export default function TransactionList({
               item.type === 'admin' ? colors.secondary :
               item.type === 'rank' ? colors.warning :
               colors.textSecondary
-            }15`
+            }15`,
+            shadowColor: item.type === 'withdraw' ? colors.error :
+              item.type === 'order' ? colors.success :
+              item.type === 'transfer' ? colors.primary :
+              item.type === 'admin' ? colors.secondary :
+              item.type === 'rank' ? colors.warning :
+              colors.textSecondary,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 2,
           }
         ]}>
           {getTypeIcon(item.type)}
@@ -273,19 +284,23 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   transactionItem: {
-    borderRadius: 12,
-    marginBottom: Spacing.sm,
+    borderRadius: 16,
+    marginBottom: Spacing.md,
     borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   transactionContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
+    padding: Spacing.lg,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
@@ -294,16 +309,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   transactionHeader: {
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   transactionName: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   transactionMemo: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Inter-Regular',
+    lineHeight: 18,
   },
   transactionMeta: {
     flexDirection: 'row',
@@ -335,9 +351,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   transactionAmount: {
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: 'Inter-Bold',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   balanceAfter: {
     fontSize: 10,

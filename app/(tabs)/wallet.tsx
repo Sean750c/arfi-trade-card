@@ -106,8 +106,15 @@ function WalletScreenContent() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={styles.header}>
+      {/* Enhanced Header */}
+      <View style={[
+        styles.header, 
+        { 
+          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          borderBottomColor: colors.border,
+          shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.05)',
+        }
+      ]}>
         <Text style={[styles.title, { color: colors.text }]}>Wallet</Text>
       </View>
 
@@ -213,27 +220,32 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
-    paddingBottom: Spacing.sm,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontFamily: 'Inter-Bold',
   },
   tabsContainer: {
     paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.sm,
+    paddingVertical: Spacing.sm,
   },
   scrollView: {
     flex: 0,
   },
   balanceContainer: {
     paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.sm,
+    paddingTop: Spacing.sm,
   },
   errorContainer: {
     marginHorizontal: Spacing.lg,
     padding: Spacing.md,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: Spacing.sm,
   },
   errorText: {
@@ -243,29 +255,34 @@ const styles = StyleSheet.create({
   },
   actionContainer: {
     paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.sm,
+    paddingVertical: Spacing.md,
   },
   withdrawButton: {
-    height: 48,
+    height: 52,
+    borderRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   filtersContainer: {
     paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.sm,
+    paddingBottom: Spacing.sm,
   },
   transactionsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.sm,
+    paddingBottom: Spacing.sm,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
   },
   transactionCount: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontSize: 13,
+    fontFamily: 'Inter-Medium',
   },
   transactionListContainer: {
     flex: 1,
