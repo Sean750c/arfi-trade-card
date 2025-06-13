@@ -61,6 +61,7 @@ function WithdrawScreenContent() {
         PaymentService.getAvailablePaymentMethods({
           token: user.token,
           type: activeWalletType,
+          country_id: user.country_id,
         }),
       ]);
 

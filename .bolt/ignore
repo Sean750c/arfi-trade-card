@@ -1,0 +1,13 @@
+app/notifications.tsx
+app/rates.tsx
+app/(tabs)/sell.tsx
+components/calculator/*
+components/rates/*
+components/sell/*
+components/rates/*
+stores/useRatesStore.ts
+stores/useBannerStore.ts
+stores/useNotificationStore.ts
+service/calculator.ts
+service/rates.ts
+service/notification.ts

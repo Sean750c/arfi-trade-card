@@ -9,11 +9,12 @@ import type {
   Bank,
   CoinNetwork,
   PaymentListRequest,
+  UserPaymentListRequest,
   BankListRequest
 } from '@/types/api';
 
 export class PaymentService {
-  static async getPaymentMethods(params: PaymentListRequest): Promise<PaymentMethod[]> {
+  static async getPaymentMethods(params: UserPaymentListRequest): Promise<PaymentMethod[]> {
     try {
       const response = await APIRequest.request<PaymentMethodsResponse>(
         '/gc/payment/list',

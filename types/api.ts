@@ -183,9 +183,15 @@ export interface CoinNetwork {
   network_logo: string;
 }
 
+export interface UserPaymentListRequest {
+  token: string;
+  type: '1' | '2'; // 1: national currency, 2: USDT
+}
+
 export interface PaymentListRequest {
   token: string;
   type: '1' | '2'; // 1: national currency, 2: USDT
+  country_id: number;
 }
 
 export interface BankListRequest {

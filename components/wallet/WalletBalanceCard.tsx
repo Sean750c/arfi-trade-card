@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  ColorValue,
   useColorScheme,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -46,17 +47,17 @@ export default function WalletBalanceCard({
   };
 
   // Define gradient colors based on theme and currency
-  const getGradientColors = () => {
+  const getGradientColors = (): [ColorValue, ColorValue, ...ColorValue[]] => {
     if (balanceData.currency_name === 'USDT') {
       return colorScheme === 'dark' 
-        ? ['#1E40AF', '#3B82F6', '#1E3A8A'] // Blue gradient for USDT in dark mode
-        : ['#2563EB', '#3B82F6', '#1D4ED8']; // Blue gradient for USDT in light mode
+        ? ['#1E40AF', '#3B82F6', '#1E3A8A'] // 深色模式 USDT 蓝色渐变
+        : ['#2563EB', '#3B82F6', '#1D4ED8']; // 浅色模式 USDT 蓝色渐变
     } else {
       return colorScheme === 'dark'
-        ? [colors.primary, '#059669', '#047857'] // Green gradient for NGN in dark mode
-        : [colors.primary, '#10B981', '#047857']; // Green gradient for NGN in light mode
+        ? [colors.primary, '#059669', '#047857'] // 深色模式 NGN 绿色渐变
+        : [colors.primary, '#10B981', '#047857']; // 浅色模式 NGN 绿色渐变
     }
-  };
+};
 
   return (
     <LinearGradient
