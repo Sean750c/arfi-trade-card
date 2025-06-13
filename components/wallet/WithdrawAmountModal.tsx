@@ -10,7 +10,7 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { X, DollarSign, Clock, AlertCircle } from 'lucide-react-native';
+import { X, DollarSign, Clock, CircleAlert as AlertCircle } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
