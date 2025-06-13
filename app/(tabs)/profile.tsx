@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
-import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn } from 'lucide-react-native';
+import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -128,6 +128,13 @@ export default function ProfileScreen() {
       title: 'Bank Accounts',
       subtitle: 'Manage your withdrawal accounts',
       route: '/profile/bank-accounts',
+    },
+    {
+      id: '4',
+      icon: <Receipt size={20} color={colors.primary} />,
+      title: 'My Orders',
+      subtitle: 'View your trading history',
+      route: '/orders',
     },
   ];
 
