@@ -121,13 +121,6 @@ export interface WalletTransactionRequest {
   page_size: number;
 }
 
-export interface WalletTransactionsData {
-  total: number;
-  page: number;
-  page_size: number;
-  data: WalletTransaction[];
-}
-
 // Withdrawal Payment Types
 export interface PaymentAccount {
   bank_id: number;
@@ -223,13 +216,6 @@ export interface OrderListRequest {
   end_time?: number;
   page: number;
   page_size: number;
-}
-
-export interface OrderListData {
-  total: number;
-  page: number;
-  page_size: number;
-  data: OrderListItem[];
 }
 
 export interface OrderImage {
@@ -520,5 +506,5 @@ export type PaymentMethodsResponse = APIResponse<PaymentMethod[]>;
 export type AvailablePaymentMethodsResponse = APIResponse<AvailablePaymentMethod[]>;
 export type BankListResponse = APIResponse<Bank[]>;
 export type CoinListResponse = APIResponse<CoinNetwork[]>;
-export type OrderListResponse = APIResponse<OrderListData>;
+export type OrderListResponse = APIResponse<OrderListItem[]>;
 export type OrderDetailResponse = APIResponse<OrderDetail>;

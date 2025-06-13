@@ -40,7 +40,6 @@ function OrdersScreenContent() {
 
   const {
     orders,
-    totalOrders,
     isLoadingOrders,
     isLoadingMore,
     ordersError,
@@ -85,7 +84,7 @@ function OrdersScreenContent() {
 
   const getStatusStats = () => {
     const stats = {
-      all: totalOrders,
+      all: 11,
       inprocess: 0,
       done: 0,
     };
@@ -182,7 +181,7 @@ function OrdersScreenContent() {
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>My Orders</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {totalOrders} total orders
+            11 total orders
           </Text>
         </View>
         <TouchableOpacity 

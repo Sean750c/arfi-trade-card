@@ -65,7 +65,7 @@ export default function OrderCard({ order, onPress }: OrderCardProps) {
   const formatAmount = () => {
     const symbol = order.currency === 'NGN' ? '₦' : order.currency === 'USDT' ? 'USDT' : order.currency;
     return `${symbol}${parseFloat(order.all_money).toLocaleString(undefined, {
-      miniminFractionDigits: 2,
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
   };
@@ -144,7 +144,11 @@ export default function OrderCard({ order, onPress }: OrderCardProps) {
         {order.order_rebate > 0 && (
           <View style={[styles.rebateContainer, { backgroundColor: `${colors.success}10` }]}>
             <Text style={[styles.rebateText, { color: colors.success }]}>
-              Rebate: {order.currency === 'NGN' ? '₦' : 'USDT'}{order.order_rebate.toFixed(2)}
+              Rebate:{' '}
+              {order.currency === 'NGN' ? '₦' : 'USDT'}
+              {typeof order.order_rebate === 'number'
+                ? order.order_rebate.toFixed(2)
+                : '0.00'}
             </Text>
           </View>
         )}

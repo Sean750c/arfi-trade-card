@@ -3,13 +3,13 @@ import type {
   OrderListResponse,
   OrderDetailResponse,
   OrderListRequest,
+  OrderListItem,
   OrderDetailRequest,
-  OrderListData,
   OrderDetail
 } from '@/types/api';
 
 export class OrderService {
-  static async getOrderList(params: OrderListRequest): Promise<OrderListData> {
+  static async getOrderList(params: OrderListRequest): Promise<OrderListItem[]> {
     try {
       const response = await APIRequest.request<OrderListResponse>(
         '/gc/ord/list',

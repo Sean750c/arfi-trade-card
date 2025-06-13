@@ -6,7 +6,6 @@ interface OrderState {
   // Order list data
   orders: OrderListItem[];
   currentPage: number;
-  totalOrders: number;
   hasMore: boolean;
   
   // Order details cache
@@ -37,7 +36,6 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   // Initial state
   orders: [],
   currentPage: 0,
-  totalOrders: 0,
   hasMore: true,
   orderDetails: {},
   isLoadingOrders: false,
@@ -66,17 +64,14 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       const orderData = await OrderService.getOrderList({
         token,
         status: state.activeStatus,
-        start_time: state.startTime,
-        end_time: state.endTime,
         page: 0,
-        page_size: 20,
+        page_size: 10,
       });
 
       set({
-        orders: orderData.data,
+        orders: orderData,
         currentPage: 0,
-        totalOrders: orderData.total,
-        hasMore: orderData.data.length >= 20,
+        hasMore: orderData.length >= 10,
         isLoadingOrders: false,
       });
     } catch (error) {
@@ -106,13 +101,11 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       const orderData = await OrderService.getOrderList({
         token,
         status: state.activeStatus,
-        start_time: state.startTime,
-        end_time: state.endTime,
         page: nextPage,
-        page_size: 20,
+        page_size: 10,
       });
 
-      const newOrders = orderData.data;
+      const newOrders = orderData;
 
       if (newOrders.length === 0) {
         set({ isLoadingMore: false, hasMore: false });
@@ -122,7 +115,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       set({
         orders: [...state.orders, ...newOrders],
         currentPage: nextPage,
-        hasMore: newOrders.length >= 20,
+        hasMore: newOrders.length >= 10,
         isLoadingMore: false,
       });
     } catch (error) {
@@ -206,7 +199,6 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     set({
       orders: [],
       currentPage: 0,
-      totalOrders: 0,
       hasMore: true,
       orderDetails: {},
       isLoadingOrders: false,
