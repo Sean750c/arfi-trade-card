@@ -17,6 +17,7 @@ import { router } from 'expo-router';
 import { ChevronLeft, Mail, Phone, ChevronDown } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
+import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useCountryStore } from '@/stores/useCountryStore';
@@ -123,6 +124,14 @@ export default function RegisterScreen() {
     }
   };
 
+  const handleTermsPress = () => {
+    router.push('/(auth)/terms-of-service');
+  };
+
+  const handlePrivacyPress = () => {
+    router.push('/(auth)/privacy-policy');
+  };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -134,7 +143,7 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <SafeAreaView style={styles.safeArea}>
-          {/* 头部区域 */}
+          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity 
               onPress={handleBack} 
@@ -151,7 +160,7 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* 注册类型选择 */}
+          {/* Registration Type Selection */}
           <View style={styles.registrationTypeContainer}>
             <TouchableOpacity
               style={[
@@ -218,9 +227,9 @@ export default function RegisterScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* 表单区域 */}
+          {/* Form */}
           <View style={styles.formContainer}>
-            {/* 国家选择器 */}
+            {/* Country Selector */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.text }]}>Country</Text>
               <TouchableOpacity
@@ -297,7 +306,7 @@ export default function RegisterScreen() {
               )}
             </View>
 
-            {/* 输入框组 */}
+            {/* Input Fields */}
             <View style={styles.inputGroup}>
               {registrationType === 'email' ? (
                 <Input
@@ -351,7 +360,7 @@ export default function RegisterScreen() {
               />
             </View>
             
-            {/* 条款同意 */}
+            {/* Terms Agreement */}
             <View style={[styles.inputGroup, styles.termsContainer]}>
               <Switch
                 value={termsAccepted}
@@ -361,11 +370,17 @@ export default function RegisterScreen() {
               />
               <Text style={[styles.termsText, { color: colors.text }]}>
                 I agree to the{' '}
-                <Text style={[styles.termsLink, { color: colors.primary }]}>
+                <Text 
+                  style={[styles.termsLink, { color: colors.primary }]}
+                  onPress={handleTermsPress}
+                >
                   Terms of Service
                 </Text>{' '}
                 and{' '}
-                <Text style={[styles.termsLink, { color: colors.primary }]}>
+                <Text 
+                  style={[styles.termsLink, { color: colors.primary }]}
+                  onPress={handlePrivacyPress}
+                >
                   Privacy Policy
                 </Text>
               </Text>
@@ -376,7 +391,7 @@ export default function RegisterScreen() {
               )}
             </View>
             
-            {/* 注册按钮 */}
+            {/* Register Button */}
             <View style={styles.buttonContainer}>
               <Button
                 title="Create Account"
@@ -387,7 +402,15 @@ export default function RegisterScreen() {
               />
             </View>
             
-            {/* 登录链接 */}
+            <View style={styles.orContainer}>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <Text style={[styles.orText, { color: colors.textSecondary }]}>OR</Text>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            </View>
+            
+            <SocialLoginButtons />
+            
+            {/* Login Link */}
             <View style={styles.loginContainer}>
               <Text style={[styles.loginText, { color: colors.textSecondary }]}>
                 Already have an account?
@@ -413,7 +436,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     paddingBottom: Spacing.xxl,
-    paddingHorizontal: Spacing.lg, // 添加水平内边距
+    paddingHorizontal: Spacing.lg,
   },
   header: {
     flexDirection: 'row',
@@ -433,19 +456,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 28, // 增大标题字号
+    fontSize: 28,
     fontFamily: 'Inter-Bold',
     marginBottom: Spacing.xs,
   },
   subtitle: {
-    fontSize: 16, // 增大副标题字号
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
   },
   registrationTypeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: Spacing.lg,
-    paddingHorizontal: Spacing.lg, // 与表单对齐
+    paddingHorizontal: Spacing.lg,
   },
   typeOption: {
     flexDirection: 'row',
@@ -457,7 +480,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   typeText: {
-    fontSize: 16, // 增大类型选项字号
+    fontSize: 16,
     fontFamily: 'Inter-Medium',
     marginLeft: Spacing.xs,
   },
@@ -466,10 +489,10 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     marginBottom: Spacing.md,
-    paddingHorizontal: Spacing.lg, // 控制输入框宽度
+    paddingHorizontal: Spacing.lg,
   },
   label: {
-    fontSize: 16, // 增大标签字号
+    fontSize: 16,
     fontFamily: 'Inter-Medium',
     marginBottom: Spacing.xs,
   },
@@ -477,7 +500,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 56, // 增大高度
+    height: 56,
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: Spacing.md,
@@ -487,25 +510,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countryFlag: {
-    width: 28, // 增大国旗尺寸
+    width: 28,
     height: 28,
     borderRadius: 14,
     marginRight: Spacing.sm,
   },
   countryName: {
-    fontSize: 16, // 增大国家名字号
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
   },
   placeholderText: {
-    fontSize: 16, // 增大占位文字字号
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
   },
   countryDropdown: {
     position: 'absolute',
-    top: 80, // 调整位置
-    left: Spacing.lg, // 与输入框对齐
+    top: 80,
+    left: Spacing.lg,
     right: Spacing.lg,
-    maxHeight: 250, // 增大高度
+    maxHeight: 250,
     borderRadius: 12,
     borderWidth: 1,
     zIndex: 1001,
@@ -534,22 +557,37 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     marginLeft: Spacing.sm,
     flex: 1,
-    lineHeight: 20, // 增加行高
+    lineHeight: 20,
   },
   termsLink: {
     fontFamily: 'Inter-SemiBold',
   },
   errorText: {
-    fontSize: 13, // 增大错误文字
+    fontSize: 13,
     fontFamily: 'Inter-Regular',
     marginTop: Spacing.xs,
   },
   buttonContainer: {
-    paddingHorizontal: Spacing.lg, // 控制按钮宽度
+    paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
   },
   registerButton: {
-    height: 56, // 增大按钮高度
+    height: 56,
+  },
+  orContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+  },
+  orText: {
+    marginHorizontal: Spacing.md,
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
   },
   loginContainer: {
     flexDirection: 'row',
@@ -558,12 +596,12 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   loginText: {
-    fontSize: 16, // 增大字号
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
     marginRight: Spacing.xs,
   },
   loginLink: {
-    fontSize: 16, // 增大字号
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },
 });

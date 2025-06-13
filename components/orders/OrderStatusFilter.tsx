@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  useColorScheme,
-} from 'react-native';
-import { Clock, CircleCheck as CheckCircle, CircleX } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 
@@ -28,83 +21,118 @@ export default function OrderStatusFilter({
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
 
-  const filters = [
-    {
-      key: 'all',
-      label: 'All Orders',
-      count: stats.all,
-      icon: null,
-    },
-    {
-      key: 'inprocess',
-      label: 'In Process',
-      count: stats.inprocess,
-      icon: <Clock size={16} color={activeStatus === 'inprocess' ? '#FFFFFF' : colors.warning} />,
-    },
-    {
-      key: 'done',
-      label: 'Completed',
-      count: stats.done,
-      icon: <CheckCircle size={16} color={activeStatus === 'done' ? '#FFFFFF' : colors.success} />,
-    },
-  ];
-
   return (
-    <View style={[
-      styles.container,
-      { 
-        backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
-        shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)',
-      }
-    ]}>
-      {filters.map((filter) => (
-        <TouchableOpacity
-          key={filter.key}
+    <View style={styles.container}>
+      <TouchableOpacity
+        style={[
+          styles.filterButton,
+          {
+            backgroundColor: activeStatus === 'all' ? colors.primary : 'transparent',
+            borderColor: colors.border,
+          },
+        ]}
+        onPress={() => onStatusChange('all')}
+      >
+        <Text
           style={[
-            styles.filterButton,
+            styles.filterText,
+            { color: activeStatus === 'all' ? '#FFFFFF' : colors.text },
+          ]}
+        >
+          All
+        </Text>
+        <View
+          style={[
+            styles.countBadge,
             {
-              backgroundColor: activeStatus === filter.key ? colors.primary : 'transparent',
-              shadowColor: activeStatus === filter.key ? colors.primary : 'transparent',
-              shadowOffset: activeStatus === filter.key ? { width: 0, height: 4 } : { width: 0, height: 0 },
-              shadowOpacity: activeStatus === filter.key ? 0.3 : 0,
-              shadowRadius: activeStatus === filter.key ? 8 : 0,
-              elevation: activeStatus === filter.key ? 6 : 0,
+              backgroundColor: activeStatus === 'all' ? 'rgba(255, 255, 255, 0.2)' : `${colors.primary}15`,
             },
           ]}
-          onPress={() => onStatusChange(filter.key as any)}
-          activeOpacity={0.7}
         >
-          <View style={styles.filterContent}>
-            {filter.icon && (
-              <View style={styles.filterIcon}>
-                {filter.icon}
-              </View>
-            )}
-            <View style={styles.filterTextContainer}>
-              <Text
-                style={[
-                  styles.filterLabel,
-                  {
-                    color: activeStatus === filter.key ? '#FFFFFF' : colors.text,
-                  },
-                ]}
-              >
-                {filter.label}
-              </Text>
-              <Text
-                style={[
-                  styles.filterCount,
-                  {
-                    color: activeStatus === filter.key ? 'rgba(255, 255, 255, 0.9)' : colors.textSecondary,
-                  },
-                ]}
-              >
-                {filter.count}
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      ))}
+          <Text
+            style={[
+              styles.countText,
+              { color: activeStatus === 'all' ? '#FFFFFF' : colors.primary },
+            ]}
+          >
+            {stats.all}
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.filterButton,
+          {
+            backgroundColor: activeStatus === 'inprocess' ? colors.warning : 'transparent',
+            borderColor: colors.border,
+          },
+        ]}
+        onPress={() => onStatusChange('inprocess')}
+      >
+        <Text
+          style={[
+            styles.filterText,
+            { color: activeStatus === 'inprocess' ? '#FFFFFF' : colors.text },
+          ]}
+        >
+          In Process
+        </Text>
+        <View
+          style={[
+            styles.countBadge,
+            {
+              backgroundColor: activeStatus === 'inprocess' ? 'rgba(255, 255, 255, 0.2)' : `${colors.warning}15`,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.countText,
+              { color: activeStatus === 'inprocess' ? '#FFFFFF' : colors.warning },
+            ]}
+          >
+            {stats.inprocess}
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.filterButton,
+          {
+            backgroundColor: activeStatus === 'done' ? colors.success : 'transparent',
+            borderColor: colors.border,
+          },
+        ]}
+        onPress={() => onStatusChange('done')}
+      >
+        <Text
+          style={[
+            styles.filterText,
+            { color: activeStatus === 'done' ? '#FFFFFF' : colors.text },
+          ]}
+        >
+          Completed
+        </Text>
+        <View
+          style={[
+            styles.countBadge,
+            {
+              backgroundColor: activeStatus === 'done' ? 'rgba(255, 255, 255, 0.2)' : `${colors.success}15`,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.countText,
+              { color: activeStatus === 'done' ? '#FFFFFF' : colors.success },
+            ]}
+          >
+            {stats.done}
+          </Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -112,38 +140,33 @@ export default function OrderStatusFilter({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderRadius: 16,
-    padding: 6,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
   },
   filterButton: {
     flex: 1,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: 12,
-  },
-  filterContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
+    borderRadius: 12,
+    borderWidth: 1,
     gap: Spacing.xs,
   },
-  filterIcon: {
-    marginRight: Spacing.xs,
+  filterText: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
   },
-  filterTextContainer: {
+  countBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 20,
     alignItems: 'center',
   },
-  filterLabel: {
-    fontSize: 13,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 2,
-  },
-  filterCount: {
-    fontSize: 11,
-    fontFamily: 'Inter-Medium',
+  countText: {
+    fontSize: 10,
+    fontFamily: 'Inter-Bold',
   },
 });

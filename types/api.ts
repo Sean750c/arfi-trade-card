@@ -350,6 +350,46 @@ export interface VIPLogRequest {
   page_size?: number;
 }
 
+// Password Recovery API Types
+export interface SendResetEmailRequest {
+  email: string;
+}
+
+export interface SendWhatsAppCodeRequest {
+  whatsapp: string;
+}
+
+export interface UpdatePasswordByEmailRequest {
+  email: string;
+  code: string;
+  new_password: string;
+}
+
+export interface UpdatePasswordByWhatsAppRequest {
+  whatsapp: string;
+  code: string;
+  new_password: string;
+}
+
+// Social Login API Types
+export interface SocialLoginRequest {
+  access_token: string;
+  device_no: string;
+  channel_type: '1' | '7' | '8';
+}
+
+export interface GoogleLoginRequest extends SocialLoginRequest {
+  // Google specific fields if needed
+}
+
+export interface FacebookLoginRequest extends SocialLoginRequest {
+  // Facebook specific fields if needed
+}
+
+export interface AppleLoginRequest extends SocialLoginRequest {
+  // Apple specific fields if needed
+}
+
 // Existing types...
 export interface APIResponse<T> {
   success: boolean;
@@ -612,3 +652,11 @@ export type UserInfoResponse = APIResponse<UserInfo>;
 export type FAQListResponse = APIResponse<FAQItem[]>;
 export type VIPInfoResponse = APIResponse<VIPData>;
 export type VIPLogResponse = APIResponse<VIPLogEntry[]>;
+
+// Password Recovery Response Types
+export type SendResetEmailResponse = APIResponse<Data>;
+export type SendWhatsAppCodeResponse = APIResponse<Data>;
+export type UpdatePasswordResponse = APIResponse<Data>;
+
+// Social Login Response Types
+export type SocialLoginResponse = APIResponse<User>;

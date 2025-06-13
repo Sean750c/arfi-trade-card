@@ -3,9 +3,9 @@ import { WalletBalanceData, WalletTransaction } from '@/types/api';
 import { WalletService } from '@/services/wallet';
 
 interface WalletState {
-  // Balance data for both wallet types
-  ngnBalanceData: WalletBalanceData | null;
-  usdtBalanceData: WalletBalanceData | null;
+  // Balance data
+  ngnBalance: WalletBalanceData | null;
+  usdtBalance: WalletBalanceData | null;
   
   // Transactions data
   transactions: WalletTransaction[];
@@ -20,7 +20,7 @@ interface WalletState {
   transactionsError: string | null;
   
   // Filters
-  activeWalletType: '1' | '2'; // 1: national currency, 2: USDT
+  activeWalletType: '1' | '2'; // 1: NGN, 2: USDT
   activeTransactionType: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip';
   
   // Actions
@@ -35,8 +35,8 @@ interface WalletState {
 
 export const useWalletStore = create<WalletState>((set, get) => ({
   // Initial state
-  ngnBalanceData: null,
-  usdtBalanceData: null,
+  ngnBalance: null,
+  usdtBalance: null,
   transactions: [],
   currentPage: 0,
   hasMore: true,
@@ -45,7 +45,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   isLoadingMore: false,
   balanceError: null,
   transactionsError: null,
-  activeWalletType: '1',
+  activeWalletType: '1', // Default to NGN
   activeTransactionType: 'all',
 
   fetchBalance: async (token: string) => {
@@ -54,36 +54,14 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     try {
       const balanceData = await WalletService.getWalletBalance(token);
       
-      // Store balance data based on default wallet type
-      const defaultType = balanceData.default_wallet_type as '1' | '2';
-      
-      if (defaultType === '1') {
-        set({ 
-          ngnBalanceData: balanceData,
-          isLoadingBalance: false,
-          activeWalletType: defaultType,
-        });
+      // Update the appropriate balance based on wallet type
+      if (balanceData.default_wallet_type === '1') {
+        set({ ngnBalance: balanceData });
       } else {
-        set({ 
-          usdtBalanceData: balanceData,
-          isLoadingBalance: false,
-          activeWalletType: defaultType,
-        });
+        set({ usdtBalance: balanceData });
       }
       
-      // For now, we'll use the same data for both types
-      // In a real app, you'd make separate API calls for each wallet type
-      set({
-        ngnBalanceData: balanceData,
-        usdtBalanceData: {
-          ...balanceData,
-          currency_name: 'USDT',
-          total_amount: parseFloat(balanceData.usd_amount),
-          withdraw_amount: parseFloat(balanceData.usd_amount),
-          rebate_amount: balanceData.usd_rebate_money,
-        },
-      });
-      
+      set({ isLoadingBalance: false });
     } catch (error) {
       // Handle token expiration errors specifically
       if (error instanceof Error && error.message.includes('Session expired')) {
@@ -92,7 +70,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       }
       
       set({
-        balanceError: error instanceof Error ? error.message : 'Failed to fetch balance',
+        balanceError: error instanceof Error ? error.message : 'Failed to fetch wallet balance',
         isLoadingBalance: false,
       });
     }
@@ -122,12 +100,10 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         page_size: 20,
       });
 
-      const newTransactions = response.data || [];
-      
       set({
-        transactions: newTransactions,
+        transactions: response.data,
         currentPage: 0,
-        hasMore: newTransactions.length >= 20,
+        hasMore: response.data.length >= 20,
         isLoadingTransactions: false,
       });
     } catch (error) {
@@ -162,7 +138,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         page_size: 20,
       });
 
-      const newTransactions = response.data || [];
+      const newTransactions = response.data;
 
       if (newTransactions.length === 0) {
         set({ isLoadingMore: false, hasMore: false });
@@ -192,7 +168,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   setActiveWalletType: (type: '1' | '2') => {
     set({ 
       activeWalletType: type,
-      // Reset transactions when switching wallet types
+      // Reset transactions when changing wallet type
       transactions: [],
       currentPage: 0,
       hasMore: true,
@@ -202,7 +178,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   setActiveTransactionType: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip') => {
     set({ 
       activeTransactionType: type,
-      // Reset transactions when changing filter
+      // Reset transactions when changing transaction type
       transactions: [],
       currentPage: 0,
       hasMore: true,
@@ -211,13 +187,13 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   getCurrentBalanceData: () => {
     const state = get();
-    return state.activeWalletType === '1' ? state.ngnBalanceData : state.usdtBalanceData;
+    return state.activeWalletType === '1' ? state.ngnBalance : state.usdtBalance;
   },
 
   clearWalletData: () => {
     set({
-      ngnBalanceData: null,
-      usdtBalanceData: null,
+      ngnBalance: null,
+      usdtBalance: null,
       transactions: [],
       currentPage: 0,
       hasMore: true,

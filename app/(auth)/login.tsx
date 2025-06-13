@@ -16,6 +16,7 @@ import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
+import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -63,6 +64,10 @@ export default function LoginScreen() {
     } else {
       router.replace('/(tabs)');
     }
+  };
+
+  const handleForgotPassword = () => {
+    router.push('/(auth)/forgot-password');
   };
 
   return (
@@ -122,7 +127,10 @@ export default function LoginScreen() {
               />
             </View>
             
-            <TouchableOpacity style={styles.forgotPassword}>
+            <TouchableOpacity 
+              style={styles.forgotPassword}
+              onPress={handleForgotPassword}
+            >
               <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>
                 Forgot Password?
               </Text>
@@ -144,15 +152,7 @@ export default function LoginScreen() {
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
             </View>
             
-            <View style={styles.buttonContainer}>
-              <Button
-                title="Continue with Google"
-                variant="outline"
-                onPress={() => {}}
-                style={styles.socialButton}
-                fullWidth
-              />
-            </View>
+            <SocialLoginButtons />
             
             <View style={styles.signupContainer}>
               <Text style={[styles.signupText, { color: colors.textSecondary }]}>
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     paddingBottom: Spacing.xxl,
-    paddingHorizontal: Spacing.lg, // 添加水平内边距
+    paddingHorizontal: Spacing.lg,
   },
   header: {
     flexDirection: 'row',
@@ -199,21 +199,21 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: Spacing.xl,
-    paddingHorizontal: Spacing.lg, // 保持与表单一致的内边距
+    paddingHorizontal: Spacing.lg,
   },
   logo: {
-    width: 100, // 增大logo尺寸
+    width: 100,
     height: 100,
     borderRadius: 50,
     marginBottom: Spacing.md,
   },
   appName: {
-    fontSize: 28, // 增大字体
+    fontSize: 28,
     fontFamily: 'Inter-Bold',
     marginBottom: Spacing.xs,
   },
   tagline: {
-    fontSize: 16, // 增大字体
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
   },
@@ -224,33 +224,33 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'Inter-SemiBold',
     marginBottom: Spacing.lg,
-    paddingHorizontal: Spacing.lg, // 与输入框对齐
+    paddingHorizontal: Spacing.lg,
   },
   inputContainer: {
     marginBottom: Spacing.md,
-    paddingHorizontal: Spacing.lg, // 控制输入框宽度
+    paddingHorizontal: Spacing.lg,
   },
   forgotPassword: {
     alignSelf: 'flex-end',
     marginBottom: Spacing.lg,
-    paddingHorizontal: Spacing.lg, // 与输入框对齐
+    paddingHorizontal: Spacing.lg,
   },
   forgotPasswordText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
   buttonContainer: {
-    paddingHorizontal: Spacing.lg, // 控制按钮宽度
+    paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
   },
   loginButton: {
-    // 按钮样式保留
+    // Button styles
   },
   orContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.lg,
-    paddingHorizontal: Spacing.lg, // 与输入框对齐
+    paddingHorizontal: Spacing.lg,
   },
   divider: {
     flex: 1,
@@ -261,14 +261,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
-  socialButton: {
-    // 社交按钮样式保留
-  },
   signupContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: Spacing.md,
-    paddingHorizontal: Spacing.lg, // 与输入框对齐
+    paddingHorizontal: Spacing.lg,
   },
   signupText: {
     fontSize: 14,

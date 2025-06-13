@@ -20,6 +20,10 @@ interface AuthState {
     recommend_code?: string;
     code?: string;
   }) => Promise<void>;
+  setUser: (user: User) => void; // Add method to set user directly (for social login)
+  googleLogin: (accessToken: string) => Promise<void>;
+  facebookLogin: (accessToken: string) => Promise<void>;
+  appleLogin: (accessToken: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -104,6 +108,68 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         isLoading: false,
         error: error instanceof Error ? error.message : 'Registration failed',
+      });
+      throw error;
+    }
+  },
+  setUser: (user) => {
+    set({
+      isAuthenticated: true,
+      user,
+      isLoading: false,
+      error: null,
+    });
+  },
+  googleLogin: async (accessToken) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await AuthService.googleLogin(accessToken);
+      set({
+        isAuthenticated: true,
+        user: response,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Google login failed',
+      });
+      throw error;
+    }
+  },
+  facebookLogin: async (accessToken) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await AuthService.facebookLogin(accessToken);
+      set({
+        isAuthenticated: true,
+        user: response,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Facebook login failed',
+      });
+      throw error;
+    }
+  },
+  appleLogin: async (accessToken) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await AuthService.appleLogin(accessToken);
+      set({
+        isAuthenticated: true,
+        user: response,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Apple login failed',
       });
       throw error;
     }

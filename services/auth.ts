@@ -1,6 +1,22 @@
 import { APIRequest } from '@/utils/api';
 import { generateDeviceId } from '@/utils/device';
-import type { RegisterRequest, UserRegisterResponse, UserLoginResponse, EmptyReponse } from '@/types/api';
+import type { 
+  RegisterRequest, 
+  UserRegisterResponse, 
+  UserLoginResponse, 
+  EmptyReponse,
+  SendResetEmailRequest,
+  SendResetEmailResponse,
+  SendWhatsAppCodeRequest,
+  SendWhatsAppCodeResponse,
+  UpdatePasswordByEmailRequest,
+  UpdatePasswordByWhatsAppRequest,
+  UpdatePasswordResponse,
+  GoogleLoginRequest,
+  FacebookLoginRequest,
+  AppleLoginRequest,
+  SocialLoginResponse
+} from '@/types/api';
 
 export class AuthService {
   static async register(params: Omit<RegisterRequest, 'device_no' | 'channel_type'>) {
@@ -106,6 +122,188 @@ export class AuthService {
         throw new Error(`Logout failed: ${error.message}`);
       }
       throw new Error('Logout failed');
+    }
+  }
+
+  // Password Recovery Methods
+  static async sendResetPasswordEmail(email: string) {
+    try {
+      const response = await APIRequest.request<SendResetEmailResponse>(
+        '/gc/user/sendResetPasswordEmail',
+        'POST',
+        { email }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to send reset email');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to send reset email: ${error.message}`);
+      }
+      throw new Error('Failed to send reset email');
+    }
+  }
+
+  static async sendWhatsAppCode(whatsapp: string) {
+    try {
+      const response = await APIRequest.request<SendWhatsAppCodeResponse>(
+        '/gc/user/sendWhatsAppCode',
+        'POST',
+        { whatsapp }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to send WhatsApp code');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to send WhatsApp code: ${error.message}`);
+      }
+      throw new Error('Failed to send WhatsApp code');
+    }
+  }
+
+  static async updatePasswordByEmail(params: UpdatePasswordByEmailRequest) {
+    try {
+      const response = await APIRequest.request<UpdatePasswordResponse>(
+        '/gc/user/updatePasswordByEmail',
+        'POST',
+        params
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to update password');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to update password: ${error.message}`);
+      }
+      throw new Error('Failed to update password');
+    }
+  }
+
+  static async updatePasswordByWhatsApp(params: UpdatePasswordByWhatsAppRequest) {
+    try {
+      const response = await APIRequest.request<UpdatePasswordResponse>(
+        '/gc/user/updatePasswordByWhatsApp',
+        'POST',
+        params
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to update password');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to update password: ${error.message}`);
+      }
+      throw new Error('Failed to update password');
+    }
+  }
+
+  // Social Login Methods
+  static async googleLogin(accessToken: string) {
+    let deviceNo: string;
+    try {
+      deviceNo = await generateDeviceId();
+    } catch (error) {
+      deviceNo = `temp_${Date.now()}`;
+    }
+
+    try {
+      const response = await APIRequest.request<SocialLoginResponse>(
+        '/gc/social/googleLogin',
+        'POST',
+        {
+          access_token: accessToken,
+          device_no: deviceNo,
+          channel_type: '1',
+        }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Google login failed');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Google login failed: ${error.message}`);
+      }
+      throw new Error('Google login failed');
+    }
+  }
+
+  static async facebookLogin(accessToken: string) {
+    let deviceNo: string;
+    try {
+      deviceNo = await generateDeviceId();
+    } catch (error) {
+      deviceNo = `temp_${Date.now()}`;
+    }
+
+    try {
+      const response = await APIRequest.request<SocialLoginResponse>(
+        '/gc/social/facebookLogin',
+        'POST',
+        {
+          access_token: accessToken,
+          device_no: deviceNo,
+          channel_type: '1',
+        }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Facebook login failed');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Facebook login failed: ${error.message}`);
+      }
+      throw new Error('Facebook login failed');
+    }
+  }
+
+  static async appleLogin(accessToken: string) {
+    let deviceNo: string;
+    try {
+      deviceNo = await generateDeviceId();
+    } catch (error) {
+      deviceNo = `temp_${Date.now()}`;
+    }
+
+    try {
+      const response = await APIRequest.request<SocialLoginResponse>(
+        '/gc/social/appleLogin',
+        'POST',
+        {
+          access_token: accessToken,
+          device_no: deviceNo,
+          channel_type: '1',
+        }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Apple login failed');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Apple login failed: ${error.message}`);
+      }
+      throw new Error('Apple login failed');
     }
   }
 }
