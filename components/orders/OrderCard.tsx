@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useColorScheme, Image } from 'react-native';
-import { Clock, CheckCircle, XCircle, ChevronRight } from 'lucide-react-native';
+import { Clock, CircleCheck as CheckCircle, Circle as XCircle, ChevronRight } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { OrderListItem } from '@/types/api';
