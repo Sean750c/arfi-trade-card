@@ -12,7 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Camera, Edit, Save, X } from 'lucide-react-native';
+import { ChevronLeft, Camera, CreditCard as Edit, Save, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Input from '@/components/UI/Input';

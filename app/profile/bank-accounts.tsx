@@ -12,7 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Plus, CreditCard, Star, Edit, Trash2 } from 'lucide-react-native';
+import { ChevronLeft, Plus, CreditCard, Star, CreditCard as Edit, Trash2 } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
