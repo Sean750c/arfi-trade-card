@@ -250,6 +250,53 @@ export interface OrderDetailRequest {
   order_no: string;
 }
 
+// User Profile API Types
+export interface UserInfo {
+  user_id: number;
+  username: string;
+  nickname: string;
+  avatar: string;
+  email: string;
+  whatsapp: string;
+  country_name: string;
+  currency_symbol: string;
+  vip_level: number;
+  money: string;
+  rebate_money: string;
+  is_email_bind: boolean;
+  whatsapp_bind: boolean;
+  register_time: number;
+  last_login_time: number;
+}
+
+export interface UserInfoRequest {
+  token: string;
+}
+
+export interface ModifyNicknameRequest {
+  token: string;
+  nickname: string;
+}
+
+export interface UploadAvatarRequest {
+  token: string;
+  avatar: string; // base64 encoded image
+}
+
+// FAQ Types
+export interface FAQItem {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  sort: number;
+}
+
+export interface FAQListRequest {
+  token?: string;
+  category?: string;
+}
+
 // Existing types...
 export interface APIResponse<T> {
   success: boolean;
@@ -508,3 +555,5 @@ export type BankListResponse = APIResponse<Bank[]>;
 export type CoinListResponse = APIResponse<CoinNetwork[]>;
 export type OrderListResponse = APIResponse<OrderListItem[]>;
 export type OrderDetailResponse = APIResponse<OrderDetail>;
+export type UserInfoResponse = APIResponse<UserInfo>;
+export type FAQListResponse = APIResponse<FAQItem[]>;

@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
-import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt } from 'lucide-react-native';
+import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt, UserCircle } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -105,7 +105,7 @@ export default function ProfileScreen() {
   const authenticatedAccountMenu: MenuItemType[] = [
     {
       id: '1',
-      icon: <User size={20} color={colors.primary} />,
+      icon: <UserCircle size={20} color={colors.primary} />,
       title: 'Personal Information',
       subtitle: 'Update your profile details',
       route: '/profile/personal-info',

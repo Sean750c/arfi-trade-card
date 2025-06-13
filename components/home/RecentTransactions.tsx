@@ -1,84 +1,82 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useColorScheme, FlatList } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, useColorScheme, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowRight, Gift, ArrowDownLeft, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-
-// Sample transaction data
-const transactions = [
-  {
-    id: '1',
-    type: 'gift_card',
-    amount: '₦25,000',
-    status: 'success',
-    date: '2 hours ago',
-    description: 'Steam Gift Card',
-    cardValue: '$40',
-  },
-  {
-    id: '2',
-    type: 'gift_card',
-    amount: '₦12,500',
-    status: 'pending',
-    date: 'Yesterday',
-    description: 'Amazon Gift Card',
-    cardValue: '$20',
-  },
-  {
-    id: '3',
-    type: 'withdrawal',
-    amount: '₦35,000',
-    status: 'success',
-    date: '3 days ago',
-    description: 'Bank Withdrawal',
-    cardValue: null,
-  },
-];
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useOrderStore } from '@/stores/useOrderStore';
 
 export default function RecentTransactions() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const { user, isAuthenticated } = useAuthStore();
+  const { orders, isLoadingOrders, fetchOrders } = useOrderStore();
 
-  const getStatusColor = (status: string) => {
+  // Fetch recent orders when component mounts
+  useEffect(() => {
+    if (isAuthenticated && user?.token) {
+      fetchOrders(user.token, true);
+    }
+  }, [isAuthenticated, user?.token, fetchOrders]);
+
+  const getStatusColor = (status: number) => {
     switch (status) {
-      case 'success':
+      case 2:
         return colors.success;
-      case 'pending':
+      case 1:
         return colors.warning;
-      case 'failed':
+      case 3:
         return colors.error;
       default:
         return colors.text;
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: number) => {
     switch (status) {
-      case 'success':
+      case 2:
         return <CheckCircle size={16} color={colors.success} />;
-      case 'pending':
+      case 1:
         return <Clock size={16} color={colors.warning} />;
-      case 'failed':
+      case 3:
         return <AlertCircle size={16} color={colors.error} />;
       default:
         return null;
     }
   };
 
-  const getIconForType = (type: string) => {
-    switch (type) {
-      case 'gift_card':
-        return <Gift size={20} color={colors.primary} />;
-      case 'withdrawal':
-        return <ArrowDownLeft size={20} color={colors.secondary} />;
-      default:
-        return null;
+  const getIconForType = (walletType: number) => {
+    return <Gift size={20} color={colors.primary} />;
+  };
+
+  const formatAmount = (amount: number, currency: string) => {
+    const symbol = currency === 'NGN' ? '₦' : currency === 'USDT' ? 'USDT' : currency;
+    return `+${symbol}${amount.toLocaleString()}`;
+  };
+
+  const formatDate = (timestamp: number) => {
+    const now = Date.now() / 1000;
+    const diff = now - timestamp;
+    
+    if (diff < 3600) {
+      const minutes = Math.floor(diff / 60);
+      return `${minutes}m ago`;
+    } else if (diff < 86400) {
+      const hours = Math.floor(diff / 3600);
+      return `${hours}h ago`;
+    } else {
+      const days = Math.floor(diff / 86400);
+      return `${days}d ago`;
     }
   };
 
-  const renderItem = ({ item }: { item: typeof transactions[0] }) => (
+  // Get last 5 orders
+  const recentOrders = orders.slice(0, 5);
+
+  const renderOrderItem = (order: any) => (
     <TouchableOpacity
+      key={order.order_no}
       style={[
         styles.transactionItem,
         { 
@@ -86,40 +84,38 @@ export default function RecentTransactions() {
           borderColor: colors.border,
         },
       ]}
-      onPress={() => router.push(`/(tabs)/wallet/transaction/${item.id}`)}
+      onPress={() => router.push(`/orders/${order.order_no}` as any)}
       activeOpacity={0.7}
     >
       <View style={[
         styles.iconContainer, 
-        { backgroundColor: `${item.type === 'gift_card' ? colors.primary : colors.secondary}15` }
+        { backgroundColor: `${colors.primary}15` }
       ]}>
-        {getIconForType(item.type)}
+        {getIconForType(order.wallet_type)}
       </View>
       
       <View style={styles.transactionDetails}>
         <View style={styles.transactionHeader}>
           <Text style={[styles.transactionDesc, { color: colors.text }]}>
-            {item.description}
+            {order.card_name || 'Gift Card Trade'}
           </Text>
-          {item.cardValue && (
-            <Text style={[styles.cardValue, { color: colors.textSecondary }]}>
-              {item.cardValue}
-            </Text>
-          )}
+          <Text style={[styles.orderNumber, { color: colors.textSecondary }]}>
+            #{order.order_no.slice(-8)}
+          </Text>
         </View>
         <View style={styles.transactionMeta}>
           <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>
-            {item.date}
+            {formatDate(order.show_time)}
           </Text>
           <View style={styles.statusContainer}>
-            {getStatusIcon(item.status)}
+            {getStatusIcon(order.status)}
             <Text
               style={[
                 styles.transactionStatus,
-                { color: getStatusColor(item.status) },
+                { color: getStatusColor(order.status) },
               ]}
             >
-              {item.status}
+              {order.status_desc}
             </Text>
           </View>
         </View>
@@ -129,15 +125,42 @@ export default function RecentTransactions() {
         <Text
           style={[
             styles.transactionAmount,
-            { color: item.amount.includes('+') ? colors.success : colors.primary },
+            { color: colors.success },
           ]}
         >
-          {item.amount}
+          {formatAmount(order.amount, order.currency)}
         </Text>
         <ArrowRight size={16} color={colors.textSecondary} />
       </View>
     </TouchableOpacity>
   );
+
+  if (!isAuthenticated) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
+          <TouchableOpacity
+            style={styles.viewAllButton}
+            onPress={() => router.push('/(auth)/login')}
+          >
+            <Text style={[styles.viewAllText, { color: colors.primary }]}>Login</Text>
+            <ArrowRight size={16} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+        
+        <View style={[styles.emptyContainer, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}>
+          <Gift size={48} color={colors.textSecondary} />
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>
+            Login to View Activity
+          </Text>
+          <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
+            Sign in to see your recent transactions and trading history
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -145,20 +168,41 @@ export default function RecentTransactions() {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
         <TouchableOpacity
           style={styles.viewAllButton}
-          onPress={() => router.push('/(tabs)/wallet')}
+          onPress={() => router.push('/orders')}
         >
           <Text style={[styles.viewAllText, { color: colors.primary }]}>View All</Text>
           <ArrowRight size={16} color={colors.primary} />
         </TouchableOpacity>
       </View>
       
-      <View style={styles.transactionsList}>
-        {transactions.map((item) => (
-          <View key={item.id}>
-            {renderItem({ item })}
-          </View>
-        ))}
-      </View>
+      {isLoadingOrders ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            Loading recent activity...
+          </Text>
+        </View>
+      ) : recentOrders.length > 0 ? (
+        <View style={styles.transactionsList}>
+          {recentOrders.map(renderOrderItem)}
+        </View>
+      ) : (
+        <View style={[styles.emptyContainer, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}>
+          <Gift size={48} color={colors.textSecondary} />
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>
+            No Recent Activity
+          </Text>
+          <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
+            Start trading gift cards to see your activity here
+          </Text>
+          <TouchableOpacity
+            style={[styles.startTradingButton, { backgroundColor: colors.primary }]}
+            onPress={() => router.push('/(tabs)/sell')}
+          >
+            <Text style={styles.startTradingText}>Start Trading</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -185,6 +229,17 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.xl,
+    gap: Spacing.sm,
+  },
+  loadingText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
   },
   transactionsList: {
     gap: Spacing.sm,
@@ -216,9 +271,10 @@ const styles = StyleSheet.create({
   transactionDesc: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
+    flex: 1,
   },
-  cardValue: {
-    fontSize: 14,
+  orderNumber: {
+    fontSize: 12,
     fontFamily: 'Inter-Medium',
   },
   transactionMeta: {
@@ -249,5 +305,32 @@ const styles = StyleSheet.create({
   transactionAmount: {
     fontSize: 16,
     fontFamily: 'Inter-Bold',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    padding: Spacing.xl,
+    borderRadius: 16,
+    gap: Spacing.md,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+  },
+  emptyMessage: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  startTradingButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: 8,
+    marginTop: Spacing.sm,
+  },
+  startTradingText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
   },
 });
