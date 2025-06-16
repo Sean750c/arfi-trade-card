@@ -9,7 +9,16 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { ArrowUpRight, ArrowDownRight, Gift, Users, Award, Wallet } from 'lucide-react-native';
+import { 
+  ArrowDownLeft, 
+  ArrowUpRight, 
+  Gift, 
+  Users, 
+  Crown,
+  CreditCard,
+  TrendingUp,
+  AlertCircle,
+} from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { WalletTransaction } from '@/types/api';
@@ -22,6 +31,7 @@ interface TransactionListProps {
   onLoadMore: () => void;
   onRefresh: () => void;
   onTransactionPress: (transaction: WalletTransaction) => void;
+  walletType: '1' | '2'; // Add wallet type prop
 }
 
 export default function TransactionList({
@@ -32,174 +42,259 @@ export default function TransactionList({
   onLoadMore,
   onRefresh,
   onTransactionPress,
+  walletType,
 }: TransactionListProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
 
-  const getTypeIcon = (type: string) => {
+  const getTransactionIcon = (type: string) => {
     switch (type) {
-      case 'withdraw':
-        return <ArrowUpRight size={20} color={colors.error} />;
       case 'order':
         return <Gift size={20} color={colors.success} />;
+      case 'withdraw':
+        return <ArrowUpRight size={20} color={colors.error} />;
       case 'transfer':
-        return <Wallet size={20} color={colors.primary} />;
+        return <ArrowDownLeft size={20} color={colors.primary} />;
       case 'recommend':
         return <Users size={20} color={colors.secondary} />;
       case 'vip':
-        return <Award size={20} color={colors.warning} />;
+        return <Crown size={20} color={colors.warning} />;
+      case 'admin':
+        return <CreditCard size={20} color={colors.primary} />;
       default:
-        return <ArrowDownRight size={20} color={colors.success} />;
+        return <TrendingUp size={20} color={colors.text} />;
     }
   };
 
-  const getTypeColor = (type: string) => {
+  const getTransactionColor = (type: string) => {
     switch (type) {
+      case 'order':
+      case 'recommend':
+      case 'vip':
+      case 'activity':
+        return colors.success;
       case 'withdraw':
         return colors.error;
-      case 'order':
-        return colors.success;
       case 'transfer':
+      case 'admin':
         return colors.primary;
-      case 'recommend':
-        return colors.secondary;
-      case 'vip':
-        return colors.warning;
       default:
-        return colors.success;
+        return colors.text;
     }
+  };
+
+  const formatAmount = (amount: number, isPositive: boolean = true) => {
+    const prefix = isPositive ? '+' : '-';
+    const symbol = walletType === '2' ? 'USDT' : '₦';
+    const decimals = walletType === '2' ? 4 : 2;
+    
+    return `${prefix}${symbol}${Math.abs(amount).toLocaleString(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })}`;
   };
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
-    return date.toLocaleDateString();
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+    if (diffInHours < 24) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (diffInHours < 24 * 7) {
+      return date.toLocaleDateString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+    } else {
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
   };
 
-  const formatAmount = (amount: number, symbol: string) => {
-    const prefix = amount >= 0 ? '+' : '';
-    return `${prefix}${symbol}${Math.abs(amount).toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+  const getTransactionTitle = (transaction: WalletTransaction) => {
+    if (transaction.name) return transaction.name;
+    
+    switch (transaction.type) {
+      case 'order':
+        return 'Gift Card Trade';
+      case 'withdraw':
+        return 'Withdrawal';
+      case 'transfer':
+        return 'Transfer';
+      case 'recommend':
+        return 'Referral Bonus';
+      case 'vip':
+        return 'VIP Bonus';
+      case 'admin':
+        return 'Admin Adjustment';
+      case 'activity':
+        return 'Activity Reward';
+      default:
+        return 'Transaction';
+    }
   };
 
-  const renderItem = ({ item }: { item: WalletTransaction }) => (
-    <TouchableOpacity
-      style={[
-        styles.transactionItem,
-        { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
-          shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.1)',
-        }
-      ]}
-      onPress={() => onTransactionPress(item)}
-      activeOpacity={0.7}
-    >
-      <View style={[
-        styles.iconContainer, 
-        { backgroundColor: `${getTypeColor(item.type)}15` }
-      ]}>
-        {getTypeIcon(item.type)}
-      </View>
-      
-      <View style={styles.transactionDetails}>
-        <Text style={[styles.transactionDesc, { color: colors.text }]} numberOfLines={1}>
-          {item.memo || item.name || 'Transaction'}
-        </Text>
-        <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>
-          {formatDate(item.create_time)}
-        </Text>
-      </View>
-      
-      <View style={styles.amountContainer}>
-        <Text
-          style={[
-            styles.transactionAmount,
-            { color: item.amount >= 0 ? colors.success : colors.error },
-          ]}
-        >
-          {formatAmount(item.amount, item.currency_symbol)}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderTransaction = ({ item: transaction }: { item: WalletTransaction }) => {
+    const isPositive = transaction.amount > 0;
+    const transactionColor = getTransactionColor(transaction.type);
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-        No transactions found
-      </Text>
-    </View>
-  );
+    return (
+      <TouchableOpacity
+        style={[
+          styles.transactionItem,
+          { 
+            backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+            borderColor: colors.border,
+          },
+        ]}
+        onPress={() => onTransactionPress(transaction)}
+        activeOpacity={0.7}
+      >
+        <View style={[
+          styles.iconContainer, 
+          { backgroundColor: `${transactionColor}15` }
+        ]}>
+          {getTransactionIcon(transaction.type)}
+        </View>
+        
+        <View style={styles.transactionDetails}>
+          <View style={styles.transactionHeader}>
+            <Text style={[styles.transactionTitle, { color: colors.text }]}>
+              {getTransactionTitle(transaction)}
+            </Text>
+            <Text style={[
+              styles.transactionAmount,
+              { color: isPositive ? colors.success : colors.error }
+            ]}>
+              {formatAmount(transaction.amount, isPositive)}
+            </Text>
+          </View>
+          
+          <View style={styles.transactionMeta}>
+            <Text style={[styles.transactionMemo, { color: colors.textSecondary }]}>
+              {transaction.memo || 'No description'}
+            </Text>
+            <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>
+              {formatDate(transaction.create_time)}
+            </Text>
+          </View>
+
+          {/* Order number for order transactions */}
+          {transaction.order_no && (
+            <Text style={[styles.orderNumber, { color: colors.textSecondary }]}>
+              Order: #{transaction.order_no.slice(-8)}
+            </Text>
+          )}
+
+          {/* Bank details for withdrawal transactions */}
+          {transaction.type === 'withdraw' && transaction.bank_name && (
+            <View style={styles.bankDetails}>
+              <Text style={[styles.bankName, { color: colors.textSecondary }]}>
+                {transaction.bank_name} • {transaction.account_no?.slice(-4)}
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const renderFooter = () => {
     if (!isLoadingMore) return null;
     
     return (
-      <View style={styles.footerLoader}>
+      <View style={styles.loadingFooter}>
         <ActivityIndicator size="small" color={colors.primary} />
-      </View>
-    );
-  };
-
-  const renderError = () => {
-    if (!error) return null;
-    
-    return (
-      <View style={[styles.errorContainer, { backgroundColor: `${colors.error}10` }]}>
-        <Text style={[styles.errorText, { color: colors.error }]}>
-          {error}
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+          Loading more transactions...
         </Text>
       </View>
     );
   };
 
-  return (
-    <View style={styles.container}>
-      {renderError()}
-      
-      <FlatList
-        data={transactions}
-        keyExtractor={(item) => item.log_id.toString()}
-        renderItem={renderItem}
-        ListEmptyComponent={!isLoading ? renderEmptyState : null}
-        ListFooterComponent={renderFooter}
-        refreshControl={
-          <RefreshControl
-            refreshing={isLoading && !isLoadingMore}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <TrendingUp size={64} color={colors.textSecondary} />
+      <Text style={[styles.emptyTitle, { color: colors.text }]}>
+        No Transactions
+      </Text>
+      <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
+        {walletType === '2' 
+          ? "You haven't made any USDT transactions yet."
+          : "You haven't made any transactions yet."
         }
-        onEndReached={onLoadMore}
-        onEndReachedThreshold={0.1}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={transactions.length === 0 ? styles.emptyList : undefined}
-      />
+      </Text>
     </View>
+  );
+
+  const renderErrorState = () => (
+    <View style={styles.errorContainer}>
+      <AlertCircle size={48} color={colors.error} />
+      <Text style={[styles.errorTitle, { color: colors.error }]}>
+        Failed to load transactions
+      </Text>
+      <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>
+        {error}
+      </Text>
+      <TouchableOpacity
+        style={[styles.retryButton, { backgroundColor: colors.primary }]}
+        onPress={onRefresh}
+      >
+        <Text style={styles.retryButtonText}>Try Again</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  if (error) {
+    return renderErrorState();
+  }
+
+  return (
+    <FlatList
+      data={transactions}
+      keyExtractor={(item) => item.log_id.toString()}
+      renderItem={renderTransaction}
+      ListEmptyComponent={!isLoading ? renderEmptyState : null}
+      ListFooterComponent={renderFooter}
+      refreshControl={
+        <RefreshControl
+          refreshing={isLoading && transactions.length === 0}
+          onRefresh={onRefresh}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
+        />
+      }
+      onEndReached={onLoadMore}
+      onEndReachedThreshold={0.1}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={[
+        styles.listContainer,
+        transactions.length === 0 && !isLoading && styles.emptyListContainer,
+      ]}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  listContainer: {
+    paddingBottom: Spacing.lg,
+  },
+  emptyListContainer: {
+    flexGrow: 1,
   },
   transactionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: 16,
+    padding: Spacing.lg,
     marginBottom: Spacing.sm,
+    borderRadius: 16,
+    borderWidth: 1,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     elevation: 2,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
@@ -207,49 +302,106 @@ const styles = StyleSheet.create({
   transactionDetails: {
     flex: 1,
   },
-  transactionDesc: {
-    fontSize: 14,
+  transactionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  transactionTitle: {
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    marginBottom: 2,
+    flex: 1,
+  },
+  transactionAmount: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+  },
+  transactionMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  transactionMemo: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    flex: 1,
+    marginRight: Spacing.sm,
   },
   transactionDate: {
     fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
+  orderNumber: {
+    fontSize: 11,
+    fontFamily: 'Inter-Regular',
+    marginTop: 2,
+  },
+  bankDetails: {
+    marginTop: 4,
+  },
+  bankName: {
+    fontSize: 11,
     fontFamily: 'Inter-Regular',
   },
-  amountContainer: {
-    alignItems: 'flex-end',
+  loadingFooter: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    gap: Spacing.sm,
   },
-  transactionAmount: {
+  loadingText: {
     fontSize: 14,
-    fontFamily: 'Inter-Bold',
+    fontFamily: 'Inter-Regular',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Spacing.xl,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.xxl,
   },
-  emptyText: {
+  emptyTitle: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  emptyMessage: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
-  },
-  emptyList: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  footerLoader: {
-    padding: Spacing.md,
-    alignItems: 'center',
+    lineHeight: 24,
   },
   errorContainer: {
-    padding: Spacing.md,
-    borderRadius: 8,
-    marginBottom: Spacing.md,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
   },
-  errorText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+  errorTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  errorMessage: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
     textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: Spacing.lg,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
   },
 });

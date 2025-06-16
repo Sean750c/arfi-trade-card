@@ -4,10 +4,9 @@ import { WalletService } from '@/services/wallet';
 
 interface WalletState {
   // Balance data
-  ngnBalance: WalletBalanceData | null;
-  usdtBalance: WalletBalanceData | null;
+  balanceData: WalletBalanceData | null;
   
-  // Transactions data
+  // Transactions
   transactions: WalletTransaction[];
   currentPage: number;
   hasMore: boolean;
@@ -35,8 +34,7 @@ interface WalletState {
 
 export const useWalletStore = create<WalletState>((set, get) => ({
   // Initial state
-  ngnBalance: null,
-  usdtBalance: null,
+  balanceData: null,
   transactions: [],
   currentPage: 0,
   hasMore: true,
@@ -45,7 +43,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   isLoadingMore: false,
   balanceError: null,
   transactionsError: null,
-  activeWalletType: '1', // Default to NGN
+  activeWalletType: '1',
   activeTransactionType: 'all',
 
   fetchBalance: async (token: string) => {
@@ -53,15 +51,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     
     try {
       const balanceData = await WalletService.getWalletBalance(token);
-      
-      // Update the appropriate balance based on wallet type
-      if (balanceData.default_wallet_type === '1') {
-        set({ ngnBalance: balanceData });
-      } else {
-        set({ usdtBalance: balanceData });
-      }
-      
-      set({ isLoadingBalance: false });
+      set({ balanceData, isLoadingBalance: false });
     } catch (error) {
       // Handle token expiration errors specifically
       if (error instanceof Error && error.message.includes('Session expired')) {
@@ -70,7 +60,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       }
       
       set({
-        balanceError: error instanceof Error ? error.message : 'Failed to fetch wallet balance',
+        balanceError: error instanceof Error ? error.message : 'Failed to fetch balance',
         isLoadingBalance: false,
       });
     }
@@ -100,10 +90,12 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         page_size: 20,
       });
 
+      const transactions = response.data || [];
+
       set({
-        transactions: response.data,
+        transactions,
         currentPage: 0,
-        hasMore: response.data.length >= 20,
+        hasMore: transactions.length >= 20,
         isLoadingTransactions: false,
       });
     } catch (error) {
@@ -138,7 +130,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         page_size: 20,
       });
 
-      const newTransactions = response.data;
+      const newTransactions = response.data || [];
 
       if (newTransactions.length === 0) {
         set({ isLoadingMore: false, hasMore: false });
@@ -187,13 +179,12 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   getCurrentBalanceData: () => {
     const state = get();
-    return state.activeWalletType === '1' ? state.ngnBalance : state.usdtBalance;
+    return state.balanceData;
   },
 
   clearWalletData: () => {
     set({
-      ngnBalance: null,
-      usdtBalance: null,
+      balanceData: null,
       transactions: [],
       currentPage: 0,
       hasMore: true,

@@ -46,7 +46,7 @@ function WalletScreenContent() {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Get current balance data based on active wallet type
+  // Get current balance data
   const balanceData = getCurrentBalanceData();
 
   useEffect(() => {
@@ -147,6 +147,7 @@ function WalletScreenContent() {
               balanceVisible={balanceVisible}
               onToggleVisibility={() => setBalanceVisible(!balanceVisible)}
               onRebatePress={handleRebatePress}
+              walletType={activeWalletType}
             />
           </View>
         )}
@@ -199,6 +200,7 @@ function WalletScreenContent() {
           onLoadMore={handleLoadMore}
           onRefresh={handleRefresh}
           onTransactionPress={handleTransactionPress}
+          walletType={activeWalletType}
         />
       </View>
     </SafeAreaView>
