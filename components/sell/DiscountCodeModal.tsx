@@ -52,7 +52,7 @@ export default function DiscountCodeModal({
 }: DiscountCodeModalProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
-  
+
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -60,12 +60,12 @@ export default function DiscountCodeModal({
 
   const fetchCoupons = async (page = 0, refresh = false) => {
     if (loading || (!hasMore && !refresh)) return;
-    
+
     setLoading(true);
     try {
       // Determine coupon type based on wallet selection
       const type = walletType === 'USDT' ? 2 : 1; // 1 for country currency, 2 for USDT
-      
+
       const response = await APIRequest.request<{
         success: boolean;
         total: number;
@@ -85,13 +85,13 @@ export default function DiscountCodeModal({
 
       if (response.success) {
         const newCoupons = response.data || [];
-        
+
         if (refresh || page === 0) {
           setCoupons(newCoupons);
         } else {
           setCoupons(prev => [...prev, ...newCoupons]);
         }
-        
+
         setHasMore(newCoupons.length >= 10);
         setCurrentPage(page);
       }
@@ -135,21 +135,38 @@ export default function DiscountCodeModal({
   };
 
   const formatDiscount = (coupon: Coupon) => {
+    const discountValue = parseFloat(coupon.discount_value);
+
+    // 百分比类型优惠
     if (coupon.discount_type === 1) {
-      return `${(parseFloat(coupon.discount_value) * 100).toFixed(1)}%`;
+      return `${(discountValue * 100).toFixed(1)}% Off`;
     }
-    return `${coupon.symbol}${coupon.discount_value}`;
+
+    // 数值类型优惠
+    if (coupon.discount_type === 2) {
+      // 成交返利类型
+      if (coupon.type === 1) {
+        return `${coupon.symbol}${discountValue.toFixed(2)} Off`;
+      }
+      // 汇率提高类型
+      if (coupon.type === 2) {
+        return `Rate +${discountValue.toFixed(2)}`;
+      }
+    }
+
+    // 默认情况
+    return `${coupon.symbol}${discountValue.toFixed(2)} Off`;
   };
 
   const renderCouponItem = ({ item }: { item: Coupon }) => {
     const isSelected = selectedCoupon?.code === item.code;
     const isAvailable = item.new_use_status === 2;
-    
+
     return (
       <TouchableOpacity
         style={[
           styles.couponItem,
-          { 
+          {
             borderBottomColor: colors.border,
             backgroundColor: isSelected ? `${colors.primary}10` : 'transparent',
             opacity: isAvailable ? 1 : 0.6,
@@ -170,16 +187,19 @@ export default function DiscountCodeModal({
             {getStatusText(item.new_use_status)}
           </Text>
         </View>
-        
+
         <View style={styles.couponDetails}>
           <Text style={[styles.couponDiscount, { color: colors.primary }]}>
-            {formatDiscount(item)} Off
+            {formatDiscount(item)}
           </Text>
           <Text style={[styles.couponUsage, { color: colors.textSecondary }]}>
-            Used {item.used_times}/{item.max_use}
+            {item.max_use === 0 || !item.max_use
+              ? "Unlimited uses"
+              : `Used ${item.used_times}/${item.max_use} times`
+            }
           </Text>
         </View>
-        
+
         <View style={styles.couponFooter}>
           <Text style={[styles.couponExpiry, { color: colors.textSecondary }]}>
             Expires: {new Date(item.valid_end_time * 1000).toLocaleDateString()}
@@ -194,7 +214,7 @@ export default function DiscountCodeModal({
 
   const renderFooter = () => {
     if (!loading) return null;
-    
+
     return (
       <View style={styles.loadingFooter}>
         <ActivityIndicator size="small" color={colors.primary} />
@@ -222,7 +242,7 @@ export default function DiscountCodeModal({
               <X size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
-          
+
           {loading && coupons.length === 0 ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.primary} />
@@ -249,7 +269,7 @@ export default function DiscountCodeModal({
               }
             />
           )}
-          
+
           <View style={styles.modalActions}>
             <TouchableOpacity
               style={[styles.clearButton, { borderColor: colors.border }]}

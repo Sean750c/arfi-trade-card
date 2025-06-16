@@ -182,10 +182,26 @@ function SellScreenContent() {
   };
 
   const formatCouponDisplay = (coupon: Coupon) => {
-    const discount = coupon.discount_type === 1 
-      ? `${(parseFloat(coupon.discount_value) * 100).toFixed(1)}%`
-      : `${coupon.symbol}${coupon.discount_value}`;
-    return `${coupon.code} (${discount})`;
+    const discountValue = parseFloat(coupon.discount_value);
+
+    // 百分比类型优惠
+    if (coupon.discount_type === 1) {
+      return `${coupon.code} (${(discountValue * 100).toFixed(1)}% Off)`;
+    }
+
+    // 数值类型优惠
+    if (coupon.discount_type === 2) {
+      // 成交返利类型
+      if (coupon.type === 1) {
+        return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
+      }
+      // 汇率提高类型
+      if (coupon.type === 2) {
+        return `${coupon.code} (Rate +${discountValue.toFixed(2)})`;
+      }
+    }
+    // 默认情况
+    return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
   };
 
   return (
@@ -676,10 +692,10 @@ const styles = StyleSheet.create({
   // Help Button
   helpButton: {
     position: 'absolute',
-    bottom: 140,
+    bottom: 100,
     right: Spacing.lg,
-    width: 40,
-    height: 40,
+    width: 30,
+    height: 30,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',

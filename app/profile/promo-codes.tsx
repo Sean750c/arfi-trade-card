@@ -11,7 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Tag, Clock, CircleCheck as CheckCircle, CircleX as XCircle, Copy, Percent } from 'lucide-react-native';
+import { ChevronLeft, Tag, Clock, CircleCheck as CheckCircle, CircleX as XCircle, ArrowRight, } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
@@ -98,24 +98,36 @@ function PromoCodesScreenContent() {
   };
 
   const formatDiscount = (coupon: Coupon) => {
-    if (coupon.discount_type === 1) {
-      return `${(parseFloat(coupon.discount_value) * 100).toFixed(1)}%`;
-    }
-    return `${coupon.symbol}${coupon.discount_value}`;
-  };
+    const discountValue = parseFloat(coupon.discount_value);
 
-  const handleCopyCoupon = (code: string) => {
-    // TODO: Implement clipboard functionality
-    console.log('Copied coupon code:', code);
+    // 百分比类型优惠
+    if (coupon.discount_type === 1) {
+      return `${(discountValue * 100).toFixed(1)}% Off`;
+    }
+
+    // 数值类型优惠
+    if (coupon.discount_type === 2) {
+      // 成交返利类型
+      if (coupon.type === 1) {
+        return `${coupon.symbol}${discountValue.toFixed(2)} Off`;
+      }
+      // 汇率提高类型
+      if (coupon.type === 2) {
+        return `Rate +${discountValue.toFixed(2)}`;
+      }
+    }
+
+    // 默认情况
+    return `${coupon.symbol}${discountValue.toFixed(2)} Off`;
   };
 
   const renderCouponCard = ({ item: coupon }: { item: Coupon }) => {
     const isAvailable = coupon.new_use_status === 2;
-    
+
     return (
       <View style={[
         styles.couponCard,
-        { 
+        {
           backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
           opacity: isAvailable ? 1 : 0.6,
         }
@@ -138,18 +150,17 @@ function PromoCodesScreenContent() {
 
         <View style={styles.couponContent}>
           <View style={styles.discountContainer}>
-            <Percent size={24} color={colors.primary} />
             <Text style={[styles.discountText, { color: colors.primary }]}>
-              {formatDiscount(coupon)} Off
+              {formatDiscount(coupon)}
             </Text>
           </View>
-          
+
           <View style={styles.couponDetails}>
-            <Text style={[styles.couponType, { color: colors.text }]}>
-              {coupon.coupon_type}
-            </Text>
             <Text style={[styles.usageInfo, { color: colors.textSecondary }]}>
-              Used {coupon.used_times}/{coupon.max_use} times
+              {coupon.max_use === 0 || !coupon.max_use
+                ? "Unlimited uses"
+                : `Used ${coupon.used_times}/${coupon.max_use} times`
+              }
             </Text>
           </View>
         </View>
@@ -163,27 +174,30 @@ function PromoCodesScreenContent() {
               {new Date(coupon.valid_end_time * 1000).toLocaleDateString()}
             </Text>
           </View>
-          
+
           {isAvailable && (
             <TouchableOpacity
               style={[styles.copyButton, { backgroundColor: `${colors.primary}15` }]}
-              onPress={() => handleCopyCoupon(coupon.code)}
+              onPress={() => router.push('/(tabs)/sell')}
             >
-              <Copy size={16} color={colors.primary} />
               <Text style={[styles.copyText, { color: colors.primary }]}>
-                Copy
+                Sell
               </Text>
+              <ArrowRight size={12} color={colors.primary} />
             </TouchableOpacity>
           )}
         </View>
 
-        {coupon.enough_money && parseFloat(coupon.enough_money) > 0 && (
-          <View style={[styles.minimumAmount, { backgroundColor: `${colors.warning}15` }]}>
-            <Text style={[styles.minimumText, { color: colors.warning }]}>
-              Minimum order: {coupon.symbol}{coupon.enough_money}
-            </Text>
-          </View>
-        )}
+        {typeof coupon.enough_money === 'string' &&
+          !isNaN(parseFloat(coupon.enough_money)) &&
+          parseFloat(coupon.enough_money) > 0 &&
+          coupon.symbol !== 'ALL' && (  // 新增ALL判断
+            <View style={[styles.minimumAmount, { backgroundColor: `${colors.warning}15` }]}>
+              <Text style={[styles.minimumText, { color: colors.warning }]}>
+                Minimum order: {coupon.symbol} {coupon.enough_money}
+              </Text>
+            </View>
+          )}
       </View>
     );
   };
@@ -195,9 +209,9 @@ function PromoCodesScreenContent() {
         No Promo Codes
       </Text>
       <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
-        {activeType === 0 
+        {activeType === 0
           ? "You don't have any promo codes available at the moment."
-          : `No ${activeType === 1 ? 'NGN' : 'USDT'} promo codes available.`
+          : `No ${activeType === 1 ? user?.currency_name : 'USDT'} promo codes available.`
         }
       </Text>
     </View>
@@ -207,23 +221,20 @@ function PromoCodesScreenContent() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[
-        styles.header, 
-        { 
+        styles.header,
+        {
           backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
           borderBottomColor: colors.border,
         }
       ]}>
-        <TouchableOpacity 
-          onPress={() => router.back()} 
+        <TouchableOpacity
+          onPress={() => router.back()}
           style={styles.backButton}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Promo Codes</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {coupons.length} codes available
-          </Text>
         </View>
       </View>
 
@@ -246,7 +257,7 @@ function PromoCodesScreenContent() {
             All
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[
             styles.filterButton,
@@ -261,10 +272,10 @@ function PromoCodesScreenContent() {
             styles.filterText,
             { color: activeType === 1 ? '#FFFFFF' : colors.text }
           ]}>
-            NGN
+            {user?.currency_name}
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[
             styles.filterButton,
@@ -347,11 +358,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontFamily: 'Inter-Bold',
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginTop: 2,
   },
   filterContainer: {
     flexDirection: 'row',
@@ -443,11 +449,6 @@ const styles = StyleSheet.create({
   couponDetails: {
     flex: 1,
   },
-  couponType: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 2,
-  },
   usageInfo: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
@@ -475,6 +476,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: 8,
     gap: 4,
+    // 新增Sell按钮特有样式
+    minWidth: 60,
+    justifyContent: 'center',
   },
   copyText: {
     fontSize: 12,
