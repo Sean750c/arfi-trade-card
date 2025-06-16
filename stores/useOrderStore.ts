@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { OrderListItem, OrderDetail } from '@/types/api';
+import { OrderListItem, OrderDetail } from '@/types';
 import { OrderService } from '@/services/order';
 
 interface OrderState {

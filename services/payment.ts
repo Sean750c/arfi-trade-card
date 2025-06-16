@@ -11,7 +11,7 @@ import type {
   PaymentListRequest,
   UserPaymentListRequest,
   BankListRequest
-} from '@/types/api';
+} from '@/types';
 
 export class PaymentService {
   static async getPaymentMethods(params: UserPaymentListRequest): Promise<PaymentMethod[]> {

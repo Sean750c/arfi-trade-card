@@ -14,7 +14,7 @@ import { X, DollarSign, Clock, CircleAlert as AlertCircle } from 'lucide-react-n
 import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import type { PaymentAccount } from '@/types/api';
+import type { PaymentAccount } from '@/types';
 
 interface WithdrawAmountModalProps {
   visible: boolean;

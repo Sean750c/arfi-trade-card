@@ -12,7 +12,7 @@ import {
 import { ChevronDown, X } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import type { CardCategory, CardItem } from '@/types/api';
+import type { CardCategory, CardItem } from '@/types';
 
 interface CardSelectorProps {
   categories: CardCategory[];

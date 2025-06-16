@@ -18,7 +18,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { PaymentService } from '@/services/payment';
-import type { AvailablePaymentMethod, Bank, FormField } from '@/types/api';
+import type { AvailablePaymentMethod, Bank, FormField } from '@/types';
 
 interface AddPaymentMethodModalProps {
   visible: boolean;

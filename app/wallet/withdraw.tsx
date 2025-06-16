@@ -22,7 +22,7 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
 import { PaymentService } from '@/services/payment';
-import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/types/api';
+import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/types';
 
 function WithdrawScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';

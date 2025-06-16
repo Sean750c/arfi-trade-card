@@ -20,7 +20,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOrderStore } from '@/stores/useOrderStore';
-import type { OrderDetail, OrderImage } from '@/types/api';
+import type { OrderDetail, OrderImage } from '@/types';
 
 const { width } = Dimensions.get('window');
 

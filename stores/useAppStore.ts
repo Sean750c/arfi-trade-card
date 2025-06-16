@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { InitData, InitResponse } from '@/types/api';
+import { InitData, InitResponse } from '@/types';
 import { APIRequest } from '@/utils/api';
 import { generateDeviceId } from '@/utils/device';
 

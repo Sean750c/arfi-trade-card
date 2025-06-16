@@ -11,7 +11,7 @@ import {
 import { Crown, ChevronDown, X, Star } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import type { VIPDetail, VIPLevel } from '@/types/api';
+import type { VIPDetail, VIPLevel } from '@/types';
 
 interface VIPBenefitsProps {
   vipDetail: VIPDetail;

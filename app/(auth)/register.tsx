@@ -22,7 +22,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { Country } from '@/types/api';
+import { Country } from '@/types';
 
 type RegistrationType = 'email' | 'whatsapp';
 

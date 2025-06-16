@@ -38,7 +38,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useVIPStore } from '@/stores/useVIPStore';
-import type { VIPInfo, VIPTask, VIPLogEntry } from '@/types/api';
+import type { VIPInfo, VIPTask, VIPLogEntry } from '@/types';
 
 const { width } = Dimensions.get('window');
 

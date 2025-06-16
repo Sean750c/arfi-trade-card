@@ -6,7 +6,7 @@ import type {
   OrderListItem,
   OrderDetailRequest,
   OrderDetail
-} from '@/types/api';
+} from '@/types';
 
 export class OrderService {
   static async getOrderList(params: OrderListRequest): Promise<OrderListItem[]> {
@@ -58,6 +58,32 @@ export class OrderService {
         throw new Error(`Failed to fetch order details: ${error.message}`);
       }
       throw new Error('Failed to fetch order details');
+    }
+  }
+
+  static async sellOrder(params: OrderDetailRequest): Promise<OrderDetail> {
+    try {
+      const response = await APIRequest.request<OrderDetailResponse>(
+        '/gc/order/appadd',
+        'POST',
+        params
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to create sell order');
+      }
+
+      return response.data;
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to create sell order: ${error.message}`);
+      }
+      throw new Error('Failed to create sell order');
     }
   }
 }

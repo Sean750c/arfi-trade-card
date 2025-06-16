@@ -19,7 +19,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
-import type { WalletTransaction } from '@/types/api';
+import type { WalletTransaction } from '@/types';
 
 function WalletScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';

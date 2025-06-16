@@ -6,8 +6,7 @@ import type {
   VIPLogEntry,
   VIPInfoRequest,
   VIPLogRequest,
-  EmptyReponse
-} from '@/types/api';
+} from '@/types';
 
 export class VIPService {
   static async getVIPInfo(token: string): Promise<VIPData> {

@@ -19,7 +19,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { Notice } from '@/types/api';
+import { Notice } from '@/types';
 
 const NOTIFICATION_TYPES = [
   { key: 'all', label: 'All' },

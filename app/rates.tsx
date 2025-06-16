@@ -29,7 +29,7 @@ import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import CategoryCard from '@/components/rates/CategoryCard';
 import FilterModal from '@/components/rates/FilterModal';
-import type { CategoryData } from '@/types/api';
+import type { CategoryData } from '@/types';
 
 export default function RatesScreen() {
   const colorScheme = useColorScheme() ?? 'light';

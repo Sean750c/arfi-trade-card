@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Currency, RatesData, CategoryData } from '@/types/api';
+import { Currency, RatesData, CategoryData } from '@/types';
 import { RatesService } from '@/services/rates';
 
 interface RatesState {

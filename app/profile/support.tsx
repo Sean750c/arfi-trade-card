@@ -15,7 +15,7 @@ import { ChevronLeft, Search, CircleHelp as HelpCircle, ChevronDown, ChevronUp, 
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { FAQService } from '@/services/faq';
-import type { FAQItem } from '@/types/api';
+import type { FAQItem } from '@/types';
 
 export default function SupportScreen() {
   const colorScheme = useColorScheme() ?? 'light';

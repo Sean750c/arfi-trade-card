@@ -3,13 +3,13 @@ import type {
   CardCategoryListResponse, 
   CurrencyListResponse, 
   RatesDataResponse,
-  CardCategory,
+  SimpleCardCategory,
   Currency,
   RatesData
-} from '@/types/api';
+} from '@/types';
 
 export class RatesService {
-  static async getCardCategories(): Promise<CardCategory[]> {
+  static async getCardCategories(): Promise<SimpleCardCategory[]> {
     try {
       const response = await APIRequest.request<CardCategoryListResponse>(
         '/gc/card/category',

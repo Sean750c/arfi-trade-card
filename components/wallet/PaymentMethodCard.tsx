@@ -10,7 +10,7 @@ import {
 import { ChevronRight, Clock, Star } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import type { PaymentAccount } from '@/types/api';
+import type { PaymentAccount } from '@/types';
 
 interface PaymentMethodCardProps {
   account: PaymentAccount;

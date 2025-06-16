@@ -31,7 +31,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useOrderStore } from '@/stores/useOrderStore';
 import OrderStatusFilter from '@/components/orders/OrderStatusFilter';
 import OrderCard from '@/components/orders/OrderCard';
-import type { OrderListItem } from '@/types/api';
+import type { OrderListItem } from '@/types';
 
 function OrdersScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';

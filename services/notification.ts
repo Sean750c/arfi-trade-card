@@ -1,5 +1,5 @@
 import { APIRequest } from '@/utils/api';
-import type { NoticeListRequest, NoticeListResponse, NoticeListData } from '@/types/api';
+import type { NoticeListRequest, NoticeListResponse, NoticeListData } from '@/types';
 
 export class NotificationService {
   static async getNotifications(params: NoticeListRequest): Promise<NoticeListData> {

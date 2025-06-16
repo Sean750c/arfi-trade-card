@@ -19,7 +19,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { PaymentService } from '@/services/payment';
-import type { PaymentMethod, PaymentAccount } from '@/types/api';
+import type { PaymentMethod, PaymentAccount } from '@/types';
 
 function BankAccountsScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';

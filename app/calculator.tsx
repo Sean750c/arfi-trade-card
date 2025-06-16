@@ -23,7 +23,7 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { CalculatorService } from '@/services/calculator';
-import type { CalculatorData, CardItem } from '@/types/api';
+import type { CalculatorData, CardItem } from '@/types';
 
 const denominations = ['$25', '$50', '$100', '$200', '$500'];
 const currencies = [

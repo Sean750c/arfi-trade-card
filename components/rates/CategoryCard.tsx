@@ -21,7 +21,7 @@ import {
 import Card from '@/components/UI/Card';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import type { CategoryData, CardRate, RateDetail } from '@/types/api';
+import type { CategoryData, CardRate, RateDetail } from '@/types';
 
 interface CategoryCardProps {
   category: CategoryData;

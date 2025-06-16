@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Banner, BannerListResponse } from '@/types/api';
+import { Banner, BannerListResponse } from '@/types';
 import { APIRequest } from '@/utils/api';
 
 interface BannerState {

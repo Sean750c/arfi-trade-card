@@ -21,7 +21,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UserService } from '@/services/user';
-import type { UserInfo } from '@/types/api';
+import type { UserInfo } from '@/types';
 
 function PersonalInfoScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';

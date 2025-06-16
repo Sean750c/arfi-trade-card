@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { WalletBalanceData, WalletTransaction } from '@/types/api';
+import { WalletBalanceData, WalletTransaction } from '@/types';
 import { WalletService } from '@/services/wallet';
 
 interface WalletState {

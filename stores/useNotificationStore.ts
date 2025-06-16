@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Notice, NoticeListData } from '@/types/api';
+import { Notice, NoticeListData } from '@/types';
 import { NotificationService } from '@/services/notification';
 
 interface NotificationState {

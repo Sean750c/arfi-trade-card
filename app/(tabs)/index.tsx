@@ -21,7 +21,7 @@ import PromoTimer from '@/components/home/PromoTimer';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useAppStore } from '@/stores/useAppStore';
-import { Country } from '@/types/api';
+import { Country } from '@/types';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? 'light';

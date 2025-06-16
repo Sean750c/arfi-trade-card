@@ -5,7 +5,7 @@ import type {
   WalletBalanceData,
   WalletTransaction,
   WalletTransactionRequest
-} from '@/types/api';
+} from '@/types';
 
 export class WalletService {
   static async getWalletBalance(token: string): Promise<WalletBalanceData> {

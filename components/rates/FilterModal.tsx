@@ -12,7 +12,7 @@ import { X, Filter } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import type { CategoryData } from '@/types/api';
+import type { CategoryData } from '@/types';
 
 interface FilterModalProps {
   visible: boolean;

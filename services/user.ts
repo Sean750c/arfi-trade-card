@@ -6,7 +6,7 @@ import type {
   ModifyNicknameRequest,
   UploadAvatarRequest,
   EmptyReponse
-} from '@/types/api';
+} from '@/types';
 
 export class UserService {
   static async getUserInfo(token: string): Promise<UserInfo> {

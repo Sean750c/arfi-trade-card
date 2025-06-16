@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { VIPData, VIPLogEntry } from '@/types/api';
+import { VIPData, VIPLogEntry } from '@/types';
 import { VIPService } from '@/services/vip';
 
 interface VIPState {

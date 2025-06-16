@@ -10,7 +10,7 @@ import { Eye, EyeOff, Gift, TrendingUp } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import type { WalletBalanceData } from '@/types/api';
+import type { WalletBalanceData } from '@/types';
 
 interface WalletBalanceCardProps {
   balanceData: WalletBalanceData;
@@ -67,7 +67,7 @@ export default function WalletBalanceCard({
     }
   };
 
-  const getGradientColors = () => {
+  const getGradientColors = (): [string, string] => {
     if (walletType === '2') {
       // USDT - Green gradient
       return ['#10B981', '#059669'];
@@ -94,7 +94,7 @@ export default function WalletBalanceCard({
             {walletType === '2' ? 'Cryptocurrency' : 'Local Currency'}
           </Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.eyeButton}
           onPress={onToggleVisibility}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -115,7 +115,7 @@ export default function WalletBalanceCard({
             {getCurrencySymbol()}{formatBalance(getBalanceAmount())}
           </Text>
         </View>
-        
+
         {/* USD Equivalent for NGN wallet */}
         {walletType === '1' && balanceData.usd_amount && (
           <Text style={styles.usdEquivalent}>
@@ -140,7 +140,7 @@ export default function WalletBalanceCard({
         </View>
 
         {/* Rebate Amount */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.statItem}
           onPress={onRebatePress}
           activeOpacity={0.7}

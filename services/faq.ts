@@ -3,7 +3,7 @@ import type {
   FAQListResponse,
   FAQItem,
   FAQListRequest
-} from '@/types/api';
+} from '@/types';
 
 export class FAQService {
   static async getFAQList(params: FAQListRequest = {}): Promise<FAQItem[]> {

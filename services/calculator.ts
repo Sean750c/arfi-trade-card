@@ -1,5 +1,5 @@
 import { APIRequest } from '@/utils/api';
-import type { CalculatorRequest, CalculatorResponse, CalculatorData } from '@/types/api';
+import type { CalculatorRequest, CalculatorResponse, CalculatorData } from '@/types';
 
 export class CalculatorService {
   static async getCalculatorData(params: CalculatorRequest): Promise<CalculatorData> {

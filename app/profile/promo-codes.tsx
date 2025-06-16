@@ -17,7 +17,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { APIRequest } from '@/utils/api';
-import type { Coupon, CouponListResponse } from '@/types/api';
+import type { Coupon, CouponListResponse } from '@/types';
 
 function PromoCodesScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';

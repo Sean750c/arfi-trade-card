@@ -16,7 +16,7 @@ import type {
   FacebookLoginRequest,
   AppleLoginRequest,
   SocialLoginResponse
-} from '@/types/api';
+} from '@/types';
 
 export class AuthService {
   static async register(params: Omit<RegisterRequest, 'device_no' | 'channel_type'>) {
