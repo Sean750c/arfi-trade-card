@@ -9,16 +9,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { 
-  ArrowDownLeft, 
-  ArrowUpRight, 
-  Gift, 
-  Users, 
-  Crown,
-  CreditCard,
-  TrendingUp,
-  AlertCircle,
-} from 'lucide-react-native';
+import { ArrowDownLeft, ArrowUpRight, Gift, Users, Crown, CreditCard, TrendingUp, CircleAlert as AlertCircle } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { WalletTransaction } from '@/types/api';
