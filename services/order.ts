@@ -14,6 +14,7 @@ import type {
 export class OrderService {
   static async getOrderList(params: OrderListRequest): Promise<OrderListItem[]> {
     try {
+      // console.log('Fetching order list with params:', params);
       const response = await APIRequest.request<OrderListResponse>(
         '/gc/ord/list',
         'POST',

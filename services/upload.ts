@@ -50,24 +50,26 @@ export class UploadService {
     uploadUrl: string,
     imageUri: string,
     onProgress?: (progress: number) => void
-  ): Promise<void> {
+  ): Promise<String> {
     try {
       // Convert image URI to blob for upload
       const response = await fetch(imageUri);
       const blob = await response.blob();
 
+      //console.log('url：',uploadUrl);
       // Upload to Google Storage using the signed URL
       const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
         body: blob,
         headers: {
-          'Content-Type': blob.type || 'image/jpeg',
+          'Content-Type': 'image/jpeg',
         },
       });
 
       if (!uploadResponse.ok) {
         throw new Error(`Upload failed with status: ${uploadResponse.status}`);
       }
+      return uploadUrl.split("?")[0];
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Failed to upload image: ${error.message}`);

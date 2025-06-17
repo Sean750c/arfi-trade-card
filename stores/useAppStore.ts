@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { InitData, InitResponse } from '@/types';
 import { APIRequest } from '@/utils/api';
-import { generateDeviceId } from '@/utils/device';
+import { Platform } from 'react-native';
+import { generateDeviceId, getDeviceType } from '@/utils/device';
 
 interface AppState {
   initData: InitData | null;
@@ -18,12 +19,13 @@ export const useAppStore = create<AppState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const deviceNo = await generateDeviceId();
+      const deviceType = await getDeviceType();
       
       // Prepare request parameters
       const requestParams: any = {
-        os_type: 'web',
+        os_type: Platform.OS,
         device_no: deviceNo,
-        device_type: 'web',
+        device_type: deviceType,
       };
       
       // Include token if user is logged in

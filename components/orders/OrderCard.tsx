@@ -68,7 +68,7 @@ export default function OrderCard({ order, onPress }: OrderCardProps) {
       <View style={styles.header}>
         <View style={styles.orderInfo}>
           <Text style={[styles.orderNumber, { color: colors.text }]}>
-            #{order.order_no.slice(-8)}
+            #{order.order_no.slice(-14)}
           </Text>
           <View style={styles.statusContainer}>
             {getStatusIcon(order.status)}

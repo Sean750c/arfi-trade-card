@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -33,19 +34,37 @@ export default function HomeScreen() {
   const { initData, isLoading: initLoading, error: initError, initialize } = useAppStore();
 
   // Initialize app data on component mount
-  useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        // Check if user is authenticated and pass token if available
-        const userToken = isAuthenticated && user?.token ? user.token : undefined;
-        await initialize(userToken);
-      } catch (error) {
-        console.error('Failed to initialize app:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const initializeApp = async () => {
+  //     try {
+  //       // Check if user is authenticated and pass token if available
+  //       const userToken = isAuthenticated && user?.token ? user.token : undefined;
+  //       await initialize(userToken);
+  //     } catch (error) {
+  //       console.error('Failed to initialize app:', error);
+  //     }
+  //   };
 
-    initializeApp();
-  }, [initialize, isAuthenticated, user?.token]);
+  //   initializeApp();
+  // }, [initialize, isAuthenticated, user?.token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const initializeApp = async () => {
+        try {
+          const userToken = isAuthenticated && user?.token ? user.token : undefined;
+          await initialize(userToken);
+        } catch (error) {
+          console.error('Failed to initialize app:', error);
+        }
+      };
+  
+      initializeApp();
+  
+      // 可选清理函数（一般不用）
+      return () => {};
+    }, [initialize, isAuthenticated, user?.token])
+  );
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);

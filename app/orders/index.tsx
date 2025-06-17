@@ -51,9 +51,12 @@ function OrdersScreenContent() {
 
   const [refreshing, setRefreshing] = useState(false);
 
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+
   useEffect(() => {
     if (user?.token) {
-      fetchOrders(user.token, true);
+      // fetchOrders(user.token, true);
+      fetchOrders(user.token, true).then(() => setHasLoadedOnce(true));
     }
   }, [user?.token, activeStatus, fetchOrders]);
 
@@ -69,10 +72,11 @@ function OrdersScreenContent() {
   }, [user?.token, fetchOrders]);
 
   const handleLoadMore = useCallback(() => {
+    if (!hasLoadedOnce || isLoadingMore || isLoadingOrders) return;
     if (user?.token) {
       loadMoreOrders(user.token);
     }
-  }, [user?.token, loadMoreOrders]);
+  }, [user?.token, hasLoadedOnce, isLoadingMore, isLoadingOrders, loadMoreOrders]);
 
   const handleOrderPress = (order: OrderListItem) => {
     router.push(`/orders/${order.order_no}` as any);
@@ -84,7 +88,7 @@ function OrdersScreenContent() {
 
   const getStatusStats = () => {
     const stats = {
-      all: 11,
+      all: orders.length,
       inprocess: 0,
       done: 0,
     };
@@ -93,7 +97,9 @@ function OrdersScreenContent() {
       if (order.status_desc.toLowerCase().includes('pending') || 
           order.status_desc.toLowerCase().includes('processing')) {
         stats.inprocess++;
-      } else if (order.status_desc.toLowerCase().includes('succeed') || 
+      } else if (order.status_desc.toLowerCase().includes('succeed') ||
+                 order.status_desc.toLowerCase().includes('success') ||
+                 order.status_desc.toLowerCase().includes('failed') || 
                  order.status_desc.toLowerCase().includes('completed')) {
         stats.done++;
       }
@@ -180,18 +186,15 @@ function OrdersScreenContent() {
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>My Orders</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            11 total orders
-          </Text>
         </View>
-        <TouchableOpacity 
+        {/* <TouchableOpacity 
           style={[styles.searchButton, { backgroundColor: `${colors.primary}15` }]}
           onPress={() => {
             // TODO: Implement search functionality
           }}
         >
           <Search size={20} color={colors.primary} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Status Filter */}
@@ -279,11 +282,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginTop: Spacing.xs,
   },
   searchButton: {
     width: 40,

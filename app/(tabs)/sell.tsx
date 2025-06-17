@@ -161,6 +161,7 @@ function SellScreenContent() {
       }
 
       const uploadUrl = uploadUrls[0];
+      const imageUrl = uploadUrl.url.split("?")[0];;
 
       // Update card with upload URL
       setSelectedCards(prev => 
@@ -168,7 +169,7 @@ function SellScreenContent() {
           card.id === newCard.id 
             ? { 
                 ...card, 
-                uploadUrl: uploadUrl.url, 
+                uploadUrl: imageUrl, 
                 objectName: uploadUrl.objectName,
                 uploadProgress: 25 
               }
@@ -258,8 +259,8 @@ function SellScreenContent() {
     try {
       // Get uploaded image object names
       const uploadedImages = selectedCards
-        .filter(card => card.isUploaded && card.objectName)
-        .map(card => card.objectName!);
+        .filter(card => card.isUploaded && card.uploadUrl)
+        .map(card => card.uploadUrl!);
 
       // Create sell order
       const orderResult = await OrderService.sellOrder({
@@ -274,11 +275,10 @@ function SellScreenContent() {
       // Show success message with order details
       Alert.alert(
         'Order Created Successfully! 🎉', 
-        `Order #${orderResult.order_no}\n\n` +
+        `Order #${orderResult.order_no.slice(-14)}\n\n` +
         `${uploadedImages.length} image(s) uploaded\n` +
         `Wallet: ${selectedWallet}\n` +
         `${selectedCoupon ? `Discount: ${selectedCoupon.code}\n` : ''}` +
-        `Created: ${new Date(orderResult.create_time).toLocaleString()}\n\n` +
         'Your order is being processed. You will receive a notification once it\'s reviewed.',
         [
           { text: 'View Orders', onPress: () => router.push('/orders') },

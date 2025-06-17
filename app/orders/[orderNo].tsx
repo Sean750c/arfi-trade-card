@@ -158,9 +158,6 @@ function OrderDetailScreenContent() {
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Order Details</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            #{orderDetail.order_no}
-          </Text>
         </View>
         <TouchableOpacity 
           style={[styles.shareButton, { backgroundColor: `${colors.primary}15` }]}
@@ -225,7 +222,7 @@ function OrderDetailScreenContent() {
             </Text>
             <View style={styles.orderNumberContainer}>
               <Text style={[styles.infoValue, { color: colors.text }]}>
-                {orderDetail.order_no}
+                {orderDetail.order_no.slice(-14)}
               </Text>
               <TouchableOpacity onPress={handleCopyOrderNo}>
                 <Copy size={16} color={colors.primary} />
@@ -488,11 +485,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontFamily: 'Inter-Bold',
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginTop: 2,
   },
   shareButton: {
     width: 40,

@@ -3,12 +3,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Application from 'expo-application';
 import * as Device from 'expo-device';
 
+export async function getDeviceType(): Promise<string> {
+  const deviceType = Device.deviceType === 1 ? 'phone' :
+    Device.deviceType === 2 ? 'tablet' :
+      Device.deviceType === 3 ? 'desktop' :
+        Device.deviceType === 4 ? 'tv' : 'unknown';
+  return deviceType;
+}
+
 // 主函数（异步）
 export async function generateDeviceId(): Promise<string> {
   if (Platform.OS === 'web') {
     return generateWebFingerprint();
   }
-  
+
   try {
     // Try to get a combination of device and installation info
     const deviceId = await getExpoDeviceId();
@@ -23,27 +31,27 @@ export async function generateDeviceId(): Promise<string> {
 // Expo-specific device ID generation
 async function getExpoDeviceId(): Promise<string> {
   const parts = [];
-  
+
   // Add device info that's relatively stable
   if (Device.modelName) parts.push(Device.modelName.replace(/\s+/g, '_'));
   if (Device.osName) parts.push(Device.osName);
   if (Device.osVersion) parts.push(Device.osVersion);
-  
+
   // Add application-specific info
   if (Application.getAndroidId()) parts.push(Application.getAndroidId());
   if (Application.applicationId) parts.push(Application.applicationId);
-  
+
   // Add installation ID (separate from our persistent one)
-  const installationId = Application.getIosIdForVendorAsync 
-    ? await Application.getIosIdForVendorAsync() 
+  const installationId = Application.getIosIdForVendorAsync
+    ? await Application.getIosIdForVendorAsync()
     : null;
   if (installationId) parts.push(installationId);
-  
+
   // Fallback if we couldn't get any device-specific info
   if (parts.length === 0) {
     throw new Error('No device identifiers available');
   }
-  
+
   return parts.join('_');
 }
 
@@ -66,7 +74,7 @@ async function getPersistentInstallationId(): Promise<string> {
 function generateWebFingerprint(): string {
   const navigator = window.navigator as any;
   const screen = window.screen;
-  
+
   const components = [
     navigator.userAgent,
     navigator.hardwareConcurrency,
@@ -85,6 +93,6 @@ function generateWebFingerprint(): string {
     hash = (hash << 5) - hash + char;
     hash |= 0;
   }
-  
+
   return `web_${Math.abs(hash).toString(36)}`;
 }

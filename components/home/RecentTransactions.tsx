@@ -96,18 +96,16 @@ export default function RecentTransactions() {
       
       <View style={styles.transactionDetails}>
         <View style={styles.transactionHeader}>
-          <Text style={[styles.transactionDesc, { color: colors.text }]}>
-            {order.card_name || 'Gift Card Trade'}
-          </Text>
           <Text style={[styles.orderNumber, { color: colors.textSecondary }]}>
-            #{order.order_no.slice(-8)}
+            #{order.order_no.slice(-14)}
           </Text>
         </View>
         <View style={styles.transactionMeta}>
           <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>
             {formatDate(order.show_time)}
           </Text>
-          <View style={styles.statusContainer}>
+        </View>
+        <View style={styles.statusContainer}>
             {getStatusIcon(order.status)}
             <Text
               style={[
@@ -118,7 +116,6 @@ export default function RecentTransactions() {
               {order.status_desc}
             </Text>
           </View>
-        </View>
       </View>
       
       <View style={styles.amountContainer}>
@@ -139,7 +136,7 @@ export default function RecentTransactions() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
           <TouchableOpacity
             style={styles.viewAllButton}
             onPress={() => router.push('/(auth)/login')}
@@ -152,7 +149,7 @@ export default function RecentTransactions() {
         <View style={[styles.emptyContainer, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}>
           <Gift size={48} color={colors.textSecondary} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>
-            Login to View Activity
+            Login to View Transactions
           </Text>
           <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
             Sign in to see your recent transactions and trading history
@@ -165,7 +162,7 @@ export default function RecentTransactions() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
         <TouchableOpacity
           style={styles.viewAllButton}
           onPress={() => router.push('/orders')}
@@ -179,7 +176,7 @@ export default function RecentTransactions() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading recent activity...
+            Loading recent transactions...
           </Text>
         </View>
       ) : recentOrders.length > 0 ? (
@@ -190,10 +187,10 @@ export default function RecentTransactions() {
         <View style={[styles.emptyContainer, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}>
           <Gift size={48} color={colors.textSecondary} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>
-            No Recent Activity
+            No Recent Transactions
           </Text>
           <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
-            Start trading gift cards to see your activity here
+            Start trading gift cards to see your transaction here
           </Text>
           <TouchableOpacity
             style={[styles.startTradingButton, { backgroundColor: colors.primary }]}
@@ -281,6 +278,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 4,
   },
   transactionDate: {
     fontSize: 12,
@@ -297,7 +295,7 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   amountContainer: {
-    alignItems: 'flex-end',
+    //alignItems: 'flex-end',
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
