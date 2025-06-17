@@ -218,29 +218,7 @@ export default function ProfileScreen() {
               <View style={styles.profileInfo}>
                 <Text style={[styles.profileName, { color: colors.text }]}>
                   {user.nickname || user.username}
-                </Text>
-                <Text style={[styles.profileDetail, { color: colors.textSecondary }]}>
-                  {user.email || 'No email provided'}
-                </Text>
-                <View style={styles.profileStats}>
-                  <View style={styles.statItem}>
-                    <Text style={[styles.statValue, { color: colors.primary }]}>
-                      {user.currency_symbol}{user.money}
-                    </Text>
-                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                      Balance
-                    </Text>
-                  </View>
-                  <View style={styles.statDivider} />
-                  <View style={styles.statItem}>
-                    <Text style={[styles.statValue, { color: colors.secondary }]}>
-                      VIP {user.vip_level}
-                    </Text>
-                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                      Level
-                    </Text>
-                  </View>
-                </View>
+                </Text>     
               </View>
             </>
           ) : (
