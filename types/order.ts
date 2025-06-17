@@ -57,5 +57,31 @@ export interface OrderListRequest {
     page_size: number;
 }
 
+export interface OrderSellRequest {
+    token: string;
+    images: string[];
+    user_memo: string;
+    wallet_type: number;
+    coupon_code: string;
+    channel_type: '1' | '7' | '8';
+}
+
+export interface AmountOrderBonus {
+    bonus_amount: number;
+    order_amount: number;
+}
+
+export interface OrderSell {
+    order_no: string;
+    create_time: string;
+    images: string;
+    is_firstorder: true | false;
+    amount_order_bonus: AmountOrderBonus[];
+    left_transfer_rebate: number;
+    currency_symbol: string;
+    overdue_msg: number;
+}
+
 export type OrderListResponse = APIResponse<OrderListItem[]>;
 export type OrderDetailResponse = APIResponse<OrderDetail>;
+export type OrderSellResponse = APIResponse<OrderDetail>;
