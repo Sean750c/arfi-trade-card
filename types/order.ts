@@ -84,4 +84,4 @@ export interface OrderSell {
 
 export type OrderListResponse = APIResponse<OrderListItem[]>;
 export type OrderDetailResponse = APIResponse<OrderDetail>;
-export type OrderSellResponse = APIResponse<OrderDetail>;
+export type OrderSellResponse = APIResponse<OrderSell>;

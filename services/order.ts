@@ -6,7 +6,9 @@ import type {
   OrderListItem,
   OrderDetailRequest,
   OrderDetail,
-  OrderSellRequest
+  OrderSellRequest,
+  OrderSellResponse,
+  OrderSell
 } from '@/types';
 
 export class OrderService {
@@ -62,9 +64,9 @@ export class OrderService {
     }
   }
 
-  static async sellOrder(params: OrderSellRequest): Promise<OrderDetail> {
+  static async sellOrder(params: OrderSellRequest): Promise<OrderSell> {
     try {
-      const response = await APIRequest.request<OrderDetailResponse>(
+      const response = await APIRequest.request<OrderSellResponse>(
         '/gc/order/appadd',
         'POST',
         params
