@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,291 +9,391 @@ import {
   useColorScheme,
   Image,
   Alert,
-  Platform,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt, CircleUser as UserCircle } from 'lucide-react-native';
+import {
+  User,
+  Settings,
+  CreditCard,
+  Shield,
+  HelpCircle,
+  LogOut,
+  ChevronRight,
+  Crown,
+  Edit3,
+  Camera,
+  Check,
+  X,
+} from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import Card from '@/components/UI/Card';
+import Button from '@/components/UI/Button';
+import AuthGuard from '@/components/UI/AuthGuard';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
-import Button from '@/components/UI/Button';
+import { UserService } from '@/services/user';
+import type { UserInfo } from '@/types';
 
-type MenuItemType = {
+interface ProfileMenuItem {
   id: string;
-  icon: React.ReactNode;
   title: string;
-  subtitle?: string;
-  route?: string;
-  badge?: React.ReactNode;
-  onPress?: () => void;
-};
+  subtitle: string;
+  icon: React.ReactNode;
+  route: string;
+  color: string;
+}
 
-export default function ProfileScreen() {
+function ProfileContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
-  const { isAuthenticated, user, logout, isLoading } = useAuthStore();
+  const { user, logout } = useAuthStore();
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editingNickname, setEditingNickname] = useState(false);
+  const [newNickname, setNewNickname] = useState('');
+  const [updatingNickname, setUpdatingNickname] = useState(false);
+  const [updatingAvatar, setUpdatingAvatar] = useState(false);
 
-  const handleLogout = () => {
-    const confirmLogout = async () => {
-      try {
-        await logout();
-        // No need to navigate as the UI will update automatically
-      } catch (error) {
-        console.error('Logout error:', error);
-        Alert.alert('Error', 'Failed to logout completely. Please try again.');
-      }
-    };
+  useEffect(() => {
+    fetchUserInfo();
+  }, []);
 
-    if (Platform.OS === 'web') {
-      // For web, use a simple confirm dialog
-      if (window.confirm('Are you sure you want to logout?')) {
-        confirmLogout();
-      }
-    } else {
-      // For mobile, use React Native Alert
-      Alert.alert(
-        'Logout',
-        'Are you sure you want to logout?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Logout',
-            style: 'destructive',
-            onPress: confirmLogout,
-          },
-        ]
-      );
+  const fetchUserInfo = async () => {
+    if (!user?.token) return;
+    
+    setLoading(true);
+    try {
+      const info = await UserService.getUserInfo(user.token);
+      setUserInfo(info);
+      setNewNickname(info.nickname || info.username);
+    } catch (error) {
+      console.error('Failed to fetch user info:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleLogin = () => {
-    router.push('/(auth)/login');
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              router.replace('/(auth)/login');
+            } catch (error) {
+              console.error('Logout error:', error);
+            }
+          },
+        },
+      ]
+    );
   };
 
-  const renderMenuItem = (item: MenuItemType) => (
+  const handleUpdateNickname = async () => {
+    if (!user?.token || !newNickname.trim()) return;
+    
+    setUpdatingNickname(true);
+    try {
+      await UserService.modifyNickname({
+        token: user.token,
+        nickname: newNickname.trim(),
+      });
+      
+      // Update local state
+      if (userInfo) {
+        setUserInfo({ ...userInfo, nickname: newNickname.trim() });
+      }
+      
+      setEditingNickname(false);
+      Alert.alert('Success', 'Nickname updated successfully');
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to update nickname');
+    } finally {
+      setUpdatingNickname(false);
+    }
+  };
+
+  const handleUpdateAvatar = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Required', 'Photo library permission is required.');
+        return;
+      }
+      
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      
+      if (!result.canceled && result.assets[0] && user?.token) {
+        setUpdatingAvatar(true);
+        
+        // Convert image to base64
+        const response = await fetch(result.assets[0].uri);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        
+        reader.onloadend = async () => {
+          try {
+            const base64 = reader.result as string;
+            await UserService.uploadAvatar({
+              token: user.token,
+              avatar: base64,
+            });
+            
+            // Update local state
+            if (userInfo) {
+              setUserInfo({ ...userInfo, avatar: result.assets[0].uri });
+            }
+            
+            Alert.alert('Success', 'Avatar updated successfully');
+          } catch (error) {
+            Alert.alert('Error', error instanceof Error ? error.message : 'Failed to update avatar');
+          } finally {
+            setUpdatingAvatar(false);
+          }
+        };
+        
+        reader.readAsDataURL(blob);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to select image');
+      setUpdatingAvatar(false);
+    }
+  };
+
+  const menuItems: ProfileMenuItem[] = [
+    {
+      id: 'personal-info',
+      title: 'Personal Information',
+      subtitle: 'View your account details',
+      icon: <User size={20} color="#FFFFFF" />,
+      route: '/profile/personal-info',
+      color: '#3B82F6',
+    },
+    {
+      id: 'bank-accounts',
+      title: 'Bank Accounts',
+      subtitle: 'Manage withdrawal methods',
+      icon: <CreditCard size={20} color="#FFFFFF" />,
+      route: '/profile/bank-accounts',
+      color: '#10B981',
+    },
+    {
+      id: 'promo-codes',
+      title: 'Promo Codes',
+      subtitle: 'View available discounts',
+      icon: <Crown size={20} color="#FFFFFF" />,
+      route: '/profile/promo-codes',
+      color: '#F59E0B',
+    },
+    {
+      id: 'security',
+      title: 'Security',
+      subtitle: 'Password & account security',
+      icon: <Shield size={20} color="#FFFFFF" />,
+      route: '/profile/security',
+      color: '#EF4444',
+    },
+    {
+      id: 'support',
+      title: 'Help & Support',
+      subtitle: 'FAQ and customer support',
+      icon: <HelpCircle size={20} color="#FFFFFF" />,
+      route: '/profile/support',
+      color: '#8B5CF6',
+    },
+    {
+      id: 'settings',
+      title: 'Settings',
+      subtitle: 'App preferences & theme',
+      icon: <Settings size={20} color="#FFFFFF" />,
+      route: '/profile/settings',
+      color: '#6B7280',
+    },
+  ];
+
+  const renderMenuItem = (item: ProfileMenuItem) => (
     <TouchableOpacity
       key={item.id}
-      style={[
-        styles.menuItem,
-        { borderBottomColor: colors.border },
-      ]}
-      onPress={item.onPress || (() => item.route && router.push(item.route as any))}
+      style={[styles.menuItem, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}
+      onPress={() => router.push(item.route as any)}
       activeOpacity={0.7}
     >
-      <View style={[styles.menuIconContainer, { backgroundColor: `${colors.primary}15` }]}>
+      <View style={[styles.menuIcon, { backgroundColor: item.color }]}>
         {item.icon}
       </View>
-      <View style={styles.menuTextContainer}>
+      <View style={styles.menuContent}>
         <Text style={[styles.menuTitle, { color: colors.text }]}>{item.title}</Text>
-        {item.subtitle && (
-          <Text style={[styles.menuSubtitle, { color: colors.textSecondary }]}>
-            {item.subtitle}
-          </Text>
-        )}
+        <Text style={[styles.menuSubtitle, { color: colors.textSecondary }]}>
+          {item.subtitle}
+        </Text>
       </View>
-      <View style={styles.menuRightContainer}>
-        {item.badge}
-        <ChevronRight size={20} color={colors.textSecondary} />
-      </View>
+      <ChevronRight size={20} color={colors.textSecondary} />
     </TouchableOpacity>
   );
 
-  // Menu items for authenticated users
-  const authenticatedAccountMenu: MenuItemType[] = [
-    {
-      id: '1',
-      icon: <UserCircle size={20} color={colors.primary} />,
-      title: 'Personal Information',
-      subtitle: 'Update your profile details',
-      route: '/profile/personal-info',
-    },
-    {
-      id: '2',
-      icon: <Star size={20} color={colors.primary} />,
-      title: 'VIP Membership',
-      subtitle: `Level ${user?.vip_level || 1}`,
-      route: '/profile/vip',
-      badge: (
-        <View style={[styles.vipBadge, { backgroundColor: colors.secondary }]}>
-          <Text style={styles.vipBadgeText}>{user?.vip_level || 1}</Text>
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            Loading profile...
+          </Text>
         </View>
-      ),
-    },
-    {
-      id: '3',
-      icon: <CreditCard size={20} color={colors.primary} />,
-      title: 'Bank Accounts',
-      subtitle: 'Manage your withdrawal accounts',
-      route: '/profile/bank-accounts',
-    },
-    {
-      id: '4',
-      icon: <Receipt size={20} color={colors.primary} />,
-      title: 'My Orders',
-      subtitle: 'View your trading history',
-      route: '/orders',
-    },
-  ];
-
-  // Menu items for guest users
-  const guestAccountMenu: MenuItemType[] = [
-    {
-      id: '1',
-      icon: <LogIn size={20} color={colors.primary} />,
-      title: 'Login to Your Account',
-      subtitle: 'Access your profile and transactions',
-      onPress: handleLogin,
-    },
-    {
-      id: '2',
-      icon: <User size={20} color={colors.primary} />,
-      title: 'Create Account',
-      subtitle: 'Join AfriTrade today',
-      route: '/(auth)/register',
-    },
-  ];
-
-  const referralMenu: MenuItemType[] = [
-    {
-      id: '1',
-      icon: <Users size={20} color={colors.primary} />,
-      title: 'Refer & Earn',
-      subtitle: 'Invite friends, earn cash rewards',
-      route: '/refer',
-    },
-  ];
-
-  const otherMenu: MenuItemType[] = [
-    {
-      id: '1',
-      icon: <Tag size={20} color={colors.primary} />,
-      title: 'Promo Codes',
-      subtitle: 'View your available coupons',
-      route: '/profile/promo-codes',
-    },
-    {
-      id: '2',
-      icon: <ShieldCheck size={20} color={colors.primary} />,
-      title: 'Security',
-      subtitle: 'Protect your account',
-      route: '/profile/security',
-    },
-    {
-      id: '3',
-      icon: <HelpCircle size={20} color={colors.primary} />,
-      title: 'Help & Support',
-      subtitle: 'Get help with using AfriTrade',
-      route: '/profile/support',
-    },
-    {
-      id: '4',
-      icon: <Settings size={20} color={colors.primary} />,
-      title: 'Settings',
-      subtitle: 'App preferences',
-      route: '/profile/settings',
-    },
-  ];
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
-        </View>
-
-        {/* Profile Section */}
-        <View style={styles.profileSection}>
-          {isAuthenticated && user ? (
-            // Authenticated User Profile
-            <>
-              <Image
-                source={{ 
-                  uri: user.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg' 
-                }}
-                style={styles.profileImage}
-              />
-              <View style={styles.profileInfo}>
-                <Text style={[styles.profileName, { color: colors.text }]}>
-                  {user.nickname || user.username}
-                </Text>     
-              </View>
-            </>
-          ) : (
-            // Guest User Profile
-            <View style={styles.guestProfile}>
-              <View style={[styles.guestAvatar, { backgroundColor: `${colors.primary}20` }]}>
-                <User size={40} color={colors.primary} />
-              </View>
-              <View style={styles.guestInfo}>
-                <Text style={[styles.guestTitle, { color: colors.text }]}>
-                  Welcome to AfriTrade
-                </Text>
-                <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>
-                  Login or create an account to get started
-                </Text>
-                <Button
-                  title="Get Started"
-                  onPress={handleLogin}
-                  style={styles.getStartedButton}
-                  size="sm"
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Enhanced Profile Header */}
+        <Card style={[styles.profileHeader, { backgroundColor: colors.primary }]}>
+          <View style={styles.profileContent}>
+            {/* Avatar Section */}
+            <View style={styles.avatarSection}>
+              <View style={styles.avatarContainer}>
+                <Image
+                  source={{
+                    uri: userInfo?.avatar || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg',
+                  }}
+                  style={styles.avatar}
                 />
+                <TouchableOpacity
+                  style={[styles.avatarEditButton, { backgroundColor: colors.secondary }]}
+                  onPress={handleUpdateAvatar}
+                  disabled={updatingAvatar}
+                >
+                  {updatingAvatar ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Camera size={16} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
-          )}
-        </View>
 
-        {/* Menu Sections */}
-        <View style={styles.menuSection}>
-          <Text style={[styles.menuSectionTitle, { color: colors.text }]}>Account</Text>
-          {isAuthenticated ? authenticatedAccountMenu.map(renderMenuItem) : guestAccountMenu.map(renderMenuItem)}
-        </View>
+            {/* User Info Section */}
+            <View style={styles.userInfoSection}>
+              {/* Nickname with Edit */}
+              <View style={styles.nicknameContainer}>
+                {editingNickname ? (
+                  <View style={styles.nicknameEditContainer}>
+                    <TextInput
+                      style={[styles.nicknameInput, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}
+                      value={newNickname}
+                      onChangeText={setNewNickname}
+                      placeholder="Enter nickname"
+                      placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                      autoFocus
+                    />
+                    <View style={styles.nicknameActions}>
+                      <TouchableOpacity
+                        style={[styles.nicknameActionButton, { backgroundColor: colors.success }]}
+                        onPress={handleUpdateNickname}
+                        disabled={updatingNickname}
+                      >
+                        {updatingNickname ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <Check size={16} color="#FFFFFF" />
+                        )}
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.nicknameActionButton, { backgroundColor: colors.error }]}
+                        onPress={() => {
+                          setEditingNickname(false);
+                          setNewNickname(userInfo?.nickname || userInfo?.username || '');
+                        }}
+                      >
+                        <X size={16} color="#FFFFFF" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.nicknameDisplayContainer}>
+                    <Text style={styles.userName}>
+                      {userInfo?.nickname || userInfo?.username}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.editNicknameButton}
+                      onPress={() => setEditingNickname(true)}
+                    >
+                      <Edit3 size={16} color="rgba(255, 255, 255, 0.8)" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
 
-        {/* Only show referral section for authenticated users */}
-        {isAuthenticated && (
-          <View style={styles.menuSection}>
-            <Text style={[styles.menuSectionTitle, { color: colors.text }]}>Referrals</Text>
-            {referralMenu.map(renderMenuItem)}
+              {/* User Details */}
+              <Text style={styles.userEmail}>@{userInfo?.username}</Text>
+              
+              {/* VIP Badge */}
+              <View style={styles.vipBadge}>
+                <Crown size={14} color="#FFD700" />
+                <Text style={styles.vipText}>VIP Level {userInfo?.vip_level || 1}</Text>
+              </View>
+
+              {/* Balance Info */}
+              <View style={styles.balanceContainer}>
+                <View style={styles.balanceItem}>
+                  <Text style={styles.balanceLabel}>Balance</Text>
+                  <Text style={styles.balanceValue}>
+                    {userInfo?.currency_symbol}{userInfo?.money || '0.00'}
+                  </Text>
+                </View>
+                <View style={styles.balanceDivider} />
+                <View style={styles.balanceItem}>
+                  <Text style={styles.balanceLabel}>Rebate</Text>
+                  <Text style={styles.balanceValue}>
+                    {userInfo?.currency_symbol}{userInfo?.rebate_money || '0.00'}
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
-        )}
+        </Card>
 
+        {/* Menu Items */}
         <View style={styles.menuSection}>
-          <Text style={[styles.menuSectionTitle, { color: colors.text }]}>Other</Text>
-          {otherMenu.map(renderMenuItem)}
+          {menuItems.map(renderMenuItem)}
         </View>
 
-        {/* Logout Button - Only for authenticated users */}
-        {isAuthenticated && (
-          <TouchableOpacity
-            style={[
-              styles.logoutButton,
-              { 
-                borderColor: colors.error,
-                backgroundColor: 'transparent',
-                opacity: isLoading ? 0.6 : 1,
-              },
-            ]}
-            onPress={handleLogout}
-            disabled={isLoading}
-            activeOpacity={0.7}
-            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-          >
-            <LogOut size={20} color={colors.error} />
-            <Text style={[styles.logoutText, { color: colors.error }]}>
-              {isLoading ? 'Logging out...' : 'Log Out'}
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        <View style={styles.versionContainer}>
-          <Text style={[styles.versionText, { color: colors.textSecondary }]}>
-            Version 1.0.0
-          </Text>
-        </View>
+        {/* Logout Button */}
+        <Button
+          title="Logout"
+          variant="outline"
+          onPress={handleLogout}
+          style={[styles.logoutButton, { borderColor: colors.error }]}
+          textStyle={{ color: colors.error }}
+        />
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+export default function ProfileScreen() {
+  return (
+    <AuthGuard>
+      <ProfileContent />
+    </AuthGuard>
   );
 }
 
@@ -301,107 +401,173 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  title: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-  },
-  profileSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xl,
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: Spacing.md,
-    alignSelf: 'center',
-  },
-  profileInfo: {
-    alignItems: 'center',
-  },
-  profileName: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.xs,
-  },
-  profileDetail: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginBottom: Spacing.md,
-  },
-  profileStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.lg,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-  },
-  statDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: '#E5E7EB',
-  },
-  guestProfile: {
-    alignItems: 'center',
-    paddingVertical: Spacing.lg,
-  },
-  guestAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    gap: Spacing.md,
   },
-  guestInfo: {
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+  },
+  scrollContent: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
+  },
+  
+  // Enhanced Profile Header
+  profileHeader: {
+    marginBottom: Spacing.lg,
+    padding: 0,
+    overflow: 'hidden',
+  },
+  profileContent: {
+    padding: Spacing.lg,
+  },
+  avatarSection: {
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 4,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  avatarEditButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  
+  // User Info Section
+  userInfoSection: {
     alignItems: 'center',
   },
-  guestTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
+  nicknameContainer: {
+    width: '100%',
+    alignItems: 'center',
     marginBottom: Spacing.xs,
   },
-  guestSubtitle: {
+  nicknameDisplayContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  userName: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  editNicknameButton: {
+    padding: Spacing.xs,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  nicknameEditContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    width: '100%',
+  },
+  nicknameInput: {
+    flex: 1,
+    height: 40,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 8,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+  },
+  nicknameActions: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+  },
+  nicknameActionButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userEmail: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    textAlign: 'center',
-    marginBottom: Spacing.lg,
-  },
-  getStartedButton: {
-    paddingHorizontal: Spacing.xl,
-  },
-  menuSection: {
-    marginBottom: Spacing.lg,
-  },
-  menuSectionTitle: {
-    paddingHorizontal: Spacing.lg,
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: Spacing.sm,
+  },
+  vipBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: 16,
+    gap: Spacing.xs,
+    marginBottom: Spacing.lg,
+  },
+  vipText: {
+    color: '#FFD700',
+    fontSize: 12,
+    fontFamily: 'Inter-Bold',
+  },
+  balanceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: Spacing.md,
+    width: '100%',
+  },
+  balanceItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  balanceDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    marginHorizontal: Spacing.md,
+  },
+  balanceLabel: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    marginBottom: 4,
+  },
+  balanceValue: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+  },
+
+  // Menu Section
+  menuSection: {
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderBottomWidth: 1,
+    padding: Spacing.lg,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  menuIconContainer: {
+  menuIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -409,57 +575,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: Spacing.md,
   },
-  menuTextContainer: {
+  menuContent: {
     flex: 1,
   },
   menuTitle: {
     fontSize: 16,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Inter-SemiBold',
     marginBottom: 2,
   },
   menuSubtitle: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
   },
-  menuRightContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  vipBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.sm,
-  },
-  vipBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontFamily: 'Inter-Bold',
-  },
+  
+  // Logout Button
   logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    borderRadius: 12,
-    borderWidth: 2,
-    marginBottom: Spacing.lg,
-    minHeight: 56,
-  },
-  logoutText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginLeft: Spacing.sm,
-  },
-  versionContainer: {
-    alignItems: 'center',
-    paddingBottom: Spacing.xxl,
-  },
-  versionText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    marginTop: Spacing.md,
   },
 });

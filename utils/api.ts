@@ -44,16 +44,26 @@ export class APIRequest {
     return md5(signString);
   }
 
-  private static handleTokenExpiration(code: string) {
+  private static async handleTokenExpiration(code: string) {
     if (code === 'common.004') {
-      // Token expired, redirect to login
-      console.log('Token expired, redirecting to login');
+      // Token expired, clear auth state and redirect to login
+      console.log('Token expired, clearing auth and redirecting to login');
       
-      // Clear any stored auth state if needed
-      // This would typically be handled by your auth store
-      
-      // Redirect to login page
-      router.replace('/(auth)/login');
+      try {
+        // Import auth store dynamically to avoid circular dependencies
+        const { useAuthStore } = await import('@/stores/useAuthStore');
+        const { clearAuth } = useAuthStore.getState();
+        
+        // Clear authentication state
+        clearAuth();
+        
+        // Redirect to login page
+        router.replace('/(auth)/login');
+      } catch (error) {
+        console.error('Error clearing auth state:', error);
+        // Still redirect even if clearing fails
+        router.replace('/(auth)/login');
+      }
       
       throw new Error('Session expired. Please login again.');
     }
@@ -106,7 +116,7 @@ export class APIRequest {
       
       // Check for token expiration before checking success
       if (data.code) {
-        this.handleTokenExpiration(data.code);
+        await this.handleTokenExpiration(data.code);
       }
       
       if (!data.success) {

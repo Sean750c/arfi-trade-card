@@ -8,178 +8,113 @@ import {
   TouchableOpacity,
   useColorScheme,
   ActivityIndicator,
-  Alert,
-  Image,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Camera, CreditCard as Edit, Save, X } from 'lucide-react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { ChevronLeft, User, Mail, Phone, MapPin, Calendar, Shield } from 'lucide-react-native';
+import Card from '@/components/UI/Card';
 import AuthGuard from '@/components/UI/AuthGuard';
-import Input from '@/components/UI/Input';
-import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UserService } from '@/services/user';
 import type { UserInfo } from '@/types';
 
-function PersonalInfoScreenContent() {
+function PersonalInfoContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const { user } = useAuthStore();
-
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setSaving] = useState(false);
-  const [nickname, setNickname] = useState('');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.token) {
-      fetchUserInfo();
-    }
-  }, [user?.token]);
+    fetchUserInfo();
+  }, []);
 
   const fetchUserInfo = async () => {
     if (!user?.token) return;
-
-    setIsLoading(true);
+    
+    setLoading(true);
+    setError(null);
+    
     try {
       const info = await UserService.getUserInfo(user.token);
       setUserInfo(info);
-      setNickname(info.nickname || info.username);
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to load user info');
+      setError(error instanceof Error ? error.message : 'Failed to fetch user info');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleEditAvatar = async () => {
-    Alert.alert(
-      'Change Profile Picture',
-      'Choose how to update your profile picture',
-      [
-        { text: 'Camera', onPress: () => openCamera() },
-        { text: 'Gallery', onPress: () => openGallery() },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
   };
 
-  const openCamera = async () => {
-    try {
-      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-      if (!permissionResult.granted) {
-        Alert.alert('Permission Required', 'Camera permission is required to take photos.');
-        return;
-      }
-      
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        quality: 0.8,
-        aspect: [1, 1],
-      });
-      
-      if (!result.canceled && result.assets[0]) {
-        setSelectedImage(result.assets[0].uri);
-        await uploadAvatar(result.assets[0].uri);
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to take photo. Please try again.');
-    }
-  };
+  const InfoRow = ({ 
+    icon, 
+    label, 
+    value, 
+    isVerified = false 
+  }: { 
+    icon: React.ReactNode; 
+    label: string; 
+    value: string; 
+    isVerified?: boolean;
+  }) => (
+    <View style={styles.infoRow}>
+      <View style={styles.infoLeft}>
+        <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
+          {icon}
+        </View>
+        <View style={styles.infoTextContainer}>
+          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+            {label}
+          </Text>
+          <Text style={[styles.infoValue, { color: colors.text }]}>
+            {value || 'Not provided'}
+          </Text>
+        </View>
+      </View>
+      {isVerified && (
+        <View style={[styles.verifiedBadge, { backgroundColor: colors.success }]}>
+          <Shield size={12} color="#FFFFFF" />
+          <Text style={styles.verifiedText}>Verified</Text>
+        </View>
+      )}
+    </View>
+  );
 
-  const openGallery = async () => {
-    try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-        Alert.alert('Permission Required', 'Photo library permission is required.');
-        return;
-      }
-      
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        quality: 0.8,
-        aspect: [1, 1],
-      });
-      
-      if (!result.canceled && result.assets[0]) {
-        setSelectedImage(result.assets[0].uri);
-        await uploadAvatar(result.assets[0].uri);
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to select image. Please try again.');
-    }
-  };
-
-  const uploadAvatar = async (imageUri: string) => {
-    if (!user?.token) return;
-
-    try {
-      // Convert image to base64 (simplified for demo)
-      const base64Image = imageUri; // In real app, convert to base64
-      
-      await UserService.uploadAvatar({
-        token: user.token,
-        avatar: base64Image,
-      });
-
-      Alert.alert('Success', 'Profile picture updated successfully');
-      fetchUserInfo(); // Refresh user info
-    } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to upload avatar');
-    }
-  };
-
-  const handleSaveNickname = async () => {
-    if (!user?.token || !nickname.trim()) return;
-
-    setSaving(true);
-    try {
-      await UserService.modifyNickname({
-        token: user.token,
-        nickname: nickname.trim(),
-      });
-
-      Alert.alert('Success', 'Nickname updated successfully');
-      setIsEditing(false);
-      fetchUserInfo(); // Refresh user info
-    } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to update nickname');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setNickname(userInfo?.nickname || userInfo?.username || '');
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading profile...
+            Loading personal information...
           </Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  if (!userInfo) {
+  if (error) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: colors.error }]}>
-            Failed to load profile information
+            {error}
           </Text>
-          <Button title="Try Again" onPress={fetchUserInfo} />
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.primary }]}
+            onPress={fetchUserInfo}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -187,209 +122,124 @@ function PersonalInfoScreenContent() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[
-        styles.header, 
-        { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
-          borderBottomColor: colors.border,
-        }
-      ]}>
-        <TouchableOpacity 
-          onPress={() => router.back()} 
-          style={styles.backButton}
-        >
-          <ChevronLeft size={24} color={colors.text} />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={[styles.title, { color: colors.text }]}>Personal Information</Text>
-        </View>
-        {isEditing ? (
-          <View style={styles.editActions}>
-            <TouchableOpacity 
-              onPress={handleCancelEdit}
-              style={[styles.actionButton, { backgroundColor: `${colors.error}15` }]}
-            >
-              <X size={20} color={colors.error} />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={handleSaveNickname}
-              style={[styles.actionButton, { backgroundColor: colors.primary }]}
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Save size={20} color="#FFFFFF" />
-              )}
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity 
-            onPress={() => setIsEditing(true)}
-            style={[styles.editButton, { backgroundColor: `${colors.primary}15` }]}
-          >
-            <Edit size={20} color={colors.primary} />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+      <ScrollView
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
-        {/* Profile Picture Section */}
-        <View style={[
-          styles.avatarSection,
-          { backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF' }
-        ]}>
-          <View style={styles.avatarContainer}>
-            <Image
-              source={{ 
-                uri: selectedImage || userInfo.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg' 
-              }}
-              style={styles.avatar}
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={[styles.backButton, { backgroundColor: `${colors.primary}15` }]}
+          >
+            <ChevronLeft size={24} color={colors.primary} />
+          </TouchableOpacity>
+          <Text style={[styles.title, { color: colors.text }]}>Personal Information</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+
+        {/* Personal Details Card */}
+        <Card style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <User size={20} color={colors.primary} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Account Details
+            </Text>
+          </View>
+
+          <View style={styles.infoList}>
+            <InfoRow
+              icon={<User size={16} color={colors.primary} />}
+              label="Username"
+              value={userInfo?.username || ''}
             />
-            <TouchableOpacity 
-              style={[styles.cameraButton, { backgroundColor: colors.primary }]}
-              onPress={handleEditAvatar}
-            >
-              <Camera size={16} color="#FFFFFF" />
-            </TouchableOpacity>
+            
+            <InfoRow
+              icon={<User size={16} color={colors.primary} />}
+              label="Display Name"
+              value={userInfo?.nickname || userInfo?.username || ''}
+            />
+            
+            <InfoRow
+              icon={<Mail size={16} color={colors.primary} />}
+              label="Email Address"
+              value={userInfo?.email || ''}
+              isVerified={userInfo?.is_email_bind}
+            />
+            
+            <InfoRow
+              icon={<Phone size={16} color={colors.primary} />}
+              label="WhatsApp"
+              value={userInfo?.whatsapp || ''}
+              isVerified={userInfo?.whatsapp_bind}
+            />
+            
+            <InfoRow
+              icon={<MapPin size={16} color={colors.primary} />}
+              label="Country"
+              value={userInfo?.country_name || ''}
+            />
           </View>
-          <Text style={[styles.avatarLabel, { color: colors.text }]}>
-            Profile Picture
-          </Text>
-          <Text style={[styles.avatarHint, { color: colors.textSecondary }]}>
-            Tap the camera icon to change your profile picture
-          </Text>
-        </View>
+        </Card>
 
-        {/* Basic Information */}
-        <View style={[
-          styles.infoSection,
-          { backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF' }
-        ]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Basic Information
-          </Text>
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              Username
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.text }]}>
-              {userInfo.username}
+        {/* Account Status Card */}
+        <Card style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Calendar size={20} color={colors.primary} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Account Status
             </Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              Nickname
+          <View style={styles.infoList}>
+            <InfoRow
+              icon={<Calendar size={16} color={colors.primary} />}
+              label="Member Since"
+              value={formatDate(userInfo?.register_time || 0)}
+            />
+            
+            <InfoRow
+              icon={<Calendar size={16} color={colors.primary} />}
+              label="Last Login"
+              value={formatDate(userInfo?.last_login_time || 0)}
+            />
+            
+            <InfoRow
+              icon={<Shield size={16} color={colors.primary} />}
+              label="VIP Level"
+              value={`Level ${userInfo?.vip_level || 1}`
+            />
+          </View>
+        </Card>
+
+        {/* Wallet Information Card */}
+        <Card style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Wallet Information
             </Text>
-            {isEditing ? (
-              <Input
-                value={nickname}
-                onChangeText={setNickname}
-                placeholder="Enter nickname"
-                style={styles.nicknameInput}
-                containerStyle={styles.nicknameContainer}
-              />
-            ) : (
-              <Text style={[styles.infoValue, { color: colors.text }]}>
-                {userInfo.nickname || 'Not set'}
+          </View>
+
+          <View style={styles.walletInfo}>
+            <View style={styles.walletItem}>
+              <Text style={[styles.walletLabel, { color: colors.textSecondary }]}>
+                Main Balance
               </Text>
-            )}
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              Email
-            </Text>
-            <View style={styles.contactInfo}>
-              <Text style={[styles.infoValue, { color: colors.text }]}>
-                {userInfo.email || 'Not provided'}
+              <Text style={[styles.walletValue, { color: colors.text }]}>
+                {userInfo?.currency_symbol}{userInfo?.money || '0.00'}
               </Text>
-              {userInfo.is_email_bind && (
-                <View style={[styles.verifiedBadge, { backgroundColor: colors.success }]}>
-                  <Text style={styles.verifiedText}>Verified</Text>
-                </View>
-              )}
+            </View>
+            
+            <View style={styles.walletItem}>
+              <Text style={[styles.walletLabel, { color: colors.textSecondary }]}>
+                Rebate Balance
+              </Text>
+              <Text style={[styles.walletValue, { color: colors.success }]}>
+                {userInfo?.currency_symbol}{userInfo?.rebate_money || '0.00'}
+              </Text>
             </View>
           </View>
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              WhatsApp
-            </Text>
-            <View style={styles.contactInfo}>
-              <Text style={[styles.infoValue, { color: colors.text }]}>
-                {userInfo.whatsapp || 'Not provided'}
-              </Text>
-              {userInfo.whatsapp_bind && (
-                <View style={[styles.verifiedBadge, { backgroundColor: colors.success }]}>
-                  <Text style={styles.verifiedText}>Verified</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-
-        {/* Account Details */}
-        <View style={[
-          styles.infoSection,
-          { backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF' }
-        ]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Account Details
-          </Text>
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              Country
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.text }]}>
-              {userInfo.country_name}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              VIP Level
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.primary }]}>
-              VIP {userInfo.vip_level}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              Balance
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.text }]}>
-              {userInfo.currency_symbol}{userInfo.money}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              Member Since
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.text }]}>
-              {new Date(userInfo.register_time * 1000).toLocaleDateString()}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              Last Login
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.text }]}>
-              {new Date(userInfo.last_login_time * 1000).toLocaleDateString()}
-            </Text>
-          </View>
-        </View>
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );
@@ -398,7 +248,7 @@ function PersonalInfoScreenContent() {
 export default function PersonalInfoScreen() {
   return (
     <AuthGuard>
-      <PersonalInfoScreenContent />
+      <PersonalInfoContent />
     </AuthGuard>
   );
 }
@@ -421,153 +271,127 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: Spacing.xl,
-    gap: Spacing.lg,
+    padding: Spacing.xl,
+    gap: Spacing.md,
   },
   errorText: {
     fontSize: 16,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Inter-Regular',
     textAlign: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  retryButton: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
+    paddingVertical: Spacing.sm,
+    borderRadius: 8,
   },
-  backButton: {
-    marginRight: Spacing.md,
-    padding: Spacing.xs,
-  },
-  headerContent: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-  },
-  editButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  editActions: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scrollView: {
-    flex: 1,
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
   },
   scrollContent: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
   },
-  avatarSection: {
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.xl,
-    borderRadius: 16,
     marginBottom: Spacing.lg,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
-  avatarContainer: {
-    position: 'relative',
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    marginLeft: Spacing.md,
+    flex: 1,
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  section: {
+    marginBottom: Spacing.lg,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: Spacing.md,
+    gap: Spacing.sm,
   },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+  sectionTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
   },
-  cameraButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
+  infoList: {
+    gap: Spacing.md,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  infoLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  iconContainer: {
     width: 32,
     height: 32,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
+    marginRight: Spacing.sm,
   },
-  avatarLabel: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.xs,
-  },
-  avatarHint: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    textAlign: 'center',
-  },
-  infoSection: {
-    borderRadius: 16,
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.lg,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-    minHeight: 40,
+  infoTextContainer: {
+    flex: 1,
   },
   infoLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-Regular',
-    flex: 1,
+    marginBottom: 2,
   },
   infoValue: {
     fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    textAlign: 'right',
-    flex: 1,
-  },
-  contactInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'flex-end',
-    gap: Spacing.sm,
+    fontFamily: 'Inter-Medium',
   },
   verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.xs,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: 10,
+    gap: 2,
   },
   verifiedText: {
     color: '#FFFFFF',
     fontSize: 10,
     fontFamily: 'Inter-Bold',
   },
-  nicknameContainer: {
-    flex: 1,
-    marginBottom: 0,
+  walletInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  nicknameInput: {
-    textAlign: 'right',
+  walletItem: {
+    flex: 1,
+    alignItems: 'center',
+    padding: Spacing.md,
+    backgroundColor: 'rgba(0, 135, 81, 0.05)',
+    borderRadius: 12,
+    marginHorizontal: Spacing.xs,
+  },
+  walletLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    marginBottom: 4,
+  },
+  walletValue: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
   },
 });
