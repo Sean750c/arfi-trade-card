@@ -15,25 +15,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { 
-  Plus, 
-  Calculator,
-  Crown,
-  ChevronRight,
-  ChevronDown,
-  Trophy,
-  Phone,
-  Camera,
-  X,
-  ArrowLeft,
-  Zap,
-  CircleHelp as HelpCircle,
-  Wallet,
-  CircleCheck as CheckCircle,
-  Tag,
-  Upload,
-  ImageIcon,
-} from 'lucide-react-native';
+import { Plus, Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, Camera, X, ArrowLeft, Zap, CircleHelp as HelpCircle, Wallet, CircleCheck as CheckCircle, Tag, Upload, Image as ImageIcon } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Button from '@/components/UI/Button';
 import AuthGuard from '@/components/UI/AuthGuard';
