@@ -12,6 +12,7 @@ import {
   Image,
   Alert,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
@@ -30,6 +31,8 @@ import {
   Wallet,
   CircleCheck as CheckCircle,
   Tag,
+  Upload,
+  ImageIcon,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Button from '@/components/UI/Button';
@@ -40,10 +43,18 @@ import ActivityModal from '@/components/sell/ActivityModal';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { UploadService } from '@/services/upload';
+import { OrderService } from '@/services/order';
 
 interface SelectedCard {
   id: string;
-  image?: string;
+  localUri?: string;
+  uploadUrl?: string;
+  objectName?: string;
+  isUploading?: boolean;
+  uploadProgress?: number;
+  isUploaded?: boolean;
+  uploadError?: string;
 }
 
 interface Coupon {
@@ -77,6 +88,7 @@ function SellScreenContent() {
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [showVIPModal, setShowVIPModal] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const addCardImage = async () => {
     if (selectedCards.length >= 10) {
@@ -110,11 +122,7 @@ function SellScreenContent() {
       });
       
       if (!result.canceled && result.assets[0]) {
-        const newCard: SelectedCard = {
-          id: Date.now().toString(),
-          image: result.assets[0].uri,
-        };
-        setSelectedCards([...selectedCards, newCard]);
+        await processSelectedImage(result.assets[0].uri);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to take photo. Please try again.');
@@ -137,14 +145,102 @@ function SellScreenContent() {
       });
       
       if (!result.canceled && result.assets[0]) {
-        const newCard: SelectedCard = {
-          id: Date.now().toString(),
-          image: result.assets[0].uri,
-        };
-        setSelectedCards([...selectedCards, newCard]);
+        await processSelectedImage(result.assets[0].uri);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to select image. Please try again.');
+    }
+  };
+
+  const processSelectedImage = async (imageUri: string) => {
+    if (!user?.token) {
+      Alert.alert('Error', 'Please login to upload images.');
+      return;
+    }
+
+    const newCard: SelectedCard = {
+      id: Date.now().toString(),
+      localUri: imageUri,
+      isUploading: true,
+      uploadProgress: 0,
+    };
+
+    setSelectedCards(prev => [...prev, newCard]);
+
+    try {
+      // Get upload URL from server
+      const uploadUrls = await UploadService.getUploadUrls({
+        token: user.token,
+        image_count: 1,
+      });
+
+      if (uploadUrls.length === 0) {
+        throw new Error('No upload URL received');
+      }
+
+      const uploadUrl = uploadUrls[0];
+
+      // Update card with upload URL
+      setSelectedCards(prev => 
+        prev.map(card => 
+          card.id === newCard.id 
+            ? { 
+                ...card, 
+                uploadUrl: uploadUrl.url, 
+                objectName: uploadUrl.objectName,
+                uploadProgress: 25 
+              }
+            : card
+        )
+      );
+
+      // Upload image to Google Storage
+      await UploadService.uploadImageToGoogleStorage(
+        uploadUrl.url,
+        imageUri,
+        (progress) => {
+          setSelectedCards(prev => 
+            prev.map(card => 
+              card.id === newCard.id 
+                ? { ...card, uploadProgress: 25 + (progress * 0.75) }
+                : card
+            )
+          );
+        }
+      );
+
+      // Mark as uploaded
+      setSelectedCards(prev => 
+        prev.map(card => 
+          card.id === newCard.id 
+            ? { 
+                ...card, 
+                isUploading: false, 
+                isUploaded: true, 
+                uploadProgress: 100 
+              }
+            : card
+        )
+      );
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      setSelectedCards(prev => 
+        prev.map(card => 
+          card.id === newCard.id 
+            ? { 
+                ...card, 
+                isUploading: false, 
+                uploadError: error instanceof Error ? error.message : 'Upload failed' 
+              }
+            : card
+        )
+      );
+      
+      Alert.alert(
+        'Upload Failed', 
+        error instanceof Error ? error.message : 'Failed to upload image. Please try again.'
+      );
     }
   };
 
@@ -152,22 +248,58 @@ function SellScreenContent() {
     setSelectedCards(selectedCards.filter(card => card.id !== cardId));
   };
 
+  const retryUpload = async (cardId: string) => {
+    const card = selectedCards.find(c => c.id === cardId);
+    if (!card?.localUri) return;
+
+    await processSelectedImage(card.localUri);
+    // Remove the failed card
+    setSelectedCards(prev => prev.filter(c => c.id !== cardId));
+  };
+
   const isFormValid = () => {
-    return selectedCards.length > 0 || cardInfo.trim() !== '';
+    const hasUploadedImages = selectedCards.some(card => card.isUploaded);
+    const hasCardInfo = cardInfo.trim() !== '';
+    const noUploadingImages = !selectedCards.some(card => card.isUploading);
+    
+    return (hasUploadedImages || hasCardInfo) && noUploadingImages;
   };
 
   const handleSubmit = async () => {
-    if (!isFormValid()) {
+    if (!isFormValid() || !user?.token) {
       Alert.alert('Incomplete Form', 'Please add at least one card image or enter card information.');
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
+      // Get uploaded image object names
+      const uploadedImages = selectedCards
+        .filter(card => card.isUploaded && card.objectName)
+        .map(card => card.objectName!);
+
+      // Create sell order
+      const orderResult = await OrderService.sellOrder({
+        token: user.token,
+        images: uploadedImages,
+        user_memo: cardInfo.trim(),
+        wallet_type: selectedWallet === 'USDT' ? 2 : 1,
+        coupon_code: selectedCoupon?.code || '',
+        channel_type: '1', // Web platform
+      });
+
+      // Show success message with order details
       Alert.alert(
-        'Cards Submitted Successfully!', 
-        'Your cards have been submitted for review. You will receive a notification once processed.',
+        'Order Created Successfully! 🎉', 
+        `Order #${orderResult.order_no}\n\n` +
+        `${uploadedImages.length} image(s) uploaded\n` +
+        `Wallet: ${selectedWallet}\n` +
+        `${selectedCoupon ? `Discount: ${selectedCoupon.code}\n` : ''}` +
+        `Created: ${new Date(orderResult.create_time).toLocaleString()}\n\n` +
+        'Your order is being processed. You will receive a notification once it\'s reviewed.',
         [
-          { text: 'View Status', onPress: () => router.push('/(tabs)/wallet') },
+          { text: 'View Orders', onPress: () => router.push('/orders') },
           { text: 'OK', style: 'default' },
         ]
       );
@@ -176,33 +308,79 @@ function SellScreenContent() {
       setSelectedCards([]);
       setCardInfo('');
       setSelectedCoupon(null);
+      
     } catch (error) {
-      Alert.alert('Error', 'Failed to submit cards. Please try again.');
+      console.error('Submit error:', error);
+      Alert.alert(
+        'Submission Failed', 
+        error instanceof Error ? error.message : 'Failed to create order. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const formatCouponDisplay = (coupon: Coupon) => {
     const discountValue = parseFloat(coupon.discount_value);
 
-    // 百分比类型优惠
     if (coupon.discount_type === 1) {
       return `${coupon.code} (${(discountValue * 100).toFixed(1)}% Off)`;
     }
 
-    // 数值类型优惠
     if (coupon.discount_type === 2) {
-      // 成交返利类型
       if (coupon.type === 1) {
         return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
       }
-      // 汇率提高类型
       if (coupon.type === 2) {
         return `${coupon.code} (Rate +${discountValue.toFixed(2)})`;
       }
     }
-    // 默认情况
     return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
   };
+
+  const renderCardPreview = (card: SelectedCard) => (
+    <View key={card.id} style={styles.cardPreview}>
+      <Image source={{ uri: card.localUri }} style={styles.cardPreviewImage} />
+      
+      {/* Upload Status Overlay */}
+      {card.isUploading && (
+        <View style={styles.uploadOverlay}>
+          <ActivityIndicator size="small" color="#FFFFFF" />
+          <Text style={styles.uploadProgressText}>
+            {Math.round(card.uploadProgress || 0)}%
+          </Text>
+        </View>
+      )}
+      
+      {/* Success Indicator */}
+      {card.isUploaded && (
+        <View style={[styles.statusBadge, { backgroundColor: colors.success }]}>
+          <CheckCircle size={12} color="#FFFFFF" />
+        </View>
+      )}
+      
+      {/* Error Indicator */}
+      {card.uploadError && (
+        <View style={styles.errorOverlay}>
+          <Text style={styles.errorText}>Failed</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => retryUpload(card.id)}
+          >
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      
+      {/* Remove Button */}
+      <TouchableOpacity
+        style={[styles.removeCardButton, { backgroundColor: colors.error }]}
+        onPress={() => removeCard(card.id)}
+      >
+        <X size={12} color="#FFFFFF" />
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -266,27 +444,28 @@ function SellScreenContent() {
               ]}
               onPress={addCardImage}
             >
-              <Plus size={24} color={colors.primary} />
+              <Upload size={24} color={colors.primary} />
               <Text style={[styles.uploadButtonText, { color: colors.primary }]}>
                 Add Card Images (Max 10)
+              </Text>
+              <Text style={[styles.uploadButtonSubtext, { color: colors.textSecondary }]}>
+                Images will be uploaded to secure cloud storage
               </Text>
             </TouchableOpacity>
             
             {/* Card Previews */}
             {selectedCards.length > 0 && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardPreviewContainer}>
-                {selectedCards.map((card) => (
-                  <View key={card.id} style={styles.cardPreview}>
-                    <Image source={{ uri: card.image }} style={styles.cardPreviewImage} />
-                    <TouchableOpacity
-                      style={[styles.removeCardButton, { backgroundColor: colors.error }]}
-                      onPress={() => removeCard(card.id)}
-                    >
-                      <X size={12} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </ScrollView>
+              <View style={styles.cardPreviewContainer}>
+                <View style={styles.cardPreviewHeader}>
+                  <ImageIcon size={16} color={colors.primary} />
+                  <Text style={[styles.cardPreviewTitle, { color: colors.text }]}>
+                    Uploaded Images ({selectedCards.filter(c => c.isUploaded).length}/{selectedCards.length})
+                  </Text>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardPreviewScroll}>
+                  {selectedCards.map(renderCardPreview)}
+                </ScrollView>
+              </View>
             )}
           </View>
 
@@ -401,13 +580,22 @@ function SellScreenContent() {
           <TouchableOpacity
             style={[
               styles.sellButton,
-              { backgroundColor: isFormValid() ? colors.primary : colors.border }
+              { 
+                backgroundColor: isFormValid() && !isSubmitting ? colors.primary : colors.border,
+                opacity: isSubmitting ? 0.7 : 1,
+              }
             ]}
             onPress={handleSubmit}
-            disabled={!isFormValid()}
+            disabled={!isFormValid() || isSubmitting}
           >
-            <Zap size={20} color="#FFFFFF" />
-            <Text style={styles.sellText}>Sell Cards</Text>
+            {isSubmitting ? (
+              <ActivityIndicator size={20} color="#FFFFFF" />
+            ) : (
+              <Zap size={20} color="#FFFFFF" />
+            )}
+            <Text style={styles.sellText}>
+              {isSubmitting ? 'Creating Order...' : 'Sell Cards'}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -461,7 +649,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.lg,
-    paddingBottom: 120, // Space for bottom buttons
+    paddingBottom: 120,
   },
 
   // Header
@@ -515,26 +703,44 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   uploadButton: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 60,
+    height: 80,
     borderRadius: 12,
     borderWidth: 2,
     borderStyle: 'dashed',
-    gap: Spacing.sm,
+    gap: Spacing.xs,
     marginBottom: Spacing.md,
   },
   uploadButtonText: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
   },
+  uploadButtonSubtext: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+  },
   cardPreviewContainer: {
     marginTop: Spacing.sm,
   },
+  cardPreviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  cardPreviewTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+  },
+  cardPreviewScroll: {
+    marginTop: Spacing.sm,
+  },
   cardPreview: {
-    width: 60,
-    height: 40,
+    width: 80,
+    height: 60,
     marginRight: Spacing.sm,
     borderRadius: 8,
     overflow: 'hidden',
@@ -543,6 +749,59 @@ const styles = StyleSheet.create({
   cardPreviewImage: {
     width: '100%',
     height: '100%',
+  },
+  uploadOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+  },
+  uploadProgressText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontFamily: 'Inter-Bold',
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(239, 68, 68, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+  },
+  errorText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontFamily: 'Inter-Bold',
+  },
+  retryButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  retryText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontFamily: 'Inter-Medium',
   },
   removeCardButton: {
     position: 'absolute',
