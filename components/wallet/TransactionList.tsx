@@ -74,12 +74,22 @@ export default function TransactionList({
     }
   };
 
-  const formatAmount = (amount: number, isPositive: boolean = true) => {
+  const formatAmount = (amount: number, isPositive: boolean = true, currencySymbol: string = '₦') => {
     const prefix = isPositive ? '+' : '-';
-    const symbol = walletType === '2' ? 'USDT' : '₦';
+    const symbol = walletType === '2' ? 'USDT' : currencySymbol;
     const decimals = walletType === '2' ? 4 : 2;
-    
+
     return `${prefix}${symbol}${Math.abs(amount).toLocaleString(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })}`;
+  };
+
+  const formatBalanceAmount = (amount: number, currencySymbol: string = '₦') => {
+    const symbol = walletType === '2' ? 'USDT' : currencySymbol;
+    const decimals = walletType === '2' ? 4 : 2;
+
+    return `${symbol}${Math.abs(amount).toLocaleString(undefined, {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     })}`;
@@ -90,18 +100,23 @@ export default function TransactionList({
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
+    const pad = (n: number) => n.toString().padStart(2, '0');
+
     if (diffInHours < 24) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (diffInHours < 24 * 7) {
-      return date.toLocaleDateString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+      // 小于24小时：只显示时间
+      return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
     } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      // 超过24小时：显示日期 + 时间
+      const day = pad(date.getDate());
+      const month = pad(date.getMonth() + 1); // 月份从0开始
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
     }
   };
 
   const getTransactionTitle = (transaction: WalletTransaction) => {
     if (transaction.name) return transaction.name;
-    
+
     switch (transaction.type) {
       case 'order':
         return 'Gift Card Trade';
@@ -130,7 +145,7 @@ export default function TransactionList({
       <TouchableOpacity
         style={[
           styles.transactionItem,
-          { 
+          {
             backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
             borderColor: colors.border,
           },
@@ -139,12 +154,12 @@ export default function TransactionList({
         activeOpacity={0.7}
       >
         <View style={[
-          styles.iconContainer, 
+          styles.iconContainer,
           { backgroundColor: `${transactionColor}15` }
         ]}>
           {getTransactionIcon(transaction.type)}
         </View>
-        
+
         <View style={styles.transactionDetails}>
           <View style={styles.transactionHeader}>
             <Text style={[styles.transactionTitle, { color: colors.text }]}>
@@ -154,25 +169,33 @@ export default function TransactionList({
               styles.transactionAmount,
               { color: isPositive ? colors.success : colors.error }
             ]}>
-              {formatAmount(transaction.amount, isPositive)}
+              {formatAmount(transaction.amount, isPositive, transaction.currency_symbol)}
             </Text>
           </View>
-          
+
           <View style={styles.transactionMeta}>
             <Text style={[styles.transactionMemo, { color: colors.textSecondary }]}>
               {transaction.memo || 'No description'}
             </Text>
             <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>
+              {formatBalanceAmount(transaction.balance_amount, transaction.currency_symbol)}
+            </Text>
+          </View>
+          <View style={styles.transactionOrder}>
+            {/* Order number for order transactions */}
+            {transaction.order_no ? (
+              <Text style={[styles.orderNumber, { color: colors.textSecondary }]}>
+                Order: #{transaction.order_no.slice(-14)}
+              </Text>
+            ) : (
+              <Text style={[styles.orderNumber, { color: colors.textSecondary }]}>
+                {' '}
+              </Text>
+            )}
+            <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>
               {formatDate(transaction.create_time)}
             </Text>
           </View>
-
-          {/* Order number for order transactions */}
-          {transaction.order_no && (
-            <Text style={[styles.orderNumber, { color: colors.textSecondary }]}>
-              Order: #{transaction.order_no.slice(-8)}
-            </Text>
-          )}
 
           {/* Bank details for withdrawal transactions */}
           {transaction.type === 'withdraw' && transaction.bank_name && (
@@ -189,7 +212,7 @@ export default function TransactionList({
 
   const renderFooter = () => {
     if (!isLoadingMore) return null;
-    
+
     return (
       <View style={styles.loadingFooter}>
         <ActivityIndicator size="small" color={colors.primary} />
@@ -205,12 +228,6 @@ export default function TransactionList({
       <TrendingUp size={64} color={colors.textSecondary} />
       <Text style={[styles.emptyTitle, { color: colors.text }]}>
         No Transactions
-      </Text>
-      <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
-        {walletType === '2' 
-          ? "You haven't made any USDT transactions yet."
-          : "You haven't made any transactions yet."
-        }
       </Text>
     </View>
   );
@@ -320,14 +337,24 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: Spacing.sm,
   },
-  transactionDate: {
+  transactionAfterAmount: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
+  },
+  transactionOrder: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   orderNumber: {
     fontSize: 11,
     fontFamily: 'Inter-Regular',
     marginTop: 2,
+  },
+  transactionDate: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
   },
   bankDetails: {
     marginTop: 4,

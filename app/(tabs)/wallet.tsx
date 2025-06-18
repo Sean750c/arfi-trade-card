@@ -54,7 +54,13 @@ function WalletScreenContent() {
       fetchBalance(user.token);
       fetchTransactions(user.token, true);
     }
-  }, [activeWalletType, activeTransactionType, user?.token]);
+  }, [user?.token, fetchBalance, fetchTransactions]);
+
+  useEffect(() => {
+    if (user?.token) {
+      fetchTransactions(user.token, true);
+    }
+  }, [activeWalletType, activeTransactionType]);
 
   const handleRefresh = useCallback(async () => {
     if (!user?.token) return;
@@ -254,7 +260,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.sm,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontFamily: 'Inter-Bold',
   },
   transactionCount: {

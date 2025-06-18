@@ -7,6 +7,7 @@ interface WalletState {
   balanceData: WalletBalanceData | null;
   
   // Transactions
+  isInitialLoad: boolean;
   transactions: WalletTransaction[];
   currentPage: number;
   hasMore: boolean;
@@ -35,6 +36,7 @@ interface WalletState {
 export const useWalletStore = create<WalletState>((set, get) => ({
   // Initial state
   balanceData: null,
+  isInitialLoad: true, // 添加这个
   transactions: [],
   currentPage: 0,
   hasMore: true,
@@ -76,6 +78,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         transactions: [],
         currentPage: 0,
         hasMore: true,
+        isInitialLoad: true, // 标记为初始加载
       });
     } else {
       set({ isLoadingTransactions: true, transactionsError: null });
@@ -97,6 +100,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         currentPage: 0,
         hasMore: transactions.length >= 20,
         isLoadingTransactions: false,
+        isInitialLoad: false, // 初始加载完成
       });
     } catch (error) {
       // Handle token expiration errors specifically
@@ -115,7 +119,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   loadMoreTransactions: async (token: string) => {
     const state = get();
     
-    if (state.isLoadingMore || !state.hasMore) return;
+    if (state.isLoadingMore || !state.hasMore || state.isInitialLoad) return;
     
     const nextPage = state.currentPage + 1;
     
