@@ -207,7 +207,7 @@ function PersonalInfoContent() {
             <InfoRow
               icon={<Shield size={16} color={colors.primary} />}
               label="VIP Level"
-              value={`Level ${userInfo?.vip_level || 1}`
+              value={`Level ${userInfo?.vip_level}` || 'Level 1'}
             />
           </View>
         </Card>

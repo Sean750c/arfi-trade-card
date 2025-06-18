@@ -161,7 +161,7 @@ function SellScreenContent() {
       }
 
       const uploadUrl = uploadUrls[0];
-      const imageUrl = uploadUrl.url.split("?")[0];;
+      const imageUrl = uploadUrl.url.split("?")[0];
 
       // Update card with upload URL
       setSelectedCards(prev => 
