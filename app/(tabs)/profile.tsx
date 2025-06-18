@@ -302,7 +302,12 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
+        <View style={[styles.header, 
+        { 
+          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          borderBottomColor: colors.border,
+          shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.05)',
+        }]}>
           <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
         </View>
 
@@ -464,11 +469,15 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingBottom: Spacing.xxs,
+    borderBottomWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'Inter-Bold',
   },
   profileSection: {
@@ -477,7 +486,7 @@ const styles = StyleSheet.create({
   },
   avatarSection: {
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   avatarContainer: {
     position: 'relative',
@@ -508,26 +517,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     alignSelf: 'center', // 改为center确保居中
     backgroundColor: '#f0f0f0', // 添加默认背景色，图片加载时显示
-  },
-  profileInfo: {
-    alignItems: 'center',
-  },
-  profileName: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.xs,
-    textAlign: 'center', // 确保文本居中
-    overflow: 'hidden', // 配合numberOfLines防止溢出
-  },
-  profileDetail: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginBottom: Spacing.md,
-  },
-  profileStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.lg,
   },
   nicknameContainer: {
     width: '100%',
@@ -575,23 +564,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-  },
-  statDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: '#E5E7EB',
   },
   guestProfile: {
     alignItems: 'center',

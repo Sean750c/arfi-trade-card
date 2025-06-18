@@ -11,11 +11,15 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 
 interface WalletTabsProps {
+  countryCurrencyName: string;
+  countryCurrencySymbol: string;
   activeWalletType: '1' | '2';
   onWalletTypeChange: (type: '1' | '2') => void;
 }
 
 export default function WalletTabs({
+  countryCurrencyName,
+  countryCurrencySymbol,
   activeWalletType,
   onWalletTypeChange,
 }: WalletTabsProps) {
@@ -25,8 +29,8 @@ export default function WalletTabs({
   const tabs = [
     { 
       key: '1', 
-      label: 'NGN Wallet', 
-      symbol: '₦',
+      label: countryCurrencyName || ' Wallet', 
+      symbol: countryCurrencySymbol || '₦',
       icon: <Coins size={18} color={activeWalletType === '1' ? '#FFFFFF' : colors.primary} />
     },
     { 

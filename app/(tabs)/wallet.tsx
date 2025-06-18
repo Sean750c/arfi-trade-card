@@ -54,13 +54,7 @@ function WalletScreenContent() {
       fetchBalance(user.token);
       fetchTransactions(user.token, true);
     }
-  }, [user?.token, fetchBalance, fetchTransactions]);
-
-  useEffect(() => {
-    if (user?.token) {
-      fetchTransactions(user.token, true);
-    }
-  }, [activeWalletType, activeTransactionType, user?.token, fetchTransactions]);
+  }, [activeWalletType, activeTransactionType, user?.token]);
 
   const handleRefresh = useCallback(async () => {
     if (!user?.token) return;
@@ -121,75 +115,61 @@ function WalletScreenContent() {
       {/* Wallet Tabs */}
       <View style={styles.tabsContainer}>
         <WalletTabs
+          countryCurrencyName={user?.currency_name || 'NGN'}
+          countryCurrencySymbol={user?.currency_symbol || '₦'}
           activeWalletType={activeWalletType}
           onWalletTypeChange={handleWalletTypeChange}
         />
       </View>
-
-      {/* Scrollable Content */}
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Balance Card */}
-        {balanceData && (
-          <View style={styles.balanceContainer}>
-            <WalletBalanceCard
-              balanceData={balanceData}
-              balanceVisible={balanceVisible}
-              onToggleVisibility={() => setBalanceVisible(!balanceVisible)}
-              onRebatePress={handleRebatePress}
-              walletType={activeWalletType}
-            />
-          </View>
-        )}
-
-        {/* Balance Error */}
-        {balanceError && (
-          <View style={[styles.errorContainer, { backgroundColor: colors.error + '10' }]}>
-            <Text style={[styles.errorText, { color: colors.error }]}>
-              ⚠️ {balanceError}
-            </Text>
-          </View>
-        )}
-
-        {/* Withdraw Button */}
-        <View style={styles.actionContainer}>
-          <Button
-            title="Withdraw Funds"
-            onPress={handleWithdraw}
-            style={styles.withdrawButton}
-            fullWidth
+      {/* Balance Card */}
+      {balanceData && (
+        <View style={styles.balanceContainer}>
+          <WalletBalanceCard
+            balanceData={balanceData}
+            balanceVisible={balanceVisible}
+            onToggleVisibility={() => setBalanceVisible(!balanceVisible)}
+            onRebatePress={handleRebatePress}
+            walletType={activeWalletType}
           />
         </View>
+      )}
 
-        {/* Transaction Filters */}
-        <View style={styles.filtersContainer}>
-          <TransactionFilters
-            activeType={activeTransactionType}
-            onTypeChange={handleTransactionTypeChange}
-          />
-        </View>
-
-        {/* Transactions Header */}
-        <View style={styles.transactionsHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Transaction History
-          </Text>
-          <Text style={[styles.transactionCount, { color: colors.textSecondary }]}>
-            {transactions.length} transactions
+      {/* Balance Error */}
+      {balanceError && (
+        <View style={[styles.errorContainer, { backgroundColor: colors.error + '10' }]}>
+          <Text style={[styles.errorText, { color: colors.error }]}>
+            ⚠️ {balanceError}
           </Text>
         </View>
-      </ScrollView>
+      )}
 
+      {/* Withdraw Button */}
+      <View style={styles.actionContainer}>
+        <Button
+          title="Withdraw Funds"
+          onPress={handleWithdraw}
+          style={styles.withdrawButton}
+          fullWidth
+        />
+      </View>
+
+      {/* Transaction Filters */}
+      <View style={styles.filtersContainer}>
+        <TransactionFilters
+          activeType={activeTransactionType}
+          onTypeChange={handleTransactionTypeChange}
+        />
+      </View>
+
+      {/* Transactions Header */}
+      <View style={styles.transactionsHeader}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          Transaction History
+        </Text>
+        <Text style={[styles.transactionCount, { color: colors.textSecondary }]}>
+          {transactions.length} transactions
+        </Text>
+      </View>
       {/* Transaction List */}
       <View style={styles.transactionListContainer}>
         <TransactionList
@@ -221,8 +201,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingBottom: Spacing.xxs,
     borderBottomWidth: 1,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -230,19 +209,15 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   title: {
-    fontSize: 28,
+    fontSize: 20,
     fontFamily: 'Inter-Bold',
   },
   tabsContainer: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
   },
-  scrollView: {
-    flex: 0,
-  },
   balanceContainer: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
   },
   errorContainer: {
     marginHorizontal: Spacing.lg,
@@ -257,7 +232,7 @@ const styles = StyleSheet.create({
   },
   actionContainer: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   withdrawButton: {
     height: 52,
