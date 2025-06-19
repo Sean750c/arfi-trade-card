@@ -49,6 +49,31 @@ export interface WalletTransactionRequest {
     page_size: number;
 }
 
+export interface MoneyLogDetailRequest {
+    token: string;
+    logId: number;
+}
+
+export interface MoneyLogDetailData {
+    log_id: number;
+    amount: number;
+    balance_amount: number;
+    create_time: number;
+    wallet_type: '1' | '2';
+    serial_number: string;
+    order_status: string;
+    name: string;
+    account_no: string;
+    account_name: string;
+    bank_name: string;
+    bank_logo: string;
+    remark: string;
+    image: string;
+    withdraw_no: string;
+    withdraw_deal_time: number;
+    withdraw_create_time: number;
+}
+
 export interface PaymentAccount {
     bank_id: number;
     is_def: number; // 1: default, 2: not default
@@ -125,3 +150,4 @@ export type PaymentMethodsResponse = APIResponse<PaymentMethod[]>;
 export type AvailablePaymentMethodsResponse = APIResponse<AvailablePaymentMethod[]>;
 export type BankListResponse = APIResponse<Bank[]>;
 export type CoinListResponse = APIResponse<CoinNetwork[]>;
+export type MoneyLogDetailResponse = APIResponse<MoneyLogDetailData>;

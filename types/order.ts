@@ -66,7 +66,7 @@ export interface OrderSellRequest {
     channel_type: '1' | '7' | '8';
 }
 
-export interface AmountOrderBonus {
+export interface OrderBonus {
     bonus_amount: number;
     order_amount: number;
 }
@@ -76,7 +76,7 @@ export interface OrderSell {
     create_time: string;
     images: string;
     is_firstorder: true | false;
-    amount_order_bonus: AmountOrderBonus[];
+    amount_order_bonus: OrderBonus[];
     left_transfer_rebate: number;
     currency_symbol: string;
     overdue_msg: number;

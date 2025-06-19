@@ -3,8 +3,9 @@ import type {
   WalletBalanceResponse, 
   WalletTransactionsResponse,
   WalletBalanceData,
-  WalletTransaction,
-  WalletTransactionRequest
+  WalletTransactionRequest,
+  MoneyLogDetailRequest,
+  MoneyLogDetailResponse
 } from '@/types';
 
 export class WalletService {
@@ -57,6 +58,32 @@ export class WalletService {
         throw new Error(`Failed to fetch wallet transactions: ${error.message}`);
       }
       throw new Error('Failed to fetch wallet transactions');
+    }
+  }
+
+  static async moneyLogDetail(params: MoneyLogDetailRequest): Promise<MoneyLogDetailResponse> {
+    try {
+      const response = await APIRequest.request<MoneyLogDetailResponse>(
+        '/gc/wallet/moneyLogDetail',
+        'POST',
+        params
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to fetch money log detail');
+      }
+
+      return response;
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch money log detail: ${error.message}`);
+      }
+      throw new Error('Failed to fetch money log detail');
     }
   }
 }
