@@ -51,10 +51,10 @@ export interface WalletTransactionRequest {
 
 export interface MoneyLogDetailRequest {
     token: string;
-    logId: number;
+    log_id: number;
 }
 
-export interface MoneyLogDetailData {
+export interface MoneyLogDetail {
     log_id: number;
     amount: number;
     balance_amount: number;
@@ -150,4 +150,4 @@ export type PaymentMethodsResponse = APIResponse<PaymentMethod[]>;
 export type AvailablePaymentMethodsResponse = APIResponse<AvailablePaymentMethod[]>;
 export type BankListResponse = APIResponse<Bank[]>;
 export type CoinListResponse = APIResponse<CoinNetwork[]>;
-export type MoneyLogDetailResponse = APIResponse<MoneyLogDetailData>;
+export type MoneyLogDetailResponse = APIResponse<MoneyLogDetail>;

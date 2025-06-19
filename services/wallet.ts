@@ -5,7 +5,8 @@ import type {
   WalletBalanceData,
   WalletTransactionRequest,
   MoneyLogDetailRequest,
-  MoneyLogDetailResponse
+  MoneyLogDetailResponse,
+  MoneyLogDetail
 } from '@/types';
 
 export class WalletService {
@@ -61,7 +62,7 @@ export class WalletService {
     }
   }
 
-  static async moneyLogDetail(params: MoneyLogDetailRequest): Promise<MoneyLogDetailResponse> {
+  static async moneyLogDetail(params: MoneyLogDetailRequest): Promise<MoneyLogDetail> {
     try {
       const response = await APIRequest.request<MoneyLogDetailResponse>(
         '/gc/wallet/moneyLogDetail',
@@ -73,7 +74,7 @@ export class WalletService {
         throw new Error(response.msg || 'Failed to fetch money log detail');
       }
 
-      return response;
+      return response.data;
     } catch (error) {
       // Handle token expiration errors specifically
       if (error instanceof Error && error.message.includes('Session expired')) {

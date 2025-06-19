@@ -93,7 +93,7 @@ function WalletScreenContent() {
   }, [user?.token, loadMoreTransactions]);
 
   const handleTransactionPress = (transaction: WalletTransaction) => {
-    router.push(`/wallet/transaction/${transaction.log_id}` as any);
+    router.push(`/wallet/${transaction.log_id}` as any);
   };
 
   const handleRebatePress = () => {
