@@ -12,7 +12,7 @@ import type {
     ReceiveInviteRebateRequest
 } from '@/types';
 
-export class WalletService {
+export class RebateService {
 
     static async getInviteInfo(params: InviteInfoRequest): Promise<InviteInfoResponse> {
         try {

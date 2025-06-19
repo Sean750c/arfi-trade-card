@@ -127,9 +127,12 @@ export default function WalletBalanceCard({
           </View>
           <View style={styles.statContent}>
             <Text style={styles.statLabel}>Rebate</Text>
-            <Text style={styles.statValue}>
-              {getCurrencySymbol()}{formatBalance(getRebateAmount())}
-            </Text>
+            <View style={styles.rebateValueContainer}>
+              <Text style={styles.statValue}>
+                {getCurrencySymbol()}{formatBalance(getRebateAmount())}
+              </Text>
+              <TrendingUp size={16} color="rgba(255, 255, 255, 0.8)" />
+            </View>
           </View>
         </TouchableOpacity>
       </View>
@@ -216,6 +219,9 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    backgroundColor: 'rgba(222, 222, 222, 0.1)',
+    borderRadius: 12,
+    padding: Spacing.sm,
   },
   statItem: {
     flexDirection: 'row',
@@ -245,6 +251,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontFamily: 'Inter-Bold',
+    marginRight: Spacing.xs,
+  },
+  rebateValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   additionalInfo: {
     marginTop: Spacing.sm,

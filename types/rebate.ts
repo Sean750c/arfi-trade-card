@@ -10,7 +10,7 @@ export interface RebateVipInfo {
     rate: number;
 }
 
-export interface RebateListItem {
+export interface RebateItem {
     log_id: number;
     create_time: string;
     activity_code: string;
@@ -38,7 +38,7 @@ export interface RebateData {
     referred_bonus: number;
     amount_order_bonus: RebateAmountOrderBonus[];
     vip_info: RebateVipInfo[];
-    user_rebate_list: RebateListItem[];
+    user_rebate_list: RebateItem[];
     user_invited_number: string;
 }
 
