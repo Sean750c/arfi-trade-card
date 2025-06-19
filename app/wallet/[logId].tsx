@@ -1,13 +1,15 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, useColorScheme, SafeAreaView, TouchableOpacity, Image } from 'react-native';
-import { ChevronLeft, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, useColorScheme, SafeAreaView, TouchableOpacity, Image, RefreshControl, Dimensions, } from 'react-native';
+import { ChevronLeft, CircleAlert as AlertCircle, CircleX as XCircle } from 'lucide-react-native';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { MoneyLogDetail } from '@/types';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import Button from '@/components/UI/Button';
 import { useWalletStore } from '@/stores/useWalletStore';
+
+const { width } = Dimensions.get('window');
 
 export default function TransactionDetailScreen() {
   const { logId } = useLocalSearchParams<{ logId: string }>();
@@ -16,6 +18,8 @@ export default function TransactionDetailScreen() {
   const [detail, setDetail] = useState<MoneyLogDetail | null>(null);
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const [refreshing, setRefreshing] = useState(false);
+  const [isImageSelected, setImageSelected] = useState<boolean | false>(false);
 
   useEffect(() => {
     fetchDetail();
@@ -29,6 +33,16 @@ export default function TransactionDetailScreen() {
     } catch (err) {
       console.error('Failed to load log detail:', err);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchDetail();
+    setRefreshing(false);
+  };
+
+  const handleImagePress = () => {
+    setImageSelected(true);
   };
 
   if (isLoadingDetail) {
@@ -85,7 +99,14 @@ export default function TransactionDetailScreen() {
           <Text style={[styles.title, { color: colors.text }]}>Transaction Details</Text>
         </View>
       </View>
-      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[colors.primary]}
+          />
+        }>
         <View style={[styles.card, { backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF' }]}>
           <Text style={[styles.title, { color: colors.text }]}>Transaction Details</Text>
 
@@ -145,18 +166,37 @@ export default function TransactionDetailScreen() {
               <Text style={[styles.value, { color: colors.text }]}>{detail.remark}</Text>
             </View>
           )}
-          
-          {detail.name === 'Withdraw' && (
-            <View style={styles.imageContainer}>
-              <Image 
-                source={{ uri: detail.image }} 
-                style={styles.withdrawImage}
-                resizeMode="contain"
-              />
+
+          {detail.name === 'Withdraw' && detail.image && (
+            <View style={styles.imagesGrid}>
+              <TouchableOpacity style={styles.imageContainer} onPress={() => handleImagePress()}>
+                <Image
+                  source={{ uri: detail.image }}
+                  style={styles.withdrawImage}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
             </View>
           )}
         </View>
       </ScrollView>
+
+      {/* Image Viewer Modal */}
+      {isImageSelected && (
+        <View style={styles.imageViewerOverlay}>
+          <TouchableOpacity
+            style={styles.imageViewerClose}
+            onPress={() => setImageSelected(false)}
+          >
+            <XCircle size={32} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Image
+            source={{ uri: detail.image }}
+            style={styles.fullScreenImage}
+            resizeMode="contain"
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -238,6 +278,11 @@ const styles = StyleSheet.create({
   retryButton: {
     paddingHorizontal: Spacing.xl,
   },
+  imagesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
   imageContainer: {
     marginTop: Spacing.lg,
     alignItems: 'center',
@@ -245,5 +290,25 @@ const styles = StyleSheet.create({
   withdrawImage: {
     width: 200,
     height: 200,
+  },
+  imageViewerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageViewerClose: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    zIndex: 1,
+  },
+  fullScreenImage: {
+    width: width - 40,
+    height: '80%',
   },
 });
