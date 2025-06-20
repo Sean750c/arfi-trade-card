@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from 'react-native';
-import { Eye, EyeOff, Gift, TrendingUp } from 'lucide-react-native';
+import { Eye, EyeOff, Gift, TrendingUp, ArrowRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
@@ -131,9 +131,9 @@ export default function WalletBalanceCard({
               <Text style={styles.statValue}>
                 {getCurrencySymbol()}{formatBalance(getRebateAmount())}
               </Text>
-              <TrendingUp size={16} color="rgba(255, 255, 255, 0.8)" />
             </View>
           </View>
+          <ArrowRight size={20} color="rgba(255, 255, 255, 0.8)" />
         </TouchableOpacity>
       </View>
 
@@ -239,6 +239,7 @@ const styles = StyleSheet.create({
     marginRight: Spacing.sm,
   },
   statContent: {
+    flex: 1,
     flexDirection: 'row',
   },
   statLabel: {
