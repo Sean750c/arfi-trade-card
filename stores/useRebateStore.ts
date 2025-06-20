@@ -39,6 +39,7 @@ interface RebateState {
     fetchRebateList: (token: string, params: any) => Promise<void>;
     loadMoreRebateList: (token: string) => Promise<void>;
     fetchInviteRank: (token: string) => Promise<void>;
+    setActiveWalletType: (type: '1' | '2') => void;
     clearRebateData: () => void;
 }
 
@@ -195,6 +196,17 @@ export const useRebateStore = create<RebateState>((set, get) => ({
             });
         }
     },
+
+    setActiveWalletType: (type: '1' | '2') => {
+        set({ 
+          activeWalletType: type,
+          // Reset transactions when changing wallet type
+          rebateData: null,
+          rebateList: [],
+          currentPage: 0,
+          hasMore: true,
+        });
+      },
 
     clearRebateData: () => {
         set({
