@@ -10,8 +10,10 @@ import type {
   CoinNetwork,
   PaymentListRequest,
   UserPaymentListRequest,
-  BankListRequest
-} from '@/types';
+  BankListRequest,
+  SetDefaultPaymentRequest,
+  SetDefaultPaymentResponse
+} from '@/types/payment';
 
 export class PaymentService {
   static async getPaymentMethods(params: UserPaymentListRequest): Promise<PaymentMethod[]> {
@@ -115,6 +117,37 @@ export class PaymentService {
         throw new Error(`Failed to fetch coin list: ${error.message}`);
       }
       throw new Error('Failed to fetch coin list');
+    }
+  }
+
+  /**
+   * 设置默认提现方式
+   * @param params 设置默认提现方式参数
+   * @returns 设置结果
+   */
+  static async setDefaultPayment(params: SetDefaultPaymentRequest): Promise<void> {
+    try {
+      const response = await APIRequest.request<SetDefaultPaymentResponse>(
+        '/gc/payment/setDef',
+        'POST',
+        params
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to set default payment method');
+      }
+
+      // 由于返回data为null，这里不需要返回任何数据
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to set default payment method: ${error.message}`);
+      }
+      throw new Error('Failed to set default payment method');
     }
   }
 }
