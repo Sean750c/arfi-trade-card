@@ -1,0 +1,164 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  useColorScheme,
+} from 'react-native';
+import { X } from 'lucide-react-native';
+import Colors from '@/constants/Colors';
+import Spacing from '@/constants/Spacing';
+import type { OverdueDataItem } from '@/types/withdraw';
+
+interface OverdueCompensationModalProps {
+  visible: boolean;
+  onClose: () => void;
+  overdueData: OverdueDataItem[];
+  maxPercent?: string;
+}
+
+export default function OverdueCompensationModal({
+  visible,
+  onClose,
+  overdueData,
+  maxPercent,
+}: OverdueCompensationModalProps) {
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              Compensation Rates
+            </Text>
+            <TouchableOpacity onPress={onClose}>
+              <X size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+
+          {maxPercent && (
+            <View style={[styles.maxCompensationCard, { backgroundColor: `${colors.primary}10` }]}>
+              <Text style={[styles.maxCompensationText, { color: colors.primary }]}>
+                Maximum compensation: {maxPercent}%
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.tableContainer}>
+            <View style={[styles.tableHeader, { backgroundColor: colors.primary }]}>
+              <Text style={styles.tableHeaderText}>Time Range</Text>
+              <Text style={styles.tableHeaderText}>Compensation</Text>
+            </View>
+            
+            {overdueData.map((item, index) => (
+              <View 
+                key={index} 
+                style={[
+                  styles.tableRow, 
+                  { 
+                    backgroundColor: index % 2 === 0 ? colors.background : colors.card,
+                    borderBottomColor: colors.border 
+                  }
+                ]}
+              >
+                <Text style={[styles.tableCell, { color: colors.text }]}>
+                  {item.name}
+                </Text>
+                <Text style={[styles.tableCell, { color: colors.text }]}>
+                  {item.value}%
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          <Text style={[styles.modalNote, { color: colors.textSecondary }]}>
+            Compensation will be automatically applied if withdrawal exceeds the expected processing time.
+          </Text>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: Spacing.lg,
+    borderRadius: 16,
+    width: '80%',
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+  },
+  maxCompensationCard: {
+    padding: Spacing.md,
+    borderRadius: 8,
+    marginBottom: Spacing.md,
+    alignItems: 'center',
+  },
+  maxCompensationText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+  },
+  tableContainer: {
+    marginBottom: Spacing.md,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+  },
+  tableHeaderText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
+    flex: 1,
+    textAlign: 'center',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  tableCell: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    flex: 1,
+    textAlign: 'center',
+  },
+  modalNote: {
+    marginTop: Spacing.md,
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+  },
+}); 

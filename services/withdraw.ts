@@ -12,10 +12,11 @@ export class WithdrawService {
 
   static async getWithdrawInformation(params: WithdrawInformationRequest): Promise<WithdrawInformation> {
     try {
+      // console.log('params', params);
       const response = await APIRequest.request<WithdrawInformationResponse>(
-        '/gc/Withdraw/information',
+        '/gc/withdraw/information',
         'POST',
-        { params }
+        { ...params }
       );
 
       if (!response.success) {
@@ -44,7 +45,7 @@ export class WithdrawService {
   static async applyWithdraw(params: WithdrawApplyRequest): Promise<WithdrawApplyData> {
     try {
       const response = await APIRequest.request<WithdrawApplyResponse>(
-        '/gc/Withdraw/apply',
+        '/gc/withdraw/apply',
         'POST',
         params
       );
