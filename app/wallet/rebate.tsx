@@ -4,13 +4,10 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   TouchableOpacity,
   useColorScheme,
-  ActivityIndicator,
-  RefreshControl,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import {
   ChevronLeft,
   Gift,
@@ -19,8 +16,6 @@ import {
   DollarSign,
   ArrowRight,
   Wallet,
-  TrendingUp,
-  Star
 } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
@@ -29,6 +24,8 @@ import OrderBonusModal from '@/components/wallet/OrderBounsCard';
 import AuthGuard from '@/components/UI/AuthGuard';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useRebateStore } from '@/stores/useRebateStore';
+import RebateList from '@/components/wallet/RebateList';
+import { RebateItem } from '@/types';
 
 function RebateDetailsContent() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -36,39 +33,37 @@ function RebateDetailsContent() {
   const { user } = useAuthStore();
   const {
     rebateInfo,
-    rebateData,
     rebateList,
-    isLoadingInfo,
     isLoadingRebateList,
     isLoadingMore,
     infoError,
+    activeWalletType,
     rebateListError,
     hasMore,
-    fetchInviteInfo,
+    setActiveWalletType,
     fetchRebateList,
     loadMoreRebateList,
-    clearRebateData,
+    clearRebateInfo,
   } = useRebateStore();
 
-  const [refreshing, setRefreshing] = useState(false);
   const [showAmountBonusModal, setShowAmountBonusModal] = useState(false);
+  const { walletType } = useLocalSearchParams<{ walletType: string }>();
 
   useEffect(() => {
+    setActiveWalletType(walletType === '2' ? '2' : '1');
     if (user?.token) {
       initializeData();
     }
 
     return () => {
-      clearRebateData();
+      clearRebateInfo();
     };
   }, [user?.token]);
 
   const initializeData = async () => {
     if (!user?.token) return;
-
     try {
       await Promise.all([
-        fetchInviteInfo(user.token),
         fetchRebateList(user.token, true)
       ]);
     } catch (error) {
@@ -79,13 +74,10 @@ function RebateDetailsContent() {
   const handleRefresh = async () => {
     if (!user?.token) return;
 
-    setRefreshing(true);
     try {
       await initializeData();
     } catch (error) {
       console.error('Failed to refresh data:', error);
-    } finally {
-      setRefreshing(false);
     }
   };
 
@@ -99,104 +91,16 @@ function RebateDetailsContent() {
     }
   };
 
+  const handleRebatePress = (rebateItem: RebateItem) => {
+
+  };
+
   const formatAmount = (amount: number, symbol: string = '₦', digits: number = 2) => {
     return `${symbol}${amount.toLocaleString(undefined, {
       minimumFractionDigits: digits,
       maximumFractionDigits: digits
     })}`;
   };
-
-  const formatDate = (timestamp: string) => {
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getRebateTypeIcon = (type: number) => {
-    switch (type) {
-      case 1: return <Gift size={20} color={colors.primary} />;
-      case 2: return <Users size={20} color={colors.success} />;
-      case 3: return <Users size={20} color={colors.warning} />;
-      case 4: return <TrendingUp size={20} color={colors.secondary} />;
-      case 5: return <DollarSign size={20} color={colors.primary} />;
-      case 6: return <Crown size={20} color="#FFD700" />;
-      default: return <Star size={20} color={colors.textSecondary} />;
-    }
-  };
-
-  const getRebateTypeName = (type: number) => {
-    switch (type) {
-      case 1: return 'First Order';
-      case 2: return 'Referral';
-      case 3: return 'Registration';
-      case 4: return 'Transfer';
-      case 5: return 'Amount Bonus';
-      case 6: return 'VIP Bonus';
-      case 11: return 'Check-in';
-      case 12: return 'Lottery';
-      case 13: return 'Mall';
-      default: return 'Other';
-    }
-  };
-
-  const renderRebateItem = (item: any, index: number) => (
-    <View
-      key={item.log_id}
-      style={[
-        styles.rebateItem,
-        {
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
-          borderBottomColor: colors.border,
-        }
-      ]}
-    >
-      <View style={styles.rebateItemLeft}>
-        <View style={[styles.rebateIcon, { backgroundColor: `${colors.primary}15` }]}>
-          {getRebateTypeIcon(item.type)}
-        </View>
-        <View style={styles.rebateItemInfo}>
-          <Text style={[styles.rebateItemTitle, { color: colors.text }]}>
-            {getRebateTypeName(item.type)}
-          </Text>
-          <Text style={[styles.rebateItemDate, { color: colors.textSecondary }]}>
-            {formatDate(item.create_time)}
-          </Text>
-          {item.from_get && (
-            <Text style={[styles.rebateItemSource, { color: colors.textSecondary }]}>
-              From: {item.from_get}
-            </Text>
-          )}
-        </View>
-      </View>
-      <View style={styles.rebateItemRight}>
-        <Text style={[styles.rebateItemAmount, { color: colors.success }]}>
-          +{formatAmount(item.money, rebateData?.currency_symbol || '₦')}
-        </Text>
-        {item.wallet_type === '2' && (
-          <Text style={[styles.rebateItemCurrency, { color: colors.textSecondary }]}>
-            USDT
-          </Text>
-        )}
-      </View>
-    </View>
-  );
-
-  if (isLoadingInfo && !rebateInfo) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading rebate information...
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -221,13 +125,28 @@ function RebateDetailsContent() {
             <Text style={styles.balanceTitle}>Rebate Balance</Text>
           </View>
           <Text style={styles.balanceAmount}>
-            {formatAmount(rebateData?.rebate_amount || 0, rebateData?.currency_symbol || '₦')}
+            {formatAmount(
+              walletType === '1'
+                ? rebateInfo?.rebate_amount || 0
+                : rebateInfo?.rebate_amount_usd || 0,
+              walletType === '1'
+                ? rebateInfo?.currency_symbol || '₦'
+                : rebateInfo?.currency_symbol_usd || 'USDT'
+            )}
           </Text>
-          {rebateData?.transfer_rebate && (
-            <View style={styles.transferRebateContainer}>
-              <Text style={styles.transferRebateLabel}>Auto transfer over {formatAmount(parseFloat(rebateData.transfer_rebate), rebateData.currency_symbol || '₦', 0)} to cash wallet.</Text>
-            </View>
-          )}
+          <View style={styles.transferRebateContainer}>
+            <Text style={styles.transferRebateLabel}>
+              Auto transfer over {formatAmount(
+                walletType === '1'
+                  ? parseFloat(rebateInfo?.transfer_rebate || '0') || 0
+                  : parseFloat(rebateInfo?.transfer_rebate_usd || '0') || 0,
+                  walletType === '1'
+                  ? rebateInfo?.currency_symbol || '₦'
+                  : rebateInfo?.currency_symbol_usd || 'USDT',
+                0
+              )} to cash wallet.
+            </Text>
+          </View>
         </Card>
       </View>
 
@@ -239,7 +158,7 @@ function RebateDetailsContent() {
 
         <View style={styles.earningMethods}>
           {/* First Order Bonus */}
-          {rebateData && rebateData.first_order_bonus > 0 && (
+          {walletType === '1' && rebateInfo && rebateInfo.first_order_bonus > 0 && (
             <TouchableOpacity
               style={[styles.earningMethod, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}
             >
@@ -251,14 +170,14 @@ function RebateDetailsContent() {
                   First Order Bonus
                 </Text>
                 <Text style={[styles.earningMethodDescription, { color: colors.textSecondary }]}>
-                  Get {formatAmount(rebateData.first_order_bonus, rebateData.currency_symbol)} on your first order
+                  Get {formatAmount(rebateInfo.first_order_bonus, rebateInfo.currency_symbol)} on your first order
                 </Text>
               </View>
             </TouchableOpacity>
           )}
 
           {/* Amount Order Bonus */}
-          {rebateData && rebateData.amount_order_bonus && rebateData.amount_order_bonus.length > 0 && (
+          {walletType === '1' && rebateInfo && rebateInfo.amount_order_bonus && rebateInfo.amount_order_bonus.length > 0 && (
             <TouchableOpacity
               style={[styles.earningMethod, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}
               onPress={() => setShowAmountBonusModal(true)}
@@ -279,7 +198,7 @@ function RebateDetailsContent() {
           )}
 
           {/* VIP Rebate */}
-          {rebateData && rebateData.vip_info && rebateData.vip_info.length > 0 && (
+          {rebateInfo && rebateInfo.vip_info && rebateInfo.vip_info.length > 0 && (
             <TouchableOpacity
               style={[styles.earningMethod, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}
               onPress={() => router.push('/profile/vip')}
@@ -300,7 +219,7 @@ function RebateDetailsContent() {
           )}
 
           {/* Invitation Rebate */}
-          {rebateData && rebateData.referred_bonus > 0 && (
+          {walletType === '1' && rebateInfo && rebateInfo.referred_bonus > 0 && (
             <TouchableOpacity
               style={[styles.earningMethod, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}
               onPress={() => router.push('/refer')}
@@ -313,7 +232,7 @@ function RebateDetailsContent() {
                   Invitation Rebate
                 </Text>
                 <Text style={[styles.earningMethodDescription, { color: colors.textSecondary }]}>
-                  Earned {formatAmount(rebateData.referred_bonus, rebateData.currency_symbol)} from referrals
+                  Earned {formatAmount(rebateInfo.referred_bonus, rebateInfo.currency_symbol)} from referrals
                 </Text>
               </View>
               <ArrowRight size={18} color={colors.textSecondary} />
@@ -322,81 +241,35 @@ function RebateDetailsContent() {
         </View>
       </View>
 
-      {/* Rebate History */}
-      <View style={styles.rebateListContainer}>
+      <View style={styles.rebateListHeader}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
           Rebate History
         </Text>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              colors={[colors.primary]}
-              tintColor={colors.primary}
-            />
-          }
-        >
-          {isLoadingRebateList && rebateList.length === 0 ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                Loading rebate history...
-              </Text>
-            </View>
-          ) : rebateListError ? (
-            <View style={styles.errorContainer}>
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {rebateListError}
-              </Text>
-              <TouchableOpacity
-                onPress={handleRefresh}
-                style={[styles.retryButton, { backgroundColor: colors.error }]}
-              >
-                <Text style={styles.retryButtonText}>Retry</Text>
-              </TouchableOpacity>
-            </View>
-          ) : rebateList.length > 0 ? (
-            <View style={styles.rebateList}>
-              {rebateList.map(renderRebateItem)}
-
-              {/* Load More Button */}
-              {hasMore && (
-                <TouchableOpacity
-                  style={[styles.loadMoreButton, { backgroundColor: colors.primary }]}
-                  onPress={handleLoadMore}
-                  disabled={isLoadingMore}
-                >
-                  {isLoadingMore ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.loadMoreText}>Load More</Text>
-                  )}
-                </TouchableOpacity>
-              )}
-            </View>
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Gift size={48} color={colors.textSecondary} />
-              <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                No Rebate History
-              </Text>
-              <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
-                Start trading to earn rebates and see your history here
-              </Text>
-            </View>
-          )}
-        </ScrollView>
+        <Text style={[styles.rebateListCount, { color: colors.textSecondary }]}>
+          {rebateList.length} rebates
+        </Text>
+      </View>
+      {/* Rebate History */}
+      <View style={styles.rebateListContainer}>
+        <RebateList
+          rebateInfo={rebateInfo}
+          rebateList={rebateList}
+          isLoading={isLoadingRebateList}
+          isLoadingMore={isLoadingMore}
+          error={rebateListError}
+          onLoadMore={handleLoadMore}
+          onRefresh={handleRefresh}
+          onRebatePress={handleRebatePress}
+          walletType={activeWalletType}
+        />
       </View>
 
       {/* Amount Order Bonus Modal */}
       <OrderBonusModal
         visible={showAmountBonusModal}
         onClose={() => setShowAmountBonusModal(false)}
-        bonusData={rebateData?.amount_order_bonus || []}
-        currencySymbol={rebateData?.currency_symbol || '₦'}
+        bonusData={rebateInfo?.amount_order_bonus || []}
+        currencySymbol={rebateInfo?.currency_symbol || '₦'}
       />
     </SafeAreaView>
   );
@@ -520,7 +393,7 @@ const styles = StyleSheet.create({
     marginRight: Spacing.md,
   },
   earningMethodContent: {
-    flex: 1,
+    //flex: 1,
   },
   earningMethodTitle: {
     fontSize: 14,
@@ -533,116 +406,18 @@ const styles = StyleSheet.create({
   },
 
   // Rebate List
-  rebateListContainer: {
-    marginBottom: Spacing.sm,
+  rebateListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: Spacing.lg,
   },
-  scrollContent: {
-    paddingBottom: Spacing.xxl,
+  rebateListCount: {
+    fontSize: 13,
+    fontFamily: 'Inter-Medium',
   },
-  rebateList: {
-    gap: Spacing.xs,
-  },
-  rebateItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Spacing.lg,
-    borderRadius: 12,
-    borderBottomWidth: 1,
-  },
-  rebateItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  rebateListContainer: {
     flex: 1,
-  },
-  rebateIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.md,
-  },
-  rebateItemInfo: {
-    flex: 1,
-  },
-  rebateItemTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 2,
-  },
-  rebateItemDate: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    marginBottom: 2,
-  },
-  rebateItemSource: {
-    fontSize: 11,
-    fontFamily: 'Inter-Regular',
-  },
-  rebateItemRight: {
-    alignItems: 'flex-end',
-  },
-  rebateItemAmount: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-  },
-  rebateItemCurrency: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    marginTop: 2,
-  },
-
-  // Load More
-  loadMoreButton: {
-    paddingVertical: Spacing.md,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: Spacing.md,
-  },
-  loadMoreText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-
-  // Empty State
-  emptyContainer: {
-    alignItems: 'center',
-    padding: Spacing.xl,
-    gap: Spacing.md,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  emptyMessage: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-
-  // Error State
-  errorContainer: {
-    alignItems: 'center',
-    padding: Spacing.lg,
-    gap: Spacing.md,
-  },
-  errorText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    textAlign: 'center',
-  },
-  retryButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: 6,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
+    paddingHorizontal: Spacing.lg,
   },
 });

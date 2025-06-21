@@ -2,19 +2,19 @@ import { create } from 'zustand';
 import { RebateService } from '@/services/rebate';
 import type {
     InviteInfoResponse,
-    RebateData,
+    RebateInfo,
     RebateItem,
     InviteRankResponse
 } from '@/types';
 
 interface RebateState {
     // 返利数据
-    rebateInfo: InviteInfoResponse | null;
+    inviteInfo: InviteInfoResponse | null;
     inviteRank: InviteRankResponse | null;
 
     // Rebate List
     isInitialLoad: boolean;
-    rebateData: RebateData | null;
+    rebateInfo: RebateInfo | null;
     rebateList: RebateItem[];
     currentPage: number;
     hasMore: boolean;
@@ -40,15 +40,15 @@ interface RebateState {
     loadMoreRebateList: (token: string) => Promise<void>;
     fetchInviteRank: (token: string) => Promise<void>;
     setActiveWalletType: (type: '1' | '2') => void;
-    clearRebateData: () => void;
+    clearRebateInfo: () => void;
 }
 
 export const useRebateStore = create<RebateState>((set, get) => ({
     // 初始状态
-    rebateInfo: null,
+    inviteInfo: null,
     inviteRank: null,
     isInitialLoad: true, // 初始加载完成
-    rebateData: null,
+    rebateInfo: null,
     rebateList: [],
     currentPage: 0,
     hasMore: true,
@@ -67,7 +67,7 @@ export const useRebateStore = create<RebateState>((set, get) => ({
 
         try {
             const rebateInfo = await RebateService.getInviteInfo({ token });
-            set({ rebateInfo, isLoadingInfo: false });
+            set({ inviteInfo: rebateInfo, isLoadingInfo: false });
         } catch (error) {
             if (error instanceof Error && error.message.includes('Session expired')) {
                 set({ isLoadingInfo: false });
@@ -106,11 +106,11 @@ export const useRebateStore = create<RebateState>((set, get) => ({
                 page_size: 20,
             });
 
-            const rebateData = response.data || null;
-            const rebateList = rebateData.user_rebate_list || [];
+            const rebateInfo = response.data || null;
+            const rebateList = rebateInfo.user_rebate_list || [];
 
             set({
-                rebateData,
+                rebateInfo: rebateInfo,
                 rebateList,
                 currentPage: 0,
                 hasMore: rebateList.length >= 20,
@@ -149,8 +149,8 @@ export const useRebateStore = create<RebateState>((set, get) => ({
                 page_size: 20,
             });
 
-            const newRebateData = response.data || null;
-            const newRebateList = newRebateData.user_rebate_list || [];
+            const newRebateInfo = response.data || null;
+            const newRebateList = newRebateInfo.user_rebate_list || [];
 
             if (newRebateList.length === 0) {
                 set({ isLoadingMore: false, hasMore: false });
@@ -158,7 +158,7 @@ export const useRebateStore = create<RebateState>((set, get) => ({
             }
 
             set({
-                rebateData: newRebateData,
+                rebateInfo: newRebateInfo,
                 rebateList: [...state.rebateList, ...newRebateList],
                 currentPage: nextPage,
                 hasMore: newRebateList.length >= 20,
@@ -201,21 +201,21 @@ export const useRebateStore = create<RebateState>((set, get) => ({
         set({ 
           activeWalletType: type,
           // Reset transactions when changing wallet type
-          rebateData: null,
+          rebateInfo: null,
           rebateList: [],
           currentPage: 0,
           hasMore: true,
         });
       },
 
-    clearRebateData: () => {
+    clearRebateInfo: () => {
         set({
             currentPage: 0,
             hasMore: true,
             isInitialLoad: true,
-            rebateInfo: null,
+            inviteInfo: null,
             inviteRank: null,
-            rebateData: null,
+            rebateInfo: null,
             rebateList: [],
             isLoadingRebateList: false,
             isLoadingMore: false,

@@ -24,7 +24,7 @@ export interface RebateItem {
     purchase_amount: string;
 }
 
-export interface RebateData {
+export interface RebateInfo {
     transfer_rebate: string;
     currency_symbol: string;
     transfer_rebate_usd: string;
@@ -131,7 +131,7 @@ export interface ReceiveInviteRebateRequest {
     recommend_user_id: number;
 }
 
-export type RebateListResponse = APIResponse<RebateData>;
+export type RebateListResponse = APIResponse<RebateInfo>;
 export type InviteInfoResponse = APIResponse<InviteInfo>;
 export type InviteRankResponse = APIResponse<InviteRankInfo>;
 export type InviteDetailResponse = APIResponse<InviteDetailItem[]>;
