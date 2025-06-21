@@ -38,7 +38,7 @@ export default function OrderBounsCard({ visible, onClose, bonusData, currencySy
         <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
           <View style={styles.modalHeader}>
             <View style={styles.modalTitleContainer}>
-              <DollarSign size={24} color={colors.primary} />
+              <DollarSign size={20} color={colors.primary} />
               <Text style={[styles.modalTitle, { color: colors.text }]}>
                 Amount Order Bonus
               </Text>
@@ -75,7 +75,7 @@ export default function OrderBounsCard({ visible, onClose, bonusData, currencySy
                   </View>
                   <View style={styles.bonusTierRequirement}>
                     <Text style={[styles.bonusTierRequirementText, { color: colors.textSecondary }]}>
-                      When order ≥ {currencySymbol}{bonus.order_amount}
+                      When order ≥ ${bonus.order_amount}
                     </Text>
                   </View>
                 </View>
@@ -120,11 +120,11 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Inter-Bold',
   },
   modalDescription: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Inter-Regular',
     lineHeight: 24,
     marginBottom: Spacing.lg,
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   bonusTier: {
-    padding: Spacing.lg,
+    padding: Spacing.sm,
     borderRadius: 12,
     borderWidth: 1,
   },
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   bonusTierAmount: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'Inter-Bold',
   },
   bonusTierLabel: {

@@ -377,6 +377,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   earningMethod: {
+    height:60,
     flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.sm,
@@ -393,7 +394,7 @@ const styles = StyleSheet.create({
     marginRight: Spacing.md,
   },
   earningMethodContent: {
-    //flex: 1,
+    flex: 1,
   },
   earningMethodTitle: {
     fontSize: 14,
