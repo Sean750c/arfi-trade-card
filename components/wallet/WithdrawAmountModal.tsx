@@ -9,6 +9,11 @@ import {
   TextInput,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { X, DollarSign, Clock, CircleAlert as AlertCircle } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
@@ -66,6 +71,7 @@ export default function WithdrawAmountModal({
   const handleQuickAmount = (percentage: number) => {
     const quickAmount = Math.floor((availableBalance * percentage) / 100);
     setAmount(quickAmount.toString());
+    Keyboard.dismiss();
   };
 
   const handleSubmit = async () => {
@@ -77,9 +83,9 @@ export default function WithdrawAmountModal({
 
     if (!selectedAccount) return;
 
+    Keyboard.dismiss();
     setIsLoading(true);
     try {
-      // Here you would call the withdrawal API
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       Alert.alert(
@@ -96,6 +102,11 @@ export default function WithdrawAmountModal({
     }
   };
 
+  const handleClose = () => {
+    Keyboard.dismiss();
+    onClose();
+  };
+
   const error = validateAmount();
   const isValid = !error && amount.trim() !== '';
 
@@ -106,138 +117,157 @@ export default function WithdrawAmountModal({
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-          <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Withdraw Funds
-            </Text>
-            <TouchableOpacity onPress={onClose}>
-              <X size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Selected Account Info */}
-          <View style={[styles.accountCard, { backgroundColor: colors.primary }]}>
-            <View style={styles.accountHeader}>
-              <Image
-                source={{ uri: selectedAccount.bank_logo_image }}
-                style={styles.accountLogo}
-                resizeMode="contain"
-              />
-              <View style={styles.accountDetails}>
-                <Text style={styles.accountName}>{selectedAccount.bank_name}</Text>
-                <Text style={styles.accountNumber}>
-                  {selectedAccount.account_no}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.timeoutInfo}>
-              <Clock size={14} color="rgba(255, 255, 255, 0.9)" />
-              <Text style={styles.timeoutText}>
-                {selectedAccount.timeout_desc}
-              </Text>
-            </View>
-          </View>
-
-          {/* Available Balance */}
-          <View style={styles.balanceInfo}>
-            <Text style={[styles.balanceLabel, { color: colors.textSecondary }]}>
-              Available Balance
-            </Text>
-            <Text style={[styles.balanceAmount, { color: colors.text }]}>
-              {currencySymbol}{formatAmount(availableBalance)}
-            </Text>
-          </View>
-
-          {/* Amount Input */}
-          <View style={styles.amountSection}>
-            <Text style={[styles.amountLabel, { color: colors.text }]}>
-              Withdrawal Amount
-            </Text>
-            <View style={[
-              styles.amountInputContainer,
-              {
-                backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
-                borderColor: error ? colors.error : colors.border,
-              },
-            ]}>
-              <DollarSign size={20} color={colors.textSecondary} />
-              <TextInput
-                style={[styles.amountInput, { color: colors.text }]}
-                placeholder="0.00"
-                placeholderTextColor={colors.textSecondary}
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="numeric"
-              />
-              <Text style={[styles.currencyLabel, { color: colors.textSecondary }]}>
-                {currencySymbol}
-              </Text>
-            </View>
-            
-            {error && (
-              <View style={styles.errorContainer}>
-                <AlertCircle size={16} color={colors.error} />
-                <Text style={[styles.errorText, { color: colors.error }]}>
-                  {error}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Quick Amount Buttons */}
-          <View style={styles.quickAmounts}>
-            <Text style={[styles.quickAmountsLabel, { color: colors.textSecondary }]}>
-              Quick amounts:
-            </Text>
-            <View style={styles.quickAmountButtons}>
-              {[25, 50, 75, 100].map((percentage) => (
-                <TouchableOpacity
-                  key={percentage}
-                  style={[
-                    styles.quickAmountButton,
-                    { 
-                      backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => handleQuickAmount(percentage)}
+      <KeyboardAvoidingView 
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                <ScrollView 
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.scrollContent}
+                  keyboardShouldPersistTaps="handled"
                 >
-                  <Text style={[styles.quickAmountText, { color: colors.text }]}>
-                    {percentage}%
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+                  <View style={styles.modalHeader}>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>
+                      Withdraw Funds
+                    </Text>
+                    <TouchableOpacity onPress={handleClose}>
+                      <X size={24} color={colors.text} />
+                    </TouchableOpacity>
+                  </View>
 
-          {/* Withdrawal Info */}
-          <View style={[styles.infoCard, { backgroundColor: `${colors.primary}10` }]}>
-            <Text style={[styles.infoTitle, { color: colors.primary }]}>
-              Withdrawal Information
-            </Text>
-            <Text style={[styles.infoText, { color: colors.text }]}>
-              • Minimum withdrawal: {currencySymbol}{formatAmount(minWithdrawal)}{'\n'}
-              • Processing time: {selectedAccount.timeout_desc.toLowerCase()}{'\n'}
-              • No withdrawal fees for {walletType === '1' ? 'NGN' : 'USDT'} withdrawals{'\n'}
-              • Ensure your account details are correct
-            </Text>
-          </View>
+                  {/* Selected Account Info */}
+                  <View style={[styles.accountCard, { backgroundColor: colors.primary }]}>
+                    <View style={styles.accountHeader}>
+                      <Image
+                        source={{ uri: selectedAccount.bank_logo_image }}
+                        style={styles.accountLogo}
+                        resizeMode="contain"
+                      />
+                      <View style={styles.accountDetails}>
+                        <Text style={styles.accountName}>{selectedAccount.bank_name}</Text>
+                        <Text style={styles.accountNumber}>
+                          {selectedAccount.account_no}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.timeoutInfo}>
+                      <Clock size={14} color="rgba(255, 255, 255, 0.9)" />
+                      <Text style={styles.timeoutText}>
+                        {selectedAccount.timeout_desc}
+                      </Text>
+                    </View>
+                  </View>
 
-          {/* Submit Button */}
-          <Button
-            title={`Withdraw ${currencySymbol}${amount ? formatAmount(parseFloat(amount) || 0) : '0.00'}`}
-            onPress={handleSubmit}
-            loading={isLoading}
-            disabled={!isValid}
-            style={styles.submitButton}
-            fullWidth
-          />
-        </View>
-      </View>
+                  {/* Available Balance */}
+                  <View style={styles.balanceInfo}>
+                    <Text style={[styles.balanceLabel, { color: colors.textSecondary }]}>
+                      Available Balance
+                    </Text>
+                    <Text style={[styles.balanceAmount, { color: colors.text }]}>
+                      {currencySymbol}{formatAmount(availableBalance)}
+                    </Text>
+                  </View>
+
+                  {/* Amount Input */}
+                  <View style={styles.amountSection}>
+                    <Text style={[styles.amountLabel, { color: colors.text }]}>
+                      Withdrawal Amount
+                    </Text>
+                    <View style={[
+                      styles.amountInputContainer,
+                      {
+                        backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                        borderColor: error ? colors.error : colors.border,
+                      },
+                    ]}>
+                      <DollarSign size={20} color={colors.textSecondary} />
+                      <TextInput
+                        style={[styles.amountInput, { color: colors.text }]}
+                        placeholder="0.00"
+                        placeholderTextColor={colors.textSecondary}
+                        value={amount}
+                        onChangeText={setAmount}
+                        keyboardType="numeric"
+                        returnKeyType="done"
+                        onSubmitEditing={Keyboard.dismiss}
+                        blurOnSubmit={true}
+                      />
+                      <Text style={[styles.currencyLabel, { color: colors.textSecondary }]}>
+                        {currencySymbol}
+                      </Text>
+                    </View>
+                    
+                    {error && (
+                      <View style={styles.errorContainer}>
+                        <AlertCircle size={16} color={colors.error} />
+                        <Text style={[styles.errorText, { color: colors.error }]}>
+                          {error}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Quick Amount Buttons */}
+                  <View style={styles.quickAmounts}>
+                    <Text style={[styles.quickAmountsLabel, { color: colors.textSecondary }]}>
+                      Quick amounts:
+                    </Text>
+                    <View style={styles.quickAmountButtons}>
+                      {[25, 50, 75, 100].map((percentage) => (
+                        <TouchableOpacity
+                          key={percentage}
+                          style={[
+                            styles.quickAmountButton,
+                            { 
+                              backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                              borderColor: colors.border,
+                            },
+                          ]}
+                          onPress={() => handleQuickAmount(percentage)}
+                        >
+                          <Text style={[styles.quickAmountText, { color: colors.text }]}>
+                            {percentage}%
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* Withdrawal Info */}
+                  <View style={[styles.infoCard, { backgroundColor: `${colors.primary}10` }]}>
+                    <Text style={[styles.infoTitle, { color: colors.primary }]}>
+                      Withdrawal Information
+                    </Text>
+                    <Text style={[styles.infoText, { color: colors.text }]}>
+                      • Minimum withdrawal: {currencySymbol}{formatAmount(minWithdrawal)}{'\n'}
+                      • Processing time: {selectedAccount.timeout_desc.toLowerCase()}{'\n'}
+                      • No withdrawal fees for {walletType === '1' ? 'NGN' : 'USDT'} withdrawals{'\n'}
+                      • Ensure your account details are correct
+                    </Text>
+                  </View>
+
+                  {/* Submit Button */}
+                  <Button
+                    title={`Withdraw ${currencySymbol}${amount ? formatAmount(parseFloat(amount) || 0) : '0.00'}`}
+                    onPress={handleSubmit}
+                    loading={isLoading}
+                    disabled={!isValid}
+                    style={styles.submitButton}
+                    fullWidth
+                  />
+                </ScrollView>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -251,8 +281,10 @@ const styles = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: Spacing.lg,
     maxHeight: '90%',
+  },
+  scrollContent: {
+    padding: Spacing.lg,
   },
   modalHeader: {
     flexDirection: 'row',
