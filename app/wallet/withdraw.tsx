@@ -198,7 +198,7 @@ function WithdrawScreenContent() {
   };
 
   const amountError = validateAmount();
-  const isValid = !amountError && amount.trim() !== '';
+  const isValid = withdrawInfo?.bank && !amountError && amount.trim() !== '';
 
   const handleSwitchAccount = () => {
     router.push({ pathname: '/wallet/payment-list', params: { selectMode: 'true' } });

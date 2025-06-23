@@ -58,7 +58,7 @@ function WalletScreenContent() {
 
   useEffect(() => {
     if (user?.token) {
-      fetchTransactions(user.token, true);
+      fetchTransactions(user.token, false);
     }
   }, [activeWalletType, activeTransactionType]);
 
