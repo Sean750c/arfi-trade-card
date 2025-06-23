@@ -113,7 +113,8 @@ function WithdrawScreenContent() {
   };
 
   const getCurrencySymbol = () => {
-    return activeWalletType === '1' ? '₦' : 'USDT';
+    const currencyName = withdrawInfo?.currency_name || 'NGN';
+    return activeWalletType === '1' ? currencyName : 'USDT';
   };
 
   const handleQuickAmount = (percentage: number) => {
@@ -171,7 +172,11 @@ function WithdrawScreenContent() {
   };
 
   const getMinimumAmount = () => {
-    return withdrawInfo?.minimum_amount || 1500;
+    if (activeWalletType === '1') {
+      return withdrawInfo?.minimum_amount || 1500;
+    } else {
+      return withdrawInfo?.minimum_amount_usd || 50;
+    }
   };
 
   const getOverdueDataForModal = () => {
