@@ -10,6 +10,7 @@ import {
   Keyboard,
   TextInput,
   Image,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -17,10 +18,7 @@ import { useColorScheme } from 'react-native';
 import { ChevronLeft, Plus, CreditCard, Smartphone, DollarSign, Clock, Gift, ArrowRight, AlertCircle, Wallet } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Button from '@/components/UI/Button';
-import Card from '@/components/UI/Card';
-import PaymentMethodCard from '@/components/wallet/PaymentMethodCard';
 import AddPaymentMethodModal from '@/components/wallet/AddPaymentMethodModal';
-import WithdrawAmountModal from '@/components/wallet/WithdrawAmountModal';
 import OverdueCompensationModal from '@/components/wallet/OverdueCompensationModal';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
@@ -30,6 +28,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/types';
 import type { WithdrawInformation } from '@/types/withdraw';
+import UserPaymentList from '@/components/wallet/UserPaymentList';
 
 function WithdrawScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -43,9 +42,9 @@ function WithdrawScreenContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showOverdueModal, setShowOverdueModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<PaymentAccount | null>(null);
+  const [showUserPaymentList, setShowUserPaymentList] = useState(false);
 
   const [amount, setAmount] = useState('');
 
@@ -86,11 +85,6 @@ function WithdrawScreenContent() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleAccountSelect = (account: PaymentAccount) => {
-    setSelectedAccount(account);
-    setShowWithdrawModal(true);
   };
 
   const handleAddPaymentMethod = () => {
@@ -273,6 +267,10 @@ function WithdrawScreenContent() {
   const amountError = validateAmount();
   const isValid = !amountError && amount.trim() !== '';
 
+  const handleSwitchAccount = () => {
+    setShowUserPaymentList(true);
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -316,30 +314,46 @@ function WithdrawScreenContent() {
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Withdraw Funds</Text>
         </View>
+        {/* Add Button */}
+        <TouchableOpacity
+          onPress={() => setShowUserPaymentList(true)}
+          style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, marginLeft: 8 }}
+        >
+          <Plus size={20} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       {/* Selected Account Info */}
       {withdrawInfo?.bank ? (
-        <View style={[styles.accountCard, { backgroundColor: colors.primary }]}>
-          <View style={styles.accountHeader}>
-            <Image
-              source={{ uri: withdrawInfo.bank.bank_logo_image }}
-              style={styles.accountLogo}
-              resizeMode="contain"
-            />
-            <View style={styles.accountDetails}>
-              <Text style={styles.accountName}>{withdrawInfo.bank.bank_name}</Text>
-              <Text style={styles.accountNumber}>
-                {withdrawInfo.bank.bank_account}
+        <View style={[styles.accountCard, { backgroundColor: colors.primary, flexDirection: 'row', alignItems: 'center' }]}>
+          <View style={{ flex: 1 }}>
+            <View style={styles.accountHeader}>
+              <Image
+                source={{ uri: withdrawInfo.bank.bank_logo_image }}
+                style={styles.accountLogo}
+                resizeMode="contain"
+              />
+              <View style={styles.accountDetails}>
+                <Text style={styles.accountName}>{withdrawInfo.bank.bank_name}</Text>
+                <Text style={styles.accountNumber}>
+                  {withdrawInfo.bank.bank_account}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.timeoutInfo}>
+              <Clock size={14} color="rgba(255, 255, 255, 0.9)" />
+              <Text style={styles.timeoutText}>
+                {withdrawInfo.timeout_desc}
               </Text>
             </View>
           </View>
-          <View style={styles.timeoutInfo}>
-            <Clock size={14} color="rgba(255, 255, 255, 0.9)" />
-            <Text style={styles.timeoutText}>
-              {withdrawInfo.timeout_desc}
-            </Text>
-          </View>
+          {/* Switch Button */}
+          <TouchableOpacity
+            onPress={handleSwitchAccount}
+            style={{ marginLeft: 12, padding: 8, backgroundColor: '#fff2', borderRadius: 8 }}
+          >
+            <ArrowRight size={20} color="#fff" />
+          </TouchableOpacity>
         </View>
       ) : (
         <View style={[styles.accountCard, { backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }]}>
@@ -452,6 +466,13 @@ function WithdrawScreenContent() {
               {/* <ArrowRight size={18} color={colors.textSecondary} /> */}
             </TouchableOpacity>
           )}
+
+          <Text style={[styles.otherInfoLabel, { color: colors.textSecondary }]}>
+            Ensure your account details are correct to avoid delays.
+          </Text>
+          <Text style={[styles.otherInfoLabel, { color: colors.textSecondary }]}>
+            Contact support for delayed funds.
+          </Text>
         </View>
       </View>
 
@@ -467,68 +488,32 @@ function WithdrawScreenContent() {
         />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Payment Methods */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Withdrawal Methods
-            </Text>
-            <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: colors.primary }]}
-              onPress={handleAddPaymentMethod}
-            >
-              <Plus size={16} color="#FFFFFF" />
-              <Text style={styles.addButtonText}>Add New</Text>
-            </TouchableOpacity>
+      {/* UserPaymentList 弹窗 */}
+      <Modal
+        visible={showUserPaymentList}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowUserPaymentList(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <View style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: colors.background, maxHeight: '80%', overflow: 'hidden' }}>
+            <UserPaymentList
+              paymentMethods={paymentMethods}
+              loading={isLoading}
+              onSelect={(account) => {
+                setSelectedAccount(account);
+                setShowUserPaymentList(false);
+              }}
+              onAdd={() => {
+                setShowUserPaymentList(false);
+                setShowAddPaymentModal(true);
+              }}
+              showAddButton={true}
+            />
+            <Button title="关闭" onPress={() => setShowUserPaymentList(false)} style={{ margin: 12 }} />
           </View>
-
-          {paymentMethods.length === 0 ? (
-            <View style={styles.emptyState}>
-              <CreditCard size={48} color={colors.textSecondary} />
-              <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                No withdrawal methods added
-              </Text>
-              <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
-                Add a withdrawal method to start withdrawing your funds
-              </Text>
-              <Button
-                title="Add Withdrawal Method"
-                onPress={handleAddPaymentMethod}
-                style={styles.emptyActionButton}
-              />
-            </View>
-          ) : (
-            <View style={styles.paymentMethodsList}>
-              {paymentMethods.map((method) => (
-                <View key={method.payment_id} style={styles.methodGroup}>
-                  <View style={styles.methodHeader}>
-                    <View style={styles.methodIcon}>
-                      {method.code === 'BANK' ? (
-                        <CreditCard size={20} color={colors.primary} />
-                      ) : (
-                        <Smartphone size={20} color={colors.primary} />
-                      )}
-                    </View>
-                    <Text style={[styles.methodName, { color: colors.text }]}>
-                      {method.name}
-                    </Text>
-                  </View>
-
-                  {method.data_list.map((account) => (
-                    <PaymentMethodCard
-                      key={account.bank_id}
-                      account={account}
-                      methodType={method.code}
-                      onSelect={() => handleAccountSelect(account)}
-                    />
-                  ))}
-                </View>
-              ))}
-            </View>
-          )}
         </View>
-      </ScrollView>
+      </Modal>
 
       {/* Add Payment Method Modal */}
       <AddPaymentMethodModal
@@ -536,19 +521,6 @@ function WithdrawScreenContent() {
         onClose={() => setShowAddPaymentModal(false)}
         onSuccess={handlePaymentMethodAdded}
         availablePaymentMethods={availablePaymentMethods}
-        walletType={activeWalletType}
-      />
-
-      {/* Withdraw Amount Modal */}
-      <WithdrawAmountModal
-        visible={showWithdrawModal}
-        onClose={() => setShowWithdrawModal(false)}
-        selectedAccount={selectedAccount}
-        availableBalance={activeWalletType === '1'
-          ? (withdrawInfo?.cashable_amount || 0)
-          : (withdrawInfo?.cashable_usd_amount || 0)
-        }
-        currencySymbol={getCurrencySymbol()}
         walletType={activeWalletType}
       />
 
@@ -621,164 +593,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Inter-Bold',
   },
-  balanceContainer: {
-    paddingHorizontal: Spacing.lg,
-  },
-  balanceCard: {
-    marginBottom: Spacing.sm,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  balanceHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  balanceTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginLeft: Spacing.sm,
-  },
-  balanceAmount: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.sm,
-  },
-  balanceNoteContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  balanceNote: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  section: {
-    marginBottom: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.md,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 20,
-    gap: Spacing.xs,
-  },
-  addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: Spacing.xl,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    marginTop: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  emptyMessage: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    textAlign: 'center',
-    marginBottom: Spacing.lg,
-    lineHeight: 20,
-  },
-  emptyActionButton: {
-    paddingHorizontal: Spacing.xl,
-  },
-  paymentMethodsList: {
-    gap: Spacing.lg,
-  },
-  methodGroup: {
-    gap: Spacing.sm,
-  },
-  methodHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.xs,
-  },
-  methodIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0, 135, 81, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  methodName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  withdrawalInfoCard: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-    padding: Spacing.lg,
-    borderRadius: 16,
-  },
-  withdrawalInfoTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.md,
-  },
-  infoList: {
-    gap: Spacing.md,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  infoLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
-  infoValue: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  compensationButton: {
-    padding: Spacing.xs,
-  },
-  tipsContainer: {
-    marginTop: Spacing.md,
-  },
-  tipText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
-  infoMethods: {
-    gap: Spacing.xs,
-  },
-
-
-  // Account Card
   accountCard: {
     padding: Spacing.lg,
     borderRadius: 16,
@@ -901,23 +715,28 @@ const styles = StyleSheet.create({
   minAmountsLabel: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   usdtLabel: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   compensationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderColor: 'transparent',
+    marginBottom: Spacing.xs,
   },
   compensationLabel: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
   },
-
+  otherInfoLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    marginBottom: Spacing.xs,
+  },
   buttonContainer: {
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,

@@ -93,15 +93,13 @@ export default function OverdueCompensationModal({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: Spacing.lg,
-    borderRadius: 16,
-    width: '80%',
     maxHeight: '80%',
   },
   modalHeader: {
