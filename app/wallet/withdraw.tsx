@@ -13,7 +13,7 @@ import {
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import { ChevronLeft, Plus, CreditCard, Smartphone, DollarSign, Clock, Gift, ArrowRight, AlertCircle, Wallet } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
@@ -48,11 +48,22 @@ function WithdrawScreenContent() {
 
   const [amount, setAmount] = useState('');
 
+  const router = useRouter();
+  const params = useLocalSearchParams();
+
   useEffect(() => {
     if (user?.token) {
       fetchData();
     }
   }, [user?.token, activeWalletType]);
+
+  useEffect(() => {
+    if (params.selectedAccount) {
+      try {
+        setSelectedAccount(JSON.parse(params.selectedAccount as string));
+      } catch {}
+    }
+  }, [params.selectedAccount]);
 
   const fetchData = async () => {
     if (!user?.token) return;
@@ -190,7 +201,7 @@ function WithdrawScreenContent() {
   const isValid = !amountError && amount.trim() !== '';
 
   const handleSwitchAccount = () => {
-    setShowUserPaymentList(true);
+    router.push({ pathname: '/wallet/payment-list', params: { selectMode: 'true' } });
   };
 
   if (isLoading) {
@@ -228,7 +239,7 @@ function WithdrawScreenContent() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.push({ pathname: '/(tabs)/wallet'})}
           style={[styles.backButton, { backgroundColor: `${colors.primary}15` }]}
         >
           <ChevronLeft size={24} color={colors.primary} />
@@ -238,7 +249,7 @@ function WithdrawScreenContent() {
         </View>
         {/* Add Button */}
         <TouchableOpacity
-          onPress={() => setShowUserPaymentList(true)}
+          onPress={() => router.push({ pathname: '/wallet/payment-list', params: { selectMode: 'true' } })}
           style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, marginLeft: 8 }}
         >
           <Plus size={20} color="#fff" />
