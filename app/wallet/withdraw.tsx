@@ -3,446 +3,450 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
-  ScrollView,
   TouchableOpacity,
-  useColorScheme,
-  TextInput,
-  Alert,
+  ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { ChevronLeft, Wallet, CreditCard, Plus, Eye, EyeOff, CircleAlert as AlertCircle, CircleCheck as CheckCircle, ArrowRight, Settings, DollarSign } from 'lucide-react-native';
-import Card from '@/components/UI/Card';
-import Button from '@/components/UI/Button';
-import Input from '@/components/UI/Input';
+import { useColorScheme } from 'react-native';
+import { ChevronLeft, Plus, CreditCard, Smartphone, DollarSign, Clock, Gift, ArrowRight, AlertCircle, Wallet } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
-import Colors from '@/constants/Colors';
-import Spacing from '@/constants/Spacing';
+import Button from '@/components/UI/Button';
+import Card from '@/components/UI/Card';
+import PaymentMethodCard from '@/components/wallet/PaymentMethodCard';
+import AddPaymentMethodModal from '@/components/wallet/AddPaymentMethodModal';
+import WithdrawAmountModal from '@/components/wallet/WithdrawAmountModal';
+import OverdueCompensationModal from '@/components/wallet/OverdueCompensationModal';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useWalletStore } from '@/stores/useWalletStore';
 import { WithdrawService } from '@/services/withdraw';
 import { PaymentService } from '@/services/payment';
-import type { WithdrawInformation, PaymentMethod } from '@/types';
+import colors from '@/constants/Colors';
+import Spacing from '@/constants/Spacing';
+import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/types';
+import type { WithdrawInformation } from '@/types/withdraw';
 
 function WithdrawScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
   const { user } = useAuthStore();
+  const { activeWalletType } = useWalletStore();
 
-  // State management
-  const [withdrawInfo, setWithdrawInfo] = useState<WithdrawInformation | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
-  const [balanceVisible, setBalanceVisible] = useState(true);
-  
-  // Form state
-  const [amount, setAmount] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  
-  // Error states
-  const [amountError, setAmountError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [availablePaymentMethods, setAvailablePaymentMethods] = useState<AvailablePaymentMethod[]>([]);
+  const [withdrawInfo, setWithdrawInfo] = useState<WithdrawInformation | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showOverdueModal, setShowOverdueModal] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<PaymentAccount | null>(null);
 
-  // Fetch withdrawal information on component mount
   useEffect(() => {
     if (user?.token) {
-      fetchWithdrawInfo();
+      fetchData();
     }
-  }, [user?.token]);
+  }, [user?.token, activeWalletType]);
 
-  const fetchWithdrawInfo = async () => {
+  const fetchData = async () => {
     if (!user?.token) return;
 
-    setLoading(true);
-    try {
-      const info = await WithdrawService.getWithdrawInformation({
-        token: user.token,
-        wallet_type: '1', // Default to NGN wallet
-      });
-      setWithdrawInfo(info);
-    } catch (error) {
-      console.error('Failed to fetch withdraw info:', error);
-      Alert.alert('Error', 'Failed to load withdrawal information');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPaymentMethods = async () => {
-    if (!user?.token) return;
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const methods = await PaymentService.getPaymentMethods({
-        token: user.token,
-        type: '1', // NGN payment methods
-      });
+      const [methods, availableMethods, withdrawData] = await Promise.all([
+        PaymentService.getPaymentMethods({
+          token: user.token,
+          type: activeWalletType,
+        }),
+        PaymentService.getAvailablePaymentMethods({
+          token: user.token,
+          type: activeWalletType,
+          country_id: user.country_id,
+        }),
+        WithdrawService.getWithdrawInformation({
+          token: user.token,
+          wallet_type: activeWalletType,
+        }),
+      ]);
+
       setPaymentMethods(methods);
+      setAvailablePaymentMethods(availableMethods);
+      setWithdrawInfo(withdrawData);
     } catch (error) {
-      console.error('Failed to fetch payment methods:', error);
-    }
-  };
-
-  const validateForm = () => {
-    let isValid = true;
-    
-    // Reset errors
-    setAmountError('');
-    setPasswordError('');
-
-    // Validate amount
-    const numAmount = parseFloat(amount);
-    if (!amount || isNaN(numAmount)) {
-      setAmountError('Please enter a valid amount');
-      isValid = false;
-    } else if (withdrawInfo && numAmount < withdrawInfo.minimum_amount) {
-      setAmountError(`Minimum withdrawal amount is ${withdrawInfo.currency_name} ${withdrawInfo.minimum_amount}`);
-      isValid = false;
-    } else if (withdrawInfo && numAmount > withdrawInfo.cashable_amount) {
-      setAmountError('Amount exceeds available balance');
-      isValid = false;
-    }
-
-    // Validate password
-    if (!password.trim()) {
-      setPasswordError('Password is required');
-      isValid = false;
-    }
-
-    return isValid;
-  };
-
-  const handleWithdraw = async () => {
-    if (!validateForm() || !user?.token || !withdrawInfo?.bank) return;
-
-    setSubmitting(true);
-    try {
-      const result = await WithdrawService.applyWithdraw({
-        token: user.token,
-        bank_id: withdrawInfo.bank.bank_id,
-        amount: amount,
-        password: password,
-        channel_type: '1',
-      });
-
-      Alert.alert(
-        'Withdrawal Submitted! 🎉',
-        `Your withdrawal request for ${withdrawInfo.currency_name} ${amount} has been submitted successfully.\n\nWithdrawal No: ${result.withdraw_no}\n\nProcessing time: ${withdrawInfo.timeout_desc}`,
-        [
-          { text: 'View History', onPress: () => router.push('/wallet') },
-          { text: 'OK', style: 'default' },
-        ]
-      );
-
-      // Reset form
-      setAmount('');
-      setPassword('');
-      
-      // Refresh withdrawal info
-      fetchWithdrawInfo();
-    } catch (error) {
-      Alert.alert('Withdrawal Failed', error instanceof Error ? error.message : 'Failed to process withdrawal');
+      setError(error instanceof Error ? error.message : 'Failed to load data');
     } finally {
-      setSubmitting(false);
+      setIsLoading(false);
     }
+  };
+
+  const handleAccountSelect = (account: PaymentAccount) => {
+    setSelectedAccount(account);
+    setShowWithdrawModal(true);
   };
 
   const handleAddPaymentMethod = () => {
-    router.push('/profile/bank-accounts');
+    setShowAddPaymentModal(true);
   };
 
-  const handleViewAllMethods = async () => {
-    await fetchPaymentMethods();
-    setShowPaymentMethods(true);
+  const handlePaymentMethodAdded = () => {
+    setShowAddPaymentModal(false);
+    fetchData(); // Refresh the data
   };
 
-  const formatBalance = (amount: number) => {
-    if (!balanceVisible) return '****';
-    return amount.toLocaleString(undefined, { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
+  const getWalletTypeLabel = () => {
+    return activeWalletType === '1' ? 'NGN Wallet' : 'USDT Wallet';
+  };
+
+  const getAvailableBalance = () => {
+    if (!withdrawInfo) return '0.00';
+    
+    if (activeWalletType === '1') {
+      // NGN钱包
+      return withdrawInfo.cashable_amount.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    } else {
+      // USDT钱包
+      return withdrawInfo.cashable_usd_amount.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+  };
+
+  const getCurrencySymbol = () => {
+    return activeWalletType === '1' ? '₦' : 'USDT';
+  };
+
+  const getMinimumAmount = () => {
+    if (!withdrawInfo) return activeWalletType === '1' ? '1,000' : '50';
+    return withdrawInfo.minimum_amount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     });
   };
 
-  if (loading) {
+  const getMinimumWithdrawalText = () => {
+    if (!withdrawInfo) {
+      return activeWalletType === '1' 
+        ? 'Minimum withdrawal: ₦1,000' 
+        : 'Minimum withdrawal: USDT 50';
+    }
+    
+    if (activeWalletType === '1') {
+      // NGN钱包
+      const amount = withdrawInfo.minimum_amount.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      return `Minimum withdrawal: ${withdrawInfo.currency_name} ${amount}`;
+    } else {
+      // USDT钱包
+      const amount = withdrawInfo.minimum_amount_usd.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      return `Minimum withdrawal: USDT ${amount}`;
+    }
+  };
+
+  const getWithdrawalInfoText = () => {
+    if (!withdrawInfo) {
+      return activeWalletType === '1' 
+        ? 'Minimum withdrawal: ₦1,000\nProcessing time: 5-15 minutes'
+        : 'Minimum withdrawal: USDT 50\nProcessing time: 30-60 minutes';
+    }
+
+    let infoText = '';
+    
+    // 1. 最低提现金额
+    if (activeWalletType === '1') {
+      const amount = withdrawInfo.minimum_amount.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      infoText += `Minimum withdrawal: ${withdrawInfo.currency_name} ${amount}\n`;
+    } else {
+      const amount = withdrawInfo.minimum_amount_usd.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      infoText += `Minimum withdrawal: USDT ${amount}\n`;
+    }
+
+    // 2. 处理时间介绍
+    const processingTime = withdrawInfo.timeout_desc || 'Estimated arrival within 5-10 minutes.';
+    infoText += `Processing time: ${processingTime}\n`;
+
+    // 3. USDT链上转账手续费
+    if (activeWalletType === '2' && withdrawInfo.usdt_fee) {
+      infoText += `Network fee: ${withdrawInfo.usdt_fee}\n`;
+    }
+
+    // 4. 超时赔付最大比例介绍
+    if (withdrawInfo.overdue_max_percent) {
+      infoText += `Maximum compensation: ${withdrawInfo.overdue_max_percent}%\n`;
+    }
+
+    // 5. 通用提示
+    infoText += '• Ensure your account details are correct to avoid delays\n';
+    infoText += '• Contact support if you don\'t receive funds within the expected time';
+
+    return infoText;
+  };
+
+  const getProcessingTime = () => {
+    if (!withdrawInfo) return activeWalletType === '1' ? '5-15 minutes' : '30-60 minutes';
+    return withdrawInfo.timeout_desc.toLowerCase();
+  };
+
+  const getOverdueDataForModal = () => {
+    if (!withdrawInfo?.overdue_data || withdrawInfo.overdue_data.length === 0) {
+      return [];
+    }
+    return withdrawInfo.overdue_data;
+  };
+
+  if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors[colorScheme].background }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading withdrawal information...
+          <ActivityIndicator size="large" color={colors[colorScheme].primary} />
+          <Text style={[styles.loadingText, { color: colors[colorScheme].textSecondary }]}>
+            Loading withdrawal methods...
           </Text>
         </View>
       </SafeAreaView>
     );
   }
 
+  if (error) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors[colorScheme].background }]}>
+        <View style={styles.errorContainer}>
+          <Text style={[styles.errorText, { color: colors[colorScheme].error }]}>
+            {error}
+          </Text>
+          <Button
+            title="Try Again"
+            onPress={fetchData}
+            style={styles.retryButton}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={() => router.back()} 
-            style={[styles.backButton, { backgroundColor: `${colors.primary}15` }]}
-          >
-            <ChevronLeft size={24} color={colors.primary} />
-          </TouchableOpacity>
-          <View style={styles.headerContent}>
-            <Text style={[styles.title, { color: colors.text }]}>Withdraw Funds</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Transfer money to your bank account
+    <SafeAreaView style={[styles.container, { backgroundColor: colors[colorScheme].background }]}>
+      {/* Header */}
+      <View style={styles.header}>
+      <TouchableOpacity
+          onPress={() => router.back()}
+          style={[styles.backButton, { backgroundColor: `${colors[colorScheme].primary}15` }]}
+        >
+          <ChevronLeft size={24} color={colors[colorScheme].primary} />
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={[styles.title, { color: colors[colorScheme].text }]}>Withdraw Funds</Text>
+        </View>
+      </View>
+
+      {/* Balance Info */}
+      <View style={styles.balanceContainer}>
+        <Card style={[styles.balanceCard, { backgroundColor: colors[colorScheme].primary }]}>
+          <View style={styles.balanceHeader}>
+            <Wallet size={24} color="#FFFFFF" />
+            <Text style={styles.balanceTitle}>Available for Withdrawal</Text>
+          </View>
+          <Text style={styles.balanceAmount}>
+            {getCurrencySymbol()}{getAvailableBalance()}
+          </Text>
+          <View style={styles.balanceNoteContainer}>
+            <Text style={styles.balanceNote}>
+              {getMinimumWithdrawalText()}
             </Text>
           </View>
-        </View>
+        </Card>
+      </View>
 
-        {/* Balance Card */}
-        {withdrawInfo && (
-          <Card style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
-            <View style={styles.balanceHeader}>
-              <View style={styles.balanceInfo}>
-                <Text style={styles.balanceLabel}>Available Balance</Text>
-                <View style={styles.balanceAmountContainer}>
-                  <Text style={styles.balanceAmount}>
-                    {withdrawInfo.currency_name} {formatBalance(withdrawInfo.cashable_amount)}
-                  </Text>
-                  <TouchableOpacity 
-                    onPress={() => setBalanceVisible(!balanceVisible)}
-                    style={styles.eyeButton}
-                  >
-                    {balanceVisible ? (
-                      <Eye size={20} color="rgba(255, 255, 255, 0.8)" />
-                    ) : (
-                      <EyeOff size={20} color="rgba(255, 255, 255, 0.8)" />
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <View style={[styles.walletIcon, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}>
-                <Wallet size={24} color="#FFFFFF" />
-              </View>
+      {/* Withdrawal Information */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors[colorScheme].text }]}>
+          Withdrawal Information
+        </Text>
+        
+        <View style={styles.infoMethods}>
+          {/* 最低提现金额 */}
+          <View style={[styles.infoMethod, { backgroundColor: colorScheme === 'dark' ? colors[colorScheme].card : '#F9FAFB' }]}>
+            <View style={[styles.infoMethodIcon, { backgroundColor: `${colors[colorScheme].primary}15` }]}>
+              <DollarSign size={20} color={colors[colorScheme].primary} />
             </View>
-            
-            <Text style={styles.minimumAmount}>
-              Minimum withdrawal: {withdrawInfo.currency_name} {withdrawInfo.minimum_amount}
-            </Text>
-          </Card>
-        )}
-
-        {/* Default Payment Method */}
-        {withdrawInfo?.bank ? (
-          <Card style={styles.paymentMethodCard}>
-            <View style={styles.paymentMethodHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                Withdrawal Method
+            <View style={styles.infoMethodContent}>
+              <Text style={[styles.infoMethodTitle, { color: colors[colorScheme].text }]}>
+                Minimum Withdrawal
               </Text>
-              <TouchableOpacity 
-                onPress={handleViewAllMethods}
-                style={styles.manageButton}
-              >
-                <Settings size={16} color={colors.primary} />
-                <Text style={[styles.manageButtonText, { color: colors.primary }]}>
-                  Manage
+              <Text style={[styles.infoMethodDescription, { color: colors[colorScheme].textSecondary }]}>
+                {activeWalletType === '1' 
+                  ? `${withdrawInfo?.currency_name || 'NGN'} ${withdrawInfo?.minimum_amount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '1,000.00'}`
+                  : `USDT ${withdrawInfo?.minimum_amount_usd?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '50.00'}`
+                }
+              </Text>
+            </View>
+          </View>
+
+          {/* 处理时间 */}
+          <View style={[styles.infoMethod, { backgroundColor: colorScheme === 'dark' ? colors[colorScheme].card : '#F9FAFB' }]}>
+            <View style={[styles.infoMethodIcon, { backgroundColor: `${colors[colorScheme].success}15` }]}>
+              <Clock size={20} color={colors[colorScheme].success} />
+            </View>
+            <View style={styles.infoMethodContent}>
+              <Text style={[styles.infoMethodTitle, { color: colors[colorScheme].text }]}>
+                Processing Time
+              </Text>
+              <Text style={[styles.infoMethodDescription, { color: colors[colorScheme].textSecondary }]}>
+                {withdrawInfo?.timeout_desc || 'Estimated arrival within 5-10 minutes.'}
+              </Text>
+            </View>
+          </View>
+
+          {/* USDT链上转账手续费 */}
+          {activeWalletType === '2' && withdrawInfo?.usdt_fee && (
+            <View style={[styles.infoMethod, { backgroundColor: colorScheme === 'dark' ? colors[colorScheme].card : '#F9FAFB' }]}>
+              <View style={[styles.infoMethodIcon, { backgroundColor: `${colors[colorScheme].warning}15` }]}>
+                <CreditCard size={20} color={colors[colorScheme].warning} />
+              </View>
+              <View style={styles.infoMethodContent}>
+                <Text style={[styles.infoMethodTitle, { color: colors[colorScheme].text }]}>
+                  Network Fee
                 </Text>
-              </TouchableOpacity>
-            </View>
-            
-            <View style={[styles.defaultPaymentMethod, { backgroundColor: `${colors.primary}10` }]}>
-              <View style={styles.bankInfo}>
-                <View style={[styles.bankIcon, { backgroundColor: colors.primary }]}>
-                  <CreditCard size={20} color="#FFFFFF" />
-                </View>
-                <View style={styles.bankDetails}>
-                  <Text style={[styles.bankName, { color: colors.text }]}>
-                    {withdrawInfo.bank.bank_name}
-                  </Text>
-                  <Text style={[styles.accountNumber, { color: colors.textSecondary }]}>
-                    ****{withdrawInfo.bank.bank_account.slice(-4)}
-                  </Text>
-                </View>
-              </View>
-              <View style={[styles.defaultBadge, { backgroundColor: colors.success }]}>
-                <CheckCircle size={12} color="#FFFFFF" />
-                <Text style={styles.defaultBadgeText}>Default</Text>
+                <Text style={[styles.infoMethodDescription, { color: colors[colorScheme].textSecondary }]}>
+                  {withdrawInfo.usdt_fee}
+                </Text>
               </View>
             </View>
-          </Card>
-        ) : (
-          <Card style={styles.noPaymentMethodCard}>
-            <View style={styles.noPaymentMethodContent}>
-              <View style={[styles.noPaymentIcon, { backgroundColor: `${colors.warning}20` }]}>
-                <AlertCircle size={32} color={colors.warning} />
+          )}
+
+          {/* 超时赔付最大比例 */}
+          {withdrawInfo?.overdue_max_percent && (
+            <TouchableOpacity 
+              style={[styles.infoMethod, { backgroundColor: colorScheme === 'dark' ? colors[colorScheme].card : '#F9FAFB' }]}
+              onPress={() => setShowOverdueModal(true)}
+            >
+              <View style={[styles.infoMethodIcon, { backgroundColor: `${colors[colorScheme].error}15` }]}>
+                <Gift size={20} color={colors[colorScheme].error} />
               </View>
-              <Text style={[styles.noPaymentTitle, { color: colors.text }]}>
-                No Payment Method
+              <View style={styles.infoMethodContent}>
+                <Text style={[styles.infoMethodTitle, { color: colors[colorScheme].text }]}>
+                  Maximum Compensation
+                </Text>
+                <Text style={[styles.infoMethodDescription, { color: colors[colorScheme].primary }]}>
+                  {withdrawInfo.overdue_max_percent}% (Tap to view details)
+                </Text>
+              </View>
+              <ArrowRight size={18} color={colors[colorScheme].textSecondary} />
+            </TouchableOpacity>
+          )}
+
+        </View>
+      </View>
+
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Payment Methods */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors[colorScheme].text }]}>
+              Withdrawal Methods
+            </Text>
+            <TouchableOpacity
+              style={[styles.addButton, { backgroundColor: colors[colorScheme].primary }]}
+              onPress={handleAddPaymentMethod}
+            >
+              <Plus size={16} color="#FFFFFF" />
+              <Text style={styles.addButtonText}>Add New</Text>
+            </TouchableOpacity>
+          </View>
+
+          {paymentMethods.length === 0 ? (
+            <View style={styles.emptyState}>
+              <CreditCard size={48} color={colors[colorScheme].textSecondary} />
+              <Text style={[styles.emptyTitle, { color: colors[colorScheme].text }]}>
+                No withdrawal methods added
               </Text>
-              <Text style={[styles.noPaymentMessage, { color: colors.textSecondary }]}>
-                You need to add a bank account before you can withdraw funds
+              <Text style={[styles.emptyMessage, { color: colors[colorScheme].textSecondary }]}>
+                Add a withdrawal method to start withdrawing your funds
               </Text>
               <Button
-                title="Add Bank Account"
+                title="Add Withdrawal Method"
                 onPress={handleAddPaymentMethod}
-                style={styles.addPaymentButton}
-                rightIcon={<Plus size={20} color="#FFFFFF" />}
+                style={styles.emptyActionButton}
               />
             </View>
-          </Card>
-        )}
-
-        {/* Withdrawal Form */}
-        {withdrawInfo?.bank && (
-          <Card style={styles.formCard}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Withdrawal Details
-            </Text>
-            
-            <Input
-              label="Amount"
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="Enter amount to withdraw"
-              keyboardType="numeric"
-              error={amountError}
-              rightElement={
-                <Text style={[styles.currencyText, { color: colors.textSecondary }]}>
-                  {withdrawInfo.currency_name}
-                </Text>
-              }
-            />
-            
-            <Input
-              label="Transaction Password"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter your transaction password"
-              secureTextEntry={!showPassword}
-              error={passwordError}
-              rightElement={
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  {showPassword ? (
-                    <EyeOff size={20} color={colors.textSecondary} />
-                  ) : (
-                    <Eye size={20} color={colors.textSecondary} />
-                  )}
-                </TouchableOpacity>
-              }
-            />
-
-            {/* Processing Info */}
-            <View style={[styles.processingInfo, { backgroundColor: `${colors.primary}10` }]}>
-              <AlertCircle size={16} color={colors.primary} />
-              <Text style={[styles.processingText, { color: colors.text }]}>
-                Processing time: {withdrawInfo.timeout_desc}
-              </Text>
-            </View>
-
-            <Button
-              title={submitting ? "Processing..." : "Withdraw Funds"}
-              onPress={handleWithdraw}
-              disabled={!amount || !password || submitting}
-              loading={submitting}
-              style={styles.withdrawButton}
-              rightIcon={!submitting ? <DollarSign size={20} color="#FFFFFF" /> : undefined}
-              fullWidth
-            />
-          </Card>
-        )}
-
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={[styles.quickActionButton, { backgroundColor: `${colors.primary}15` }]}
-            onPress={() => router.push('/wallet')}
-          >
-            <Wallet size={20} color={colors.primary} />
-            <Text style={[styles.quickActionText, { color: colors.primary }]}>
-              Transaction History
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.quickActionButton, { backgroundColor: `${colors.secondary}15` }]}
-            onPress={handleViewAllMethods}
-          >
-            <CreditCard size={20} color={colors.secondary} />
-            <Text style={[styles.quickActionText, { color: colors.secondary }]}>
-              Payment Methods
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      {/* Payment Methods Modal */}
-      {showPaymentMethods && (
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                Payment Methods
-              </Text>
-              <TouchableOpacity onPress={() => setShowPaymentMethods(false)}>
-                <ChevronLeft size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView style={styles.modalBody}>
+          ) : (
+            <View style={styles.paymentMethodsList}>
               {paymentMethods.map((method) => (
-                <View key={method.payment_id} style={styles.paymentMethodGroup}>
-                  <Text style={[styles.paymentMethodName, { color: colors.text }]}>
-                    {method.name}
-                  </Text>
-                  {method.data_list.map((account) => (
-                    <TouchableOpacity
-                      key={account.bank_id}
-                      style={[
-                        styles.paymentMethodItem,
-                        { 
-                          backgroundColor: account.is_def === 1 ? `${colors.primary}10` : 'transparent',
-                          borderColor: colors.border,
-                        }
-                      ]}
-                    >
-                      <View style={styles.bankInfo}>
-                        <View style={[styles.bankIcon, { backgroundColor: colors.primary }]}>
-                          <CreditCard size={16} color="#FFFFFF" />
-                        </View>
-                        <View style={styles.bankDetails}>
-                          <Text style={[styles.bankName, { color: colors.text }]}>
-                            {account.bank_name}
-                          </Text>
-                          <Text style={[styles.accountNumber, { color: colors.textSecondary }]}>
-                            {account.account_no}
-                          </Text>
-                        </View>
-                      </View>
-                      {account.is_def === 1 && (
-                        <View style={[styles.defaultBadge, { backgroundColor: colors.success }]}>
-                          <CheckCircle size={10} color="#FFFFFF" />
-                          <Text style={styles.defaultBadgeText}>Default</Text>
-                        </View>
+                <View key={method.payment_id} style={styles.methodGroup}>
+                  <View style={styles.methodHeader}>
+                    <View style={styles.methodIcon}>
+                      {method.code === 'BANK' ? (
+                        <CreditCard size={20} color={colors[colorScheme].primary} />
+                      ) : (
+                        <Smartphone size={20} color={colors[colorScheme].primary} />
                       )}
-                    </TouchableOpacity>
+                    </View>
+                    <Text style={[styles.methodName, { color: colors[colorScheme].text }]}>
+                      {method.name}
+                    </Text>
+                  </View>
+                  
+                  {method.data_list.map((account) => (
+                    <PaymentMethodCard
+                      key={account.bank_id}
+                      account={account}
+                      methodType={method.code}
+                      onSelect={() => handleAccountSelect(account)}
+                    />
                   ))}
                 </View>
               ))}
-              
-              <Button
-                title="Add New Payment Method"
-                variant="outline"
-                onPress={handleAddPaymentMethod}
-                style={styles.addNewButton}
-                rightIcon={<Plus size={20} color={colors.primary} />}
-                fullWidth
-              />
-            </ScrollView>
-          </View>
+            </View>
+          )}
         </View>
-      )}
+      </ScrollView>
+
+      {/* Add Payment Method Modal */}
+      <AddPaymentMethodModal
+        visible={showAddPaymentModal}
+        onClose={() => setShowAddPaymentModal(false)}
+        onSuccess={handlePaymentMethodAdded}
+        availablePaymentMethods={availablePaymentMethods}
+        walletType={activeWalletType}
+      />
+
+      {/* Withdraw Amount Modal */}
+      <WithdrawAmountModal
+        visible={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+        selectedAccount={selectedAccount}
+        availableBalance={activeWalletType === '1' 
+          ? (withdrawInfo?.cashable_amount || 0)
+          : (withdrawInfo?.cashable_usd_amount || 0)
+        }
+        currencySymbol={getCurrencySymbol()}
+        walletType={activeWalletType}
+      />
+
+      {/* Overdue Compensation Modal */}
+      <OverdueCompensationModal
+        visible={showOverdueModal}
+        onClose={() => setShowOverdueModal(false)}
+        overdueData={getOverdueDataForModal()}
+        maxPercent={withdrawInfo?.overdue_max_percent}
+      />
     </SafeAreaView>
   );
 }
@@ -469,16 +473,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Regular',
   },
-  scrollContent: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xxl,
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
   },
-
-  // Header
+  errorText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.xl,
+  },
   header: {
+    paddingHorizontal: Spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   backButton: {
     width: 40,
@@ -492,18 +506,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'Inter-Bold',
   },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginTop: Spacing.xs,
+  balanceContainer: {
+    paddingHorizontal: Spacing.lg,
   },
-
-  // Balance Card
   balanceCard: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -511,238 +521,176 @@ const styles = StyleSheet.create({
   },
   balanceHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: Spacing.sm,
   },
-  balanceInfo: {
-    flex: 1,
-  },
-  balanceLabel: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    marginBottom: Spacing.xs,
-  },
-  balanceAmountContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
+  balanceTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    marginLeft: Spacing.sm,
   },
   balanceAmount: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 28,
     fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.sm,
   },
-  eyeButton: {
-    padding: Spacing.xs,
-  },
-  walletIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
+  balanceNoteContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
   },
-  minimumAmount: {
+  balanceNote: {
     color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    marginTop: Spacing.sm,
+    fontFamily: 'Inter-Medium',
   },
-
-  // Payment Method Card
-  paymentMethodCard: {
+  scrollView: {
+    flex: 1,
+  },
+  section: {
     marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
   },
-  paymentMethodHeader: {
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.md,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.md,
   },
-  manageButton: {
+  addButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: 20,
     gap: Spacing.xs,
   },
-  manageButtonText: {
+  addButtonText: {
+    color: '#FFFFFF',
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
-  defaultPaymentMethod: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  emptyState: {
     alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: 12,
+    paddingVertical: Spacing.xl,
   },
-  bankInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  bankIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.sm,
-  },
-  bankDetails: {
-    flex: 1,
-  },
-  bankName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  accountNumber: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginTop: 2,
-  },
-  defaultBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  defaultBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontFamily: 'Inter-Bold',
-  },
-
-  // No Payment Method
-  noPaymentMethodCard: {
-    marginBottom: Spacing.lg,
-  },
-  noPaymentMethodContent: {
-    alignItems: 'center',
-    padding: Spacing.lg,
-  },
-  noPaymentIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  noPaymentTitle: {
+  emptyTitle: {
     fontSize: 18,
     fontFamily: 'Inter-Bold',
+    marginTop: Spacing.md,
     marginBottom: Spacing.sm,
   },
-  noPaymentMessage: {
+  emptyMessage: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
+    marginBottom: Spacing.lg,
     lineHeight: 20,
-    marginBottom: Spacing.lg,
   },
-  addPaymentButton: {
-    minWidth: 200,
+  emptyActionButton: {
+    paddingHorizontal: Spacing.xl,
   },
-
-  // Form Card
-  formCard: {
-    marginBottom: Spacing.lg,
+  paymentMethodsList: {
+    gap: Spacing.lg,
   },
-  currencyText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-  },
-  processingInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: 8,
-    marginBottom: Spacing.lg,
+  methodGroup: {
     gap: Spacing.sm,
   },
-  processingText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    flex: 1,
-  },
-  withdrawButton: {
-    height: 56,
-  },
-
-  // Quick Actions
-  quickActions: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  quickActionButton: {
-    flex: 1,
+  methodHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  methodIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0, 135, 81, 0.1)',
     justifyContent: 'center',
-    padding: Spacing.md,
-    borderRadius: 12,
-    gap: Spacing.sm,
-  },
-  quickActionText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-  },
-
-  // Modal
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
   },
-  modalTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  modalBody: {
-    padding: Spacing.lg,
-  },
-  paymentMethodGroup: {
-    marginBottom: Spacing.lg,
-  },
-  paymentMethodName: {
+  methodName: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.sm,
   },
-  paymentMethodItem: {
+  withdrawalInfoCard: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
+    borderRadius: 16,
+  },
+  withdrawalInfoTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: Spacing.md,
+  },
+  infoList: {
+    gap: Spacing.md,
+  },
+  infoItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: Spacing.md,
+  },
+  infoLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+  },
+  infoValue: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+  },
+  compensationButton: {
+    padding: Spacing.xs,
+  },
+  tipsContainer: {
+    marginTop: Spacing.md,
+  },
+  tipText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+  },
+  infoMethods: {
+    gap: Spacing.xs,
+  },
+  infoMethod: {
+    height: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.sm,
     borderRadius: 12,
     borderWidth: 1,
-    marginBottom: Spacing.sm,
+    borderColor: 'transparent',
   },
-  addNewButton: {
-    marginTop: Spacing.md,
+  infoMethodIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  infoMethodContent: {
+    flex: 1,
+  },
+  infoMethodTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: 2,
+  },
+  infoMethodDescription: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
   },
 });
