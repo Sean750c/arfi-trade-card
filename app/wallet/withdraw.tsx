@@ -12,19 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { 
-  ChevronLeft, 
-  Wallet, 
-  CreditCard, 
-  Plus, 
-  Eye, 
-  EyeOff, 
-  AlertCircle,
-  CheckCircle,
-  ArrowRight,
-  Settings,
-  DollarSign
-} from 'lucide-react-native';
+import { ChevronLeft, Wallet, CreditCard, Plus, Eye, EyeOff, CircleAlert as AlertCircle, CircleCheck as CheckCircle, ArrowRight, Settings, DollarSign } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
 import Input from '@/components/UI/Input';
