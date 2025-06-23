@@ -101,20 +101,14 @@ function WithdrawScreenContent() {
   };
 
   const getAvailableBalance = () => {
-    if (!withdrawInfo) return '0.00';
+    if (!withdrawInfo) return 0.00;
 
     if (activeWalletType === '1') {
       // NGN钱包
-      return withdrawInfo.cashable_amount.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
+      return withdrawInfo.cashable_amount;
     } else {
       // USDT钱包
-      return withdrawInfo.cashable_usd_amount.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
+      return withdrawInfo.cashable_usd_amount;
     }
   };
 
@@ -123,7 +117,8 @@ function WithdrawScreenContent() {
   };
 
   const handleQuickAmount = (percentage: number) => {
-    const quickAmount = Math.floor((parseFloat(getAvailableBalance()) * percentage) / 100);
+    const availableBalance = getAvailableBalance();
+    const quickAmount = Math.floor((availableBalance * percentage) / 100);
     setAmount(quickAmount.toString());
     Keyboard.dismiss();
   };
@@ -133,7 +128,7 @@ function WithdrawScreenContent() {
     if (isNaN(numAmount) || numAmount <= 0) {
       return 'Please enter a valid amount';
     }
-    const minWithdrawal = parseFloat(getMinimumAmount());
+    const minWithdrawal = getMinimumAmount();
     if (numAmount < minWithdrawal) {
       return `Minimum withdrawal is ${getCurrencySymbol()}${formatAmount(minWithdrawal)}`;
     }
@@ -168,7 +163,7 @@ function WithdrawScreenContent() {
     }
   };
 
-  const formatAmount = (value: string | number) => {
+  const formatAmount = (value: number) => {
     return value.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -176,85 +171,7 @@ function WithdrawScreenContent() {
   };
 
   const getMinimumAmount = () => {
-    if (!withdrawInfo) return activeWalletType === '1' ? '1,000' : '50';
-    return withdrawInfo.minimum_amount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
-
-  const getMinimumWithdrawalText = () => {
-    if (!withdrawInfo) {
-      return activeWalletType === '1'
-        ? 'Minimum withdrawal: ₦1,000'
-        : 'Minimum withdrawal: USDT 50';
-    }
-
-    if (activeWalletType === '1') {
-      // NGN钱包
-      const amount = withdrawInfo.minimum_amount.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      return `Minimum withdrawal: ${withdrawInfo.currency_name} ${amount}`;
-    } else {
-      // USDT钱包
-      const amount = withdrawInfo.minimum_amount_usd.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      return `Minimum withdrawal: USDT ${amount}`;
-    }
-  };
-
-  const getWithdrawalInfoText = () => {
-    if (!withdrawInfo) {
-      return activeWalletType === '1'
-        ? 'Minimum withdrawal: ₦1,000\nProcessing time: 5-15 minutes'
-        : 'Minimum withdrawal: USDT 50\nProcessing time: 30-60 minutes';
-    }
-
-    let infoText = '';
-
-    // 1. 最低提现金额
-    if (activeWalletType === '1') {
-      const amount = withdrawInfo.minimum_amount.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      infoText += `Minimum withdrawal: ${withdrawInfo.currency_name} ${amount}\n`;
-    } else {
-      const amount = withdrawInfo.minimum_amount_usd.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      infoText += `Minimum withdrawal: USDT ${amount}\n`;
-    }
-
-    // 2. 处理时间介绍
-    const processingTime = withdrawInfo.timeout_desc || 'Estimated arrival within 5-10 minutes.';
-    infoText += `Processing time: ${processingTime}\n`;
-
-    // 3. USDT链上转账手续费
-    if (activeWalletType === '2' && withdrawInfo.usdt_fee) {
-      infoText += `Network fee: ${withdrawInfo.usdt_fee}\n`;
-    }
-
-    // 4. 超时赔付最大比例介绍
-    if (withdrawInfo.overdue_max_percent) {
-      infoText += `Maximum compensation: ${withdrawInfo.overdue_max_percent}%\n`;
-    }
-
-    // 5. 通用提示
-    infoText += '• Ensure your account details are correct to avoid delays\n';
-    infoText += '• Contact support if you don\'t receive funds within the expected time';
-
-    return infoText;
-  };
-
-  const getProcessingTime = () => {
-    if (!withdrawInfo) return activeWalletType === '1' ? '5-15 minutes' : '30-60 minutes';
-    return withdrawInfo.timeout_desc.toLowerCase();
+    return withdrawInfo?.minimum_amount || 1500;
   };
 
   const getOverdueDataForModal = () => {
@@ -389,7 +306,6 @@ function WithdrawScreenContent() {
             borderColor: amountError ? colors.error : colors.border,
           },
         ]}>
-          <DollarSign size={20} color={colors.textSecondary} />
           <TextInput
             style={[styles.amountInput, { color: colors.text }]}
             placeholder="0.00"
@@ -489,31 +405,20 @@ function WithdrawScreenContent() {
       </View>
 
       {/* UserPaymentList 弹窗 */}
-      <Modal
+      <UserPaymentList
         visible={showUserPaymentList}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowUserPaymentList(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
-          <View style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: colors.background, maxHeight: '80%', overflow: 'hidden' }}>
-            <UserPaymentList
-              paymentMethods={paymentMethods}
-              loading={isLoading}
-              onSelect={(account) => {
-                setSelectedAccount(account);
-                setShowUserPaymentList(false);
-              }}
-              onAdd={() => {
-                setShowUserPaymentList(false);
-                setShowAddPaymentModal(true);
-              }}
-              showAddButton={true}
-            />
-            <Button title="关闭" onPress={() => setShowUserPaymentList(false)} style={{ margin: 12 }} />
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowUserPaymentList(false)}
+        paymentMethods={paymentMethods}
+        loading={isLoading}
+        onSelect={(account) => {
+          setSelectedAccount(account);
+          setShowUserPaymentList(false);
+        }}
+        onAdd={() => {
+          setShowUserPaymentList(false);
+          setShowAddPaymentModal(true);
+        }}
+      />
 
       {/* Add Payment Method Modal */}
       <AddPaymentMethodModal
