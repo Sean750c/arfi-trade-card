@@ -147,21 +147,24 @@ export default function AddPaymentMethodModal({
   };
 
   const handleSubmit = async () => {
-    if (!validateForm() || !user?.token) return;
+    if (!validateForm() || !user?.token || !selectedMethod) return;
 
     setIsLoading(true);
     try {
-      // Here you would call the API to add the payment method
-      // For now, we'll just simulate success
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await PaymentService.addPaymentMethod({
+        token: user.token,
+        payment_id: selectedMethod.payment_id,
+        bank_id: selectedMethod.code === 'USDT' ? Number(formData.coin_id) : Number(formData.bank_id),
+        account_no: formData.account_no,
+        account_name: formData.account_name || '',
+      });
       Alert.alert(
         'Success',
         'Payment method added successfully',
         [{ text: 'OK', onPress: onSuccess }]
       );
     } catch (error) {
-      Alert.alert('Error', 'Failed to add payment method');
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to add payment method');
     } finally {
       setIsLoading(false);
     }
