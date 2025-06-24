@@ -244,13 +244,13 @@ function WithdrawScreenContent() {
         >
           <ChevronLeft size={24} color={colors.primary} />
         </TouchableOpacity>
-        <View style={styles.headerContent}>
+        <View style={styles.headerContent}> 
           <Text style={[styles.title, { color: colors.text }]}>Withdraw Funds</Text>
         </View>
         {/* Add Button */}
         <TouchableOpacity
           onPress={() => router.push({ pathname: '/wallet/payment-list', params: { selectMode: 'true' } })}
-          style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, marginLeft: 8 }}
+          style={[styles.addButton, { backgroundColor: colors.primary, }]}
         >
           <Plus size={20} color="#fff" />
         </TouchableOpacity>
@@ -509,6 +509,14 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
+  },
+  addButton: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    borderRadius: 16, 
+    paddingHorizontal: 16, 
+    paddingVertical: 8, 
+    marginLeft: 8
   },
   title: {
     fontSize: 20,
