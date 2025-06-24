@@ -130,6 +130,7 @@ export default function PaymentListScreen() {
                           router.replace({ pathname: '/wallet/withdraw', params: { selectedAccount: JSON.stringify(account) } });
                         }
                       }}
+                      onSetDefault={fetchData}
                     />
                   ))}
                 </View>

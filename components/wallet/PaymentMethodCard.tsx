@@ -11,95 +11,127 @@ import { ChevronRight, Clock, Star } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { PaymentAccount } from '@/types';
+import { PaymentService } from '@/services/payment';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 interface PaymentMethodCardProps {
   account: PaymentAccount;
   methodType: string;
   onSelect: () => void;
+  onSetDefault?: () => void;
 }
 
 export default function PaymentMethodCard({
   account,
   methodType,
   onSelect,
+  onSetDefault,
 }: PaymentMethodCardProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
-
   const isDefault = account.is_def === 1;
+  const { user } = useAuthStore();
+  const [loading, setLoading] = React.useState(false);
+
+  // 设置默认支付方式
+  const handleSetDefault = async () => {
+    if (!user?.token || isDefault) return;
+    setLoading(true);
+    try {
+      await PaymentService.setDefaultPayment({ token: user.token, bank_id: account.bank_id });
+      if (typeof onSetDefault === 'function') onSetDefault();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Failed to set default payment method');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.card,
-        {
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
-          borderColor: isDefault ? colors.primary : colors.border,
-          borderWidth: isDefault ? 2 : 1,
-          shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.08)',
-        },
-      ]}
-      onPress={onSelect}
-      activeOpacity={0.7}
-    >
-      <View style={styles.cardContent}>
-        {/* Bank/Payment Logo */}
-        <View style={styles.logoContainer}>
-          <Image
-            source={{ uri: account.bank_logo_image }}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          {isDefault && (
-            <View style={[styles.defaultBadge, { backgroundColor: colors.primary }]}>
-              <Star size={10} color="#FFFFFF" fill="#FFFFFF" />
-            </View>
-          )}
-        </View>
-
-        {/* Account Details */}
-        <View style={styles.accountDetails}>
-          <View style={styles.accountHeader}>
-            <Text style={[styles.bankName, { color: colors.text }]}>
-              {account.bank_name}
-            </Text>
+    <View style={styles.cardWrap}>
+      <TouchableOpacity
+        style={[
+          styles.card,
+          {
+            backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+            borderColor: isDefault ? colors.primary : colors.border,
+            borderWidth: isDefault ? 2 : 1,
+            shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.08)',
+          },
+        ]}
+        onPress={onSelect}
+        activeOpacity={0.7}
+      >
+        <View style={styles.cardContent}>
+          {/* Bank/Payment Logo */}
+          <View style={styles.logoContainer}>
+            <Image
+              source={{ uri: account.bank_logo_image }}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             {isDefault && (
-              <View style={[styles.defaultLabel, { backgroundColor: `${colors.primary}15` }]}>
-                <Text style={[styles.defaultLabelText, { color: colors.primary }]}>
-                  Default
+              <View style={[styles.defaultBadge, { backgroundColor: colors.primary }]}>
+                <Star size={10} color="#FFFFFF" fill="#FFFFFF" />
+              </View>
+            )}
+          </View>
+
+          {/* Account Details */}
+          <View style={styles.accountDetails}>
+            <View style={styles.accountHeader}>
+              <Text style={[styles.bankName, { color: colors.text }]}>
+                {account.bank_name}
+              </Text>
+            </View>
+            
+            <Text style={[styles.accountNumber, { color: colors.textSecondary }]}>
+              {methodType === 'BANK' ? 'Account:' : 'Phone:'} {account.account_no}
+            </Text>
+            
+            {account.account_name && (
+              <Text style={[styles.accountName, { color: colors.textSecondary }]}>
+                {account.account_name}
+              </Text>
+            )}
+            
+            {!!account.timeout_desc && (
+              <View style={styles.timeoutContainer}>
+                <Clock size={12} color={colors.success} />
+                <Text style={[styles.timeoutText, { color: colors.success }]}>
+                  {account.timeout_desc}
                 </Text>
               </View>
             )}
           </View>
-          
-          <Text style={[styles.accountNumber, { color: colors.textSecondary }]}>
-            {methodType === 'BANK' ? 'Account:' : 'Phone:'} {account.account_no}
-          </Text>
-          
-          {account.account_name && (
-            <Text style={[styles.accountName, { color: colors.textSecondary }]}>
-              {account.account_name}
-            </Text>
-          )}
-          
-          <View style={styles.timeoutContainer}>
-            <Clock size={12} color={colors.success} />
-            <Text style={[styles.timeoutText, { color: colors.success }]}>
-              {account.timeout_desc}
-            </Text>
+
+          {/* Action Arrow */}
+          <View style={styles.actionContainer}>
+            <ChevronRight size={20} color={colors.textSecondary} />
           </View>
         </View>
-
-        {/* Action Arrow */}
-        <View style={styles.actionContainer}>
-          <ChevronRight size={20} color={colors.textSecondary} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.radioRow}
+        onPress={handleSetDefault}
+        disabled={isDefault || loading}
+        activeOpacity={0.7}
+      >
+        <View style={[styles.radioOuter, { borderColor: isDefault ? colors.primary : colors.border }]}>
+          {isDefault && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}
         </View>
-      </View>
-    </TouchableOpacity>
+        <Text style={[styles.radioLabel, { color: isDefault ? colors.primary : colors.textSecondary }]}>
+          {isDefault ? 'Default' : loading ? 'Setting...' : 'Set as default'}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  cardWrap: {
+    marginBottom: Spacing.lg,
+  },
   card: {
     borderRadius: 16,
     shadowOffset: { width: 0, height: 4 },
@@ -174,5 +206,29 @@ const styles = StyleSheet.create({
   },
   actionContainer: {
     marginLeft: Spacing.sm,
+  },
+  radioRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginLeft: Spacing.lg,
+  },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  radioLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
   },
 });

@@ -204,6 +204,9 @@ function WithdrawScreenContent() {
     router.push({ pathname: '/wallet/payment-list', params: { selectMode: 'true' } });
   };
 
+  // 新增：优先展示selectedAccount
+  const displayAccount = selectedAccount || withdrawInfo?.bank;
+
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -257,26 +260,26 @@ function WithdrawScreenContent() {
       </View>
 
       {/* Selected Account Info */}
-      {withdrawInfo?.bank ? (
+      {displayAccount ? (
         <View style={[styles.accountCard, { backgroundColor: colors.primary, flexDirection: 'row', alignItems: 'center' }]}>
           <View style={{ flex: 1 }}>
             <View style={styles.accountHeader}>
               <Image
-                source={{ uri: withdrawInfo.bank.bank_logo_image }}
+                source={{ uri: displayAccount.bank_logo_image }}
                 style={styles.accountLogo}
                 resizeMode="contain"
               />
               <View style={styles.accountDetails}>
-                <Text style={styles.accountName}>{withdrawInfo.bank.bank_name}</Text>
+                <Text style={styles.accountName}>{displayAccount.bank_name}</Text>
                 <Text style={styles.accountNumber}>
-                  {withdrawInfo.bank.bank_account}
+                  {'bank_account' in displayAccount ? displayAccount.bank_account : ''}
                 </Text>
               </View>
             </View>
             <View style={styles.timeoutInfo}>
               <Clock size={14} color="rgba(255, 255, 255, 0.9)" />
               <Text style={styles.timeoutText}>
-                {withdrawInfo.timeout_desc}
+                {'timeout_desc' in displayAccount ? displayAccount.timeout_desc : ''}
               </Text>
             </View>
           </View>
