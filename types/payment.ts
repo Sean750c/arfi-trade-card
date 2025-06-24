@@ -83,11 +83,37 @@ export interface AddPaymentMethodRequest {
     account_name: string;
 }
 
-export type AddPaymentMethodResponse = APIResponse<{ bank_id: number; is_def: number }>;
+export interface AddPaymentData {
+    bank_id: number;
+    is_def: 1 | 2;
+}
+
+export type AddPaymentMethodResponse = APIResponse<AddPaymentData>;
 
 // Response types
 export type PaymentMethodsResponse = APIResponse<PaymentMethod[]>;
 export type AvailablePaymentMethodsResponse = APIResponse<AvailablePaymentMethod[]>;
 export type BankListResponse = APIResponse<Bank[]>;
 export type CoinListResponse = APIResponse<CoinNetwork[]>;
-export type SetDefaultPaymentResponse = APIResponse<null>; 
+export type SetDefaultPaymentResponse = APIResponse<null>;
+
+// Verify Bank Account
+export interface VerifyBankAccountRequest {
+    token: string;
+    bank_id: number;
+    bank_account: string;
+}
+
+export interface VerifyBankAccountData {
+    user_name: string;
+}
+
+export type VerifyBankAccountResponse = APIResponse<VerifyBankAccountData>;
+
+// Delete Payment Method
+export interface DeletePaymentMethodRequest {
+    token: string;
+    bank_id: number;
+}
+
+export type DeletePaymentMethodResponse = APIResponse<null>; 

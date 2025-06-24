@@ -14,7 +14,12 @@ import type {
   SetDefaultPaymentRequest,
   SetDefaultPaymentResponse,
   AddPaymentMethodRequest,
-  AddPaymentMethodResponse
+  AddPaymentData,
+  AddPaymentMethodResponse,
+  VerifyBankAccountRequest,
+  VerifyBankAccountResponse,
+  DeletePaymentMethodRequest,
+  DeletePaymentMethodResponse
 } from '@/types/payment';
 
 export class PaymentService {
@@ -158,7 +163,7 @@ export class PaymentService {
    * @param params { token, payment_id, bank_id, account_no, account_name }
    * @returns { bank_id, is_def }
    */
-  static async addPaymentMethod(params: AddPaymentMethodRequest): Promise<{ bank_id: number; is_def: number }> {
+  static async addPaymentMethod(params: AddPaymentMethodRequest): Promise<AddPaymentData> {
     try {
       const response = await APIRequest.request<AddPaymentMethodResponse>(
         '/gc/payment/add',
@@ -178,6 +183,62 @@ export class PaymentService {
         throw new Error(`Failed to add payment method: ${error.message}`);
       }
       throw new Error('Failed to add payment method');
+    }
+  }
+
+  /**
+   * 验证银行账户
+   * @param params { token, bank_id, bank_account }
+   * @returns { user_name }
+   */
+  static async verifyBankAccount(params: VerifyBankAccountRequest): Promise<{ user_name: string }> {
+    try {
+      const response = await APIRequest.request<VerifyBankAccountResponse>(
+        '/gc/payment/verify',
+        'POST',
+        params
+      );
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to verify bank account');
+      }
+      return response.data;
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      if (error instanceof Error) {
+        throw new Error(`Failed to verify bank account: ${error.message}`);
+      }
+      throw new Error('Failed to verify bank account');
+    }
+  }
+
+  /**
+   * 删除支付方式
+   * @param params { token, bank_id }
+   */
+  static async deletePaymentMethod(params: DeletePaymentMethodRequest): Promise<boolean> {
+    try {
+      const response = await APIRequest.request<DeletePaymentMethodResponse>(
+        '/gc/payment/delete',
+        'POST',
+        params
+      );
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to delete payment method');
+      }
+      return true;
+      // 返回data为null，无需处理
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      if (error instanceof Error) {
+        throw new Error(`Failed to delete payment method: ${error.message}`);
+      }
+      throw new Error('Failed to delete payment method');
     }
   }
 }
