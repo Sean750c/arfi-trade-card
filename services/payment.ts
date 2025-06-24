@@ -12,7 +12,9 @@ import type {
   UserPaymentListRequest,
   BankListRequest,
   SetDefaultPaymentRequest,
-  SetDefaultPaymentResponse
+  SetDefaultPaymentResponse,
+  AddPaymentMethodRequest,
+  AddPaymentMethodResponse
 } from '@/types/payment';
 
 export class PaymentService {
@@ -148,6 +150,34 @@ export class PaymentService {
         throw new Error(`Failed to set default payment method: ${error.message}`);
       }
       throw new Error('Failed to set default payment method');
+    }
+  }
+
+  /**
+   * 添加支付方式
+   * @param params { token, payment_id, bank_id, account_no, account_name }
+   * @returns { bank_id, is_def }
+   */
+  static async addPaymentMethod(params: AddPaymentMethodRequest): Promise<{ bank_id: number; is_def: number }> {
+    try {
+      const response = await APIRequest.request<AddPaymentMethodResponse>(
+        '/gc/payment/add',
+        'POST',
+        params
+      );
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to add payment method');
+      }
+      return response.data;
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      if (error instanceof Error) {
+        throw new Error(`Failed to add payment method: ${error.message}`);
+      }
+      throw new Error('Failed to add payment method');
     }
   }
 }

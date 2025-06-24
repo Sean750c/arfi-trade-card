@@ -11,6 +11,8 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { X, ChevronDown, Check } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
@@ -269,7 +271,11 @@ export default function AddPaymentMethodModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
         <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>
@@ -439,7 +445,7 @@ export default function AddPaymentMethodModal({
             </View>
           </Modal>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

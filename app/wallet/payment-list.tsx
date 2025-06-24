@@ -74,12 +74,36 @@ export default function PaymentListScreen() {
     fetchData();
   };
 
+  // 查找默认PaymentAccount
+  function getDefaultAccount(paymentMethods: PaymentMethod[]): PaymentAccount | null {
+    for (const method of paymentMethods) {
+      if (method.data_list && method.data_list.length > 0) {
+        const found = method.data_list.find((acc: PaymentAccount) => acc.is_def === 1);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  function handleBack() {
+    if (selectMode) {
+      const defaultAccount = getDefaultAccount(paymentMethods);
+      if (defaultAccount) {
+        router.replace({ pathname: '/wallet/withdraw', params: { selectedAccount: JSON.stringify(defaultAccount) } });
+      } else {
+        router.back();
+      }
+    } else {
+      router.back();
+    }
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => handleBack()}
           style={[styles.backButton, { backgroundColor: `${colors.primary}15` }]}
         >
           <ChevronLeft size={24} color={colors.primary} />

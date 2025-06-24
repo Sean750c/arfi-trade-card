@@ -74,6 +74,17 @@ export interface SetDefaultPaymentRequest {
     bank_id: number;
 }
 
+// Add Payment Method
+export interface AddPaymentMethodRequest {
+    token: string;
+    payment_id: number;
+    bank_id: number;
+    account_no: string;
+    account_name: string;
+}
+
+export type AddPaymentMethodResponse = APIResponse<{ bank_id: number; is_def: number }>;
+
 // Response types
 export type PaymentMethodsResponse = APIResponse<PaymentMethod[]>;
 export type AvailablePaymentMethodsResponse = APIResponse<AvailablePaymentMethod[]>;

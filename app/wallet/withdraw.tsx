@@ -190,7 +190,22 @@ function WithdrawScreenContent() {
   };
 
   // 新增：优先展示selectedAccount
-  const displayAccount = selectedAccount || withdrawInfo?.bank;
+  let displayAccount: PaymentAccount | null = null;
+  if (selectedAccount) {
+    displayAccount = selectedAccount;
+  } else if (withdrawInfo?.bank) {
+    // 将BankInfo转换为PaymentAccount
+    displayAccount = {
+      bank_id: withdrawInfo.bank.bank_id,
+      is_def: 1,
+      bank_logo: withdrawInfo.bank.bank_logo,
+      bank_logo_image: withdrawInfo.bank.bank_logo_image,
+      bank_name: withdrawInfo.bank.bank_name,
+      account_no: withdrawInfo.bank.bank_account,
+      account_name: '',
+      timeout_desc: withdrawInfo.timeout_desc || '',
+    };
+  }
 
   if (isLoading) {
     return (
@@ -257,16 +272,18 @@ function WithdrawScreenContent() {
               <View style={styles.accountDetails}>
                 <Text style={styles.accountName}>{displayAccount.bank_name}</Text>
                 <Text style={styles.accountNumber}>
-                  {'bank_account' in displayAccount ? displayAccount.bank_account : ''}
+                  {displayAccount.account_no}
                 </Text>
               </View>
             </View>
+            {!!displayAccount.timeout_desc && (
             <View style={styles.timeoutInfo}>
               <Clock size={14} color="rgba(255, 255, 255, 0.9)" />
               <Text style={styles.timeoutText}>
-                {'timeout_desc' in displayAccount ? displayAccount.timeout_desc : ''}
+                {displayAccount.timeout_desc}
               </Text>
             </View>
+            )}
           </View>
           {/* Switch Button */}
           <TouchableOpacity
