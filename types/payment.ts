@@ -47,11 +47,9 @@ export interface Bank {
 }
 
 export interface CoinNetwork {
-    coin_id: number;
-    coin_name: string;
-    coin_symbol: string;
-    network_name: string;
-    network_logo: string;
+    bank_id: number;
+    name: string;
+    desc: string;
 }
 
 export interface UserPaymentListRequest {

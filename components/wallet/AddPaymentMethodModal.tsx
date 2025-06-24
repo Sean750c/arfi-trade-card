@@ -125,7 +125,7 @@ export default function AddPaymentMethodModal({
     setSelectedCoin(coin);
     setFormData(prev => ({
       ...prev,
-      coin_id: coin.coin_id.toString(),
+      coin_id: coin.bank_id.toString(),
     }));
     setShowCoinPicker(false);
   };
@@ -166,7 +166,7 @@ export default function AddPaymentMethodModal({
   };
 
   const renderFormField = (field: FormField) => {
-    if (field.code === 'coin_id' && selectedMethod?.code === 'USDT') {
+    if (field.code === 'bank_id' && selectedMethod?.code === 'USDT') {
       return (
         <View key={field.code} style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: colors.text }]}>
@@ -184,13 +184,8 @@ export default function AddPaymentMethodModal({
           >
             {selectedCoin ? (
               <View style={styles.selectedBankContainer}>
-                <Image
-                  source={{ uri: selectedCoin.network_logo }}
-                  style={styles.bankLogo}
-                  resizeMode="contain"
-                />
                 <Text style={[styles.selectedBankText, { color: colors.text }]}>
-                  {selectedCoin.coin_name} ({selectedCoin.network_name})
+                  {selectedCoin.name}
                 </Text>
               </View>
             ) : (
@@ -336,6 +331,7 @@ export default function AddPaymentMethodModal({
                 </View>
 
                 {selectedMethod.form_list
+                  .filter(field => !(selectedMethod.code === 'USDT' && field.code === 'account_name'))
                   .sort((a, b) => a.seq - b.seq)
                   .map(renderFormField)}
 
@@ -426,19 +422,14 @@ export default function AddPaymentMethodModal({
                 <ScrollView showsVerticalScrollIndicator={false}>
                   {coinList.map((coin) => (
                     <TouchableOpacity
-                      key={coin.coin_id}
+                      key={coin.bank_id}
                       style={[styles.bankOption, { borderBottomColor: colors.border }]}
                       onPress={() => handleCoinSelect(coin)}
                     >
-                      <Image
-                        source={{ uri: coin.network_logo }}
-                        style={styles.bankOptionLogo}
-                        resizeMode="contain"
-                      />
                       <Text style={[styles.bankOptionName, { color: colors.text }]}>
-                        {coin.coin_name} ({coin.network_name})
+                        {coin.name}
                       </Text>
-                      {selectedCoin?.coin_id === coin.coin_id && (
+                      {selectedCoin?.bank_id === coin.bank_id && (
                         <Check size={20} color={colors.primary} />
                       )}
                     </TouchableOpacity>

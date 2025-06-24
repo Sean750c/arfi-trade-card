@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   Alert,
   Keyboard,
@@ -16,20 +15,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useColorScheme } from 'react-native';
-import { ChevronLeft, Plus, CreditCard, Smartphone, DollarSign, Clock, Gift, ArrowRight, AlertCircle, Wallet } from 'lucide-react-native';
+import { ChevronLeft, Plus, CreditCard, Clock, ArrowRight, AlertCircle } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Button from '@/components/UI/Button';
-import AddPaymentMethodModal from '@/components/wallet/AddPaymentMethodModal';
 import OverdueCompensationModal from '@/components/wallet/OverdueCompensationModal';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
 import { WithdrawService } from '@/services/withdraw';
-import { PaymentService } from '@/services/payment';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/types';
+import type { PaymentAccount } from '@/types';
 import type { WithdrawInformation } from '@/types/withdraw';
-import UserPaymentList from '@/components/wallet/UserPaymentList';
 import Input from '@/components/UI/Input';
 
 function WithdrawScreenContent() {
@@ -38,15 +34,11 @@ function WithdrawScreenContent() {
   const { user } = useAuthStore();
   const { activeWalletType } = useWalletStore();
 
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [availablePaymentMethods, setAvailablePaymentMethods] = useState<AvailablePaymentMethod[]>([]);
   const [withdrawInfo, setWithdrawInfo] = useState<WithdrawInformation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
   const [showOverdueModal, setShowOverdueModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<PaymentAccount | null>(null);
-  const [showUserPaymentList, setShowUserPaymentList] = useState(false);
 
   const [amount, setAmount] = useState('');
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -77,47 +69,17 @@ function WithdrawScreenContent() {
     setError(null);
 
     try {
-      const [methods, availableMethods, withdrawInfo] = await Promise.all([
-        PaymentService.getPaymentMethods({
-          token: user.token,
-          type: activeWalletType,
-        }),
-        PaymentService.getAvailablePaymentMethods({
-          token: user.token,
-          type: activeWalletType,
-          country_id: user.country_id,
-        }),
-        WithdrawService.getWithdrawInformation({
-          token: user.token,
-          wallet_type: activeWalletType,
-        }),
-      ]);
+      const withdrawInfo = await WithdrawService.getWithdrawInformation({
+        token: user.token,
+        wallet_type: activeWalletType,
+      });
 
-      setPaymentMethods(methods);
-      setAvailablePaymentMethods(availableMethods);
       setWithdrawInfo(withdrawInfo);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to load data');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleAddPaymentMethod = () => {
-    if (!withdrawInfo?.bank) {
-      router.push({ pathname: '/wallet/payment-list' });
-    } else {
-      setShowAddPaymentModal(true);
-    }
-  };
-
-  const handlePaymentMethodAdded = () => {
-    setShowAddPaymentModal(false);
-    fetchData(); // Refresh the data
-  };
-
-  const getWalletTypeLabel = () => {
-    return activeWalletType === '1' ? 'NGN Wallet' : 'USDT Wallet';
   };
 
   const getAvailableBalance = () => {
@@ -223,8 +185,8 @@ function WithdrawScreenContent() {
   const amountError = validateAmount();
   const isValid = withdrawInfo?.bank && !amountError && amount.trim() !== '';
 
-  const handleSwitchAccount = () => {
-    router.push({ pathname: '/wallet/payment-list', params: { selectMode: 'true' } });
+  const openPaymentList = (mode: boolean) => {
+    router.push({ pathname: '/wallet/payment-list', params: { selectMode: mode ? 'true' : 'false' } });
   };
 
   // 新增：优先展示selectedAccount
@@ -265,7 +227,7 @@ function WithdrawScreenContent() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.push({ pathname: '/(tabs)/wallet'})}
+          onPress={() => router.back()}
           style={[styles.backButton, { backgroundColor: `${colors.primary}15` }]}
         >
           <ChevronLeft size={24} color={colors.primary} />
@@ -275,7 +237,7 @@ function WithdrawScreenContent() {
         </View>
         {/* Add Button */}
         <TouchableOpacity
-          onPress={() => router.push({ pathname: '/wallet/payment-list', params: { selectMode: 'true' } })}
+          onPress={() => openPaymentList(true)}
           style={[styles.addButton, { backgroundColor: colors.primary, }]}
         >
           <Plus size={20} color="#fff" />
@@ -308,7 +270,7 @@ function WithdrawScreenContent() {
           </View>
           {/* Switch Button */}
           <TouchableOpacity
-            onPress={handleSwitchAccount}
+            onPress={() => openPaymentList(true)}
             style={{ marginLeft: 12, padding: 8, backgroundColor: '#fff2', borderRadius: 8 }}
           >
             <ArrowRight size={20} color="#fff" />
@@ -320,7 +282,7 @@ function WithdrawScreenContent() {
           <Text style={{ color: colors.text, fontSize: 16, marginTop: 8, fontFamily: 'Inter-SemiBold' }}>No withdrawal methods added</Text>
           <Button
             title="Add New"
-            onPress={handleAddPaymentMethod}
+            onPress={()=>openPaymentList(false)}
             style={{ marginTop: 12, width: 160 }}
           />
         </View>
@@ -445,31 +407,6 @@ function WithdrawScreenContent() {
           fullWidth
         />
       </View>
-
-      {/* UserPaymentList 弹窗 */}
-      <UserPaymentList
-        visible={showUserPaymentList}
-        onClose={() => setShowUserPaymentList(false)}
-        paymentMethods={paymentMethods}
-        loading={isLoading}
-        onSelect={(account) => {
-          setSelectedAccount(account);
-          setShowUserPaymentList(false);
-        }}
-        onAdd={() => {
-          setShowUserPaymentList(false);
-          setShowAddPaymentModal(true);
-        }}
-      />
-
-      {/* Add Payment Method Modal */}
-      <AddPaymentMethodModal
-        visible={showAddPaymentModal}
-        onClose={() => setShowAddPaymentModal(false)}
-        onSuccess={handlePaymentMethodAdded}
-        availablePaymentMethods={availablePaymentMethods}
-        walletType={activeWalletType}
-      />
 
       {/* Overdue Compensation Modal */}
       <OverdueCompensationModal
