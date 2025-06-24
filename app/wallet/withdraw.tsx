@@ -11,6 +11,7 @@ import {
   TextInput,
   Image,
   Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -29,6 +30,7 @@ import Spacing from '@/constants/Spacing';
 import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/types';
 import type { WithdrawInformation } from '@/types/withdraw';
 import UserPaymentList from '@/components/wallet/UserPaymentList';
+import Input from '@/components/UI/Input';
 
 function WithdrawScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -47,6 +49,9 @@ function WithdrawScreenContent() {
   const [showUserPaymentList, setShowUserPaymentList] = useState(false);
 
   const [amount, setAmount] = useState('');
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [withdrawPassword, setWithdrawPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -99,7 +104,11 @@ function WithdrawScreenContent() {
   };
 
   const handleAddPaymentMethod = () => {
-    setShowAddPaymentModal(true);
+    if (!withdrawInfo?.bank) {
+      router.push({ pathname: '/wallet/payment-list' });
+    } else {
+      setShowAddPaymentModal(true);
+    }
   };
 
   const handlePaymentMethodAdded = () => {
@@ -153,23 +162,37 @@ function WithdrawScreenContent() {
       Alert.alert('Invalid Amount', amountError);
       return;
     }
+    if (!selectedAccount || !user?.token) return;
+    setPasswordModalVisible(true);
+  };
 
-    if (!selectedAccount) return;
-
+  const handlePasswordConfirm = async () => {
+    if (!withdrawPassword.trim()) {
+      setPasswordError('Please enter your withdrawal password');
+      return;
+    }
+    setPasswordError('');
+    setPasswordModalVisible(false);
     Keyboard.dismiss();
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
+      await WithdrawService.applyWithdraw({
+        token: user!.token,
+        bank_id: selectedAccount!.bank_id,
+        amount: amount,
+        password: withdrawPassword,
+        channel_type: String(user!.channel_type ?? '')
+      });
+      await fetchData();
       Alert.alert(
         'Withdrawal Submitted',
-        `Your withdrawal of ${getCurrencySymbol()}${formatAmount(parseFloat(amount))} has been submitted successfully. You will receive the funds within ${selectedAccount.timeout_desc.toLowerCase()}.`,
+        `Your withdrawal of ${getCurrencySymbol()}${formatAmount(parseFloat(amount))} has been submitted successfully. You will receive the funds within ${(selectedAccount && selectedAccount.timeout_desc ? selectedAccount.timeout_desc.toLowerCase() : '')}.`,
         [{ text: 'OK' }]
       );
-
       setAmount('');
+      setWithdrawPassword('');
     } catch (error) {
-      Alert.alert('Error', 'Failed to process withdrawal. Please try again.');
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to process withdrawal. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -455,6 +478,34 @@ function WithdrawScreenContent() {
         overdueData={getOverdueDataForModal()}
         maxPercent={withdrawInfo?.overdue_max_percent}
       />
+
+      {/* 密码输入弹窗 */}
+      <Modal
+        visible={passwordModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPasswordModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ width: '85%', backgroundColor: colors.card, borderRadius: 16, padding: 24 }}>
+              <Text style={{ fontSize: 18, fontFamily: 'Inter-Bold', color: colors.text, marginBottom: 16 }}>Enter Withdrawal Password</Text>
+              <Input
+                placeholder="Enter your withdrawal password"
+                secureTextEntry
+                value={withdrawPassword}
+                onChangeText={setWithdrawPassword}
+                error={passwordError}
+                autoFocus
+              />
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 }}>
+                <Button title="Cancel" onPress={() => { setPasswordModalVisible(false); setWithdrawPassword(''); setPasswordError(''); }} style={{ marginRight: 12, minWidth: 80 }} />
+                <Button title="Confirm" onPress={handlePasswordConfirm} style={{ minWidth: 80 }} />
+              </View>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
   );
 }

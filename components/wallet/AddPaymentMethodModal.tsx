@@ -18,7 +18,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { PaymentService } from '@/services/payment';
-import type { AvailablePaymentMethod, Bank, FormField } from '@/types';
+import type { AvailablePaymentMethod, Bank, FormField, CoinNetwork } from '@/types';
 
 interface AddPaymentMethodModalProps {
   visible: boolean;
@@ -46,6 +46,9 @@ export default function AddPaymentMethodModal({
   const [showBankPicker, setShowBankPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingBanks, setIsLoadingBanks] = useState(false);
+  const [coinList, setCoinList] = useState<CoinNetwork[]>([]);
+  const [showCoinPicker, setShowCoinPicker] = useState(false);
+  const [selectedCoin, setSelectedCoin] = useState<CoinNetwork | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -54,6 +57,8 @@ export default function AddPaymentMethodModal({
       setFormData({});
       setSelectedBank(null);
       setBanks([]);
+      setCoinList([]);
+      setSelectedCoin(null);
     }
   }, [visible]);
 
@@ -61,7 +66,10 @@ export default function AddPaymentMethodModal({
     if (selectedMethod && selectedMethod.code === 'BANK' && user?.country_id) {
       fetchBanks();
     }
-  }, [selectedMethod, user?.country_id]);
+    if (selectedMethod && selectedMethod.code === 'USDT' && user?.token) {
+      fetchCoinList();
+    }
+  }, [selectedMethod, user?.country_id, user?.token]);
 
   const fetchBanks = async () => {
     if (!user?.token || !user?.country_id) return;
@@ -80,10 +88,21 @@ export default function AddPaymentMethodModal({
     }
   };
 
+  const fetchCoinList = async () => {
+    if (!user?.token) return;
+    try {
+      const coins = await PaymentService.getCoinList(user.token);
+      setCoinList(coins);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load coin list');
+    }
+  };
+
   const handleMethodSelect = (method: AvailablePaymentMethod) => {
     setSelectedMethod(method);
     setFormData({});
     setSelectedBank(null);
+    setSelectedCoin(null);
   };
 
   const handleInputChange = (fieldCode: string, value: string) => {
@@ -100,6 +119,15 @@ export default function AddPaymentMethodModal({
       bank_id: bank.bank_id.toString(),
     }));
     setShowBankPicker(false);
+  };
+
+  const handleCoinSelect = (coin: CoinNetwork) => {
+    setSelectedCoin(coin);
+    setFormData(prev => ({
+      ...prev,
+      coin_id: coin.coin_id.toString(),
+    }));
+    setShowCoinPicker(false);
   };
 
   const validateForm = () => {
@@ -138,6 +166,44 @@ export default function AddPaymentMethodModal({
   };
 
   const renderFormField = (field: FormField) => {
+    if (field.code === 'coin_id' && selectedMethod?.code === 'USDT') {
+      return (
+        <View key={field.code} style={styles.fieldContainer}>
+          <Text style={[styles.fieldLabel, { color: colors.text }]}>
+            {field.name}
+          </Text>
+          <TouchableOpacity
+            style={[
+              styles.bankSelector,
+              {
+                backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                borderColor: colors.border,
+              },
+            ]}
+            onPress={() => setShowCoinPicker(true)}
+          >
+            {selectedCoin ? (
+              <View style={styles.selectedBankContainer}>
+                <Image
+                  source={{ uri: selectedCoin.network_logo }}
+                  style={styles.bankLogo}
+                  resizeMode="contain"
+                />
+                <Text style={[styles.selectedBankText, { color: colors.text }]}>
+                  {selectedCoin.coin_name} ({selectedCoin.network_name})
+                </Text>
+              </View>
+            ) : (
+              <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
+                {field.placeholder}
+              </Text>
+            )}
+            <ChevronDown size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
     if (field.code === 'bank_id' && selectedMethod?.code === 'BANK') {
       return (
         <View key={field.code} style={styles.fieldContainer}>
@@ -336,6 +402,48 @@ export default function AddPaymentMethodModal({
                     ))}
                   </ScrollView>
                 )}
+              </View>
+            </View>
+          </Modal>
+
+          {/* Coin Picker Modal */}
+          <Modal
+            visible={showCoinPicker}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setShowCoinPicker(false)}
+          >
+            <View style={styles.pickerOverlay}>
+              <View style={[styles.pickerContent, { backgroundColor: colors.card }]}>
+                <View style={styles.pickerHeader}>
+                  <Text style={[styles.pickerTitle, { color: colors.text }]}>
+                    Select Coin
+                  </Text>
+                  <TouchableOpacity onPress={() => setShowCoinPicker(false)}>
+                    <X size={24} color={colors.text} />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {coinList.map((coin) => (
+                    <TouchableOpacity
+                      key={coin.coin_id}
+                      style={[styles.bankOption, { borderBottomColor: colors.border }]}
+                      onPress={() => handleCoinSelect(coin)}
+                    >
+                      <Image
+                        source={{ uri: coin.network_logo }}
+                        style={styles.bankOptionLogo}
+                        resizeMode="contain"
+                      />
+                      <Text style={[styles.bankOptionName, { color: colors.text }]}>
+                        {coin.coin_name} ({coin.network_name})
+                      </Text>
+                      {selectedCoin?.coin_id === coin.coin_id && (
+                        <Check size={20} color={colors.primary} />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
             </View>
           </Modal>
