@@ -20,7 +20,8 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { PaymentService } from '@/services/payment';
-import type { PaymentMethod, PaymentAccount } from '@/types';
+import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/types';
+import AddPaymentMethodModal from '@/components/wallet/AddPaymentMethodModal';
 
 function BankAccountsScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -31,6 +32,8 @@ function BankAccountsScreenContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeWalletType, setActiveWalletType] = useState<'1' | '2'>('1');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [availablePaymentMethods, setAvailablePaymentMethods] = useState<AvailablePaymentMethod[]>([]);
 
   useEffect(() => {
     if (user?.token) {
@@ -61,8 +64,15 @@ function BankAccountsScreenContent() {
     setRefreshing(false);
   };
 
-  const handleAddAccount = () => {
-    router.push('/wallet/add-payment-method' as any);
+  const handleAddAccount = async () => {
+    if (!user?.token) return;
+    try {
+      const methods = await PaymentService.getAvailablePaymentMethods({ token: user.token, type: activeWalletType, country_id: user.country_id });
+      setAvailablePaymentMethods(methods);
+      setShowAddModal(true);
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'Failed to fetch payment methods');
+    }
   };
 
   const renderAccountCard = ({ item: account }: { item: PaymentAccount }) => {
@@ -131,7 +141,7 @@ function BankAccountsScreenContent() {
               />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={async () => {
+              onPress={async () => {  
                 if (!user?.token) return;
                 Alert.alert(
                   'Confirm Delete',
@@ -298,6 +308,16 @@ function BankAccountsScreenContent() {
           ]}
         />
       )}
+      <AddPaymentMethodModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={() => {
+          setShowAddModal(false);
+          fetchPaymentMethods();
+        }}
+        availablePaymentMethods={availablePaymentMethods}
+        walletType={activeWalletType}
+      />
     </SafeAreaView>
   );
 }

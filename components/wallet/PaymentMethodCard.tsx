@@ -118,7 +118,7 @@ export default function PaymentMethodCard({
             </View>
             
             <Text style={[styles.accountNumber, { color: colors.textSecondary }]}>
-              {methodType === 'BANK' ? 'Account No:' : methodType === 'USDT' ? 'Address:' : 'Phone:'} {account.account_no}
+              ****{account.account_no.slice(-4)}
             </Text>
           </View>
 
