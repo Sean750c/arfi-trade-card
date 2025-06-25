@@ -126,7 +126,11 @@ function WithdrawScreenContent() {
       Alert.alert('Invalid Amount', amountError);
       return;
     }
-    if (!selectedWithdrawAccount || !user?.token) return;
+    if (!selectedWithdrawAccount) {
+      Alert.alert('No Withdrawal Method', 'Please select a withdrawal method before submitting.');
+      return;
+    }
+    if (!user?.token) return;
     setPasswordModalVisible(true);
   };
 
@@ -185,7 +189,7 @@ function WithdrawScreenContent() {
   };
 
   const amountError = validateAmount();
-  const isValid = withdrawInfo?.bank && !amountError && amount.trim() !== '';
+  const isValid = selectedWithdrawAccount && !amountError && amount.trim() !== '';
 
   const openPaymentList = () => {
     router.push({ pathname: '/wallet/payment-list' });

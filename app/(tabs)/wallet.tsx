@@ -40,6 +40,7 @@ function WalletScreenContent() {
     loadMoreTransactions,
     setActiveWalletType,
     setActiveTransactionType,
+    setSelectedWithdrawAccount,
     getCurrentBalanceData,
   } = useWalletStore();
 
@@ -78,6 +79,7 @@ function WalletScreenContent() {
 
   const handleWalletTypeChange = (type: '1' | '2') => {
     setActiveWalletType(type);
+    setSelectedWithdrawAccount(null);
   };
 
   const handleTransactionTypeChange = (
