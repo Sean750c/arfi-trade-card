@@ -53,15 +53,15 @@ export default function SupportScreen() {
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(faq => faq.category === selectedCategory);
+      filtered = filtered.filter(faq => faq.category_name === selectedCategory);
     }
 
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(faq =>
-        faq.title.toLowerCase().includes(query) ||
-        faq.content.toLowerCase().includes(query)
+        faq.question.toLowerCase().includes(query) ||
+        faq.answer.toLowerCase().includes(query)
       );
     }
 
@@ -79,7 +79,7 @@ export default function SupportScreen() {
   };
 
   const getCategories = () => {
-    const categories = ['all', ...new Set(faqs.map(faq => faq.category))];
+    const categories = ['all', ...new Set(faqs.map(faq => faq.category_name))];
     return categories;
   };
 
@@ -102,7 +102,7 @@ export default function SupportScreen() {
           <View style={styles.faqTitleContainer}>
             <HelpCircle size={16} color={colors.primary} />
             <Text style={[styles.faqTitle, { color: colors.text }]}>
-              {item.title}
+              {item.question}
             </Text>
           </View>
           {isExpanded ? (
@@ -115,7 +115,7 @@ export default function SupportScreen() {
         {isExpanded && (
           <View style={styles.faqContent}>
             <Text style={[styles.faqAnswer, { color: colors.textSecondary }]}>
-              {item.content}
+              {item.answer}
             </Text>
           </View>
         )}

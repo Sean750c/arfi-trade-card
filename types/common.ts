@@ -144,15 +144,15 @@ export interface CouponListResponse {
 // FAQ Types
 export interface FAQItem {
     id: number;
-    title: string;
-    content: string;
-    category: string;
-    sort: number;
+    question: string;
+    answer: string;
+    category_name: string;
 }
 
 export interface FAQListRequest {
-    token?: string;
-    category?: string;
+    keywords?: string;
+    page: number;
+    page_size: number;
 }
 
 
