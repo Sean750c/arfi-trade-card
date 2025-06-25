@@ -37,6 +37,8 @@ interface WalletState {
   setActiveTransactionType: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip') => void;
   getCurrentBalanceData: () => WalletBalanceData | null;
   clearWalletData: () => void;
+  selectedWithdrawAccount: any | null;
+  setSelectedWithdrawAccount: (account: any | null) => void;
 }
 
 export const useWalletStore = create<WalletState>((set, get) => ({
@@ -56,6 +58,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   detailError: null,
   activeWalletType: '1',
   activeTransactionType: 'all',
+  selectedWithdrawAccount: null,
 
   fetchBalance: async (token: string) => {
     set({ isLoadingBalance: true, balanceError: null });
@@ -253,6 +256,9 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       detailError: null,
       activeWalletType: '1',
       activeTransactionType: 'all',
+      selectedWithdrawAccount: null,
     });
   },
+
+  setSelectedWithdrawAccount: (account) => set({ selectedWithdrawAccount: account }),
 }));

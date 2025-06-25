@@ -18,7 +18,7 @@ export default function PaymentListScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const { user } = useAuthStore();
-  const { activeWalletType } = useWalletStore();
+  const { activeWalletType, setSelectedWithdrawAccount } = useWalletStore();
   const router = useRouter();
 
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -84,9 +84,9 @@ export default function PaymentListScreen() {
   }
 
   function handleBack() {
-      const defaultAccount = getDefaultAccount(paymentMethods);
-      const selectedAccount = JSON.stringify(defaultAccount) || null;
-      router.replace({ pathname: '/wallet/withdraw', params: { selectedAccount } });
+    const defaultAccount = getDefaultAccount(paymentMethods);
+    setSelectedWithdrawAccount(defaultAccount);
+    router.back();
   }
 
   return (
@@ -140,7 +140,10 @@ export default function PaymentListScreen() {
                       key={account.bank_id}
                       account={account}
                       methodType={method.code}
-                      onSelect={() => router.replace({ pathname: '/wallet/withdraw', params: { selectedAccount: JSON.stringify(account) } })}
+                      onSelect={() => {
+                        setSelectedWithdrawAccount(account);
+                        router.back();
+                      }}
                       onSetDefault={fetchData}
                     />
                   ))}

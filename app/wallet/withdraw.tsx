@@ -32,7 +32,7 @@ function WithdrawScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const { user } = useAuthStore();
-  const { activeWalletType } = useWalletStore();
+  const { activeWalletType, selectedWithdrawAccount, setSelectedWithdrawAccount } = useWalletStore();
 
   const [withdrawInfo, setWithdrawInfo] = useState<WithdrawInformation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,12 +55,8 @@ function WithdrawScreenContent() {
   }, [user?.token, activeWalletType]);
 
   useEffect(() => {
-    if (params.selectedAccount) {
-      try {
-        setSelectedAccount(JSON.parse(params.selectedAccount as string));
-      } catch {}
-    }
-  }, [params.selectedAccount]);
+    // 不再依赖params.selectedAccount，全部用store
+  }, []);
 
   const fetchData = async () => {
     if (!user?.token) return;
@@ -189,10 +185,10 @@ function WithdrawScreenContent() {
     router.push({ pathname: '/wallet/payment-list' });
   };
 
-  // 新增：优先展示selectedAccount
+  // 新增：优先展示selectedWithdrawAccount
   let displayAccount: PaymentAccount | null = null;
-  if (selectedAccount) {
-    displayAccount = selectedAccount;
+  if (selectedWithdrawAccount) {
+    displayAccount = selectedWithdrawAccount;
   } else if (withdrawInfo?.bank) {
     // 将BankInfo转换为PaymentAccount
     displayAccount = {
