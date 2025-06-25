@@ -38,7 +38,6 @@ function WithdrawScreenContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showOverdueModal, setShowOverdueModal] = useState(false);
-  const [selectedAccount, setSelectedAccount] = useState<PaymentAccount | null>(null);
 
   const [amount, setAmount] = useState('');
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -46,17 +45,12 @@ function WithdrawScreenContent() {
   const [passwordError, setPasswordError] = useState('');
 
   const router = useRouter();
-  const params = useLocalSearchParams();
 
   useEffect(() => {
     if (user?.token) {
       fetchData();
     }
   }, [user?.token, activeWalletType]);
-
-  useEffect(() => {
-    // 不再依赖params.selectedAccount，全部用store
-  }, []);
 
   const fetchData = async () => {
     if (!user?.token) return;
@@ -71,6 +65,18 @@ function WithdrawScreenContent() {
       });
 
       setWithdrawInfo(withdrawInfo);
+      if (withdrawInfo.bank) {
+        setSelectedWithdrawAccount({
+          bank_id: withdrawInfo.bank.bank_id,
+          is_def: 1,
+          bank_logo: withdrawInfo.bank.bank_logo,
+          bank_logo_image: withdrawInfo.bank.bank_logo_image,
+          bank_name: withdrawInfo.bank.bank_name,
+          account_no: withdrawInfo.bank.bank_account,
+          account_name: '',
+          timeout_desc: withdrawInfo.timeout_desc || '',
+        });
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to load data');
     } finally {
@@ -120,7 +126,7 @@ function WithdrawScreenContent() {
       Alert.alert('Invalid Amount', amountError);
       return;
     }
-    if (!selectedAccount || !user?.token) return;
+    if (!selectedWithdrawAccount || !user?.token) return;
     setPasswordModalVisible(true);
   };
 
@@ -136,7 +142,7 @@ function WithdrawScreenContent() {
     try {
       await WithdrawService.applyWithdraw({
         token: user!.token,
-        bank_id: selectedAccount!.bank_id,
+        bank_id: selectedWithdrawAccount!.bank_id,
         amount: amount,
         password: withdrawPassword,
         channel_type: String(user!.channel_type ?? '')
@@ -144,7 +150,7 @@ function WithdrawScreenContent() {
       await fetchData();
       Alert.alert(
         'Withdrawal Submitted',
-        `Your withdrawal of ${getCurrencySymbol()}${formatAmount(parseFloat(amount))} has been submitted successfully. You will receive the funds within ${(selectedAccount && selectedAccount.timeout_desc ? selectedAccount.timeout_desc.toLowerCase() : '')}.`,
+        `Your withdrawal of ${getCurrencySymbol()}${formatAmount(parseFloat(amount))} has been submitted successfully. You will receive the funds within ${(selectedWithdrawAccount && selectedWithdrawAccount.timeout_desc ? selectedWithdrawAccount.timeout_desc.toLowerCase() : '')}.`,
         [{ text: 'OK' }]
       );
       setAmount('');
@@ -184,24 +190,6 @@ function WithdrawScreenContent() {
   const openPaymentList = () => {
     router.push({ pathname: '/wallet/payment-list' });
   };
-
-  // 新增：优先展示selectedWithdrawAccount
-  let displayAccount: PaymentAccount | null = null;
-  if (selectedWithdrawAccount) {
-    displayAccount = selectedWithdrawAccount;
-  } else if (withdrawInfo?.bank) {
-    // 将BankInfo转换为PaymentAccount
-    displayAccount = {
-      bank_id: withdrawInfo.bank.bank_id,
-      is_def: 1,
-      bank_logo: withdrawInfo.bank.bank_logo,
-      bank_logo_image: withdrawInfo.bank.bank_logo_image,
-      bank_name: withdrawInfo.bank.bank_name,
-      account_no: withdrawInfo.bank.bank_account,
-      account_name: '',
-      timeout_desc: withdrawInfo.timeout_desc || '',
-    };
-  }
 
   if (isLoading) {
     return (
@@ -243,7 +231,7 @@ function WithdrawScreenContent() {
         >
           <ChevronLeft size={24} color={colors.primary} />
         </TouchableOpacity>
-        <View style={styles.headerContent}> 
+        <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Withdraw Funds</Text>
         </View>
         {/* Add Button */}
@@ -256,29 +244,29 @@ function WithdrawScreenContent() {
       </View>
 
       {/* Selected Account Info */}
-      {displayAccount ? (
+      {selectedWithdrawAccount ? (
         <View style={[styles.accountCard, { backgroundColor: colors.primary, flexDirection: 'row', alignItems: 'center' }]}>
           <View style={{ flex: 1 }}>
             <View style={styles.accountHeader}>
               <Image
-                source={{ uri: displayAccount.bank_logo_image }}
+                source={{ uri: selectedWithdrawAccount.bank_logo_image }}
                 style={styles.accountLogo}
                 resizeMode="contain"
               />
               <View style={styles.accountDetails}>
-                <Text style={styles.accountName}>{displayAccount.bank_name}</Text>
+                <Text style={styles.accountName}>{selectedWithdrawAccount.bank_name}</Text>
                 <Text style={styles.accountNumber}>
-                  {displayAccount.account_no}
+                  {selectedWithdrawAccount.account_no}
                 </Text>
               </View>
             </View>
-            {!!displayAccount.timeout_desc && (
-            <View style={styles.timeoutInfo}>
-              <Clock size={14} color="rgba(255, 255, 255, 0.9)" />
-              <Text style={styles.timeoutText}>
-                {displayAccount.timeout_desc}
-              </Text>
-            </View>
+            {!!selectedWithdrawAccount.timeout_desc && (
+              <View style={styles.timeoutInfo}>
+                <Clock size={14} color="rgba(255, 255, 255, 0.9)" />
+                <Text style={styles.timeoutText}>
+                  {selectedWithdrawAccount.timeout_desc}
+                </Text>
+              </View>
             )}
           </View>
           {/* Switch Button */}
@@ -295,7 +283,7 @@ function WithdrawScreenContent() {
           <Text style={{ color: colors.text, fontSize: 16, marginTop: 8, fontFamily: 'Inter-SemiBold' }}>No withdrawal methods added</Text>
           <Button
             title="Add New"
-            onPress={()=>openPaymentList()}
+            onPress={() => openPaymentList()}
             style={{ marginTop: 12, width: 160 }}
           />
         </View>
@@ -515,11 +503,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   addButton: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    borderRadius: 16, 
-    paddingHorizontal: 16, 
-    paddingVertical: 8, 
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     marginLeft: 8
   },
   title: {
