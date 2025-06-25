@@ -185,8 +185,8 @@ function WithdrawScreenContent() {
   const amountError = validateAmount();
   const isValid = withdrawInfo?.bank && !amountError && amount.trim() !== '';
 
-  const openPaymentList = (mode: boolean) => {
-    router.push({ pathname: '/wallet/payment-list', params: { selectMode: mode ? 'true' : 'false' } });
+  const openPaymentList = () => {
+    router.push({ pathname: '/wallet/payment-list' });
   };
 
   // 新增：优先展示selectedAccount
@@ -252,7 +252,7 @@ function WithdrawScreenContent() {
         </View>
         {/* Add Button */}
         <TouchableOpacity
-          onPress={() => openPaymentList(true)}
+          onPress={() => openPaymentList()}
           style={[styles.addButton, { backgroundColor: colors.primary, }]}
         >
           <Plus size={20} color="#fff" />
@@ -287,7 +287,7 @@ function WithdrawScreenContent() {
           </View>
           {/* Switch Button */}
           <TouchableOpacity
-            onPress={() => openPaymentList(true)}
+            onPress={() => openPaymentList()}
             style={{ marginLeft: 12, padding: 8, backgroundColor: '#fff2', borderRadius: 8 }}
           >
             <ArrowRight size={20} color="#fff" />
@@ -299,7 +299,7 @@ function WithdrawScreenContent() {
           <Text style={{ color: colors.text, fontSize: 16, marginTop: 8, fontFamily: 'Inter-SemiBold' }}>No withdrawal methods added</Text>
           <Button
             title="Add New"
-            onPress={()=>openPaymentList(false)}
+            onPress={()=>openPaymentList()}
             style={{ marginTop: 12, width: 160 }}
           />
         </View>

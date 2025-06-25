@@ -11,7 +11,7 @@ import Spacing from '@/constants/Spacing';
 import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/types';
 import PaymentMethodCard from '@/components/wallet/PaymentMethodCard';
 import Button from '@/components/UI/Button';
-import { router, useRouter, useLocalSearchParams } from 'expo-router';
+import { router, useRouter } from 'expo-router';
 import AddPaymentMethodModal from '@/components/wallet/AddPaymentMethodModal';
 
 export default function PaymentListScreen() {
@@ -20,8 +20,6 @@ export default function PaymentListScreen() {
   const { user } = useAuthStore();
   const { activeWalletType } = useWalletStore();
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const selectMode = params.selectMode === 'true';
 
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,16 +84,9 @@ export default function PaymentListScreen() {
   }
 
   function handleBack() {
-    if (selectMode) {
       const defaultAccount = getDefaultAccount(paymentMethods);
-      if (defaultAccount) {
-        router.replace({ pathname: '/wallet/withdraw', params: { selectedAccount: JSON.stringify(defaultAccount) } });
-      } else {
-        router.back();
-      }
-    } else {
-      router.back();
-    }
+      const selectedAccount = JSON.stringify(defaultAccount) || null;
+      router.replace({ pathname: '/wallet/withdraw', params: { selectedAccount } });
   }
 
   return (
@@ -149,11 +140,7 @@ export default function PaymentListScreen() {
                       key={account.bank_id}
                       account={account}
                       methodType={method.code}
-                      onSelect={() => {
-                        if (selectMode) {
-                          router.replace({ pathname: '/wallet/withdraw', params: { selectedAccount: JSON.stringify(account) } });
-                        }
-                      }}
+                      onSelect={() => router.replace({ pathname: '/wallet/withdraw', params: { selectedAccount: JSON.stringify(account) } })}
                       onSetDefault={fetchData}
                     />
                   ))}
