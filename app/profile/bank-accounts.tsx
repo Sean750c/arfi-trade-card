@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Image,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft, Plus, CreditCard, Star, CreditCard as Edit, Trash2 } from 'lucide-react-native';
@@ -64,70 +65,103 @@ function BankAccountsScreenContent() {
     router.push('/wallet/add-payment-method' as any);
   };
 
-  const renderAccountCard = ({ item: account }: { item: PaymentAccount }) => (
-    <View style={[
-      styles.accountCard,
-      { 
-        backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
-        borderColor: account.is_def === 1 ? colors.primary : colors.border,
-      }
-    ]}>
-      <View style={styles.accountHeader}>
-        <View style={styles.bankInfo}>
-          <Image 
-            source={{ uri: account.bank_logo_image }} 
-            style={styles.bankLogo}
-            resizeMode="contain"
-          />
-          <View style={styles.bankDetails}>
-            <Text style={[styles.bankName, { color: colors.text }]}>
-              {account.bank_name}
-            </Text>
-            <Text style={[styles.accountNumber, { color: colors.textSecondary }]}>
-              ****{account.account_no.slice(-4)}
-            </Text>
-            {account.account_name && (
-              <Text style={[styles.accountName, { color: colors.textSecondary }]}>
-                {account.account_name}
+  const renderAccountCard = ({ item: account }: { item: PaymentAccount }) => {
+    const isDefault = account.is_def === 1;
+    return (
+      <View style={[
+        styles.accountCard,
+        { 
+          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          borderColor: account.is_def === 1 ? colors.primary : colors.border,
+        }
+      ]}>
+        <View style={styles.accountHeader}>
+          <View style={styles.bankInfo}>
+            <Image 
+              source={{ uri: account.bank_logo_image }} 
+              style={styles.bankLogo}
+              resizeMode="contain"
+            />
+            <View style={styles.bankDetails}>
+              <Text style={[styles.bankName, { color: colors.text }]}>
+                {account.bank_name}
               </Text>
-            )}
+              <Text style={[styles.accountNumber, { color: colors.textSecondary }]}>
+                ****{account.account_no.slice(-4)}
+              </Text>
+              {account.account_name && (
+                <Text style={[styles.accountName, { color: colors.textSecondary }]}>
+                  {account.account_name}
+                </Text>
+              )}
+            </View>
           </View>
+          
+          {account.is_def === 1 && (
+            <View style={[styles.defaultBadge, { backgroundColor: colors.primary }]}>
+              <Star size={12} color="#FFFFFF" fill="#FFFFFF" />
+              <Text style={styles.defaultText}>Default</Text>
+            </View>
+          )}
         </View>
-        
-        {account.is_def === 1 && (
-          <View style={[styles.defaultBadge, { backgroundColor: colors.primary }]}>
-            <Star size={12} color="#FFFFFF" fill="#FFFFFF" />
-            <Text style={styles.defaultText}>Default</Text>
-          </View>
-        )}
-      </View>
 
-      <View style={styles.accountFooter}>
-        <Text style={[styles.timeoutDesc, { color: colors.textSecondary }]}>
-          {account.timeout_desc}
-        </Text>
-        
-        <View style={styles.accountActions}>
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
-            onPress={() => {
-              // TODO: Implement edit functionality
-            }}
-          >
-            <Edit size={16} color={colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: `${colors.error}15` }]}
-            onPress={() => {
-              // TODO: Implement delete functionality
-            }}
-          >
-            <Trash2 size={16} color={colors.error} />
-          </TouchableOpacity>
+        <View style={styles.accountFooter}>
+          <Text style={[styles.timeoutDesc, { color: colors.textSecondary }]}>
+            {account.timeout_desc}
+          </Text>
+          
+          <View style={styles.accountActions}>
+            <TouchableOpacity
+              onPress={async () => {
+                if (!user?.token || isDefault) return;
+                try {
+                  await PaymentService.setDefaultPayment({ token: user.token, bank_id: account.bank_id });
+                  fetchPaymentMethods();
+                } catch (e) {
+                  Alert.alert('Error', e instanceof Error ? e.message : 'Failed to set default');
+                }
+              }}
+              disabled={isDefault}
+              style={{ padding: 8 }}
+            >
+              <Star
+                size={18}
+                color={isDefault ? colors.primary : colors.textSecondary}
+                fill={isDefault ? colors.primary : 'none'}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={async () => {
+                if (!user?.token) return;
+                Alert.alert(
+                  'Confirm Delete',
+                  'Are you sure you want to delete this account?',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Delete',
+                      style: 'destructive',
+                      onPress: async () => {
+                        try {
+                          await PaymentService.deletePaymentMethod({ token: user.token, bank_id: account.bank_id });
+                          fetchPaymentMethods();
+                        } catch (e) {
+                          Alert.alert('Error', e instanceof Error ? e.message : 'Failed to delete');
+                        }
+                      }
+                    }
+                  ]
+                );
+              }}
+              style={{ padding: 8 }}
+            >
+              <Trash2 size={16} color={colors.error} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderMethodSection = ({ item: method }: { item: PaymentMethod }) => (
     <View style={styles.methodSection}>

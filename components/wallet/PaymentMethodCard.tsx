@@ -8,7 +8,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { ChevronRight, Clock, Star } from 'lucide-react-native';
+import { ChevronRight, Clock, Star, Trash2 } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { PaymentAccount } from '@/types';
@@ -154,11 +154,9 @@ export default function PaymentMethodCard({
         <TouchableOpacity
           onPress={handleDelete}
           disabled={deleting}
-          style={{ marginLeft: 16, padding: 8 }}
+          style={{ padding: 8 }}
         >
-          <Text style={{ color: colors.error, fontFamily: 'Inter-SemiBold', fontSize: 14 }}>
-            {deleting ? 'Deleting...' : 'Delete'}
-          </Text>
+          <Trash2 size={16} color={colors.error} />
         </TouchableOpacity>
       </View>
     </View>
