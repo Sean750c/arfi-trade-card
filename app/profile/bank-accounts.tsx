@@ -122,7 +122,7 @@ function BankAccountsScreenContent() {
                 }
               }}
               disabled={isDefault}
-              style={{ padding: 8 }}
+              style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
             >
               <Star
                 size={18}
@@ -153,7 +153,7 @@ function BankAccountsScreenContent() {
                   ]
                 );
               }}
-              style={{ padding: 8 }}
+              style={[styles.actionButton, { backgroundColor: `${colors.error}15` }]}
             >
               <Trash2 size={16} color={colors.error} />
             </TouchableOpacity>

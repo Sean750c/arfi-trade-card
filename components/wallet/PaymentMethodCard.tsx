@@ -120,15 +120,6 @@ export default function PaymentMethodCard({
             <Text style={[styles.accountNumber, { color: colors.textSecondary }]}>
               {methodType === 'BANK' ? 'Account No:' : methodType === 'USDT' ? 'Address:' : 'Phone:'} {account.account_no}
             </Text>
-            
-            {!!account.timeout_desc && (
-              <View style={styles.timeoutContainer}>
-                <Clock size={12} color={colors.success} />
-                <Text style={[styles.timeoutText, { color: colors.success }]}>
-                  {account.timeout_desc}
-                </Text>
-              </View>
-            )}
           </View>
 
           {/* Action Arrow */}
@@ -136,29 +127,40 @@ export default function PaymentMethodCard({
             <ChevronRight size={20} color={colors.textSecondary} />
           </View>
         </View>
-      </TouchableOpacity>
-      <View style={styles.radioRow}>
-        <TouchableOpacity
-          onPress={handleSetDefault}
-          disabled={isDefault || loading}
-          activeOpacity={0.7}
-          style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
-        >
-          <View style={[styles.radioOuter, { borderColor: isDefault ? colors.primary : colors.border }]}> 
-            {isDefault && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}
+        {/* 操作区与timeoutDesc同一行 */}
+        <View style={styles.accountFooter}>
+          <View style={styles.timeoutContainer}>
+            {!!account.timeout_desc && (
+              <View style={styles.timeoutDesc}>
+                <Clock size={12} color={colors.success} />
+                <Text style={[styles.timeoutText, { color: colors.success }]}>
+                  {account.timeout_desc}
+                </Text>
+              </View>
+            )}
           </View>
-          <Text style={[styles.radioLabel, { color: isDefault ? colors.primary : colors.textSecondary }]}> 
-            {isDefault ? 'Default' : loading ? 'Setting...' : 'Set as default'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleDelete}
-          disabled={deleting}
-          style={{ padding: 8 }}
-        >
-          <Trash2 size={16} color={colors.error} />
-        </TouchableOpacity>
-      </View>
+          <View style={styles.accountActions}>
+            <TouchableOpacity
+              onPress={handleSetDefault}
+              disabled={isDefault || loading}
+              style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
+            >
+              <Star
+                size={18}
+                color={isDefault ? colors.primary : colors.textSecondary}
+                fill={isDefault ? colors.primary : 'none'}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleDelete}
+              disabled={deleting}
+              style={[styles.actionButton, { backgroundColor: `${colors.error}15` }]}
+            >
+              <Trash2 size={16} color={colors.error} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -235,6 +237,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
+  timeoutDesc: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   timeoutText: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
@@ -265,5 +271,23 @@ const styles = StyleSheet.create({
   radioLabel: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
+  },
+  accountFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    marginHorizontal: Spacing.lg,
+  },
+  accountActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  actionButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
