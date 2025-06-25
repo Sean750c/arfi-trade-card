@@ -6,6 +6,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOrderStore } from '@/stores/useOrderStore';
+import { formatDate } from '@/utils/date';
 
 export default function RecentTransactions() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -53,22 +54,6 @@ export default function RecentTransactions() {
   const formatAmount = (amount: number, currency: string) => {
     const symbol = currency === 'NGN' ? '₦' : currency === 'USDT' ? 'USDT' : currency;
     return `+${symbol}${amount.toLocaleString()}`;
-  };
-
-  const formatDate = (timestamp: number) => {
-    const now = Date.now() / 1000;
-    const diff = now - timestamp;
-    
-    if (diff < 3600) {
-      const minutes = Math.floor(diff / 60);
-      return `${minutes}m ago`;
-    } else if (diff < 86400) {
-      const hours = Math.floor(diff / 3600);
-      return `${hours}h ago`;
-    } else {
-      const days = Math.floor(diff / 86400);
-      return `${days}d ago`;
-    }
   };
 
   // Get last 5 orders

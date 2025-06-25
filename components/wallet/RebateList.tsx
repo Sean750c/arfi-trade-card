@@ -13,6 +13,7 @@ import { DollarSign, Star, Gift, Users, Crown, TrendingUp, CircleAlert as AlertC
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { RebateInfo, RebateItem, WalletTransaction } from '@/types';
+import { formatDateString } from '@/utils/date';
 
 interface RebateListProps {
   rebateInfo: RebateInfo | null;
@@ -39,25 +40,6 @@ export default function RebateList({
 }: RebateListProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
-
-  const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-    const pad = (n: number) => n.toString().padStart(2, '0');
-
-    if (diffInHours < 24) {
-      // 小于24小时：只显示时间
-      return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
-    } else {
-      // 超过24小时：显示日期 + 时间
-      const day = pad(date.getDate());
-      const month = pad(date.getMonth() + 1); // 月份从0开始
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
-  };
 
   const getRebateTypeIcon = (type: number) => {
     switch (type) {
@@ -142,7 +124,7 @@ export default function RebateList({
               {getRebateTypeName(rebateItem.type)}
             </Text>
             <Text style={[styles.rebateItemDate, { color: colors.textSecondary }]}>
-              {formatDate(rebateItem.create_time)}
+              {formatDateString(rebateItem.create_time)}
             </Text>
             {rebateItem.from_get && (
               <Text style={[styles.rebateItemSource, { color: colors.textSecondary }]}>

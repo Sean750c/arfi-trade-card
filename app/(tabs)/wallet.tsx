@@ -20,6 +20,7 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
 import type { WalletTransaction } from '@/types';
+import { useFocusEffect } from '@react-navigation/native';
 
 function WalletScreenContent() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -62,6 +63,15 @@ function WalletScreenContent() {
       fetchTransactions(user.token, false);
     }
   }, [activeWalletType, activeTransactionType]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (user?.token) {
+        fetchBalance(user.token);
+        fetchTransactions(user.token, true);
+      }
+    }, [user?.token, fetchBalance, fetchTransactions])
+  );
 
   const handleRefresh = useCallback(async () => {
     if (!user?.token) return;

@@ -13,6 +13,7 @@ import { ArrowDownLeft, ArrowUpRight, Gift, Users, Crown, CreditCard, TrendingUp
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { WalletTransaction } from '@/types';
+import { formatDate } from '@/utils/date';
 
 interface TransactionListProps {
   transactions: WalletTransaction[];
@@ -191,25 +192,6 @@ export default function TransactionList({
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     })}`;
-  };
-
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp * 1000);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-    const pad = (n: number) => n.toString().padStart(2, '0');
-
-    if (diffInHours < 24) {
-      // 小于24小时：只显示时间
-      return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
-    } else {
-      // 超过24小时：显示日期 + 时间
-      const day = pad(date.getDate());
-      const month = pad(date.getMonth() + 1); // 月份从0开始
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
   };
 
   const getTransactionTitle = (transaction: WalletTransaction) => {
