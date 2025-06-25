@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   Image,
+  Alert,
 } from 'react-native';
 import { ChevronRight, Clock, Star } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
@@ -19,6 +20,7 @@ interface PaymentMethodCardProps {
   methodType: string;
   onSelect: () => void;
   onSetDefault?: () => void;
+  onDelete?: () => void;
 }
 
 export default function PaymentMethodCard({
@@ -26,12 +28,14 @@ export default function PaymentMethodCard({
   methodType,
   onSelect,
   onSetDefault,
+  onDelete,
 }: PaymentMethodCardProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const isDefault = account.is_def === 1;
   const { user } = useAuthStore();
   const [loading, setLoading] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
 
   // 设置默认支付方式
   const handleSetDefault = async () => {
@@ -45,6 +49,34 @@ export default function PaymentMethodCard({
     } finally {
       setLoading(false);
     }
+  };
+
+  // 删除提现方式
+  const handleDelete = async () => {
+    if (!user?.token) return;
+    Alert.alert(
+      'Confirm Delete',
+      'Are you sure you want to delete this payment method?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await PaymentService.deletePaymentMethod({ token: user.token, bank_id: account.bank_id });
+              if (typeof onDelete === 'function') onDelete();
+              else if (typeof onSetDefault === 'function') onSetDefault();
+            } catch (e) {
+              alert(e instanceof Error ? e.message : 'Failed to delete payment method');
+            } finally {
+              setDeleting(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -86,14 +118,8 @@ export default function PaymentMethodCard({
             </View>
             
             <Text style={[styles.accountNumber, { color: colors.textSecondary }]}>
-              {methodType === 'BANK' ? 'Account:' : 'Phone:'} {account.account_no}
+              {methodType === 'BANK' ? 'Account No:' : methodType === 'USDT' ? 'Address:' : 'Phone:'} {account.account_no}
             </Text>
-            
-            {account.account_name && (
-              <Text style={[styles.accountName, { color: colors.textSecondary }]}>
-                {account.account_name}
-              </Text>
-            )}
             
             {!!account.timeout_desc && (
               <View style={styles.timeoutContainer}>
@@ -111,19 +137,30 @@ export default function PaymentMethodCard({
           </View>
         </View>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.radioRow}
-        onPress={handleSetDefault}
-        disabled={isDefault || loading}
-        activeOpacity={0.7}
-      >
-        <View style={[styles.radioOuter, { borderColor: isDefault ? colors.primary : colors.border }]}>
-          {isDefault && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}
-        </View>
-        <Text style={[styles.radioLabel, { color: isDefault ? colors.primary : colors.textSecondary }]}>
-          {isDefault ? 'Default' : loading ? 'Setting...' : 'Set as default'}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.radioRow}>
+        <TouchableOpacity
+          onPress={handleSetDefault}
+          disabled={isDefault || loading}
+          activeOpacity={0.7}
+          style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+        >
+          <View style={[styles.radioOuter, { borderColor: isDefault ? colors.primary : colors.border }]}> 
+            {isDefault && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}
+          </View>
+          <Text style={[styles.radioLabel, { color: isDefault ? colors.primary : colors.textSecondary }]}> 
+            {isDefault ? 'Default' : loading ? 'Setting...' : 'Set as default'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleDelete}
+          disabled={deleting}
+          style={{ marginLeft: 16, padding: 8 }}
+        >
+          <Text style={{ color: colors.error, fontFamily: 'Inter-SemiBold', fontSize: 14 }}>
+            {deleting ? 'Deleting...' : 'Delete'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

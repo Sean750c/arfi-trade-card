@@ -51,6 +51,8 @@ export default function AddPaymentMethodModal({
   const [coinList, setCoinList] = useState<CoinNetwork[]>([]);
   const [showCoinPicker, setShowCoinPicker] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<CoinNetwork | null>(null);
+  const [accountNameEditable, setAccountNameEditable] = useState(true);
+  const [accountNameLoading, setAccountNameLoading] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -132,12 +134,38 @@ export default function AddPaymentMethodModal({
     setShowCoinPicker(false);
   };
 
+  const handleAccountNoBlur = async () => {
+    if (selectedMethod?.code !== 'BANK' || !user?.token || !selectedBank || !formData.account_no) return;
+    setAccountNameLoading(true);
+    try {
+      const res = await PaymentService.verifyBankAccount({
+        token: user.token,
+        bank_id: selectedBank.bank_id,
+        bank_account: formData.account_no,
+      });
+      if (res.user_name) {
+        setFormData(prev => ({ ...prev, account_name: res.user_name }));
+        setAccountNameEditable(false);
+      } else {
+        setAccountNameEditable(true);
+      }
+    } catch {
+      setAccountNameEditable(true);
+    } finally {
+      setAccountNameLoading(false);
+    }
+  };
+
   const validateForm = () => {
     if (!selectedMethod) return false;
 
     for (const field of selectedMethod.form_list) {
       if (field.code === 'bank_id' && selectedMethod.code === 'BANK') {
         if (!selectedBank) return false;
+      } else if (field.code === 'bank_id' && selectedMethod.code === 'USDT') {
+        if (!selectedCoin) return false;
+      } else if (field.code === 'account_name' && selectedMethod.code === 'USDT') {
+        continue;
       } else {
         if (!formData[field.code]?.trim()) return false;
       }
@@ -156,7 +184,7 @@ export default function AddPaymentMethodModal({
         payment_id: selectedMethod.payment_id,
         bank_id: selectedMethod.code === 'USDT' ? Number(formData.coin_id) : Number(formData.bank_id),
         account_no: formData.account_no,
-        account_name: formData.account_name || '',
+        account_name: selectedMethod.code === 'USDT' ? selectedCoin?.name || '' : formData.account_name || '',
       });
       Alert.alert(
         'Success',
@@ -171,6 +199,10 @@ export default function AddPaymentMethodModal({
   };
 
   const renderFormField = (field: FormField) => {
+    if (field.code === 'account_name' && selectedMethod?.code === 'USDT') {
+      return null;
+    }
+
     if (field.code === 'bank_id' && selectedMethod?.code === 'USDT') {
       return (
         <View key={field.code} style={styles.fieldContainer}>
@@ -262,7 +294,12 @@ export default function AddPaymentMethodModal({
           onChangeText={(value) => handleInputChange(field.code, value)}
           keyboardType={field.type === 4 ? 'phone-pad' : 'default'}
           maxLength={field.len}
+          onBlur={field.code === 'account_no' && selectedMethod?.code === 'BANK' ? handleAccountNoBlur : undefined}
+          editable={field.code !== 'account_name' || accountNameEditable || selectedMethod?.code !== 'BANK'}
         />
+        {field.code === 'account_name' && accountNameLoading && (
+          <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 4 }}>Querying account name...</Text>
+        )}
       </View>
     );
   };
