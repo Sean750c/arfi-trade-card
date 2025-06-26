@@ -99,9 +99,9 @@ export type NoticeListData = Notice[];
 
 export interface NoticeListRequest {
     token: string;
-    type: 'all' | 'motion' | 'system';
+    type: 'all' | 'notice' | 'system';
     page: number;
-    pageSize: number;
+    page_size: number;
 }
 
 // Coupon Types for Discount Code API

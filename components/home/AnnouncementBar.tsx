@@ -79,7 +79,7 @@ const AnnouncementBar: React.FC = () => {
     }, [mergedContent, textWidth, startAnimation, offsetX]);
 
     useEffect(() => {
-        console.log('loopCount', loopCount);
+        // console.log('loopCount', loopCount);
         if (loopCount >= MAX_LOOP) {
             cancelAnimation(offsetX);
             setVisible(false);

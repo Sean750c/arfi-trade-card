@@ -9,14 +9,14 @@ interface NotificationState {
   error: string | null;
   currentPage: number;
   hasMore: boolean;
-  activeType: 'all' | 'motion' | 'system';
+  activeType: 'all' | 'notice' | 'system';
   totalCount: number;
   pageSize: number;
   
   // Actions
-  fetchNotifications: (token: string, type?: 'all' | 'motion' | 'system', refresh?: boolean) => Promise<void>;
+  fetchNotifications: (token: string, type?: 'all' | 'notice' | 'system', refresh?: boolean) => Promise<void>;
   loadMoreNotifications: (token: string) => Promise<void>;
-  setActiveType: (type: 'all' | 'motion' | 'system') => void;
+  setActiveType: (type: 'all' | 'notice' | 'system') => void;
   markAsRead: (noticeId: number, token: string) => Promise<void>;
   clearNotifications: () => void;
 }
@@ -53,8 +53,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const data = await NotificationService.getNotifications({
         token,
         type,
-        page: 1,
-        pageSize: state.pageSize,
+        page: 0,
+        page_size: state.pageSize,
       });
 
       // Determine if there are more pages based on returned data length
@@ -64,7 +64,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         notifications: data,
         totalCount: data.length, // We don't have total count from API, so use current length
         hasMore,
-        currentPage: 1,
+        currentPage: 0,
         isLoading: false,
       });
     } catch (error) {
@@ -85,7 +85,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   loadMoreNotifications: async (token: string) => {
     const state = get();
     
-    if (state.isLoadingMore || !state.hasMore) return;
+    if (state.isLoading ||state.isLoadingMore || !state.hasMore) return;
 
     set({ isLoadingMore: true, error: null });
 
@@ -95,7 +95,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         token,
         type: state.activeType,
         page: nextPage,
-        pageSize: state.pageSize,
+        page_size: state.pageSize,
       });
 
       // Determine if there are more pages based on returned data length
@@ -123,7 +123,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     }
   },
 
-  setActiveType: (type: 'all' | 'motion' | 'system') => {
+  setActiveType: (type: 'all' | 'notice' | 'system') => {
     set({ activeType: type });
   },
 

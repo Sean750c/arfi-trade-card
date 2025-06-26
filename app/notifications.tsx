@@ -21,10 +21,11 @@ import { useNotificationStore } from '@/stores/useNotificationStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { Notice } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
+import { formatDate } from '@/utils/date';
   
 const NOTIFICATION_TYPES = [
   { key: 'all', label: 'All' },
-  { key: 'motion', label: 'Activity' },
+  { key: 'notice', label: 'Notice' },
   { key: 'system', label: 'System' },
 ] as const;
 
@@ -73,7 +74,7 @@ function NotificationsScreenContent() {
   }, [user?.token, activeType, fetchNotifications]);
 
   // Handle type change
-  const handleTypeChange = useCallback(async (type: 'all' | 'motion' | 'system') => {
+  const handleTypeChange = useCallback(async (type: 'all' | 'notice' | 'system') => {
     if (!user?.token || type === activeType) return;
     
     setActiveType(type);
@@ -109,19 +110,23 @@ function NotificationsScreenContent() {
           // Navigate to VIP section
           router.push('/profile/vip' as any);
           break;
-        case 'app_wallet':
+        case 'app_withdrawdetail':
           // Navigate to wallet
-          router.push('/(tabs)/wallet');
+          router.push(`/wallet/${notification.notice_params}`);
           break;
         case 'app_profile':
           // Navigate to profile
           router.push('/(tabs)/profile');
           break;
+        case 'app_reward':
+          // Navigate to profile
+          router.push('/wallet/rebate');
+          break;
         default:
           // Handle custom URLs or other actions
           if (notification.notice_jump) {
             // For now, just show an alert with the action
-            Alert.alert('Navigation', `Action: ${notification.notice_action}`);
+            // Alert.alert('Navigation', `Action: ${notification.notice_action}`);
           }
           break;
       }
@@ -130,27 +135,6 @@ function NotificationsScreenContent() {
       Alert.alert('Error', 'Failed to navigate to the requested page');
     }
   }, [user?.token, markAsRead]);
-
-  // Format timestamp
-  const formatTime = (timestamp: number) => {
-    try {
-      const date = new Date(timestamp * 1000); // Convert from seconds to milliseconds
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diffMins = Math.floor(diffMs / (1000 * 60));
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-      if (diffMins < 1) return 'Just now';
-      if (diffMins < 60) return `${diffMins}m ago`;
-      if (diffHours < 24) return `${diffHours}h ago`;
-      if (diffDays < 7) return `${diffDays}d ago`;
-      
-      return date.toLocaleDateString();
-    } catch {
-      return 'Unknown time';
-    }
-  };
 
   // Get status icon
   const getStatusIcon = (notification: Notice) => {
@@ -182,7 +166,7 @@ function NotificationsScreenContent() {
             {getStatusIcon(item)}
           </View>
           <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>
-            {formatTime(item.notice_time)}
+            {formatDate(item.notice_time)}
           </Text>
         </View>
         
@@ -430,6 +414,7 @@ const styles = StyleSheet.create({
   },
   notificationTime: {
     fontSize: 12,
+    marginTop: Spacing.xxs,
     fontFamily: 'Inter-Regular',
   },
   notificationMessage: {
