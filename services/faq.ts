@@ -8,9 +8,9 @@ import type {
 
 export class FAQService {
 
-  static async getFAQCategories(): Promise<String[]> {
+  static async getFAQCategories(): Promise<string[]> {
     try {
-      const response = await APIRequest.request<APIResponse<String[]>>(
+      const response = await APIRequest.request<APIResponse<string[]>>(
         '/gc/faq/categories',
         'POST'
       );

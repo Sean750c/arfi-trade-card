@@ -15,7 +15,6 @@ import WalletBalanceCard from '@/components/wallet/WalletBalanceCard';
 import WalletTabs from '@/components/wallet/WalletTabs';
 import TransactionFilters from '@/components/wallet/TransactionFilters';
 import TransactionList from '@/components/wallet/TransactionList';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';

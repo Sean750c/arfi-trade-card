@@ -222,6 +222,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       transactions: [],
       currentPage: 0,
       hasMore: true,
+      isInitialLoad: true,
     });
   },
 
@@ -232,6 +233,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       transactions: [],
       currentPage: 0,
       hasMore: true,
+      isInitialLoad: true,
     });
   },
 
