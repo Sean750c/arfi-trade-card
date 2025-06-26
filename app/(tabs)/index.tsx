@@ -24,6 +24,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useAppStore } from '@/stores/useAppStore';
 import { Country } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
+import AnnouncementBar from '@/components/home/AnnouncementBar';
 
 export default function HomeScreen() {
   // const colorScheme = useColorScheme() ?? 'light';
@@ -100,6 +101,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+      
         {/* Compact Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -290,6 +292,8 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* 公告栏 */}
+        <AnnouncementBar />
         {/* Content Sections */}
         <PromoBanner />
         <QuickActions />

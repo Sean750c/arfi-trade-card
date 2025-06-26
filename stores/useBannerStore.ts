@@ -4,6 +4,8 @@ import { APIRequest } from '@/utils/api';
 
 interface BannerState {
   banners: Banner[];
+  announcementContent: string[];
+  homeActivity: Record<string, any>;
   isLoading: boolean;
   error: string | null;
   fetchBanners: () => Promise<void>;
@@ -11,6 +13,8 @@ interface BannerState {
 
 export const useBannerStore = create<BannerState>((set, get) => ({
   banners: [],
+  announcementContent: [],
+  homeActivity: {},
   isLoading: false,
   error: null,
   fetchBanners: async () => {
@@ -23,9 +27,12 @@ export const useBannerStore = create<BannerState>((set, get) => ({
       
       // Extract banners from the nested structure
       const banners = response.data.banner || [];
-      
+      const announcementContent = response.data.announcement_content || [];
+      const homeActivity = response.data.home_activity || {};
       set({ 
         banners,
+        announcementContent,
+        homeActivity: homeActivity,
         isLoading: false 
       });
     } catch (error) {

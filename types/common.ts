@@ -28,7 +28,7 @@ export interface Banner {
 
 // Updated banner response structure to match API
 export interface BannerData {
-    announcement_content: any[];
+    announcement_content: string[];
     banner: Banner[];
     home_activity: Record<string, any>;
 }
