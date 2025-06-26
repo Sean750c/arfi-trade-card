@@ -93,17 +93,22 @@ export default function SettingsScreen() {
     saveSetting('email_notifications', value);
   };
 
-  const handleClearCache = () => {
+  const handleClearCache = async () => {
     Alert.alert(
       'Clear Cache',
-      'This will clear all cached data. Are you sure?',
+      'This will clear all cached data (including settings, login info, etc). Are you sure?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Clear', 
+        {
+          text: 'Clear',
           style: 'destructive',
-          onPress: () => {
-            Alert.alert('Success', 'Cache cleared successfully');
+          onPress: async () => {
+            try {
+              await AsyncStorage.clear();
+              Alert.alert('Success', 'Cache cleared successfully');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to clear cache');
+            }
           }
         },
       ]
@@ -297,7 +302,7 @@ export default function SettingsScreen() {
             <Shield size={20} color={colors.primary} />,
             undefined,
             undefined,
-            () => Alert.alert('Privacy Policy', 'Privacy policy would be displayed here')
+            () => router.push('/profile/privacy-policy')
           )}
           
           {renderSettingItem(
@@ -306,7 +311,7 @@ export default function SettingsScreen() {
             <Info size={20} color={colors.primary} />,
             undefined,
             undefined,
-            () => Alert.alert('Terms of Service', 'Terms of service would be displayed here')
+            () => router.push('/profile/terms-of-service')
           )}
         </View>
 

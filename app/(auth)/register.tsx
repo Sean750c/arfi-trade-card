@@ -127,11 +127,11 @@ export default function RegisterScreen() {
   };
 
   const handleTermsPress = () => {
-    router.push('/(auth)/terms-of-service');
+    router.push('/profile/terms-of-service');
   };
 
   const handlePrivacyPress = () => {
-    router.push('/(auth)/privacy-policy');
+    router.push('/profile/privacy-policy');
   };
 
   return (
