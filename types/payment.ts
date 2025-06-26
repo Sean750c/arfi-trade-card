@@ -42,8 +42,8 @@ export interface AvailablePaymentMethod {
 export interface Bank {
     bank_id: number;
     bank_name: string;
-    bank_logo: string;
-    bank_logo_image: string;
+    logo: string;
+    logo_image: string;
 }
 
 export interface CoinNetwork {

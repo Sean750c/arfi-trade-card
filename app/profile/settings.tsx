@@ -255,7 +255,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Notifications */}
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Notifications
           </Text>
@@ -283,7 +283,7 @@ export default function SettingsScreen() {
             emailNotifications,
             handleEmailToggle
           )}
-        </View>
+        </View> */}
 
         {/* Privacy & Security */}
         <View style={styles.section}>
@@ -356,7 +356,7 @@ export default function SettingsScreen() {
               Build
             </Text>
             <Text style={[styles.infoValue, { color: colors.text }]}>
-              2024.01.01
+              2025.06.01
             </Text>
           </View>
         </View>

@@ -297,7 +297,7 @@ export default function HomeScreen() {
         {/* Content Sections */}
         <PromoBanner />
         <QuickActions />
-        <PromoTimer />
+        {/* <PromoTimer /> */}
         <RecentTransactions />
       </ScrollView>
     </SafeAreaView>

@@ -254,7 +254,7 @@ export default function AddPaymentMethodModal({
             {selectedBank ? (
               <View style={styles.selectedBankContainer}>
                 <Image
-                  source={{ uri: selectedBank.bank_logo_image }}
+                  source={{ uri: selectedBank.logo_image }}
                   style={styles.bankLogo}
                   resizeMode="contain"
                 />
@@ -429,7 +429,7 @@ export default function AddPaymentMethodModal({
                         onPress={() => handleBankSelect(bank)}
                       >
                         <Image
-                          source={{ uri: bank.bank_logo_image }}
+                          source={{ uri: bank.logo_image }}
                           style={styles.bankOptionLogo}
                           resizeMode="contain"
                         />
