@@ -6,6 +6,7 @@ import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { Lock, User } from 'lucide-react-native';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -13,8 +14,7 @@ interface AuthGuardProps {
 }
 
 export default function AuthGuard({ children, fallback }: AuthGuardProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { isAuthenticated } = useAuthStore();
 
   if (!isAuthenticated) {

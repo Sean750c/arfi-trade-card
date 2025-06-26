@@ -22,7 +22,7 @@ import {
   RotateCcw,
 } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useRatesStore } from '@/stores/useRatesStore';
 import { useCountryStore } from '@/stores/useCountryStore';
@@ -32,8 +32,7 @@ import FilterModal from '@/components/rates/FilterModal';
 import type { CategoryData } from '@/types';
 
 export default function RatesScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { selectedCountry } = useCountryStore();
   const { user } = useAuthStore();
   
@@ -171,7 +170,7 @@ export default function RatesScreen() {
         <View
           style={[
             styles.searchInputContainer,
-            { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' },
+            { backgroundColor: colors.card },
           ]}
         >
           <Search size={20} color={colors.textSecondary} />
@@ -192,7 +191,7 @@ export default function RatesScreen() {
           style={[
             styles.filterButton,
             { 
-              backgroundColor: selectedCategory ? colors.primary : (colorScheme === 'dark' ? colors.card : '#F9FAFB'),
+              backgroundColor: selectedCategory ? colors.primary : colors.card,
             },
           ]}
           onPress={() => setShowFilters(true)}

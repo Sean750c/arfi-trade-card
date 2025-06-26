@@ -27,6 +27,7 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UploadService } from '@/services/upload';
 import { OrderService } from '@/services/order';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface SelectedCard {
   id: string;
@@ -59,8 +60,9 @@ interface Coupon {
 }
 
 function SellScreenContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
   
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>([]);
@@ -403,7 +405,7 @@ function SellScreenContent() {
                 styles.cardInfoInput,
                 {
                   color: colors.text,
-                  backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                  backgroundColor: colors.card,
                   borderColor: colors.border,
                 },
               ]}
@@ -420,7 +422,7 @@ function SellScreenContent() {
               style={[
                 styles.uploadButton,
                 { 
-                  backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                  backgroundColor: colors.card,
                   borderColor: colors.border,
                 },
               ]}
@@ -460,7 +462,7 @@ function SellScreenContent() {
                 style={[
                   styles.walletOption,
                   {
-                    backgroundColor: selectedWallet === 'NGN' ? colors.primary : colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                    backgroundColor: selectedWallet === 'NGN' ? colors.primary : colors.card,
                     borderColor: selectedWallet === 'NGN' ? colors.primary : colors.border,
                   },
                 ]}
@@ -481,7 +483,7 @@ function SellScreenContent() {
                 style={[
                   styles.walletOption,
                   {
-                    backgroundColor: selectedWallet === 'USDT' ? colors.primary : colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                    backgroundColor: selectedWallet === 'USDT' ? colors.primary : colors.card,
                     borderColor: selectedWallet === 'USDT' ? colors.primary : colors.border,
                   },
                 ]}
@@ -502,7 +504,7 @@ function SellScreenContent() {
 
           {/* Discount Code Section */}
           <TouchableOpacity 
-            style={[styles.section, styles.discountSection, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}
+            style={[styles.section, styles.discountSection, { backgroundColor: colors.card }]}
             onPress={() => setShowCouponModal(true)}
           >
             <View style={styles.discountContent}>

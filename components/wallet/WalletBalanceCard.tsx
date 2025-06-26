@@ -4,11 +4,10 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  useColorScheme,
 } from 'react-native';
 import { Eye, EyeOff, Gift, TrendingUp, ArrowRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import type { WalletBalanceData } from '@/types';
 
@@ -27,8 +26,7 @@ export default function WalletBalanceCard({
   onRebatePress,
   walletType,
 }: WalletBalanceCardProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   const formatBalance = (amount: number | string) => {
     if (!balanceVisible) return '****';

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColorScheme } from 'react-native';
+import { useTheme } from '@/theme/ThemeContext';
 import { ChevronLeft, Plus } from 'lucide-react-native';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
 import { PaymentService } from '@/services/payment';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/types';
 import PaymentMethodCard from '@/components/wallet/PaymentMethodCard';
@@ -15,8 +14,7 @@ import { router, useRouter } from 'expo-router';
 import AddPaymentMethodModal from '@/components/wallet/AddPaymentMethodModal';
 
 export default function PaymentListScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
   const { activeWalletType, setSelectedWithdrawAccount } = useWalletStore();
   const router = useRouter();

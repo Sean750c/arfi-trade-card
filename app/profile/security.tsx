@@ -25,13 +25,12 @@ import {
   Facebook,
 } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 function SecurityScreenContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
 
   const securityItems = [
@@ -170,7 +169,7 @@ function SecurityScreenContent() {
       style={[
         styles.securityItem,
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderBottomColor: colors.border,
         }
       ]}
@@ -203,7 +202,7 @@ function SecurityScreenContent() {
       <View style={[
         styles.header, 
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderBottomColor: colors.border,
         }
       ]}>
@@ -291,6 +290,7 @@ function SecurityScreenContent() {
 }
 
 export default function SecurityScreen() {
+  const { colors } = useTheme();
   return (
     <AuthGuard>
       <SecurityScreenContent />

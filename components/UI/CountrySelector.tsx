@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronDown } from 'lucide-react-native';
 import { useCountryStore } from '@/stores/useCountryStore';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
 interface CountrySelectorProps {
@@ -10,8 +10,7 @@ interface CountrySelectorProps {
 }
 
 export default function CountrySelector({ onPress }: CountrySelectorProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { selectedCountry, isLoading, error } = useCountryStore();
 
   if (isLoading) {

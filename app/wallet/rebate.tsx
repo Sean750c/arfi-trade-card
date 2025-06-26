@@ -5,7 +5,6 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  useColorScheme,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
@@ -17,7 +16,7 @@ import {
   ArrowRight,
   Wallet,
 } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import Card from '@/components/UI/Card';
 import OrderBonusModal from '@/components/wallet/OrderBounsCard';
@@ -28,8 +27,7 @@ import RebateList from '@/components/wallet/RebateList';
 import { RebateItem } from '@/types';
 
 function RebateDetailsContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
   const {
     rebateInfo,
@@ -160,7 +158,7 @@ function RebateDetailsContent() {
           {/* First Order Bonus */}
           {walletType === '1' && rebateInfo && rebateInfo.first_order_bonus > 0 && (
             <TouchableOpacity
-              style={[styles.earningMethod, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}
+              style={[styles.earningMethod, { backgroundColor: colors.card }]}
             >
               <View style={[styles.earningMethodIcon, { backgroundColor: `${colors.primary}15` }]}>
                 <Gift size={20} color={colors.primary} />
@@ -179,7 +177,7 @@ function RebateDetailsContent() {
           {/* Amount Order Bonus */}
           {walletType === '1' && rebateInfo && rebateInfo.amount_order_bonus && rebateInfo.amount_order_bonus.length > 0 && (
             <TouchableOpacity
-              style={[styles.earningMethod, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}
+              style={[styles.earningMethod, { backgroundColor: colors.card }]}
               onPress={() => setShowAmountBonusModal(true)}
             >
               <View style={[styles.earningMethodIcon, { backgroundColor: `${colors.success}15` }]}>
@@ -200,7 +198,7 @@ function RebateDetailsContent() {
           {/* VIP Rebate */}
           {rebateInfo && rebateInfo.vip_info && rebateInfo.vip_info.length > 0 && (
             <TouchableOpacity
-              style={[styles.earningMethod, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}
+              style={[styles.earningMethod, { backgroundColor: colors.card }]}
               onPress={() => router.push('/profile/vip')}
             >
               <View style={[styles.earningMethodIcon, { backgroundColor: '#FFD70015' }]}>
@@ -221,7 +219,7 @@ function RebateDetailsContent() {
           {/* Invitation Rebate */}
           {walletType === '1' && rebateInfo && rebateInfo.referred_bonus > 0 && (
             <TouchableOpacity
-              style={[styles.earningMethod, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}
+              style={[styles.earningMethod, { backgroundColor: colors.card }]}
               onPress={() => router.push('/refer')}
             >
               <View style={[styles.earningMethodIcon, { backgroundColor: `${colors.warning}15` }]}>

@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { useTheme } from '@/theme/ThemeContext';
 import { ChevronLeft, Plus, CreditCard, Clock, ArrowRight, AlertCircle } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Button from '@/components/UI/Button';
@@ -29,8 +29,7 @@ import type { WithdrawInformation } from '@/types/withdraw';
 import Input from '@/components/UI/Input';
 
 function WithdrawScreenContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
   const { activeWalletType, selectedWithdrawAccount, setSelectedWithdrawAccount } = useWalletStore();
 
@@ -311,7 +310,7 @@ function WithdrawScreenContent() {
         <View style={[
           styles.amountInputContainer,
           {
-            backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+            backgroundColor: colors.card,
             borderColor: amountError ? colors.error : colors.border,
           },
         ]}>
@@ -353,7 +352,7 @@ function WithdrawScreenContent() {
               style={[
                 styles.quickAmountButton,
                 {
-                  backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                  backgroundColor: colors.card,
                   borderColor: colors.border,
                 },
               ]}
@@ -366,7 +365,7 @@ function WithdrawScreenContent() {
           ))}
         </View>
 
-        <View style={[styles.infoSection, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}>
+        <View style={[styles.infoSection, { backgroundColor: colors.card }]}>
           {/* 最低提现金额 */}
           <Text style={[styles.minAmountsLabel, { color: colors.textSecondary }]}>
             Minimum withdrawal amount({getCurrencySymbol()}{formatAmount(getMinimumAmount())}).
@@ -453,6 +452,7 @@ function WithdrawScreenContent() {
 }
 
 export default function WithdrawScreen() {
+  const { colors } = useTheme();
   return (
     <AuthGuard>
       <WithdrawScreenContent />

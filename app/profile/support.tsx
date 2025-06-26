@@ -17,7 +17,7 @@ import {
 import { router } from 'expo-router';
 import { ChevronLeft, Search, CircleHelp as HelpCircle, ChevronDown, ChevronUp, X } from 'lucide-react-native';
 import { WebView } from 'react-native-webview';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useFAQStore } from '@/stores/useFAQStore';
@@ -104,8 +104,7 @@ const AnswerHTML: React.FC<AnswerHTMLProps> = ({ html }) => {
 };
 
 function SupportScreenContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
 
   const {
@@ -202,7 +201,7 @@ function SupportScreenContent() {
         style={[
           styles.faqItem,
           { 
-            backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+            backgroundColor: colors.card,
             borderColor: colors.border,
           }
         ]}
@@ -325,7 +324,7 @@ function SupportScreenContent() {
       <View style={[
         styles.header,
         {
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderBottomColor: colors.border,
         }
       ]}>
@@ -347,7 +346,7 @@ function SupportScreenContent() {
       <View style={styles.searchContainer}>
         <View style={[
           styles.searchInputContainer,
-          { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }
+          { backgroundColor: colors.card }
         ]}>
           <Search size={20} color={colors.textSecondary} />
           <TextInput

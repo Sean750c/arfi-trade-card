@@ -9,6 +9,7 @@ import {
 import { DollarSign, Coins } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface WalletTabsProps {
   countryCurrencyName: string;
@@ -23,8 +24,9 @@ export default function WalletTabs({
   activeWalletType,
   onWalletTypeChange,
 }: WalletTabsProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   const tabs = [
     { 
@@ -45,8 +47,8 @@ export default function WalletTabs({
     <View style={[
       styles.tabsContainer, 
       { 
-        backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
-        shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+        backgroundColor: colors.card,
+        shadowColor: 'rgba(0, 0, 0, 0.1)',
       }
     ]}>
       {tabs.map((tab) => (

@@ -10,6 +10,7 @@ import { Gift, Star, ChevronDown, ChevronUp, DollarSign, Users } from 'lucide-re
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { AmountOrderBonus } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface BonusInfoProps {
   firstOrderBonus: number;
@@ -22,8 +23,9 @@ export default function BonusInfo({
   amountOrderBonus, 
   currencySymbol 
 }: BonusInfoProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
 
   const hasAnyBonus = firstOrderBonus > 0 || amountOrderBonus.bonus_amount > 0;

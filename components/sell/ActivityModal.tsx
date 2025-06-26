@@ -11,6 +11,7 @@ import {
 import { X, Trophy, Star, Gift } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface ActivityModalProps {
   visible: boolean;
@@ -18,8 +19,9 @@ interface ActivityModalProps {
 }
 
 export default function ActivityModal({ visible, onClose }: ActivityModalProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   return (
     <Modal

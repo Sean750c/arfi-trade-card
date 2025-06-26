@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
-import Colors from '@/constants/Colors';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
 interface OrderStatusFilterProps {
@@ -18,8 +18,7 @@ export default function OrderStatusFilter({
   onStatusChange,
   stats,
 }: OrderStatusFilterProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   return (
     <View style={styles.container}>

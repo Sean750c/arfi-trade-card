@@ -13,15 +13,14 @@ import {
 import { router } from 'expo-router';
 import { ChevronLeft, Tag, Clock, CircleCheck as CheckCircle, CircleX as XCircle, ArrowRight, } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { APIRequest } from '@/utils/api';
 import type { Coupon, CouponListResponse } from '@/types';
 
 function PromoCodesScreenContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
 
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -128,7 +127,7 @@ function PromoCodesScreenContent() {
       <View style={[
         styles.couponCard,
         {
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           opacity: isAvailable ? 1 : 0.6,
         }
       ]}>
@@ -223,7 +222,7 @@ function PromoCodesScreenContent() {
       <View style={[
         styles.header,
         {
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderBottomColor: colors.border,
         }
       ]}>
@@ -329,6 +328,7 @@ function PromoCodesScreenContent() {
 }
 
 export default function PromoCodesScreen() {
+  const { colors } = useTheme();
   return (
     <AuthGuard>
       <PromoCodesScreenContent />

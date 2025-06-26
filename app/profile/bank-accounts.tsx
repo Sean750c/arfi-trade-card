@@ -22,10 +22,10 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { PaymentService } from '@/services/payment';
 import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/types';
 import AddPaymentMethodModal from '@/components/wallet/AddPaymentMethodModal';
+import { useTheme } from '@/theme/ThemeContext';
 
 function BankAccountsScreenContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
 
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -81,7 +81,7 @@ function BankAccountsScreenContent() {
       <View style={[
         styles.accountCard,
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderColor: account.is_def === 1 ? colors.primary : colors.border,
         }
       ]}>
@@ -216,7 +216,7 @@ function BankAccountsScreenContent() {
       <View style={[
         styles.header, 
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderBottomColor: colors.border,
         }
       ]}>
@@ -323,6 +323,7 @@ function BankAccountsScreenContent() {
 }
 
 export default function BankAccountsScreen() {
+  const { colors } = useTheme();
   return (
     <AuthGuard>
       <BankAccountsScreenContent />

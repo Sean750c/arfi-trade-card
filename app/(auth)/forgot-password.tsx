@@ -18,12 +18,14 @@ import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { AuthService } from '@/services/auth';
+import { useTheme } from '@/theme/ThemeContext';
 
 type RecoveryMethod = 'email' | 'whatsapp';
 
 export default function ForgotPasswordScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   
   const [recoveryMethod, setRecoveryMethod] = useState<RecoveryMethod>('email');
   const [email, setEmail] = useState('');

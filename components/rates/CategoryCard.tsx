@@ -22,6 +22,7 @@ import Card from '@/components/UI/Card';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { CategoryData, CardRate, RateDetail } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface CategoryCardProps {
   category: CategoryData;
@@ -32,8 +33,9 @@ export default function CategoryCard({
   category, 
   onCardPress 
 }: CategoryCardProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   
   // State for managing expanded cards
   const [expandedCards, setExpandedCards] = useState(false);

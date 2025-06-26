@@ -22,6 +22,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import Button from '@/components/UI/Button';
 import { UserService } from '@/services/user';
 import { UploadService } from '@/services/upload';
+import { useTheme } from '@/theme/ThemeContext';
 
 type MenuItemType = {
   id: string;
@@ -34,8 +35,9 @@ type MenuItemType = {
 };
 
 export default function ProfileScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { isAuthenticated, user, logout, isLoading, setUser } = useAuthStore();
   const [updatingAvatar, setUpdatingAvatar] = useState(false);
   const [editingNickname, setEditingNickname] = useState(false);
@@ -304,9 +306,9 @@ export default function ProfileScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={[styles.header, 
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderBottomColor: colors.border,
-          shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.05)',
+          shadowColor: 'rgba(0, 0, 0, 0.05)',
         }]}>
           <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
         </View>

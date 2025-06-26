@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useColorScheme, Animated } from 'react-native';
 import { router } from 'expo-router';
 import { Gift, TrendingUp, Users, CreditCard, Zap, Star } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
 type QuickActionItem = {
@@ -17,8 +17,7 @@ type QuickActionItem = {
 };
 
 export default function QuickActions() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   // Pulse animation for the primary button

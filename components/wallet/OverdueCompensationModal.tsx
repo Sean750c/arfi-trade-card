@@ -5,10 +5,9 @@ import {
   StyleSheet,
   Modal,
   TouchableOpacity,
-  useColorScheme,
 } from 'react-native';
 import { X } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import type { OverdueDataItem } from '@/types/withdraw';
 
@@ -25,8 +24,7 @@ export default function OverdueCompensationModal({
   overdueData,
   maxPercent,
 }: OverdueCompensationModalProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   return (
     <Modal

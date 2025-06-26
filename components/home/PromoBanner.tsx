@@ -12,12 +12,11 @@ import {
   Alert
 } from 'react-native';
 import { useBannerStore } from '@/stores/useBannerStore';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
 export default function PromoBanner() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { banners, isLoading, error, fetchBanners } = useBannerStore();
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);

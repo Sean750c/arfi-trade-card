@@ -21,12 +21,14 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOrderStore } from '@/stores/useOrderStore';
 import type { OrderDetail, OrderImage } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 function OrderDetailScreenContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
   const { fetchOrderDetail, isLoadingDetail, detailError } = useOrderStore();
   const { orderNo } = useLocalSearchParams<{ orderNo: string }>();
@@ -146,7 +148,7 @@ function OrderDetailScreenContent() {
       <View style={[
         styles.header, 
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderBottomColor: colors.border,
         }
       ]}>
@@ -176,7 +178,7 @@ function OrderDetailScreenContent() {
         <View style={[
           styles.statusCard,
           { 
-            backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+            backgroundColor: colors.card,
             borderColor: getStatusColor(orderDetail.status),
           }
         ]}>
@@ -207,7 +209,7 @@ function OrderDetailScreenContent() {
         {/* Order Info Card */}
         <View style={[
           styles.infoCard,
-          { backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF' }
+          { backgroundColor: colors.card }
         ]}>
           <View style={styles.infoHeader}>
             <Gift size={20} color={colors.primary} />
@@ -339,7 +341,7 @@ function OrderDetailScreenContent() {
         {orderDetail.imageList.length > 0 && (
           <View style={[
             styles.imagesCard,
-            { backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF' }
+            { backgroundColor: colors.card }
           ]}>
             <View style={styles.imagesHeader}>
               <ImageIcon size={20} color={colors.primary} />

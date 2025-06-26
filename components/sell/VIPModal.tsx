@@ -11,6 +11,7 @@ import {
 import { X, Crown, CircleCheck as CheckCircle } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface VIPLevel {
   level: number;
@@ -53,8 +54,9 @@ const vipLevels: VIPLevel[] = [
 ];
 
 export default function VIPModal({ visible, onClose, currentLevel }: VIPModalProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   return (
     <Modal

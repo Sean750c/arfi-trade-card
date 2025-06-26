@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, useColorScheme, StyleProp  } from 'react-native';
-import Colors from '@/constants/Colors';
+import { View, StyleSheet, ViewStyle, StyleProp  } from 'react-native';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
 interface CardProps {
@@ -9,8 +9,7 @@ interface CardProps {
 }
 
 export default function Card({ children, style }: CardProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   return (
     <View
@@ -18,7 +17,7 @@ export default function Card({ children, style }: CardProps) {
         styles.card,
         {
           backgroundColor: colors.card,
-          shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+          shadowColor: colors.shadow,
         },
         style,
       ]}

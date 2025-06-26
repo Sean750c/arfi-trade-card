@@ -13,6 +13,7 @@ import { ChevronDown, X } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { CardCategory, CardItem } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface CardSelectorProps {
   categories: CardCategory[];
@@ -21,8 +22,9 @@ interface CardSelectorProps {
 }
 
 export default function CardSelector({ categories, selectedCard, onSelectCard }: CardSelectorProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
 
   const renderCategoryItem = ({ item: category }: { item: CardCategory }) => (
@@ -86,7 +88,7 @@ export default function CardSelector({ categories, selectedCard, onSelectCard }:
         style={[
           styles.selector,
           { 
-            backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+            backgroundColor: colors.card,
             borderColor: colors.border,
           }
         ]}

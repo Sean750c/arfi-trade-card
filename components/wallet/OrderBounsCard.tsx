@@ -15,6 +15,7 @@ import {
 } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface OrderBounsCardProps {
   visible: boolean;
@@ -24,8 +25,9 @@ interface OrderBounsCardProps {
 }
 
 export default function OrderBounsCard({ visible, onClose, bonusData, currencySymbol }: OrderBounsCardProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   return (
     <Modal

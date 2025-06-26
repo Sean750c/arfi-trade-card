@@ -9,6 +9,7 @@ import {
 import { CircleCheck as CheckCircle } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface Currency {
   code: string;
@@ -27,8 +28,9 @@ export default function CompactCurrencySelector({
   selectedCurrency,
   onSelectCurrency,
 }: CompactCurrencySelectorProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   return (
     <View style={styles.container}>
@@ -43,7 +45,7 @@ export default function CompactCurrencySelector({
               {
                 backgroundColor: selectedCurrency === currency.code
                   ? colors.primary
-                  : colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                  : colors.card,
                 borderColor: selectedCurrency === currency.code ? colors.primary : colors.border,
               },
             ]}

@@ -6,15 +6,14 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
   ActivityIndicator,
 } from 'react-native';
 import PaymentMethodCard from './PaymentMethodCard';
 import Button from '@/components/UI/Button';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { X } from 'lucide-react-native';
 import type { PaymentMethod, PaymentAccount } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface UserPaymentListProps {
   visible: boolean;
@@ -33,8 +32,7 @@ const UserPaymentList: React.FC<UserPaymentListProps> = ({
   onAdd,
   loading = false,
 }) => {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   // 判断所有data_list是否都为空
   const allEmpty = paymentMethods.length === 0 || paymentMethods.every(m => !m.data_list || m.data_list.length === 0);

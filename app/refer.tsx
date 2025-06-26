@@ -16,7 +16,7 @@ import { router } from 'expo-router';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
 import AuthGuard from '@/components/UI/AuthGuard';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
 // Sample referrals data
@@ -27,8 +27,8 @@ const referrals = [
 ];
 
 function ReferScreenContent() {
+  const { colors } = useTheme();
   const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
   
   const [referralLink] = useState('https://afritrade.com/ref/tunde123');
   
@@ -276,6 +276,7 @@ function ReferScreenContent() {
 }
 
 export default function ReferScreen() {
+  const { colors } = useTheme();
   return (
     <AuthGuard>
       <ReferScreenContent />

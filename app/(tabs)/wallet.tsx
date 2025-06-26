@@ -21,10 +21,10 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
 import type { WalletTransaction } from '@/types';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '@/theme/ThemeContext';
 
 function WalletScreenContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
 
   const {
@@ -126,9 +126,9 @@ function WalletScreenContent() {
       <View style={[
         styles.header, 
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderBottomColor: colors.border,
-          shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.05)',
+          shadowColor: 'rgba(0, 0, 0, 0.5)',
         }
       ]}>
         <Text style={[styles.title, { color: colors.text }]}>Wallet</Text>

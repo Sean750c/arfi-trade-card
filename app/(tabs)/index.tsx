@@ -23,10 +23,12 @@ import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useAppStore } from '@/stores/useAppStore';
 import { Country } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 export default function HomeScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
@@ -173,7 +175,7 @@ export default function HomeScreen() {
                 { 
                   backgroundColor: colors.card,
                   borderColor: colors.border,
-                  shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+                  shadowColor: 'rgba(0, 0, 0, 0.1)',
                 }
               ]}>
                 <ScrollView 
@@ -260,7 +262,7 @@ export default function HomeScreen() {
             styles.balanceCard,
             { 
               backgroundColor: colors.primary,
-              shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+              shadowColor: 'rgba(0, 0, 0, 0.1)',
             }
           ]}>
             <View style={styles.balanceHeader}>

@@ -5,10 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
 } from 'react-native';
 import { Filter } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
 interface TransactionFiltersProps {
@@ -20,8 +19,7 @@ export default function TransactionFilters({
   activeType,
   onTypeChange,
 }: TransactionFiltersProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   const filterTypes = [
     { key: 'all', label: 'All' },
@@ -56,7 +54,7 @@ export default function TransactionFilters({
               {
                 backgroundColor: activeType === filter.key 
                   ? colors.primary 
-                  : colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                  : colors.card,
                 borderColor: activeType === filter.key ? colors.primary : colors.border,
               },
             ]}

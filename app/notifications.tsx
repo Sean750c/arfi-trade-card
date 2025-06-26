@@ -20,7 +20,8 @@ import Spacing from '@/constants/Spacing';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { Notice } from '@/types';
-
+import { useTheme } from '@/theme/ThemeContext';
+  
 const NOTIFICATION_TYPES = [
   { key: 'all', label: 'All' },
   { key: 'motion', label: 'Activity' },
@@ -28,8 +29,9 @@ const NOTIFICATION_TYPES = [
 ] as const;
 
 function NotificationsScreenContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
   const {
     notifications,

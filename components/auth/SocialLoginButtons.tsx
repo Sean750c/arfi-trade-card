@@ -12,10 +12,12 @@ import Spacing from '@/constants/Spacing';
 import { AuthService } from '@/services/auth';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { router } from 'expo-router';
+import { useTheme } from '@/theme/ThemeContext';
 
 export default function SocialLoginButtons() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { setUser } = useAuthStore();
 
   const handleGoogleLogin = async () => {

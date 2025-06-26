@@ -25,7 +25,7 @@ import {
   TrendingUp,
 } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOrderStore } from '@/stores/useOrderStore';
@@ -34,8 +34,7 @@ import OrderCard from '@/components/orders/OrderCard';
 import type { OrderListItem } from '@/types';
 
 function OrdersScreenContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
 
   const {
@@ -173,9 +172,9 @@ function OrdersScreenContent() {
       <View style={[
         styles.header, 
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderBottomColor: colors.border,
-          shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.05)',
+          shadowColor: 'rgba(0, 0, 0, 0.05)',
         }
       ]}>
         <TouchableOpacity 

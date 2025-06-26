@@ -7,9 +7,8 @@ import {
   TextInputProps,
   ViewStyle,
   TextStyle,
-  useColorScheme,
 } from 'react-native';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { CircleAlert as AlertCircle } from 'lucide-react-native';
 
@@ -31,8 +30,7 @@ export default function Input({
   rightElement,
   ...props
 }: InputProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -46,7 +44,7 @@ export default function Input({
             {
               color: colors.text,
               borderColor: error ? colors.error : colors.border,
-              backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+              backgroundColor: colors.card,
             },
             inputStyle,
           ]}

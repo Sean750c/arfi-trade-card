@@ -23,12 +23,14 @@ import Spacing from '@/constants/Spacing';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { Country } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 type RegistrationType = 'email' | 'whatsapp';
 
 export default function RegisterScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { register, isLoading } = useAuthStore();
   
@@ -169,9 +171,7 @@ export default function RegisterScreen() {
                   backgroundColor:
                     registrationType === 'email'
                       ? `${colors.primary}20`
-                      : colorScheme === 'dark'
-                      ? colors.card
-                      : '#F9FAFB',
+                      : colors.card,
                   borderColor:
                     registrationType === 'email' ? colors.primary : colors.border,
                 },
@@ -201,9 +201,7 @@ export default function RegisterScreen() {
                   backgroundColor:
                     registrationType === 'whatsapp'
                       ? `${colors.primary}20`
-                      : colorScheme === 'dark'
-                      ? colors.card
-                      : '#F9FAFB',
+                      : colors.card,
                   borderColor:
                     registrationType === 'whatsapp' ? colors.primary : colors.border,
                 },
@@ -236,7 +234,7 @@ export default function RegisterScreen() {
                 style={[
                   styles.countrySelector,
                   { 
-                    backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                    backgroundColor: colors.card,
                     borderColor: errors.country ? colors.error : colors.border,
                   },
                 ]}

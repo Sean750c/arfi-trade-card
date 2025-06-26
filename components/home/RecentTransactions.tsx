@@ -7,10 +7,10 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOrderStore } from '@/stores/useOrderStore';
 import { formatDate } from '@/utils/date';
+import { useTheme } from '@/theme/ThemeContext';
 
 export default function RecentTransactions() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user, isAuthenticated } = useAuthStore();
   const { orders, isLoadingOrders, fetchOrders } = useOrderStore();
 
@@ -65,7 +65,7 @@ export default function RecentTransactions() {
       style={[
         styles.transactionItem,
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+          backgroundColor: colors.card,
           borderColor: colors.border,
         },
       ]}
@@ -131,7 +131,7 @@ export default function RecentTransactions() {
           </TouchableOpacity>
         </View>
         
-        <View style={[styles.emptyContainer, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}>
+        <View style={[styles.emptyContainer, { backgroundColor: colors.card }]}>
           <Gift size={48} color={colors.textSecondary} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>
             Login to View Transactions
@@ -169,7 +169,7 @@ export default function RecentTransactions() {
           {recentOrders.map(renderOrderItem)}
         </View>
       ) : (
-        <View style={[styles.emptyContainer, { backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB' }]}>
+        <View style={[styles.emptyContainer, { backgroundColor: colors.card }]}>
           <Gift size={48} color={colors.textSecondary} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>
             No Recent Transactions

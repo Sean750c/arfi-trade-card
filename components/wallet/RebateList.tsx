@@ -14,6 +14,7 @@ import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { RebateInfo, RebateItem, WalletTransaction } from '@/types';
 import { formatDateString } from '@/utils/date';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface RebateListProps {
   rebateInfo: RebateInfo | null;
@@ -38,8 +39,7 @@ export default function RebateList({
   onRebatePress,
   walletType,
 }: RebateListProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   const getRebateTypeIcon = (type: number) => {
     switch (type) {
@@ -107,7 +107,7 @@ export default function RebateList({
         style={[
           styles.rebateItem,
           {
-            backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+            backgroundColor: colors.card,
             borderColor: colors.border,
           },
         ]}

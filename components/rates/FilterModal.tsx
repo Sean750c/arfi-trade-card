@@ -13,6 +13,7 @@ import Button from '@/components/UI/Button';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { CategoryData } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface FilterModalProps {
   visible: boolean;
@@ -31,8 +32,9 @@ export default function FilterModal({
   onCategorySelect,
   onClearFilters,
 }: FilterModalProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   return (
     <Modal

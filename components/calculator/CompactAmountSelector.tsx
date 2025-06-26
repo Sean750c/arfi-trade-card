@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface CompactAmountSelectorProps {
   denominations: string[];
@@ -25,8 +26,9 @@ export default function CompactAmountSelector({
   onSelectDenomination,
   onCustomAmountChange,
 }: CompactAmountSelectorProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   return (
     <View style={styles.container}>
@@ -42,7 +44,7 @@ export default function CompactAmountSelector({
               {
                 backgroundColor: selectedDenomination === denom && !customAmount
                   ? colors.primary
-                  : colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                  : colors.card,
                 borderColor: selectedDenomination === denom && !customAmount 
                   ? colors.primary 
                   : colors.border,
@@ -74,7 +76,7 @@ export default function CompactAmountSelector({
           {
             color: colors.text,
             borderColor: customAmount ? colors.primary : colors.border,
-            backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+            backgroundColor: colors.card,
           },
         ]}
         placeholder="Custom amount"

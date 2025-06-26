@@ -34,7 +34,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Button from '@/components/UI/Button';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useVIPStore } from '@/stores/useVIPStore';
@@ -43,8 +43,7 @@ import type { VIPInfo, VIPTask, VIPLogEntry } from '@/types';
 const { width } = Dimensions.get('window');
 
 function VIPScreenContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
 
   const {
@@ -143,7 +142,7 @@ function VIPScreenContent() {
       <View style={[
         styles.levelCard,
         {
-          backgroundColor: isCurrentLevel ? `${levelColor}20` : colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: isCurrentLevel ? `${levelColor}20` : colors.card,
           borderColor: isCurrentLevel ? levelColor : colors.border,
           borderWidth: isCurrentLevel ? 2 : 1,
         }
@@ -202,7 +201,7 @@ function VIPScreenContent() {
     <View style={[
       styles.taskCard,
       { 
-        backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+        backgroundColor: colors.card,
         borderColor: task.is_get ? colors.success : colors.border,
       }
     ]}>
@@ -316,7 +315,7 @@ function VIPScreenContent() {
       <View style={[
         styles.header, 
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderBottomColor: colors.border,
         }
       ]}>
@@ -402,7 +401,7 @@ function VIPScreenContent() {
 
         {/* Stats Cards */}
         <View style={styles.statsContainer}>
-          <View style={[styles.statCard, { backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF' }]}>
+          <View style={[styles.statCard, { backgroundColor: colors.card }]}>
             <DollarSign size={24} color={colors.success} />
             <Text style={[styles.statValue, { color: colors.text }]}>
               {vipData.currency_symbol}{vipData.total_bonus.toLocaleString()}
@@ -412,7 +411,7 @@ function VIPScreenContent() {
             </Text>
           </View>
 
-          <View style={[styles.statCard, { backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF' }]}>
+          <View style={[styles.statCard, { backgroundColor: colors.card }]}>
             <Users size={24} color={colors.primary} />
             <Text style={[styles.statValue, { color: colors.text }]}>
               {vipData.currency_symbol}{vipData.referred_total_bonus.toLocaleString()}
@@ -614,6 +613,7 @@ function VIPScreenContent() {
 }
 
 export default function VIPScreen() {
+  const { colors } = useTheme();
   return (
     <AuthGuard>
       <VIPScreenContent />

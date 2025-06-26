@@ -24,6 +24,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { CalculatorService } from '@/services/calculator';
 import type { CalculatorData, CardItem } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 const denominations = ['$25', '$50', '$100', '$200', '$500'];
 const currencies = [
@@ -32,8 +33,9 @@ const currencies = [
 ];
 
 export default function CalculatorScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user, isAuthenticated } = useAuthStore();
   const { selectedCountry } = useCountryStore();
   

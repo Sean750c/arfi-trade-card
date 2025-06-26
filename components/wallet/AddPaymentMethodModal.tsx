@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { X, ChevronDown, Check } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { PaymentService } from '@/services/payment';
@@ -37,8 +37,7 @@ export default function AddPaymentMethodModal({
   availablePaymentMethods,
   walletType,
 }: AddPaymentMethodModalProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
 
   const [selectedMethod, setSelectedMethod] = useState<AvailablePaymentMethod | null>(null);
@@ -213,7 +212,7 @@ export default function AddPaymentMethodModal({
             style={[
               styles.bankSelector,
               {
-                backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                backgroundColor: colors.card,
                 borderColor: colors.border,
               },
             ]}
@@ -246,7 +245,7 @@ export default function AddPaymentMethodModal({
             style={[
               styles.bankSelector,
               {
-                backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                backgroundColor: colors.card,
                 borderColor: colors.border,
               },
             ]}
@@ -284,7 +283,7 @@ export default function AddPaymentMethodModal({
             styles.textInput,
             {
               color: colors.text,
-              backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+              backgroundColor: colors.card,
               borderColor: colors.border,
             },
           ]}

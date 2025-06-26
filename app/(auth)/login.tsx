@@ -20,10 +20,12 @@ import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useTheme } from '@/theme/ThemeContext';
 
 export default function LoginScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { login, isLoading } = useAuthStore();
   
   const [username, setUsername] = useState('');

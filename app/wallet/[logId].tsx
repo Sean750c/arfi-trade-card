@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, useColorScheme, 
 import { ChevronLeft, CircleAlert as AlertCircle, CircleX as XCircle } from 'lucide-react-native';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { MoneyLogDetail } from '@/types';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import Button from '@/components/UI/Button';
 import { useWalletStore } from '@/stores/useWalletStore';
@@ -16,8 +16,7 @@ export default function TransactionDetailScreen() {
   const { user } = useAuthStore();
   const { fetchLogDetail, isLoadingDetail, detailError } = useWalletStore();
   const [detail, setDetail] = useState<MoneyLogDetail | null>(null);
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [isImageSelected, setImageSelected] = useState<boolean | false>(false);
 
@@ -85,7 +84,7 @@ export default function TransactionDetailScreen() {
       <View style={[
         styles.header,
         {
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderBottomColor: colors.border,
         }
       ]}>
@@ -107,7 +106,7 @@ export default function TransactionDetailScreen() {
             colors={[colors.primary]}
           />
         }>
-        <View style={[styles.card, { backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF' }]}>
+        <View style={[styles.card, { backgroundColor: colors.card }]}>
           <Text style={[styles.title, { color: colors.text }]}>Transaction Details</Text>
 
           <View style={styles.detailRow}>

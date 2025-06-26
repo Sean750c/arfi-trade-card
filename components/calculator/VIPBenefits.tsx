@@ -12,6 +12,7 @@ import { Crown, ChevronDown, X, Star } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { VIPDetail, VIPLevel } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface VIPBenefitsProps {
   vipDetail: VIPDetail;
@@ -19,8 +20,9 @@ interface VIPBenefitsProps {
 }
 
 export default function VIPBenefits({ vipDetail, vipLevels }: VIPBenefitsProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
 
   return (

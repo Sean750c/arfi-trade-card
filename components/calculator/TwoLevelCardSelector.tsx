@@ -13,6 +13,7 @@ import { ChevronDown, X, ArrowLeft } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { CardCategory, CardItem } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface TwoLevelCardSelectorProps {
   categories: CardCategory[];
@@ -21,8 +22,9 @@ interface TwoLevelCardSelectorProps {
 }
 
 export default function TwoLevelCardSelector({ categories, selectedCard, onSelectCard }: TwoLevelCardSelectorProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CardCategory | null>(null);
 
@@ -110,7 +112,7 @@ export default function TwoLevelCardSelector({ categories, selectedCard, onSelec
         style={[
           styles.selector,
           { 
-            backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+            backgroundColor: colors.card,
             borderColor: colors.border,
           }
         ]}

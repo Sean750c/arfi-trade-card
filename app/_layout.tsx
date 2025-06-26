@@ -9,6 +9,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useBannerStore } from '@/stores/useBannerStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { ThemeProvider } from '@/theme/ThemeContext';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function RootLayout() {
   }, [initialize, fetchCountries, fetchBanners, router, isAuthenticated, user?.token]);
 
   return (
-    <>
+    <ThemeProvider>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
@@ -57,6 +58,6 @@ export default function RootLayout() {
         <Stack.Screen name="rates" options={{ headerShown: false }} />
         <Stack.Screen name="refer" options={{ headerShown: false }} />
       </Stack>
-    </>
+    </ThemeProvider>
   );
 }

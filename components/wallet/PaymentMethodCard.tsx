@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { ChevronRight, Clock, Star, Trash2 } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import type { PaymentAccount } from '@/types';
 import { PaymentService } from '@/services/payment';
@@ -30,8 +30,7 @@ export default function PaymentMethodCard({
   onSetDefault,
   onDelete,
 }: PaymentMethodCardProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const isDefault = account.is_def === 1;
   const { user } = useAuthStore();
   const [loading, setLoading] = React.useState(false);
@@ -85,10 +84,10 @@ export default function PaymentMethodCard({
         style={[
           styles.card,
           {
-            backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+            backgroundColor: colors.card,
             borderColor: isDefault ? colors.primary : colors.border,
             borderWidth: isDefault ? 2 : 1,
-            shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.08)',
+            shadowColor: colors.shadow,
           },
         ]}
         onPress={onSelect}

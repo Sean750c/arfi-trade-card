@@ -10,8 +10,7 @@ import {
   TextStyle,
   StyleProp,
 } from 'react-native';
-import { useColorScheme } from 'react-native';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
 interface ButtonProps extends TouchableOpacityProps {
@@ -36,8 +35,7 @@ export default function Button({
   textStyle,
   ...props
 }: ButtonProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   const getButtonStyles = (): ViewStyle => {
     let buttonStyle: ViewStyle = {};

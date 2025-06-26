@@ -13,6 +13,7 @@ import { X, CircleCheck as CheckCircle, Tag } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { APIRequest } from '@/utils/api';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface Coupon {
   code: string;
@@ -50,8 +51,9 @@ export default function DiscountCodeModal({
   userToken,
   walletType,
 }: DiscountCodeModalProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(false);

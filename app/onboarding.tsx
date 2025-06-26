@@ -16,6 +16,7 @@ import { ArrowRight } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import Button from '@/components/UI/Button';
+import { useTheme } from '@/theme/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -41,8 +42,9 @@ const slides = [
 ];
 
 export default function OnboardingScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const [activeSlide, setActiveSlide] = useState(0);
 

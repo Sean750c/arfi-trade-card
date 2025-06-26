@@ -26,16 +26,19 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
+import { useTheme } from '@/theme/ThemeContext';
 
 export default function SettingsScreen() {
-  const systemColorScheme = useColorScheme() ?? 'light';
-  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark' | 'system'>('system');
+  // const systemColorScheme = useColorScheme() ?? 'light';
+  // const [currentTheme, setCurrentTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const { theme: currentTheme, setTheme, colors } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
   
-  // Use system theme for colors since we don't have theme context
-  const colors = Colors[systemColorScheme];
+  // 根据currentTheme变量切换主题
+  // const effectiveTheme = currentTheme === 'system' ? systemColorScheme : currentTheme;
+  // const colors = Colors[effectiveTheme];
 
   useEffect(() => {
     loadSettings();
@@ -48,7 +51,7 @@ export default function SettingsScreen() {
       const savedPush = await AsyncStorage.getItem('push_notifications');
       const savedEmail = await AsyncStorage.getItem('email_notifications');
 
-      if (savedTheme) setCurrentTheme(savedTheme as 'light' | 'dark' | 'system');
+      if (savedTheme) setTheme(savedTheme as 'light' | 'dark' | 'system');
       if (savedNotifications) setNotificationsEnabled(JSON.parse(savedNotifications));
       if (savedPush) setPushNotifications(JSON.parse(savedPush));
       if (savedEmail) setEmailNotifications(JSON.parse(savedEmail));
@@ -59,8 +62,8 @@ export default function SettingsScreen() {
 
   const saveTheme = async (theme: 'light' | 'dark' | 'system') => {
     try {
-      await AsyncStorage.setItem('app_theme', theme);
-      setCurrentTheme(theme);
+      // await AsyncStorage.setItem('app_theme', theme); // 可选持久化
+      setTheme(theme);
       Alert.alert('Theme Updated', `Theme changed to ${theme} mode`);
     } catch (error) {
       console.error('Failed to save theme:', error);
@@ -150,9 +153,7 @@ export default function SettingsScreen() {
         styles.themeIcon,
         { backgroundColor: currentTheme === theme ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }
       ]}>
-        {React.cloneElement(icon as React.ReactElement, {
-          color: currentTheme === theme ? '#FFFFFF' : colors.primary
-        })}
+        {icon}
       </View>
       <Text style={[
         styles.themeText,
@@ -214,7 +215,7 @@ export default function SettingsScreen() {
       <View style={[
         styles.header, 
         { 
-          backgroundColor: systemColorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: currentTheme === 'dark' ? colors.card : '#FFFFFF',
           borderBottomColor: colors.border,
         }
       ]}>
@@ -247,9 +248,9 @@ export default function SettingsScreen() {
           </Text>
           
           <View style={styles.themeContainer}>
-            {renderThemeOption('light', 'Light', <Sun size={20} />)}
-            {renderThemeOption('dark', 'Dark', <Moon size={20} />)}
-            {renderThemeOption('system', 'System', <Globe size={20} />)}
+            {renderThemeOption('light', 'Light', <Sun size={20} color={currentTheme === 'light' ? '#FFFFFF' : colors.primary} />)}
+            {renderThemeOption('dark', 'Dark', <Moon size={20} color={currentTheme === 'dark' ? '#FFFFFF' : colors.primary} />)}
+            {renderThemeOption('system', 'System', <Globe size={20} color={currentTheme === 'system' ? '#FFFFFF' : colors.primary} />)}
           </View>
         </View>
 
@@ -337,7 +338,7 @@ export default function SettingsScreen() {
         {/* App Information */}
         <View style={[
           styles.infoCard,
-          { backgroundColor: systemColorScheme === 'dark' ? colors.card : '#F9FAFB' }
+          { backgroundColor: currentTheme === 'dark' ? colors.card : '#F9FAFB' }
         ]}>
           <Text style={[styles.infoTitle, { color: colors.text }]}>
             App Information

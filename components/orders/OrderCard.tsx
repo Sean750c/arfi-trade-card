@@ -4,6 +4,7 @@ import { Clock, CircleCheck as CheckCircle, Circle as XCircle, ChevronRight } fr
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { OrderListItem } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface OrderCardProps {
   order: OrderListItem;
@@ -11,8 +12,7 @@ interface OrderCardProps {
 }
 
 export default function OrderCard({ order, onPress }: OrderCardProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   const getStatusIcon = (status: number) => {
     switch (status) {
@@ -57,9 +57,9 @@ export default function OrderCard({ order, onPress }: OrderCardProps) {
       style={[
         styles.container,
         { 
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card,
           borderColor: colors.border,
-          shadowColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.1)',
+          shadowColor: 'rgba(0, 0, 0, 0.3)',
         }
       ]}
       onPress={onPress}

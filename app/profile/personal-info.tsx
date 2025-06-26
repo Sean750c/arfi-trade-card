@@ -6,22 +6,20 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  useColorScheme,
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft, User, Mail, Phone, MapPin, Calendar, Shield } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import AuthGuard from '@/components/UI/AuthGuard';
-import Colors from '@/constants/Colors';
+import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UserService } from '@/services/user';
 import type { UserInfo } from '@/types';
 
 function PersonalInfoContent() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
   const { user } = useAuthStore();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -246,6 +244,7 @@ function PersonalInfoContent() {
 }
 
 export default function PersonalInfoScreen() {
+  const { colors } = useTheme();
   return (
     <AuthGuard>
       <PersonalInfoContent />

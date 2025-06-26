@@ -17,9 +17,9 @@ import {
 } from 'react-native';
 import { X, DollarSign, Clock, CircleAlert as AlertCircle } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { PaymentAccount } from '@/types';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface WithdrawAmountModalProps {
   visible: boolean;
@@ -38,8 +38,9 @@ export default function WithdrawAmountModal({
   currencySymbol,
   walletType,
 }: WithdrawAmountModalProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  // const colorScheme = useColorScheme() ?? 'light';
+  // const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -183,7 +184,7 @@ export default function WithdrawAmountModal({
                     <View style={[
                       styles.amountInputContainer,
                       {
-                        backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                        backgroundColor: colors.card,
                         borderColor: error ? colors.error : colors.border,
                       },
                     ]}>
@@ -226,7 +227,7 @@ export default function WithdrawAmountModal({
                           style={[
                             styles.quickAmountButton,
                             { 
-                              backgroundColor: colorScheme === 'dark' ? colors.card : '#F9FAFB',
+                              backgroundColor: colors.card,
                               borderColor: colors.border,
                             },
                           ]}

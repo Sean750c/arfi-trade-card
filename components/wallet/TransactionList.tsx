@@ -10,10 +10,10 @@ import {
   RefreshControl,
 } from 'react-native';
 import { ArrowDownLeft, ArrowUpRight, Gift, Users, Crown, CreditCard, TrendingUp, CircleAlert as AlertCircle } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { WalletTransaction } from '@/types';
 import { formatDate } from '@/utils/date';
+import { useTheme } from '@/theme/ThemeContext';
 
 interface TransactionListProps {
   transactions: WalletTransaction[];
@@ -29,7 +29,6 @@ interface TransactionListProps {
 // TransactionItem 组件，使用 React.memo 优化
 const TransactionItem = React.memo(function TransactionItem({
   transaction,
-  colorScheme,
   colors,
   walletType,
   onTransactionPress,
@@ -41,7 +40,6 @@ const TransactionItem = React.memo(function TransactionItem({
   formatDate,
 }: {
   transaction: WalletTransaction;
-  colorScheme: string;
   colors: any;
   walletType: '1' | '2';
   onTransactionPress: (transaction: WalletTransaction) => void;
@@ -60,7 +58,7 @@ const TransactionItem = React.memo(function TransactionItem({
       style={[
         styles.transactionItem,
         {
-          backgroundColor: colorScheme === 'dark' ? colors.card : '#FFFFFF',
+          backgroundColor: colors.card_id,
           borderColor: colors.border,
         },
       ]}
@@ -134,8 +132,7 @@ export default function TransactionList({
   onTransactionPress,
   walletType,
 }: TransactionListProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -222,7 +219,6 @@ export default function TransactionList({
     ({ item: transaction }: { item: WalletTransaction }) => (
       <TransactionItem
         transaction={transaction}
-        colorScheme={colorScheme}
         colors={colors}
         walletType={walletType}
         onTransactionPress={onTransactionPress}
@@ -234,7 +230,7 @@ export default function TransactionList({
         formatDate={formatDate}
       />
     ),
-    [colorScheme, colors, walletType, onTransactionPress]
+    [colors, walletType, onTransactionPress]
   );
 
   const renderFooter = () => {
