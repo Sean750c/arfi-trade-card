@@ -7,54 +7,66 @@ import Animated, {
   runOnJS,
   Easing,
   cancelAnimation,
+  withRepeat,
 } from 'react-native-reanimated';
+import { Megaphone, Volume2 } from 'lucide-react-native';
 import { useBannerStore } from '@/stores/useBannerStore';
+import { useTheme } from '@/theme/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SCROLL_DURATION_PER_PX = 15;
-const MAX_LOOP = 3;
-const BAR_HEIGHT = 32;
-const MIN_DURATION = 3000;
-const MAX_DURATION = 10000;
-
-const getDuration = (distance: number) =>
-  Math.min(MAX_DURATION, Math.max(MIN_DURATION, distance * SCROLL_DURATION_PER_PX));
+const SCROLL_SPEED = 50; // pixels per second
+const BAR_HEIGHT = 40;
+const SEPARATOR = '  •  '; // Separator between announcements
+const MIN_DURATION = 8000; // Minimum animation duration
+const MAX_DURATION = 20000; // Maximum animation duration
 
 const AnnouncementBar: React.FC = () => {
+  const { colors } = useTheme();
   const { announcementContent } = useBannerStore();
   const [visible, setVisible] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [loopCount, setLoopCount] = useState(0);
   const [textWidth, setTextWidth] = useState(SCREEN_WIDTH);
+  const [combinedText, setCombinedText] = useState('');
   const hasMeasured = useRef(false);
 
   const offsetX = useSharedValue(SCREEN_WIDTH);
   const isTouching = useRef(false);
 
+  // Combine all announcements into a single scrolling text
+  useEffect(() => {
+    if (announcementContent.length > 0) {
+      const combined = announcementContent.join(SEPARATOR);
+      // If we have multiple announcements, repeat the text for seamless loop
+      const finalText = announcementContent.length > 1 
+        ? `${combined}${SEPARATOR}${combined}` 
+        : combined;
+      setCombinedText(finalText);
+      hasMeasured.current = false;
+    }
+  }, [announcementContent]);
+
+  const getDuration = (distance: number) => {
+    const calculatedDuration = (distance / SCROLL_SPEED) * 1000;
+    return Math.min(MAX_DURATION, Math.max(MIN_DURATION, calculatedDuration));
+  };
+
   const handleAnimationEnd = () => {
-    if (loopCount >= MAX_LOOP - 1 && currentIndex === announcementContent.length - 1) {
-      setVisible(false);
-      return;
-    }
-
-    if (currentIndex === announcementContent.length - 1) {
-      setLoopCount((c) => c + 1);
-      setCurrentIndex(0);
-    } else {
-      setCurrentIndex((i) => i + 1);
-    }
-
-    hasMeasured.current = false;
+    if (isTouching.current) return;
+    
+    // Reset position and start again for continuous loop
+    offsetX.value = SCREEN_WIDTH;
+    startAnimation();
   };
 
   const startAnimation = () => {
-    if (!announcementContent.length || isTouching.current) return;
+    if (!combinedText || isTouching.current) return;
 
-    offsetX.value = SCREEN_WIDTH;
+    const totalDistance = textWidth + SCREEN_WIDTH;
+    const duration = getDuration(totalDistance);
+
     offsetX.value = withTiming(
       -textWidth,
       {
-        duration: getDuration(textWidth + SCREEN_WIDTH),
+        duration,
         easing: Easing.linear,
       },
       (finished) => {
@@ -64,11 +76,20 @@ const AnnouncementBar: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!announcementContent.length) return;
-    startAnimation();
+    if (!combinedText) return;
+    
+    // Small delay to ensure text measurement is complete
+    const timer = setTimeout(() => {
+      if (hasMeasured.current) {
+        startAnimation();
+      }
+    }, 100);
 
-    return () => cancelAnimation(offsetX);
-  }, [currentIndex, announcementContent, loopCount, textWidth]);
+    return () => {
+      clearTimeout(timer);
+      cancelAnimation(offsetX);
+    };
+  }, [combinedText, textWidth]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: offsetX.value }],
@@ -81,11 +102,15 @@ const AnnouncementBar: React.FC = () => {
 
   const handlePressOut = () => {
     isTouching.current = false;
-    const remainingWidth = Math.max(0, offsetX.value + textWidth);
+    
+    // Resume animation from current position
+    const remainingDistance = Math.max(0, offsetX.value + textWidth);
+    const duration = getDuration(remainingDistance);
+    
     offsetX.value = withTiming(
       -textWidth,
       {
-        duration: getDuration(remainingWidth),
+        duration,
         easing: Easing.linear,
       },
       (finished) => {
@@ -94,7 +119,7 @@ const AnnouncementBar: React.FC = () => {
     );
   };
 
-  if (!visible || !announcementContent.length) return null;
+  if (!visible || !combinedText) return null;
 
   return (
     <TouchableWithoutFeedback
@@ -102,33 +127,35 @@ const AnnouncementBar: React.FC = () => {
       onPressOut={handlePressOut}
       accessible={false}
     >
-      <View style={styles.container}>
-        <Animated.View style={[animatedStyle]}>
-          <View style={[styles.scrollContent, { width: textWidth }]}>
+      <View style={[styles.container, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+        {/* Icon */}
+        <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
+          <Volume2 size={16} color={colors.primary} />
+        </View>
+
+        {/* Scrolling Text Container */}
+        <View style={styles.textContainer}>
+          <Animated.View style={[animatedStyle]}>
             <Text
-              style={styles.text}
+              style={[styles.text, { color: colors.text }]}
               numberOfLines={1}
               ellipsizeMode="clip"
+              onLayout={(e) => {
+                if (!hasMeasured.current) {
+                  const measuredWidth = e.nativeEvent.layout.width;
+                  setTextWidth(Math.max(measuredWidth, SCREEN_WIDTH * 1.5));
+                  hasMeasured.current = true;
+                }
+              }}
             >
-              {announcementContent[currentIndex]}
+              {combinedText}
             </Text>
-          </View>
-        </Animated.View>
+          </Animated.View>
+        </View>
 
-        {/* 用于测量真实宽度 */}
-        <Text
-          style={[styles.text, styles.hiddenText]}
-          numberOfLines={1}
-          onLayout={(e) => {
-            if (!hasMeasured.current) {
-              const measuredWidth = e.nativeEvent.layout.width + 32;
-              setTextWidth(Math.max(measuredWidth, SCREEN_WIDTH));
-              hasMeasured.current = true;
-            }
-          }}
-        >
-          {announcementContent[currentIndex]}
-        </Text>
+        {/* Gradient Fade Effects */}
+        <View style={[styles.fadeLeft, { backgroundColor: colors.card }]} />
+        <View style={[styles.fadeRight, { backgroundColor: colors.card }]} />
       </View>
     </TouchableWithoutFeedback>
   );
@@ -138,31 +165,64 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     height: BAR_HEIGHT,
-    overflow: 'hidden',
-    backgroundColor: '#FFFBEA',
-    justifyContent: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5E1A4',
-    position: 'relative',
-  },
-  scrollContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    position: 'relative',
+    overflow: 'hidden',
+    paddingHorizontal: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  iconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    zIndex: 2,
+  },
+  textContainer: {
+    flex: 1,
+    height: '100%',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
   text: {
     fontSize: 14,
-    color: '#B8860B',
+    fontFamily: 'Inter-Medium',
     includeFontPadding: false,
     textAlignVertical: 'center',
-    flexShrink: 0,
-    flexGrow: 0,
+    lineHeight: 20,
+    paddingVertical: 0,
+    // Ensure text doesn't wrap
     flexWrap: 'nowrap',
+    flexShrink: 0,
   },
-  hiddenText: {
+  fadeLeft: {
     position: 'absolute',
-    opacity: 0,
-    paddingHorizontal: 16,
+    left: 52, // After icon
+    top: 0,
+    bottom: 0,
+    width: 20,
+    zIndex: 1,
+    opacity: 0.8,
+  },
+  fadeRight: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 20,
+    zIndex: 1,
+    opacity: 0.8,
   },
 });
 
