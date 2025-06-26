@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   headerLeft: {
     flex: 1,
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
   },
   guestSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: 'Inter-Regular',
   },
   countryDropdown: {
