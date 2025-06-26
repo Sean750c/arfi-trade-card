@@ -15,8 +15,8 @@ import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SCROLL_SPEED = 40; // 每秒滚动40像素
-const MAX_LOOP = 1;
+const SCROLL_SPEED = 50; // 每秒滚动40像素
+const MAX_LOOP = 3;
 const BAR_HEIGHT = 32;
 
 const AnnouncementBar: React.FC = () => {
@@ -39,9 +39,14 @@ const AnnouncementBar: React.FC = () => {
         []
     );
 
+    const setLoopCountToNext = useCallback(() => {
+        setLoopCount(prev => prev + 1);
+    }, []);
+
     const startAnimation = useCallback(() => {
         if (!mergedContent.length || isUserTouching.current) return;
         if (loopCount >= MAX_LOOP) {
+            cancelAnimation(offsetX);
             setVisible(false);
             return;
         }
@@ -54,13 +59,13 @@ const AnnouncementBar: React.FC = () => {
             },
             (finished) => {
                 if (finished) {
-                    runOnJS(setLoopCount)(c => c + 1);
+                    runOnJS(setLoopCountToNext)();
                     offsetX.value = 0;
                     runOnJS(startAnimation)();
                 }
             }
         );
-    }, [mergedContent.length, getDuration, textWidth, offsetX, isUserTouching, loopCount]);
+    }, [mergedContent.length, getDuration, textWidth, offsetX, isUserTouching, MAX_LOOP, loopCount, setLoopCountToNext]);
 
     useEffect(() => {
         hasMeasured.current = false;
@@ -72,6 +77,17 @@ const AnnouncementBar: React.FC = () => {
         startAnimation();
         return () => cancelAnimation(offsetX);
     }, [mergedContent, textWidth, startAnimation, offsetX]);
+
+    useEffect(() => {
+        console.log('loopCount', loopCount);
+        if (loopCount >= MAX_LOOP) {
+            cancelAnimation(offsetX);
+            setVisible(false);
+        } else {
+            setVisible(true);
+            startAnimation();
+        }
+    }, [loopCount, offsetX]);
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ translateX: offsetX.value % textWidth }],
@@ -222,7 +238,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
     },
     text: {
-        fontSize: 15,
+        fontSize: 14,
         color: '#B8860B',
         includeFontPadding: false,
         textAlignVertical: 'center',
