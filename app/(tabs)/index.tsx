@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   balanceCard: {
     borderRadius: 16,
     padding: Spacing.lg,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xs,
     shadowOffset: {
       width: 0,
       height: 4,

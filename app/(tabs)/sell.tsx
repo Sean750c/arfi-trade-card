@@ -12,6 +12,8 @@ import {
   Alert,
   TextInput,
   ActivityIndicator,
+  Dimensions,
+  PanResponder,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, Camera, X, ArrowLeft, Zap, CircleHelp as HelpCircle, Wallet, CircleCheck as CheckCircle, Tag, Upload, Image as ImageIcon, Clock } from 'lucide-react-native';
@@ -21,6 +23,7 @@ import DiscountCodeModal from '@/components/sell/DiscountCodeModal';
 import VIPModal from '@/components/sell/VIPModal';
 import ActivityModal from '@/components/sell/ActivityModal';
 import OrderCompensationModal from '@/components/sell/OrderCompensationModal';
+import HtmlRenderer from '@/components/UI/HtmlRenderer';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UploadService } from '@/services/upload';
@@ -28,6 +31,8 @@ import { OrderService } from '@/services/order';
 import { useTheme } from '@/theme/ThemeContext';
 import { Coupon } from '@/types';
 import { useOrderStore } from '@/stores/useOrderStore';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface SelectedCard {
   id: string;
@@ -41,8 +46,6 @@ interface SelectedCard {
 }
 
 function SellScreenContent() {
-  // const colorScheme = useColorScheme() ?? 'light';
-  // const colors = Colors[colorScheme];
   const { colors } = useTheme();
   const { user } = useAuthStore();
   const { 
@@ -61,14 +64,20 @@ function SellScreenContent() {
   const [showVIPModal, setShowVIPModal] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [showOverdueModal, setShowOverdueModal] = useState(false);
+  const [showSellTipsModal, setShowSellTipsModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Draggable help button state
+  const [helpButtonPosition, setHelpButtonPosition] = useState({
+    x: screenWidth - 60,
+    y: screenHeight - 200,
+  });
 
   useEffect(() => {
     fetchOrderSellDetail(user?.token);
   }, [user?.token]);
 
   // VIP数据来源
-  //console.log('orderSellDetail', orderSellDetail);
   const vipList = orderSellDetail?.vip || [];
   const vipDetail = orderSellDetail?.vip_detail;
   const currentVipLevel = vipDetail?.level || user?.vip_level || 1;
@@ -76,10 +85,38 @@ function SellScreenContent() {
   const nextVipLevel = vipDetail?.next_level;
   const nextVipRate = vipDetail?.next_level_rate;
 
-  // Debug: Log overdue data
-  // console.log('SellScreen - orderSellDetail:', orderSellDetail);
-  // console.log('SellScreen - overdue_data:', orderSellDetail?.overdue_data);
-  // console.log('SellScreen - overdue_max_percent:', orderSellDetail?.overdue_max_percent);
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt, gestureState) => {
+      // Store initial position
+    },
+    onPanResponderMove: (evt, gestureState) => {
+      setHelpButtonPosition(prevPosition => {
+        const newX = prevPosition.x + gestureState.dx;
+        const newY = prevPosition.y + gestureState.dy;
+        
+        // Constrain to screen boundaries
+        const buttonSize = 30;
+        const margin = 20;
+        
+        const constrainedX = Math.max(margin, Math.min(screenWidth - buttonSize - margin, newX));
+        const constrainedY = Math.max(margin, Math.min(screenHeight - buttonSize - margin, newY));
+        
+        return {
+          x: constrainedX,
+          y: constrainedY,
+        };
+      });
+    },
+    onPanResponderRelease: () => {
+      // Position is already constrained in onPanResponderMove
+    },
+  });
+
+  const handleHelpPress = () => {
+    setShowSellTipsModal(true);
+  };
 
   const addCardImage = async () => {
     if (selectedCards.length >= 10) {
@@ -635,12 +672,23 @@ function SellScreenContent() {
         </View>
 
         {/* Floating Help Button */}
-        <TouchableOpacity
-          style={[styles.helpButton, { backgroundColor: '#25D366' }]}
-          onPress={() => Alert.alert('Help', 'Card selling FAQ and support information.')}
+        <View 
+          style={[
+            styles.helpButtonContainer, 
+            {
+              left: helpButtonPosition.x,
+              top: helpButtonPosition.y,
+            }
+          ]}
+          {...panResponder.panHandlers}
         >
-          <HelpCircle size={20} color="#FFFFFF" />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.helpButton, { backgroundColor: '#25D366' }]}
+            onPress={handleHelpPress}
+          >
+            <HelpCircle size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
 
         {/* Modals */}
         <DiscountCodeModal
@@ -665,6 +713,8 @@ function SellScreenContent() {
         <ActivityModal
           visible={showActivityModal}
           onClose={() => setShowActivityModal(false)}
+          orderSellDetail={orderSellDetail}
+          currencySymbol={user?.currency_symbol || '₦'}
         />
 
         <OrderCompensationModal
@@ -672,6 +722,17 @@ function SellScreenContent() {
           onClose={() => setShowOverdueModal(false)}
           overdueData={orderSellDetail?.overdue_data || []}
           maxPercent={orderSellDetail?.overdue_max_percent}
+        />
+
+        <HtmlRenderer
+          visible={showSellTipsModal}
+          onClose={() => setShowSellTipsModal(false)}
+          title="Card Selling Guide"
+          htmlContent={
+            isLoadingOrderSellDetail 
+              ? '<p>Loading...</p>' 
+              : orderSellDetail?.sell_card_tips || '<p>No content available</p>'
+          }
         />
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -995,9 +1056,15 @@ const styles = StyleSheet.create({
 
   // Help Button
   helpButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  helpButtonContainer: {
     position: 'absolute',
-    bottom: 100,
-    right: Spacing.lg,
+    zIndex: 1000,
     width: 30,
     height: 30,
     borderRadius: 20,

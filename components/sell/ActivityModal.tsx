@@ -6,22 +6,45 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
 } from 'react-native';
-import { X, Trophy, Star, Gift } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
+import { X, Trophy, Star, Gift, DollarSign, Calendar, Target, TrendingUp } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
+import type { OrderSellDetail } from '@/types/order';
 
 interface ActivityModalProps {
   visible: boolean;
   onClose: () => void;
+  orderSellDetail?: OrderSellDetail;
+  currencySymbol?: string;
 }
 
-export default function ActivityModal({ visible, onClose }: ActivityModalProps) {
-  // const colorScheme = useColorScheme() ?? 'light';
-  // const colors = Colors[colorScheme];
+export default function ActivityModal({ 
+  visible, 
+  onClose, 
+  orderSellDetail,
+  currencySymbol = '₦'
+}: ActivityModalProps) {
   const { colors } = useTheme();
+
+  // Extract data from orderSellDetail
+  const firstOrderBonus = orderSellDetail?.first_order_bonus || 0;
+  const amountOrderBonus = orderSellDetail?.amount_order_bonus || [];
+  const activities = orderSellDetail?.activity || [];
+
+  // Format amount with currency symbol
+  const formatAmount = (amount: number) => {
+    return `${currencySymbol}${amount.toLocaleString()}`;
+  };
+
+  // Format timestamp to readable date
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
   return (
     <Modal
@@ -44,59 +67,148 @@ export default function ActivityModal({ visible, onClose }: ActivityModalProps) 
             </TouchableOpacity>
           </View>
           
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={styles.rebateInfo}>
-              <Text style={[styles.rebateTitle, { color: colors.text }]}>
-                Earn Cashback on Every Trade
-              </Text>
-              <Text style={[styles.rebateDescription, { color: colors.textSecondary }]}>
-                Get up to 2% cashback based on your monthly trading volume and VIP level.
-              </Text>
-              
-              <View style={styles.rebateTiers}>
-                <View style={[styles.rebateTier, { backgroundColor: `${colors.warning}15` }]}>
-                  <View style={styles.tierIcon}>
-                    <Star size={20} color={colors.warning} />
+          <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContent}>
+            {/* First Order Bonus Section */}
+            {firstOrderBonus > 0 && (
+              <View style={[styles.section, { backgroundColor: `${colors.warning}10` }]}>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: colors.warning }]}>
+                    <Gift size={20} color="#FFFFFF" />
                   </View>
-                  <Text style={[styles.rebateTierTitle, { color: colors.warning }]}>Bronze Tier</Text>
-                  <Text style={[styles.rebateTierAmount, { color: colors.text }]}>0.5% Cashback</Text>
-                  <Text style={[styles.rebateTierRequirement, { color: colors.textSecondary }]}>
-                    $1,000+ monthly
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                    First Order Bonus
                   </Text>
                 </View>
-                
-                <View style={[styles.rebateTier, { backgroundColor: `${colors.textSecondary}15` }]}>
-                  <View style={styles.tierIcon}>
-                    <Gift size={20} color={colors.textSecondary} />
-                  </View>
-                  <Text style={[styles.rebateTierTitle, { color: colors.textSecondary }]}>Silver Tier</Text>
-                  <Text style={[styles.rebateTierAmount, { color: colors.text }]}>1.0% Cashback</Text>
-                  <Text style={[styles.rebateTierRequirement, { color: colors.textSecondary }]}>
-                    $5,000+ monthly
-                  </Text>
-                </View>
-                
-                <View style={[styles.rebateTier, { backgroundColor: `${colors.primary}15` }]}>
-                  <View style={styles.tierIcon}>
-                    <Trophy size={20} color={colors.primary} />
-                  </View>
-                  <Text style={[styles.rebateTierTitle, { color: colors.primary }]}>Gold Tier</Text>
-                  <Text style={[styles.rebateTierAmount, { color: colors.text }]}>2.0% Cashback</Text>
-                  <Text style={[styles.rebateTierRequirement, { color: colors.textSecondary }]}>
-                    $15,000+ monthly
-                  </Text>
-                </View>
-              </View>
-
-              <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
-                <Text style={[styles.infoTitle, { color: colors.primary }]}>How It Works</Text>
-                <Text style={[styles.infoText, { color: colors.text }]}>
-                  • Cashback is calculated monthly based on your total trading volume{'\n'}
-                  • Rewards are automatically credited to your account{'\n'}
-                  • Higher VIP levels unlock better cashback rates{'\n'}
-                  • No minimum withdrawal amount for cashback rewards
+                <Text style={[styles.bonusAmount, { color: colors.warning }]}>
+                  +{formatAmount(firstOrderBonus)}
+                </Text>
+                <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
+                  Welcome bonus for your first order. This bonus will be automatically credited to your account.
                 </Text>
               </View>
+            )}
+
+            {/* Amount Order Bonus Section */}
+            {amountOrderBonus.length > 0 && (
+              <View style={[styles.section, { backgroundColor: `${colors.success}10` }]}>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: colors.success }]}>
+                    <DollarSign size={20} color="#FFFFFF" />
+                  </View>
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                    Order Amount Bonus
+                  </Text>
+                </View>
+                <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
+                  Earn bonus rewards based on your order amount. The higher the amount, the bigger the bonus!
+                </Text>
+                
+                <View style={styles.bonusTiers}>
+                  {amountOrderBonus.map((bonus, index) => (
+                    <View 
+                      key={index} 
+                      style={[
+                        styles.bonusTier, 
+                        { 
+                          backgroundColor: colors.background,
+                          borderColor: colors.border,
+                        }
+                      ]}
+                    >
+                      <View style={styles.bonusTierContent}>
+                        <Text style={[styles.bonusTierAmount, { color: colors.success }]}>
+                          +{formatAmount(bonus.bonus_amount)}
+                        </Text>
+                        <Text style={[styles.bonusTierLabel, { color: colors.text }]}>
+                          Bonus Reward
+                        </Text>
+                      </View>
+                      <View style={styles.bonusTierRequirement}>
+                        <Target size={16} color={colors.textSecondary} />
+                        <Text style={[styles.bonusTierRequirementText, { color: colors.textSecondary }]}>
+                          Order ≥ {formatAmount(bonus.order_amount)}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Activity Bonus Section */}
+            {activities.length > 0 && (
+              <View style={[styles.section, { backgroundColor: `${colors.primary}10` }]}>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: colors.primary }]}>
+                    <TrendingUp size={20} color="#FFFFFF" />
+                  </View>
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                    Special Activities
+                  </Text>
+                </View>
+                <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
+                  Limited-time activities with exclusive rewards and bonuses.
+                </Text>
+                
+                <View style={styles.activityList}>
+                  {activities.map((activity, index) => (
+                    <View 
+                      key={activity.id} 
+                      style={[
+                        styles.activityItem, 
+                        { 
+                          backgroundColor: colors.background,
+                          borderColor: colors.border,
+                        }
+                      ]}
+                    >
+                      <View style={styles.activityHeader}>
+                        <Text style={[styles.activityName, { color: colors.text }]}>
+                          {activity.name}
+                        </Text>
+                        <View style={[styles.activityType, { backgroundColor: `${colors.primary}15` }]}>
+                          <Text style={[styles.activityTypeText, { color: colors.primary }]}>
+                            Type {activity.activity_type}
+                          </Text>
+                        </View>
+                      </View>
+                      
+                      {activity.memo && (
+                        <Text style={[styles.activityMemo, { color: colors.textSecondary }]}>
+                          {activity.memo}
+                        </Text>
+                      )}
+                      
+                      <View style={styles.activityTime}>
+                        <Calendar size={14} color={colors.textSecondary} />
+                        <Text style={[styles.activityTimeText, { color: colors.textSecondary }]}>
+                          {formatDate(activity.start_time)} - {formatDate(activity.end_time)}
+                        </Text>
+                      </View>
+                      
+                      {activity.remark && (
+                        <Text style={[styles.activityRemark, { color: colors.textSecondary }]}>
+                          {activity.remark}
+                        </Text>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Info Box */}
+            <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
+              <Text style={[styles.infoTitle, { color: colors.primary }]}>
+                💡 How It Works
+              </Text>
+              <Text style={[styles.infoText, { color: colors.text }]}>
+                • First order bonus is automatically applied to your initial transaction{'\n'}
+                • Amount bonuses are credited when you reach qualifying order amounts{'\n'}
+                • Activity bonuses are available during special promotional periods{'\n'}
+                • All bonuses are automatically credited to your account{'\n'}
+                • Bonuses can be combined with VIP rate bonuses
+              </Text>
             </View>
           </ScrollView>
         </View>
@@ -115,7 +227,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: Spacing.lg,
-    maxHeight: '80%',
+    maxHeight: '85%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -132,53 +244,127 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Inter-Bold',
   },
-  rebateInfo: {
-    gap: Spacing.lg,
+  scrollContent: {
+    flex: 1,
   },
-  rebateTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    textAlign: 'center',
-  },
-  rebateDescription: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  rebateTiers: {
-    gap: Spacing.md,
-  },
-  rebateTier: {
-    alignItems: 'center',
+  section: {
     padding: Spacing.lg,
     borderRadius: 12,
-    gap: Spacing.xs,
+    marginBottom: Spacing.lg,
   },
-  tierIcon: {
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  sectionIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.xs,
   },
-  rebateTierTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-  },
-  rebateTierAmount: {
+  sectionTitle: {
     fontSize: 18,
     fontFamily: 'Inter-Bold',
   },
-  rebateTierRequirement: {
+  sectionDescription: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
+    lineHeight: 20,
+    marginBottom: Spacing.md,
+  },
+  bonusAmount: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.sm,
+  },
+  bonusTiers: {
+    gap: Spacing.sm,
+  },
+  bonusTier: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  bonusTierContent: {
+    flex: 1,
+  },
+  bonusTierAmount: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+  },
+  bonusTierLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    marginTop: 2,
+  },
+  bonusTierRequirement: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  bonusTierRequirementText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+  },
+  activityList: {
+    gap: Spacing.md,
+  },
+  activityItem: {
+    padding: Spacing.md,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  activityName: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+    flex: 1,
+  },
+  activityType: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: 12,
+  },
+  activityTypeText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
+  activityMemo: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 20,
+    marginBottom: Spacing.sm,
+  },
+  activityTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  activityTimeText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+  },
+  activityRemark: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    fontStyle: 'italic',
   },
   infoBox: {
     padding: Spacing.lg,
     borderRadius: 12,
+    marginTop: Spacing.md,
   },
   infoTitle: {
     fontSize: 16,
