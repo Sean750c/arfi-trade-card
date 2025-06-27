@@ -1,5 +1,5 @@
 import { APIRequest } from '@/utils/api';
-import type { 
+import type {
   OrderListResponse,
   OrderDetailResponse,
   OrderListRequest,
@@ -8,7 +8,10 @@ import type {
   OrderDetail,
   OrderSellRequest,
   OrderSellResponse,
-  OrderSell
+  OrderSell,
+  OrderSellDetailRequest,
+  OrderSellDetailResponse,
+  OrderSellDetail
 } from '@/types';
 
 export class OrderService {
@@ -31,7 +34,7 @@ export class OrderService {
       if (error instanceof Error && error.message.includes('Session expired')) {
         throw error; // Re-throw token expiration errors
       }
-      
+
       if (error instanceof Error) {
         throw new Error(`Failed to fetch order list: ${error.message}`);
       }
@@ -57,7 +60,7 @@ export class OrderService {
       if (error instanceof Error && error.message.includes('Session expired')) {
         throw error; // Re-throw token expiration errors
       }
-      
+
       if (error instanceof Error) {
         throw new Error(`Failed to fetch order details: ${error.message}`);
       }
@@ -83,11 +86,33 @@ export class OrderService {
       if (error instanceof Error && error.message.includes('Session expired')) {
         throw error; // Re-throw token expiration errors
       }
-      
+
       if (error instanceof Error) {
         throw new Error(`Failed to create sell order: ${error.message}`);
       }
       throw new Error('Failed to create sell order');
+    }
+  }
+
+  static async getOrderSellDetail(params: OrderSellDetailRequest = {}): Promise<OrderSellDetail> {
+    try {
+      const response = await APIRequest.request<OrderSellDetailResponse>(
+        '/gc/public/vipActivityDes',
+        'POST',
+        params
+      );
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to fetch order sell detail');
+      }
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch order sell detail: ${error.message}`);
+      }
+      throw new Error('Failed to fetch order sell detail');
     }
   }
 }
