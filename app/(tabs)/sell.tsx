@@ -80,15 +80,39 @@ function SellScreenContent() {
       return;
     }
 
-    Alert.alert(
-      'Add Card Image',
-      'Choose how to add your card image',
-      [
-        { text: 'Camera', onPress: () => openCamera() },
-        { text: 'Gallery', onPress: () => openGallery() },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    // Web平台使用不同的选择方式
+    if (Platform.OS === 'web') {
+      openWebImagePicker();
+    } else {
+      Alert.alert(
+        'Add Card Image',
+        'Choose how to add your card image',
+        [
+          { text: 'Camera', onPress: () => openCamera() },
+          { text: 'Gallery', onPress: () => openGallery() },
+          { text: 'Cancel', style: 'cancel' },
+        ]
+      );
+    }
+  };
+
+  const openWebImagePicker = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+        aspect: [4, 3],
+        allowsMultipleSelection: false,
+      });
+      
+      if (!result.canceled && result.assets[0]) {
+        await processSelectedImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Web image picker error:', error);
+      Alert.alert('Error', 'Failed to select image. Please try again.');
+    }
   };
 
   const openCamera = async () => {
@@ -109,6 +133,7 @@ function SellScreenContent() {
         await processSelectedImage(result.assets[0].uri);
       }
     } catch (error) {
+      console.error('Camera error:', error);
       Alert.alert('Error', 'Failed to take photo. Please try again.');
     }
   };
@@ -132,6 +157,7 @@ function SellScreenContent() {
         await processSelectedImage(result.assets[0].uri);
       }
     } catch (error) {
+      console.error('Gallery error:', error);
       Alert.alert('Error', 'Failed to select image. Please try again.');
     }
   };
@@ -430,10 +456,13 @@ function SellScreenContent() {
             >
               <Upload size={24} color={colors.primary} />
               <Text style={[styles.uploadButtonText, { color: colors.primary }]}>
-                Add Card Images (Max 10)
+                {Platform.OS === 'web' ? 'Select Card Images (Max 10)' : 'Add Card Images (Max 10)'}
               </Text>
               <Text style={[styles.uploadButtonSubtext, { color: colors.textSecondary }]}>
-                Images will be uploaded to secure cloud storage
+                {Platform.OS === 'web' 
+                  ? 'Click to select images from your device' 
+                  : 'Images will be uploaded to secure cloud storage'
+                }
               </Text>
             </TouchableOpacity>
             
