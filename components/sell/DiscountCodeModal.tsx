@@ -6,11 +6,9 @@ import {
   Modal,
   TouchableOpacity,
   FlatList,
-  useColorScheme,
   ActivityIndicator,
 } from 'react-native';
 import { X, CircleCheck as CheckCircle, Tag } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useCouponStore } from '@/stores/useCouponStore';
@@ -22,7 +20,7 @@ interface DiscountCodeModalProps {
   onSelect: (coupon: Coupon | null) => void;
   selectedCoupon: Coupon | null;
   userToken: string;
-  walletType: 'NGN' | 'USDT';
+  walletType: string;
 }
 
 export default function DiscountCodeModal({
@@ -50,7 +48,8 @@ export default function DiscountCodeModal({
 
   useEffect(() => {
     if (visible && userToken) {
-      fetchCoupons(walletType, userToken, true);
+      const type = walletType === 'USDT' ? 2 : 1;
+      fetchCoupons(type, userToken, true);
     }
   }, [visible, userToken, walletType]);
 

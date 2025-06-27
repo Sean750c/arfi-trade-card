@@ -16,10 +16,10 @@ interface CouponState {
   hasMore: boolean;
   
   // Wallet type for filtering
-  walletType: 'NGN' | 'USDT';
+  walletType: number;
   
   // Actions
-  fetchCoupons: (walletType: 'NGN' | 'USDT', token: string, refresh?: boolean) => Promise<void>;
+  fetchCoupons: (walletType: number, token: string, refresh?: boolean) => Promise<void>;
   loadMoreCoupons: (token: string) => Promise<void>;
   clearCouponData: () => void;
 }
@@ -32,9 +32,9 @@ export const useCouponStore = create<CouponState>((set, get) => ({
   couponsError: null,
   currentPage: 0,
   hasMore: true,
-  walletType: 'NGN',
+  walletType: 0,
 
-  fetchCoupons: async (walletType: 'NGN' | 'USDT', token: string, refresh = false) => {
+  fetchCoupons: async (walletType: number, token: string, refresh = false) => {
     const state = get();
     
     if (refresh) {
@@ -51,12 +51,9 @@ export const useCouponStore = create<CouponState>((set, get) => ({
     }
 
     try {
-      // Determine coupon type based on wallet selection
-      const type = walletType === 'USDT' ? 2 : 1; // 1 for country currency, 2 for USDT
-
       const coupons = await CouponService.getAvailableCoupons({
         token,
-        type,
+        type: walletType,
         page: 0,
         page_size: 10,
       });
@@ -91,12 +88,9 @@ export const useCouponStore = create<CouponState>((set, get) => ({
     set({ isLoadingMore: true, couponsError: null });
 
     try {
-      // Determine coupon type based on wallet selection
-      const type = state.walletType === 'USDT' ? 2 : 1; // 1 for country currency, 2 for USDT
-
       const newCoupons = await CouponService.getAvailableCoupons({
         token,
-        type,
+        type: state.walletType,
         page: nextPage,
         page_size: 10,
       });
@@ -134,7 +128,7 @@ export const useCouponStore = create<CouponState>((set, get) => ({
       couponsError: null,
       currentPage: 0,
       hasMore: true,
-      walletType: 'NGN',
+      walletType: 0,
     });
   },
 })); 

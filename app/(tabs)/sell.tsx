@@ -46,12 +46,14 @@ function SellScreenContent() {
   
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>([]);
   const [cardInfo, setCardInfo] = useState('');
-  const [selectedWallet, setSelectedWallet] = useState<'NGN' | 'USDT'>('NGN');
+  const [selectedWallet, setSelectedWallet] = useState<string>();
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [showVIPModal, setShowVIPModal] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const currencyName = user?.currency_name;
 
   const addCardImage = async () => {
     if (selectedCards.length >= 10) {
@@ -470,19 +472,19 @@ function SellScreenContent() {
                 style={[
                   styles.walletOption,
                   {
-                    backgroundColor: selectedWallet === 'NGN' ? colors.primary : colors.card,
-                    borderColor: selectedWallet === 'NGN' ? colors.primary : colors.border,
+                    backgroundColor: selectedWallet === currencyName ? colors.primary : colors.card,
+                    borderColor: selectedWallet === currencyName ? colors.primary : colors.border,
                   },
                 ]}
-                onPress={() => setSelectedWallet('NGN')}
+                onPress={() => setSelectedWallet(currencyName)}
               >
-                <View style={[styles.walletIcon, { backgroundColor: selectedWallet === 'NGN' ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
-                  <Text style={[styles.walletIconText, { color: selectedWallet === 'NGN' ? '#FFFFFF' : colors.primary }]}>₦</Text>
+                <View style={[styles.walletIcon, { backgroundColor: selectedWallet === currencyName ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
+                  <Text style={[styles.walletIconText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.primary }]}>{user?.currency_symbol}</Text>
                 </View>
-                <Text style={[styles.walletText, { color: selectedWallet === 'NGN' ? '#FFFFFF' : colors.text }]}>
-                  Nigerian Naira
+                <Text style={[styles.walletText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.text }]}>
+                  {user?.country_name} {user?.currency_name}
                 </Text>
-                {selectedWallet === 'NGN' && (
+                {selectedWallet === currencyName && (
                   <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
                 )}
               </TouchableOpacity>
@@ -501,7 +503,7 @@ function SellScreenContent() {
                   <Text style={[styles.walletIconText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.primary }]}>₮</Text>
                 </View>
                 <Text style={[styles.walletText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }]}>
-                  Tether USD
+                  USDT
                 </Text>
                 {selectedWallet === 'USDT' && (
                   <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
@@ -609,7 +611,7 @@ function SellScreenContent() {
           }}
           selectedCoupon={selectedCoupon}
           userToken={user?.token || ''}
-          walletType={selectedWallet}
+          walletType={selectedWallet || ''}
         />
 
         <VIPModal

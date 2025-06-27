@@ -130,9 +130,18 @@ async function fetchCouponsDirectly() {
 - `walletType: 'NGN' | 'USDT'` - 当前钱包类型
 
 ### 操作方法
-- `fetchCoupons(walletType, token, refresh?)` - 获取优惠码列表
-- `loadMoreCoupons(token)` - 加载更多优惠码
+- `fetchCoupons(walletType, token, refresh?, apiType?)` - 获取优惠码列表
+- `loadMoreCoupons(token, apiType?)` - 加载更多优惠码
 - `clearCouponData()` - 清理数据
+
+### 参数说明
+- `walletType`: 'NGN' | 'USDT' - 钱包类型
+- `token`: string - 用户token
+- `refresh`: boolean - 是否刷新数据（可选）
+- `apiType`: number - API类型参数（可选）
+  - 0: 全部类型
+  - 1: 国家货币相关优惠码
+  - 2: USDT相关优惠码
 
 ## 已更新的组件
 

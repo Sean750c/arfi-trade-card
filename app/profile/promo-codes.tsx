@@ -6,64 +6,73 @@ import {
   SafeAreaView,
   FlatList,
   TouchableOpacity,
-  useColorScheme,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Tag, Clock, CircleCheck as CheckCircle, CircleX as XCircle, ArrowRight, } from 'lucide-react-native';
+import { ChevronLeft, Tag, CircleCheck as CheckCircle, ArrowRight, } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { APIRequest } from '@/utils/api';
-import type { Coupon, CouponListResponse } from '@/types';
+import { useCouponStore } from '@/stores/useCouponStore';
+import type { Coupon } from '@/types';
 
 function PromoCodesScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
+  const { 
+    coupons, 
+    isLoadingCoupons, 
+    isLoadingMore,
+    couponsError, 
+    hasMore,
+    fetchCoupons, 
+    loadMoreCoupons,
+    clearCouponData 
+  } = useCouponStore();
 
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeType, setActiveType] = useState<0 | 1 | 2>(0); // 0: all, 1: NGN, 2: USDT
 
   useEffect(() => {
     if (user?.token) {
-      fetchCoupons();
+      // activeType: 0 (all), 1 (NGN), 2 (USDT)
+      fetchCoupons(activeType, user.token, true);
     }
   }, [user?.token, activeType]);
 
-  const fetchCoupons = async () => {
+  useEffect(() => {
+    return () => {
+      clearCouponData();
+    };
+  }, []);
+
+  const handleRefresh = async () => {
     if (!user?.token) return;
+    
+    setRefreshing(true);
+    await fetchCoupons(activeType, user.token, true);
+    setRefreshing(false);
+  };
 
-    setIsLoading(true);
-    try {
-      const response = await APIRequest.request<CouponListResponse>(
-        '/gc/order/getAvailableCoupon',
-        'POST',
-        {
-          token: user.token,
-          type: activeType,
-          page: 0,
-          page_size: 50,
-        }
-      );
-
-      if (response.success) {
-        setCoupons(response.data || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch coupons:', error);
-    } finally {
-      setIsLoading(false);
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMore && user?.token) {
+      loadMoreCoupons(user.token);
     }
   };
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchCoupons();
-    setRefreshing(false);
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+
+    return (
+      <View style={styles.loadingFooter}>
+        <ActivityIndicator size="small" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+          Loading more promo codes...
+        </Text>
+      </View>
+    );
   };
 
   const getStatusColor = (status: number) => {
@@ -73,16 +82,6 @@ function PromoCodesScreenContent() {
       case 3: return colors.error;
       case 4: return colors.error;
       default: return colors.textSecondary;
-    }
-  };
-
-  const getStatusIcon = (status: number) => {
-    switch (status) {
-      case 1: return <Clock size={16} color={colors.warning} />;
-      case 2: return <CheckCircle size={16} color={colors.success} />;
-      case 3: return <XCircle size={16} color={colors.error} />;
-      case 4: return <XCircle size={16} color={colors.error} />;
-      default: return null;
     }
   };
 
@@ -128,6 +127,7 @@ function PromoCodesScreenContent() {
         styles.couponCard,
         {
           backgroundColor: colors.card,
+          borderBottomColor: colors.border,
           opacity: isAvailable ? 1 : 0.6,
         }
       ]}>
@@ -136,50 +136,36 @@ function PromoCodesScreenContent() {
             <Tag size={14} color="#FFFFFF" />
             <Text style={styles.couponCode}>{coupon.code}</Text>
           </View>
-          <View style={styles.statusContainer}>
-            {getStatusIcon(coupon.new_use_status)}
-            <Text style={[
-              styles.statusText,
-              { color: getStatusColor(coupon.new_use_status) }
-            ]}>
-              {getStatusText(coupon.new_use_status)}
-            </Text>
-          </View>
+          <Text style={[
+            styles.couponStatus,
+            { color: getStatusColor(coupon.new_use_status) }
+          ]}>
+            {getStatusText(coupon.new_use_status)}
+          </Text>
         </View>
 
-        <View style={styles.couponContent}>
-          <View style={styles.discountContainer}>
-            <Text style={[styles.discountText, { color: colors.primary }]}>
-              {formatDiscount(coupon)}
-            </Text>
-          </View>
-
-          <View style={styles.couponDetails}>
-            <Text style={[styles.usageInfo, { color: colors.textSecondary }]}>
-              {coupon.max_use === 0 || !coupon.max_use
-                ? "Unlimited uses"
-                : `Used ${coupon.used_times}/${coupon.max_use} times`
-              }
-            </Text>
-          </View>
+        <View style={styles.couponDetails}>
+          <Text style={[styles.couponDiscount, { color: colors.primary }]}>
+            {formatDiscount(coupon)}
+          </Text>
+          <Text style={[styles.couponUsage, { color: colors.textSecondary }]}>
+            {coupon.max_use === 0 || !coupon.max_use
+              ? "Unlimited uses"
+              : `Used ${coupon.used_times}/${coupon.max_use} times`
+            }
+          </Text>
         </View>
 
         <View style={styles.couponFooter}>
-          <View style={styles.validityInfo}>
-            <Text style={[styles.validityLabel, { color: colors.textSecondary }]}>
-              Valid until:
-            </Text>
-            <Text style={[styles.validityDate, { color: colors.text }]}>
-              {new Date(coupon.valid_end_time * 1000).toLocaleDateString()}
-            </Text>
-          </View>
-
+          <Text style={[styles.couponExpiry, { color: colors.textSecondary }]}>
+            Expires: {new Date(coupon.valid_end_time * 1000).toLocaleDateString()}
+          </Text>
           {isAvailable && (
             <TouchableOpacity
-              style={[styles.copyButton, { backgroundColor: `${colors.primary}15` }]}
+              style={[styles.sellButton, { backgroundColor: `${colors.primary}15` }]}
               onPress={() => router.push('/(tabs)/sell')}
             >
-              <Text style={[styles.copyText, { color: colors.primary }]}>
+              <Text style={[styles.sellButtonText, { color: colors.primary }]}>
                 Sell
               </Text>
               <ArrowRight size={12} color={colors.primary} />
@@ -190,7 +176,7 @@ function PromoCodesScreenContent() {
         {typeof coupon.enough_money === 'string' &&
           !isNaN(parseFloat(coupon.enough_money)) &&
           parseFloat(coupon.enough_money) > 0 &&
-          coupon.symbol !== 'ALL' && (  // 新增ALL判断
+          coupon.symbol !== 'ALL' && (
             <View style={[styles.minimumAmount, { backgroundColor: `${colors.warning}15` }]}>
               <Text style={[styles.minimumText, { color: colors.warning }]}>
                 Minimum order: {coupon.symbol} {coupon.enough_money}
@@ -208,10 +194,10 @@ function PromoCodesScreenContent() {
         No Promo Codes
       </Text>
       <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
-        {activeType === 0
+        {couponsError || (activeType === 0
           ? "You don't have any promo codes available at the moment."
           : `No ${activeType === 1 ? user?.currency_name : 'USDT'} promo codes available.`
-        }
+        )}
       </Text>
     </View>
   );
@@ -295,7 +281,7 @@ function PromoCodesScreenContent() {
       </View>
 
       {/* Content */}
-      {isLoading ? (
+      {isLoadingCoupons ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
@@ -308,6 +294,9 @@ function PromoCodesScreenContent() {
           keyExtractor={(item) => item.code}
           renderItem={renderCouponCard}
           ListEmptyComponent={renderEmptyState}
+          ListFooterComponent={renderFooter}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.1}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -387,6 +376,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Regular',
   },
+  loadingFooter: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+  },
   listContainer: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
@@ -395,19 +391,15 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   couponCard: {
-    borderRadius: 16,
     padding: Spacing.lg,
+    borderBottomWidth: 1,
     marginBottom: Spacing.md,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   couponHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   couponCodeBadge: {
     flexDirection: 'row',
@@ -422,34 +414,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Bold',
   },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  statusText: {
+  couponStatus: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
   },
-  couponContent: {
+  couponDetails: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
-  discountContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginRight: Spacing.lg,
-  },
-  discountText: {
-    fontSize: 20,
+  couponDiscount: {
+    fontSize: 18,
     fontFamily: 'Inter-Bold',
   },
-  couponDetails: {
-    flex: 1,
-  },
-  usageInfo: {
+  couponUsage: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
   },
@@ -458,29 +437,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  validityInfo: {
-    flex: 1,
-  },
-  validityLabel: {
+  couponExpiry: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
   },
-  validityDate: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  copyButton: {
+  sellButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: 8,
     gap: 4,
-    // 新增Sell按钮特有样式
     minWidth: 60,
     justifyContent: 'center',
   },
-  copyText: {
+  sellButtonText: {
     fontSize: 12,
     fontFamily: 'Inter-SemiBold',
   },
