@@ -18,7 +18,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { ChevronLeft, Plus, CreditCard, Clock, ArrowRight, AlertCircle } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Button from '@/components/UI/Button';
-import OverdueCompensationModal from '@/components/wallet/OverdueCompensationModal';
+import WithdrawCompensationModal from '@/components/wallet/WithdrawCompensationModal';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
 import { WithdrawService } from '@/services/withdraw';
@@ -413,7 +413,7 @@ function WithdrawScreenContent() {
       </View>
 
       {/* Overdue Compensation Modal */}
-      <OverdueCompensationModal
+      <WithdrawCompensationModal
         visible={showOverdueModal}
         onClose={() => setShowOverdueModal(false)}
         overdueData={getOverdueDataForModal()}

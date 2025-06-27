@@ -11,19 +11,19 @@ import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import type { OverdueDataItem } from '@/types/withdraw';
 
-interface OverdueCompensationModalProps {
+interface WithdrawCompensationModalProps {
   visible: boolean;
   onClose: () => void;
   overdueData: OverdueDataItem[];
   maxPercent?: string;
 }
 
-export default function OverdueCompensationModal({
+export default function WithdrawCompensationModal({
   visible,
   onClose,
   overdueData,
   maxPercent,
-}: OverdueCompensationModalProps) {
+}: WithdrawCompensationModalProps) {
   const { colors } = useTheme();
 
   return (
@@ -152,9 +152,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalNote: {
-    marginTop: Spacing.md,
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    textAlign: 'center',
+    marginBottom: Spacing.lg,
   },
 }); 

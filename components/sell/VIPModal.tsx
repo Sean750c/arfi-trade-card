@@ -10,51 +10,18 @@ import {
 import { X, Crown, CircleCheck as CheckCircle } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
-
-interface VIPLevel {
-  level: number;
-  bonus: string;
-  requirements: string;
-  benefits: string[];
-}
+import { OrderVip, OrderVipInfo } from '@/types';
 
 interface VIPModalProps {
   visible: boolean;
   onClose: () => void;
-  currentLevel: number;
+  vipList: OrderVip[];
+  vipDetail?: OrderVipInfo;
 }
 
-const vipLevels: VIPLevel[] = [
-  {
-    level: 1,
-    bonus: '0.25%',
-    requirements: 'Default level',
-    benefits: ['Basic support', 'Standard rates', 'Email notifications']
-  },
-  {
-    level: 2,
-    bonus: '0.5%',
-    requirements: '$5,000+ monthly volume',
-    benefits: ['Priority support', 'Enhanced rates', 'SMS notifications', 'Exclusive promotions']
-  },
-  {
-    level: 3,
-    bonus: '0.75%',
-    requirements: '$15,000+ monthly volume',
-    benefits: ['VIP support', 'Premium rates', 'Phone support', 'Early access to features']
-  },
-  {
-    level: 4,
-    bonus: '1.0%',
-    requirements: '$50,000+ monthly volume',
-    benefits: ['Dedicated manager', 'Best rates', '24/7 priority', 'Custom solutions']
-  }
-];
-
-export default function VIPModal({ visible, onClose, currentLevel }: VIPModalProps) {
-  // const colorScheme = useColorScheme() ?? 'light';
-  // const colors = Colors[colorScheme];
+export default function VIPModal({ visible, onClose, vipList, vipDetail }: VIPModalProps) {
   const { colors } = useTheme();
+  const currentLevel = vipDetail?.level;
 
   return (
     <Modal
@@ -64,62 +31,74 @@ export default function VIPModal({ visible, onClose, currentLevel }: VIPModalPro
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+        <View style={[styles.modalContent, { backgroundColor: colors.card, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 16, elevation: 8 }]}> 
           <View style={styles.modalHeader}>
             <View style={styles.titleContainer}>
               <Crown size={24} color={colors.primary} />
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                VIP Exchange Rate Benefits
-              </Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>VIP Exchange Rate Benefits</Text>
             </View>
-            <TouchableOpacity onPress={onClose}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
-          
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {vipLevels.map((level) => (
-              <View 
-                key={level.level} 
-                style={[
-                  styles.vipLevelCard,
-                  { 
-                    backgroundColor: level.level === currentLevel ? `${colors.primary}15` : 'transparent',
-                    borderColor: level.level === currentLevel ? colors.primary : colors.border,
-                  }
-                ]}
-              >
-                <View style={styles.vipLevelHeader}>
-                  <View style={styles.vipLevelInfo}>
-                    <Text style={[styles.vipLevelTitle, { color: colors.text }]}>
-                      VIP Level {level.level}
+          {/* Current and Next Level */}
+          {vipDetail && (
+            <View style={styles.levelInfoContainer}>
+              <View style={[styles.levelInfoCard, { backgroundColor: colors.primary }]}>
+                <Text style={styles.levelInfoTitle}>Current VIP{vipDetail.level}</Text>
+                <Text style={styles.levelInfoRate}>+{vipDetail.rate}% Bonus</Text>
+              </View>
+              
+              <View style={[styles.levelInfoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Text style={[styles.levelInfoTitle, { color: colors.text }]}>Next VIP{vipDetail.next_level}</Text>
+                <Text style={[styles.levelInfoRate, { color: colors.primary }]}>+{vipDetail.next_level_rate}% Bonus</Text>
+              </View>
+            </View>
+          )}
+
+          {/* Table Card */}
+          <View style={[styles.tableCard, { backgroundColor: colors.background, borderColor: colors.border }]}> 
+            {/* Table Header */}
+            <View style={[styles.tableRow, styles.tableHeader, { backgroundColor: colors.primary }]}> 
+              <Text style={[styles.tableCell, styles.headerCell, { color: '#fff' }]}>Level</Text>
+              <Text style={[styles.tableCell, styles.headerCell, { color: '#fff' }]}>Bonus (%)</Text>
+            </View>
+
+            {/* Table Body */}
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 260 }}>
+              {vipList.map((level) => {
+                const isCurrent = level.level === currentLevel;
+                return (
+                  <View
+                    key={level.level}
+                    style={[
+                      styles.tableRow,
+                      isCurrent
+                        ? { backgroundColor: colors.primary, borderRadius: 8 }
+                        : { backgroundColor: 'transparent' },
+                    ]}
+                  >
+                    <Text style={[
+                      styles.tableCell,
+                      isCurrent
+                        ? { color: '#fff', fontWeight: 'bold' }
+                        : { color: colors.text }
+                    ]}>
+                      VIP{level.level}
                     </Text>
-                    <Text style={[styles.vipLevelBonus, { color: colors.primary }]}>
-                      +{level.bonus} Exchange Rate Bonus
+                    <Text style={[
+                      styles.tableCell,
+                      isCurrent
+                        ? { color: '#fff', fontWeight: 'bold' }
+                        : { color: colors.primary }
+                    ]}>
+                      +{level.rate}%
                     </Text>
                   </View>
-                  {level.level === currentLevel && (
-                    <View style={[styles.currentBadge, { backgroundColor: colors.primary }]}>
-                      <Text style={styles.currentBadgeText}>Current</Text>
-                    </View>
-                  )}
-                </View>
-                
-                <Text style={[styles.vipRequirements, { color: colors.textSecondary }]}>
-                  Requirements: {level.requirements}
-                </Text>
-                
-                <View style={styles.vipBenefits}>
-                  {level.benefits.map((benefit, index) => (
-                    <View key={index} style={styles.benefitRow}>
-                      <CheckCircle size={16} color={colors.success} />
-                      <Text style={[styles.benefitText, { color: colors.text }]}>{benefit}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            ))}
-          </ScrollView>
+                );
+              })}
+            </ScrollView>
+          </View>
         </View>
       </View>
     </Modal>
@@ -133,76 +112,99 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     padding: Spacing.lg,
-    maxHeight: '80%',
+    maxHeight: '90%',
+    marginHorizontal: 0,
   },
   modalHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.lg,
+    position: 'relative',
   },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+    flex: 1,
+    justifyContent: 'center',
   },
   modalTitle: {
     fontSize: 18,
     fontFamily: 'Inter-Bold',
+    textAlign: 'center',
   },
-  vipLevelCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
+  closeButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    padding: 8,
+    borderRadius: 16,
   },
-  vipLevelHeader: {
+  levelInfoContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
   },
-  vipLevelInfo: {
+  levelInfoCard: {
     flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+    padding: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  vipLevelTitle: {
+  levelInfoTitle: {
     fontSize: 16,
     fontFamily: 'Inter-Bold',
-  },
-  vipLevelBonus: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    marginTop: 2,
-  },
-  currentBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  currentBadgeText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontFamily: 'Inter-Bold',
+    marginBottom: 4,
   },
-  vipRequirements: {
+  levelInfoRate: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginBottom: Spacing.sm,
+    fontFamily: 'Inter-Medium',
+    color: '#FFFFFF',
   },
-  vipBenefits: {
-    gap: Spacing.xs,
+  tableCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 0,
+    overflow: 'hidden',
+    marginBottom: Spacing.md,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  benefitRow: {
+  tableRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    minHeight: 40,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+    paddingHorizontal: 8,
   },
-  benefitText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
+  tableHeader: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  tableCell: {
     flex: 1,
+    fontSize: 15,
+    paddingVertical: 10,
+    textAlign: 'center',
+  },
+  headerCell: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 15,
   },
 });

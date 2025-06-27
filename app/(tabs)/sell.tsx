@@ -14,18 +14,20 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, Camera, X, ArrowLeft, Zap, CircleHelp as HelpCircle, Wallet, CircleCheck as CheckCircle, Tag, Upload, Image as ImageIcon } from 'lucide-react-native';
+import { Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, Camera, X, ArrowLeft, Zap, CircleHelp as HelpCircle, Wallet, CircleCheck as CheckCircle, Tag, Upload, Image as ImageIcon, Clock } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AuthGuard from '@/components/UI/AuthGuard';
 import DiscountCodeModal from '@/components/sell/DiscountCodeModal';
 import VIPModal from '@/components/sell/VIPModal';
 import ActivityModal from '@/components/sell/ActivityModal';
+import OrderCompensationModal from '@/components/sell/OrderCompensationModal';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UploadService } from '@/services/upload';
 import { OrderService } from '@/services/order';
 import { useTheme } from '@/theme/ThemeContext';
 import { Coupon } from '@/types';
+import { useOrderStore } from '@/stores/useOrderStore';
 
 interface SelectedCard {
   id: string;
@@ -43,17 +45,41 @@ function SellScreenContent() {
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
   const { user } = useAuthStore();
+  const { 
+    fetchOrderSellDetail, 
+    orderSellDetail, 
+    isLoadingOrderSellDetail, 
+    orderSellDetailError 
+  } = useOrderStore();
   
+  const currencyName = user?.currency_name || '';
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>([]);
   const [cardInfo, setCardInfo] = useState('');
-  const [selectedWallet, setSelectedWallet] = useState<string>();
+  const [selectedWallet, setSelectedWallet] = useState<string>(currencyName);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [showVIPModal, setShowVIPModal] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
+  const [showOverdueModal, setShowOverdueModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currencyName = user?.currency_name;
+  useEffect(() => {
+    fetchOrderSellDetail(user?.token);
+  }, [user?.token]);
+
+  // VIP数据来源
+  //console.log('orderSellDetail', orderSellDetail);
+  const vipList = orderSellDetail?.vip || [];
+  const vipDetail = orderSellDetail?.vip_detail;
+  const currentVipLevel = vipDetail?.level || user?.vip_level || 1;
+  const currentVipRate = vipDetail?.rate || '0';
+  const nextVipLevel = vipDetail?.next_level;
+  const nextVipRate = vipDetail?.next_level_rate;
+
+  // Debug: Log overdue data
+  // console.log('SellScreen - orderSellDetail:', orderSellDetail);
+  // console.log('SellScreen - overdue_data:', orderSellDetail?.overdue_data);
+  // console.log('SellScreen - overdue_max_percent:', orderSellDetail?.overdue_max_percent);
 
   const addCardImage = async () => {
     if (selectedCards.length >= 10) {
@@ -541,8 +567,8 @@ function SellScreenContent() {
             >
               <Crown size={20} color="#FFD700" />
               <View style={styles.featureTextContainer}>
-                <Text style={styles.featureTitle}>VIP{user?.vip_level || 1} Exchange Rate Bonus</Text>
-                <Text style={styles.featureSubtitle}>+0.25% Extra Rate</Text>
+                <Text style={styles.featureTitle}>VIP{currentVipLevel} Exchange Rate Bonus</Text>
+                <Text style={styles.featureSubtitle}>+{currentVipRate}% Extra Rate</Text>
               </View>
               <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
             </TouchableOpacity>
@@ -558,6 +584,21 @@ function SellScreenContent() {
               </View>
               <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
             </TouchableOpacity>
+            
+            {/* Overdue Compensation */}
+            {orderSellDetail?.overdue_max_percent && (
+              <TouchableOpacity 
+                style={[styles.featureButton, { backgroundColor: '#DC2626' }]}
+                onPress={() => setShowOverdueModal(true)}
+              >
+                <Clock size={20} color="#FFFFFF" />
+                <View style={styles.featureTextContainer}>
+                  <Text style={styles.featureTitle}>Overdue Compensation</Text>
+                  <Text style={styles.featureSubtitle}>Up to {orderSellDetail.overdue_max_percent}% max payout</Text>
+                </View>
+                <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
+              </TouchableOpacity>
+            )}
           </View>
         </ScrollView>
 
@@ -617,12 +658,20 @@ function SellScreenContent() {
         <VIPModal
           visible={showVIPModal}
           onClose={() => setShowVIPModal(false)}
-          currentLevel={user?.vip_level || 1}
+          vipList={vipList}
+          vipDetail={vipDetail}
         />
 
         <ActivityModal
           visible={showActivityModal}
           onClose={() => setShowActivityModal(false)}
+        />
+
+        <OrderCompensationModal
+          visible={showOverdueModal}
+          onClose={() => setShowOverdueModal(false)}
+          overdueData={orderSellDetail?.overdue_data || []}
+          maxPercent={orderSellDetail?.overdue_max_percent}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -678,7 +727,7 @@ const styles = StyleSheet.create({
 
   // Sections
   section: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   sectionTitle: {
     fontSize: 16,
@@ -849,6 +898,8 @@ const styles = StyleSheet.create({
   discountSection: {
     flexDirection: 'row',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     justifyContent: 'space-between',
     padding: Spacing.md,
     borderRadius: 12,

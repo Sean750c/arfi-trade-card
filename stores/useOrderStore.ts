@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { OrderListItem, OrderDetail } from '@/types';
+import { OrderListItem, OrderDetail, OrderSellDetail } from '@/types';
 import { OrderService } from '@/services/order';
 
 interface OrderState {
@@ -30,6 +30,10 @@ interface OrderState {
   setActiveStatus: (status: 'all' | 'inprocess' | 'done') => void;
   setDateRange: (startTime?: number, endTime?: number) => void;
   clearOrders: () => void;
+  orderSellDetail?: OrderSellDetail;
+  isLoadingOrderSellDetail?: boolean;
+  orderSellDetailError?: string | null;
+  fetchOrderSellDetail: (token?: string) => Promise<OrderSellDetail>;
 }
 
 export const useOrderStore = create<OrderState>((set, get) => ({
@@ -44,6 +48,9 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   ordersError: null,
   detailError: null,
   activeStatus: 'all',
+  orderSellDetail: undefined,
+  isLoadingOrderSellDetail: false,
+  orderSellDetailError: null,
 
   fetchOrders: async (token: string, refresh = false) => {
     const state = get();
@@ -174,6 +181,21 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     }
   },
 
+  fetchOrderSellDetail: async (token) => {
+    set({ isLoadingOrderSellDetail: true, orderSellDetailError: null });
+    try {
+      const detail = await OrderService.getOrderSellDetail({ token });
+      set({ orderSellDetail: detail, isLoadingOrderSellDetail: false });
+      return detail;
+    } catch (error) {
+      set({
+        orderSellDetailError: error instanceof Error ? error.message : 'Failed to fetch order sell detail',
+        isLoadingOrderSellDetail: false,
+      });
+      throw error;
+    }
+  },
+
   setActiveStatus: (status: 'all' | 'inprocess' | 'done') => {
     set({ 
       activeStatus: status,
@@ -209,6 +231,11 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       activeStatus: 'all',
       startTime: undefined,
       endTime: undefined,
+      orderSellDetail: undefined,
+      isLoadingOrderSellDetail: false,
+      orderSellDetailError: null,
     });
   },
+
+  
 }));
