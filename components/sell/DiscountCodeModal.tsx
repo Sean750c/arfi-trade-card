@@ -12,27 +12,9 @@ import {
 import { X, CircleCheck as CheckCircle, Tag } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import { APIRequest } from '@/utils/api';
 import { useTheme } from '@/theme/ThemeContext';
-
-interface Coupon {
-  code: string;
-  valid_start_time: number;
-  valid_end_time: number;
-  use_status: number;
-  new_use_status: number;
-  max_use: number;
-  type: number;
-  discount_type: number;
-  discount_value: string;
-  used_times: number;
-  asc_sort: number;
-  coupon_amount: number;
-  coupon_type: string;
-  symbol: string;
-  enough_money: string;
-  enough_money_usd: string;
-}
+import { useCouponStore } from '@/stores/useCouponStore';
+import { Coupon } from '@/types';
 
 interface DiscountCodeModalProps {
   visible: boolean;
@@ -55,64 +37,32 @@ export default function DiscountCodeModal({
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
 
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-
-  const fetchCoupons = async (page = 0, refresh = false) => {
-    if (loading || (!hasMore && !refresh)) return;
-
-    setLoading(true);
-    try {
-      // Determine coupon type based on wallet selection
-      const type = walletType === 'USDT' ? 2 : 1; // 1 for country currency, 2 for USDT
-
-      const response = await APIRequest.request<{
-        success: boolean;
-        total: number;
-        page: number;
-        page_size: number;
-        data: Coupon[];
-      }>(
-        '/gc/order/getAvailableCoupon',
-        'POST',
-        {
-          token: userToken,
-          type,
-          page,
-          page_size: 10,
-        }
-      );
-
-      if (response.success) {
-        const newCoupons = response.data || [];
-
-        if (refresh || page === 0) {
-          setCoupons(newCoupons);
-        } else {
-          setCoupons(prev => [...prev, ...newCoupons]);
-        }
-
-        setHasMore(newCoupons.length >= 10);
-        setCurrentPage(page);
-      }
-    } catch (error) {
-      console.error('Failed to fetch coupons:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    coupons,
+    isLoadingCoupons,
+    isLoadingMore,
+    couponsError,
+    hasMore,
+    fetchCoupons,
+    loadMoreCoupons,
+    clearCouponData,
+  } = useCouponStore();
 
   useEffect(() => {
     if (visible && userToken) {
-      fetchCoupons(0, true);
+      fetchCoupons(walletType, userToken, true);
     }
   }, [visible, userToken, walletType]);
 
+  useEffect(() => {
+    if (!visible) {
+      clearCouponData();
+    }
+  }, [visible]);
+
   const loadMore = () => {
-    if (!loading && hasMore) {
-      fetchCoupons(currentPage + 1);
+    if (!isLoadingMore && hasMore && userToken) {
+      loadMoreCoupons(userToken);
     }
   };
 
@@ -215,7 +165,7 @@ export default function DiscountCodeModal({
   };
 
   const renderFooter = () => {
-    if (!loading) return null;
+    if (!isLoadingMore) return null;
 
     return (
       <View style={styles.loadingFooter}>
@@ -245,7 +195,7 @@ export default function DiscountCodeModal({
             </TouchableOpacity>
           </View>
 
-          {loading && coupons.length === 0 ? (
+          {isLoadingCoupons && coupons.length === 0 ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.primary} />
               <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
@@ -265,7 +215,7 @@ export default function DiscountCodeModal({
                 <View style={styles.emptyContainer}>
                   <Tag size={48} color={colors.textSecondary} />
                   <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                    No discount codes available for {walletType}
+                    {couponsError || `No discount codes available for ${walletType}`}
                   </Text>
                 </View>
               }

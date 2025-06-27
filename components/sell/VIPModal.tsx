@@ -6,10 +6,8 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
 } from 'react-native';
 import { X, Crown, CircleCheck as CheckCircle } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 

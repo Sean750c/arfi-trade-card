@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  useColorScheme,
   KeyboardAvoidingView,
   Platform,
   Image,
@@ -15,19 +14,18 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Plus, Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, Camera, X, ArrowLeft, Zap, CircleHelp as HelpCircle, Wallet, CircleCheck as CheckCircle, Tag, Upload, Image as ImageIcon } from 'lucide-react-native';
+import { Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, Camera, X, ArrowLeft, Zap, CircleHelp as HelpCircle, Wallet, CircleCheck as CheckCircle, Tag, Upload, Image as ImageIcon } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import Button from '@/components/UI/Button';
 import AuthGuard from '@/components/UI/AuthGuard';
 import DiscountCodeModal from '@/components/sell/DiscountCodeModal';
 import VIPModal from '@/components/sell/VIPModal';
 import ActivityModal from '@/components/sell/ActivityModal';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UploadService } from '@/services/upload';
 import { OrderService } from '@/services/order';
 import { useTheme } from '@/theme/ThemeContext';
+import { Coupon } from '@/types';
 
 interface SelectedCard {
   id: string;
@@ -38,25 +36,6 @@ interface SelectedCard {
   uploadProgress?: number;
   isUploaded?: boolean;
   uploadError?: string;
-}
-
-interface Coupon {
-  code: string;
-  valid_start_time: number;
-  valid_end_time: number;
-  use_status: number;
-  new_use_status: number;
-  max_use: number;
-  type: number;
-  discount_type: number;
-  discount_value: string;
-  used_times: number;
-  asc_sort: number;
-  coupon_amount: number;
-  coupon_type: string;
-  symbol: string;
-  enough_money: string;
-  enough_money_usd: string;
 }
 
 function SellScreenContent() {
