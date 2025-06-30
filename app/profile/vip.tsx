@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import {
   FlatList,
   Modal,
   Dimensions,
+  Animated,
+  Easing,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
@@ -43,6 +45,22 @@ import VIPLogList from '@/components/vip/VIPLogList';
 
 const { width } = Dimensions.get('window');
 
+const VIP_COLORS = {
+  bronze: ['#CD7F32', '#A97142'],
+  silver: ['#C0C0C0', '#A8A9AD'],
+  gold: ['#FFD700', '#FFB300'],
+  platinum: ['#E5E4E2', '#B3B3B3'],
+  diamond: ['#00CFFF', '#0078A0'],
+};
+
+const getVIPLevelGradient = (level: number): [string, string] => {
+  if (level <= 2) return VIP_COLORS.bronze as [string, string];
+  if (level <= 4) return VIP_COLORS.silver as [string, string];
+  if (level <= 6) return VIP_COLORS.gold as [string, string];
+  if (level <= 8) return VIP_COLORS.platinum as [string, string];
+  return VIP_COLORS.diamond as [string, string];
+};
+
 function VIPScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
@@ -66,6 +84,70 @@ function VIPScreenContent() {
   const [showLevelsModal, setShowLevelsModal] = useState(false);
   const [showTasksModal, setShowTasksModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
+
+  // calculateProgress函数在前，避免未定义
+  const calculateProgress = () => {
+    if (!vipData) return 0;
+    const currentLevel = vipData.vip_info.find(info => info.level === vipData.vip_level);
+    const nextLevel = vipData.vip_info.find(info => info.level === vipData.vip_level + 1);
+    if (!currentLevel || !nextLevel) return 100;
+    const currentExp = vipData.vip_exp - currentLevel.exp;
+    const requiredExp = nextLevel.exp - currentLevel.exp;
+    return Math.min((currentExp / requiredExp) * 100, 100);
+  };
+  // 先判空，避免vipData为null时报错
+  const currentLevel = vipData?.vip_info?.find(info => info.level === vipData.vip_level);
+  const nextLevel = vipData?.vip_info?.find(info => info.level === vipData.vip_level + 1);
+  const progress = calculateProgress();
+
+  // 进度条动画
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: progress,
+      duration: 800,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [progress]);
+
+  // 弹窗动画
+  const levelsModalAnim = useRef(new Animated.Value(0)).current;
+  const tasksModalAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (showLevelsModal) {
+      Animated.timing(levelsModalAnim, {
+        toValue: 1,
+        duration: 350,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(levelsModalAnim, {
+        toValue: 0,
+        duration: 250,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showLevelsModal]);
+  useEffect(() => {
+    if (showTasksModal) {
+      Animated.timing(tasksModalAnim, {
+        toValue: 1,
+        duration: 350,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(tasksModalAnim, {
+        toValue: 0,
+        duration: 250,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showTasksModal]);
 
   useEffect(() => {
     if (user?.token) {
@@ -118,20 +200,6 @@ function VIPScreenContent() {
     if (level <= 6) return 'Gold';
     if (level <= 8) return 'Platinum';
     return 'Diamond';
-  };
-
-  const calculateProgress = () => {
-    if (!vipData) return 0;
-    
-    const currentLevel = vipData.vip_info.find(info => info.level === vipData.vip_level);
-    const nextLevel = vipData.vip_info.find(info => info.level === vipData.vip_level + 1);
-    
-    if (!currentLevel || !nextLevel) return 100;
-    
-    const currentExp = vipData.vip_exp - currentLevel.exp;
-    const requiredExp = nextLevel.exp - currentLevel.exp;
-    
-    return Math.min((currentExp / requiredExp) * 100, 100);
   };
 
   const formatDate = (timestamp: number) => {
@@ -258,10 +326,6 @@ function VIPScreenContent() {
     );
   }
 
-  const currentLevel = vipData.vip_info.find(info => info.level === vipData.vip_level);
-  const nextLevel = vipData.vip_info.find(info => info.level === vipData.vip_level + 1);
-  const progress = calculateProgress();
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
@@ -280,9 +344,7 @@ function VIPScreenContent() {
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>VIP Membership</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Level {vipData.vip_level} • {getVIPLevelName(vipData.vip_level)}
-          </Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Level {vipData.vip_level} • {getVIPLevelName(vipData.vip_level)}</Text>
         </View>
         <TouchableOpacity 
           style={[styles.infoButton, { backgroundColor: `${colors.primary}15` }]}
@@ -307,102 +369,129 @@ function VIPScreenContent() {
       >
         {/* VIP Status Card */}
         <LinearGradient
-          colors={[getVIPLevelColor(vipData.vip_level), `${getVIPLevelColor(vipData.vip_level)}80`]}
-          style={styles.vipStatusCard}
+          colors={getVIPLevelGradient(vipData.vip_level)}
+          style={[styles.vipStatusCard, { shadowColor: getVIPLevelGradient(vipData.vip_level)[0] }]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
           <View style={styles.vipStatusHeader}>
             <View style={styles.vipLevelContainer}>
-              <Crown size={32} color="#FFFFFF" />
-              <Text style={styles.vipLevelText}>
-                VIP {vipData.vip_level}
-              </Text>
-              <Text style={styles.vipLevelName}>
-                {getVIPLevelName(vipData.vip_level)}
-              </Text>
+              <Crown size={40} color="#fff" />
+              <Text style={[styles.vipLevelText, { fontSize: 28, letterSpacing: 1, textShadowColor: '#000', textShadowRadius: 8 }]}>VIP {vipData.vip_level}</Text>
+              <Text style={[styles.vipLevelName, { fontSize: 16, fontWeight: 'bold', color: '#fff', textShadowColor: '#000', textShadowRadius: 6 }]}>{getVIPLevelName(vipData.vip_level)}</Text>
             </View>
-            
             <View style={styles.vipBenefits}>
-              <Text style={styles.benefitText}>
-                +{currentLevel?.rate || 0}% Rate Bonus
-              </Text>
-              <Text style={styles.expText}>
-                {vipData.vip_exp.toLocaleString()} EXP
-              </Text>
+              <Text style={[styles.benefitText, { fontSize: 18, fontWeight: 'bold', textShadowColor: '#000', textShadowRadius: 6 }]}>+{currentLevel?.rate || 0}% Rate Bonus</Text>
+              <Text style={[styles.expText, { fontSize: 15, color: '#fff' }]}>{vipData.vip_exp.toLocaleString()} EXP</Text>
             </View>
           </View>
-
           {nextLevel && (
             <View style={styles.progressContainer}>
               <View style={styles.progressHeader}>
-                <Text style={styles.progressLabel}>
-                  Progress to VIP {nextLevel.level}
-                </Text>
-                <Text style={styles.progressText}>
-                  {vipData.next_exp.toLocaleString()} EXP needed
-                </Text>
+                <Text style={[styles.progressLabel, { color: '#fff', fontWeight: 'bold' }]}>Progress to VIP {nextLevel.level}</Text>
+                <Text style={[styles.progressText, { color: '#fff' }]}>{vipData.next_exp.toLocaleString()} EXP needed</Text>
               </View>
-              <View style={styles.progressBar}>
-                <View 
-                  style={[styles.progressFill, { width: `${progress}%` }]} 
-                />
+              <View style={[styles.progressBar, { backgroundColor: 'rgba(255,255,255,0.2)' }]}> 
+                <Animated.View style={[styles.progressFill, {
+                  width: progressAnim.interpolate({
+                    inputRange: [0, 100],
+                    outputRange: ['0%', '100%'],
+                  }),
+                  backgroundColor: '#fff',
+                  shadowColor: '#fff',
+                  shadowOpacity: 0.5,
+                  shadowRadius: 8,
+                }]} />
               </View>
             </View>
           )}
+          <View style={styles.rebateRowInCard}>
+            <View style={styles.rebateInCardBlock}>
+              <Gift size={18} color="#FFD700" style={{ marginBottom: 2 }} />
+              <Text style={styles.rebateInCardLabel}>Total Rebate</Text>
+              <Text style={styles.rebateInCardAmount}>{vipData.currency_symbol}{vipData.total_bonus.toLocaleString()}</Text>
+            </View>
+            <View style={styles.rebateInCardBlock}>
+              <Gift size={18} color="#26C6DA" style={{ marginBottom: 2 }} />
+              <Text style={styles.rebateInCardLabel}>USDT Rebate</Text>
+              <Text style={styles.rebateInCardAmount}>USDT {vipData.total_bonus_usdt?.toLocaleString?.() ?? '0'}</Text>
+            </View>
+          </View>
         </LinearGradient>
 
-        {/* Stats Cards */}
-        <View style={styles.statsTableContainer}>
-          <View style={styles.statsTableHeader}>
-            <Text style={[styles.statsTableHeaderText, { color: colors.text }]}>Total Rebate</Text>
-            <Text style={[styles.statsTableHeaderText, { color: colors.text }]}>USDT Rebate</Text>
-          </View>
-          <View style={styles.statsTableRow}>
-            <Text style={[styles.statsTableCell, { color: colors.text }]}> 
-              {vipData.currency_symbol}{vipData.total_bonus.toLocaleString()}
-            </Text>
-            <Text style={[styles.statsTableCell, { color: '#26C6DA' }]}> 
-              USDT {vipData.total_bonus_usdt?.toLocaleString?.() ?? '0'}
-            </Text>
+        {/* VIP Summary Area */}
+        <View style={styles.vipSummaryArea}>
+          {/* Actions Row */}
+          <View style={styles.actionRowUnified}>
+            {/* Tasks Card */}
+            <TouchableOpacity
+              style={styles.actionCardUnified}
+              activeOpacity={0.85}
+              onPress={() => setShowTasksModal(true)}
+            >
+              <Target size={22} color="#00CFFF" style={{ marginBottom: 6 }} />
+              <Text style={styles.actionCardLabel}>Tasks</Text>
+              <Text style={styles.actionCardDesc}>Completed {vipData.task_list.filter(task => task.is_get).length}/{vipData.task_list.length}</Text>
+            </TouchableOpacity>
+            {/* EXP Log Card */}
+            <TouchableOpacity
+              style={styles.actionCardUnified}
+              activeOpacity={0.85}
+              onPress={() => setShowLogsModal(true)}
+            >
+              <Calendar size={22} color="#FFD700" style={{ marginBottom: 6 }} />
+              <Text style={styles.actionCardLabel}>EXP Log</Text>
+              <Text style={styles.actionCardDesc}>View your EXP history</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.actionsContainer}>
+        {/* Tasks Section */}
+        <View style={styles.tasksSection}>
+          {/* 售卡任务按钮 */}
           <TouchableOpacity
-            style={[styles.actionCard, { backgroundColor: `${colors.primary}15` }]}
-            onPress={() => setShowTasksModal(true)}
-          >
-            <Target size={24} color={colors.primary} />
-            <Text style={[styles.actionTitle, { color: colors.primary }]}>Complete Tasks</Text>
-            <Text style={[styles.actionSubtitle, { color: colors.text }]}>Earn EXP by completing tasks</Text>
-            <View style={styles.taskProgress}>
-              <Text style={[styles.taskCount, { color: colors.textSecondary }]}> {vipData.task_list.filter(task => task.is_get).length}/{vipData.task_list.length} completed </Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionCard, { backgroundColor: `${colors.secondary}15` }]}
-            onPress={() => setShowLogsModal(true)}
-          >
-            <Calendar size={24} color={colors.secondary} />
-            <Text style={[styles.actionTitle, { color: colors.secondary }]}>EXP History</Text>
-            <Text style={[styles.actionSubtitle, { color: colors.text }]}>View your experience log</Text>
-            <View style={styles.taskProgress}>
-              <Text style={[styles.taskCount, { color: colors.textSecondary }]}> {vipLogs.length} entries </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Start Trading CTA */}
-        <View style={styles.ctaContainer}>
-          <Button
-            title="Start Trading to Earn EXP"
+            style={styles.taskCard}
+            activeOpacity={0.85}
             onPress={() => router.push('/(tabs)/sell')}
-            style={styles.ctaButton}
-            rightIcon={<Zap size={20} color="#FFFFFF" />}
-            fullWidth
-          />
+          >
+            <View style={styles.taskHeader}>
+              <View style={[styles.taskIcon, { backgroundColor: `${colors.primary}15` }]}> 
+                <Zap size={20} color={colors.primary} />
+              </View>
+              <View style={styles.taskInfo}>
+                <Text style={[styles.taskName, { color: colors.text }]}>Sell Card</Text>
+                <Text style={[styles.taskReward, { color: colors.primary }]}>Go to sell page</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+          {/* 接口返回的任务 */}
+          {vipData.task_list.map((task, idx) => (
+            <View key={idx} style={styles.taskCard}>
+              <View style={styles.taskHeader}>
+                <View style={[
+                  styles.taskIcon,
+                  { backgroundColor: task.is_get ? `${colors.success}20` : `${colors.primary}15` }
+                ]}>
+                  {task.is_get ? (
+                    <CheckCircle size={20} color={colors.success} />
+                  ) : (
+                    <Circle size={20} color={colors.primary} />
+                  )}
+                </View>
+                <View style={styles.taskInfo}>
+                  <Text style={[styles.taskName, { color: colors.text }]}>
+                    {task.task_name}
+                  </Text>
+                  <Text style={[styles.taskReward, { color: task.is_get ? colors.success : colors.primary }]}>+{task.value} EXP</Text>
+                </View>
+                {task.is_get && (
+                  <View style={[styles.completedBadge, { backgroundColor: colors.success }]}> 
+                    <Text style={styles.completedText}>Completed</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          ))}
         </View>
       </ScrollView>
 
@@ -410,11 +499,25 @@ function VIPScreenContent() {
       <Modal
         visible={showLevelsModal}
         transparent
-        animationType="slide"
+        animationType="none"
         onRequestClose={() => setShowLevelsModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}> 
+          <Animated.View style={[
+            styles.modalContent,
+            { backgroundColor: colors.card },
+            {
+              opacity: levelsModalAnim,
+              transform: [
+                {
+                  translateY: levelsModalAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [100, 0],
+                  }),
+                },
+              ],
+            },
+          ]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>VIP Levels</Text>
               <TouchableOpacity onPress={() => setShowLevelsModal(false)}>
@@ -428,33 +531,7 @@ function VIPScreenContent() {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.modalList}
             />
-          </View>
-        </View>
-      </Modal>
-
-      {/* Tasks Modal */}
-      <Modal
-        visible={showTasksModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowTasksModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}> 
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>VIP Tasks</Text>
-              <TouchableOpacity onPress={() => setShowTasksModal(false)}>
-                <X size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={vipData.task_list}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={renderTaskCard}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.modalList}
-            />
-          </View>
+          </Animated.View>
         </View>
       </Modal>
 
@@ -518,13 +595,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: 'Inter-Bold',
+    letterSpacing: 1,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     marginTop: 2,
+    color: '#B0B0B0',
   },
   infoButton: {
     width: 40,
@@ -541,13 +620,13 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xxl,
   },
   vipStatusCard: {
-    borderRadius: 20,
+    borderRadius: 24,
     padding: Spacing.xl,
-    marginBottom: Spacing.lg,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    marginBottom: Spacing.xl,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.35,
+    shadowRadius: 24,
+    elevation: 12,
   },
   vipStatusHeader: {
     flexDirection: 'row',
@@ -560,27 +639,27 @@ const styles = StyleSheet.create({
   },
   vipLevelText: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 28,
     fontFamily: 'Inter-Bold',
     marginTop: Spacing.sm,
   },
   vipLevelName: {
     color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
   },
   vipBenefits: {
     alignItems: 'flex-end',
   },
   benefitText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Inter-Bold',
     marginBottom: Spacing.xs,
   },
   expText: {
     color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Inter-Medium',
   },
   progressContainer: {
@@ -593,7 +672,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   progressLabel: {
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: '#FFFFFF',
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
@@ -613,74 +692,86 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 4,
   },
-  statsTableContainer: {
-    marginBottom: Spacing.lg,
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#23272F',
+  vipSummaryArea: {
+    marginBottom: Spacing.xl,
+    gap: Spacing.lg,
   },
-  statsTableHeader: {
+  actionRowUnified: {
     flexDirection: 'row',
+    gap: Spacing.lg,
+    marginBottom: Spacing.xl,
+  },
+  actionCardUnified: {
+    flex: 1,
     backgroundColor: '#23272F',
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
+    borderRadius: 18,
+    alignItems: 'center',
+    paddingVertical: Spacing.xl,
+    shadowColor: '#000',
+    shadowOpacity: 0.10,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  statsTableHeaderText: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: 'Inter-Bold',
+  actionCardLabel: {
+    fontSize: 15,
     color: '#fff',
-    textAlign: 'center',
-  },
-  statsTableRow: {
-    flexDirection: 'row',
-    backgroundColor: '#181A20',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-  },
-  statsTableCell: {
-    flex: 1,
-    fontSize: 16,
     fontFamily: 'Inter-Bold',
-    textAlign: 'center',
+    marginBottom: 2,
   },
-  actionsContainer: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  actionCard: {
-    flex: 1,
-    padding: Spacing.lg,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  actionTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.xs,
-  },
-  actionSubtitle: {
+  actionCardDesc: {
     fontSize: 12,
+    color: '#B0B0B0',
     fontFamily: 'Inter-Regular',
-    textAlign: 'center',
-    marginBottom: Spacing.sm,
   },
-  taskProgress: {
+  tasksSection: {
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.xl,
+    gap: Spacing.md,
+  },
+  taskCard: {
+    borderRadius: 16,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+    borderWidth: 0,
+    backgroundColor: '#23272F',
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  taskHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  taskCount: {
-    fontSize: 11,
+  taskIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  taskInfo: {
+    flex: 1,
+  },
+  taskName: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: 2,
+  },
+  taskReward: {
+    fontSize: 12,
     fontFamily: 'Inter-Medium',
   },
-  ctaContainer: {
-    marginTop: Spacing.lg,
+  completedBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-  ctaButton: {
-    height: 56,
-    borderRadius: 16,
+  completedText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontFamily: 'Inter-Bold',
   },
   modalOverlay: {
     flex: 1,
@@ -688,10 +779,15 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: Spacing.lg,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: Spacing.xl,
     maxHeight: '80%',
+    backgroundColor: '#181A20',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -710,10 +806,16 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.lg,
   },
   levelCard: {
-    borderRadius: 12,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
+    borderRadius: 16,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
     position: 'relative',
+    backgroundColor: '#23272F',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 0,
   },
   levelHeader: {
     flexDirection: 'row',
@@ -790,48 +892,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Bold',
   },
-  taskCard: {
-    borderRadius: 12,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-    borderWidth: 1,
-  },
-  taskHeader: {
+  rebateRowInCard: {
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: Spacing.md,
+    gap: Spacing.md,
   },
-  taskIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.md,
-  },
-  taskInfo: {
+  rebateInCardBlock: {
     flex: 1,
-  },
-  taskName: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 2,
-  },
-  taskReward: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-  },
-  completedBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
+    backgroundColor: 'rgba(0,0,0,0.10)',
     borderRadius: 12,
-  },
-  completedText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontFamily: 'Inter-Bold',
-  },
-  loadingFooter: {
-    padding: Spacing.lg,
     alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    marginHorizontal: 1,
+  },
+  rebateInCardLabel: {
+    fontSize: 12,
+    color: '#fff',
+    opacity: 0.8,
+    fontFamily: 'Inter-Bold',
+    marginBottom: 0,
+  },
+  rebateInCardAmount: {
+    fontSize: 16,
+    color: '#fff',
+    fontFamily: 'Inter-Black',
+    fontWeight: 'bold',
   },
 });
