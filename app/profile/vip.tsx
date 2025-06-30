@@ -210,6 +210,18 @@ function VIPScreenContent() {
     return exp > 0 ? `+${exp}` : exp.toString();
   };
 
+  // 售卡任务对象
+  const sellTask = {
+    task_name: '售卡任务',
+    value: 0, // 改为 number 类型，符合 VIPTask 类型
+    is_get: false,
+    isSellTask: true, // 标记为自定义售卡任务
+  };
+
+  // 获取当前VIP等级主色
+  const vipMainColor = getVIPLevelGradient(vipData?.vip_level ?? 1)[0];
+
+  // 恢复 VIP 等级卡片渲染函数
   const renderVIPLevelCard = ({ item: level }: { item: VIPInfo }) => {
     const isCurrentLevel = level.level === vipData?.vip_level;
     const isUnlocked = vipData ? level.level <= vipData.vip_level : false;
@@ -260,41 +272,56 @@ function VIPScreenContent() {
     );
   };
 
-  const renderTaskCard = ({ item: task }: { item: VIPTask }) => (
-    <View style={[
-      styles.taskCard,
-      { 
-        backgroundColor: colors.card,
-        borderColor: task.is_get ? colors.success : colors.border,
-      }
-    ]}>
-      <View style={styles.taskHeader}>
-        <View style={[
-          styles.taskIcon,
-          { backgroundColor: task.is_get ? `${colors.success}20` : `${colors.primary}15` }
-        ]}>
-          {task.is_get ? (
-            <CheckCircle size={20} color={colors.success} />
+  // 更紧凑的任务卡片渲染
+  const renderTaskCard = ({ item: task, idx }: { item: VIPTask & { isSellTask?: boolean }, idx?: number }) => {
+    const isSellTask = !!task.isSellTask;
+    const isCompleted = !!task.is_get;
+    return (
+      <TouchableOpacity
+        key={isSellTask ? 'sell-task' : idx}
+        style={[
+          styles.compactTaskCard,
+          {
+            backgroundColor: isCompleted ? `${vipMainColor}22` : colors.card,
+            borderColor: vipMainColor,
+            shadowColor: isCompleted ? vipMainColor : 'transparent',
+          },
+        ]}
+        activeOpacity={0.85}
+        onPress={isSellTask ? () => router.push('/sell') : undefined}
+        disabled={isCompleted && !isSellTask}
+      >
+        <View style={styles.compactTaskLeft}>
+          <View style={[
+            styles.compactTaskIcon,
+            { backgroundColor: `${vipMainColor}18` },
+          ]}>
+            {isSellTask ? (
+              <TrendingUp size={18} color={vipMainColor} />
+            ) : isCompleted ? (
+              <CheckCircle size={18} color={colors.success} />
+            ) : (
+              <Circle size={18} color={vipMainColor} />
+            )}
+          </View>
+          <Text style={[styles.compactTaskName, { color: colors.text }]}>
+            {isSellTask ? 'Sell Card Task' : task.task_name}
+          </Text>
+        </View>
+        <View style={styles.compactTaskRight}>
+          {isSellTask ? (
+            <View style={[styles.compactTaskBtn, { backgroundColor: vipMainColor }]}> 
+              <Text style={styles.compactTaskBtnText}>Go to Sell</Text>
+            </View>
+          ) : isCompleted ? (
+            <Text style={[styles.compactTaskCompleted, { color: colors.success }]}>Completed</Text>
           ) : (
-            <Circle size={20} color={colors.primary} />
+            <Text style={[styles.compactTaskReward, { color: vipMainColor }]}>+{task.value} EXP</Text>
           )}
         </View>
-        <View style={styles.taskInfo}>
-          <Text style={[styles.taskName, { color: colors.text }]}>
-            {task.task_name}
-          </Text>
-          <Text style={[styles.taskReward, { color: task.is_get ? colors.success : colors.primary }]}>
-            +{task.value} EXP
-          </Text>
-        </View>
-        {task.is_get && (
-          <View style={[styles.completedBadge, { backgroundColor: colors.success }]}>
-            <Text style={styles.completedText}>Completed</Text>
-          </View>
-        )}
-      </View>
-    </View>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   if (isLoadingVIP && !vipData) {
     return (
@@ -348,9 +375,9 @@ function VIPScreenContent() {
         </View>
         <TouchableOpacity 
           style={[styles.infoButton, { backgroundColor: `${colors.primary}15` }]}
-          onPress={() => setShowLevelsModal(true)}
+          onPress={() => setShowLogsModal(true)}
         >
-          <Info size={20} color={colors.primary} />
+          <Calendar size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -374,6 +401,15 @@ function VIPScreenContent() {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.md }}>
+            <Text style={[styles.title, { color: '#fff', flex: 1 }]}>VIP Membership</Text>
+            <TouchableOpacity 
+              style={[styles.infoButton, { backgroundColor: 'rgba(255,255,255,0.12)', marginLeft: 8 }]}
+              onPress={() => setShowLevelsModal(true)}
+            >
+              <Info size={18} color={'#fff'} />
+            </TouchableOpacity>
+          </View>
           <View style={styles.vipStatusHeader}>
             <View style={styles.vipLevelContainer}>
               <Crown size={40} color="#fff" />
@@ -419,79 +455,10 @@ function VIPScreenContent() {
           </View>
         </LinearGradient>
 
-        {/* VIP Summary Area */}
-        <View style={styles.vipSummaryArea}>
-          {/* Actions Row */}
-          <View style={styles.actionRowUnified}>
-            {/* Tasks Card */}
-            <TouchableOpacity
-              style={styles.actionCardUnified}
-              activeOpacity={0.85}
-              onPress={() => setShowTasksModal(true)}
-            >
-              <Target size={22} color="#00CFFF" style={{ marginBottom: 6 }} />
-              <Text style={styles.actionCardLabel}>Tasks</Text>
-              <Text style={styles.actionCardDesc}>Completed {vipData.task_list.filter(task => task.is_get).length}/{vipData.task_list.length}</Text>
-            </TouchableOpacity>
-            {/* EXP Log Card */}
-            <TouchableOpacity
-              style={styles.actionCardUnified}
-              activeOpacity={0.85}
-              onPress={() => setShowLogsModal(true)}
-            >
-              <Calendar size={22} color="#FFD700" style={{ marginBottom: 6 }} />
-              <Text style={styles.actionCardLabel}>EXP Log</Text>
-              <Text style={styles.actionCardDesc}>View your EXP history</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Tasks Section */}
         <View style={styles.tasksSection}>
-          {/* 售卡任务按钮 */}
-          <TouchableOpacity
-            style={styles.taskCard}
-            activeOpacity={0.85}
-            onPress={() => router.push('/(tabs)/sell')}
-          >
-            <View style={styles.taskHeader}>
-              <View style={[styles.taskIcon, { backgroundColor: `${colors.primary}15` }]}> 
-                <Zap size={20} color={colors.primary} />
-              </View>
-              <View style={styles.taskInfo}>
-                <Text style={[styles.taskName, { color: colors.text }]}>Sell Card</Text>
-                <Text style={[styles.taskReward, { color: colors.primary }]}>Go to sell page</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-          {/* 接口返回的任务 */}
-          {vipData.task_list.map((task, idx) => (
-            <View key={idx} style={styles.taskCard}>
-              <View style={styles.taskHeader}>
-                <View style={[
-                  styles.taskIcon,
-                  { backgroundColor: task.is_get ? `${colors.success}20` : `${colors.primary}15` }
-                ]}>
-                  {task.is_get ? (
-                    <CheckCircle size={20} color={colors.success} />
-                  ) : (
-                    <Circle size={20} color={colors.primary} />
-                  )}
-                </View>
-                <View style={styles.taskInfo}>
-                  <Text style={[styles.taskName, { color: colors.text }]}>
-                    {task.task_name}
-                  </Text>
-                  <Text style={[styles.taskReward, { color: task.is_get ? colors.success : colors.primary }]}>+{task.value} EXP</Text>
-                </View>
-                {task.is_get && (
-                  <View style={[styles.completedBadge, { backgroundColor: colors.success }]}> 
-                    <Text style={styles.completedText}>Completed</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          ))}
+          {renderTaskCard({ item: sellTask })}
+          {vipData.task_list.map((task, idx) => renderTaskCard({ item: task, idx }))}
         </View>
       </ScrollView>
 
@@ -605,13 +572,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
     color: '#B0B0B0',
   },
-  infoButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   scrollView: {
     flex: 1,
   },
@@ -722,56 +682,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#B0B0B0',
     fontFamily: 'Inter-Regular',
-  },
-  tasksSection: {
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.xl,
-    gap: Spacing.md,
-  },
-  taskCard: {
-    borderRadius: 16,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderWidth: 0,
-    backgroundColor: '#23272F',
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  taskHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  taskIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.md,
-  },
-  taskInfo: {
-    flex: 1,
-  },
-  taskName: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 2,
-  },
-  taskReward: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-  },
-  completedBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  completedText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontFamily: 'Inter-Bold',
   },
   modalOverlay: {
     flex: 1,
@@ -919,5 +829,73 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: 'Inter-Black',
     fontWeight: 'bold',
+  },
+  infoButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tasksSection: {
+    marginBottom: Spacing.xl,
+  },
+  compactTaskCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    borderWidth: 1.2,
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+    elevation: 2,
+    minHeight: 44,
+  },
+  compactTaskLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  compactTaskIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  compactTaskName: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    flexShrink: 1,
+  },
+  compactTaskRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  compactTaskReward: {
+    fontSize: 13,
+    fontFamily: 'Inter-Bold',
+  },
+  compactTaskCompleted: {
+    fontSize: 13,
+    fontFamily: 'Inter-Bold',
+    opacity: 0.85,
+  },
+  compactTaskBtn: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  compactTaskBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontFamily: 'Inter-Bold',
+    letterSpacing: 0.5,
   },
 });
