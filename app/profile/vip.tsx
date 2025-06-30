@@ -39,6 +39,7 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useVIPStore } from '@/stores/useVIPStore';
 import type { VIPInfo, VIPTask, VIPLogEntry } from '@/types';
+import VIPLogList from '@/components/vip/VIPLogList';
 
 const { width } = Dimensions.get('window');
 
@@ -69,25 +70,22 @@ function VIPScreenContent() {
   useEffect(() => {
     if (user?.token) {
       fetchVIPInfo(user.token);
-      fetchVIPLogs(user.token, true);
       fetchVIPDefault();
     }
-  }, [user?.token, fetchVIPInfo, fetchVIPLogs, fetchVIPDefault]);
+  }, [user?.token, fetchVIPInfo, fetchVIPDefault]);
 
   const handleRefresh = useCallback(async () => {
     if (!user?.token) return;
-
     setRefreshing(true);
     try {
       await Promise.all([
         fetchVIPInfo(user.token),
-        fetchVIPLogs(user.token, true),
         fetchVIPDefault(),
       ]);
     } finally {
       setRefreshing(false);
     }
-  }, [user?.token, fetchVIPInfo, fetchVIPLogs, fetchVIPDefault]);
+  }, [user?.token, fetchVIPInfo, fetchVIPDefault]);
 
   const handleLoadMoreLogs = useCallback(() => {
     if (user?.token) {
@@ -96,11 +94,22 @@ function VIPScreenContent() {
   }, [user?.token, loadMoreLogs]);
 
   const getVIPLevelColor = (level: number) => {
-    if (level <= 2) return '#CD7F32'; // Bronze
-    if (level <= 4) return '#C0C0C0'; // Silver
-    if (level <= 6) return '#FFD700'; // Gold
-    if (level <= 8) return '#E5E4E2'; // Platinum
-    return '#B9F2FF'; // Diamond
+    switch (level) {
+      case 1:
+      case 2:
+        return '#CD7F32'; // Bronze
+      case 3:
+      case 4:
+        return '#C0C0C0'; // Silver
+      case 5:
+      case 6:
+        return '#FFD700'; // Gold
+      case 7:
+      case 8:
+        return '#E5E4E2'; // Platinum
+      default:
+        return '#00CFFF'; // Diamond
+    }
   };
 
   const getVIPLevelName = (level: number) => {
@@ -137,60 +146,46 @@ function VIPScreenContent() {
     const isCurrentLevel = level.level === vipData?.vip_level;
     const isUnlocked = vipData ? level.level <= vipData.vip_level : false;
     const levelColor = getVIPLevelColor(level.level);
-    
     return (
       <View style={[
         styles.levelCard,
         {
-          backgroundColor: isCurrentLevel ? `${levelColor}20` : colors.card,
+          backgroundColor: isCurrentLevel ? `${levelColor}22` : colors.card,
           borderColor: isCurrentLevel ? levelColor : colors.border,
-          borderWidth: isCurrentLevel ? 2 : 1,
+          borderWidth: isCurrentLevel ? 2.5 : 1,
+          shadowColor: isCurrentLevel ? levelColor : 'transparent',
+          shadowOpacity: isCurrentLevel ? 0.25 : 0,
+          shadowRadius: isCurrentLevel ? 12 : 0,
+          elevation: isCurrentLevel ? 8 : 2,
         }
       ]}>
         <View style={styles.levelHeader}>
-          <View style={[styles.levelIcon, { backgroundColor: `${levelColor}20` }]}>
-            <Crown size={20} color={levelColor} />
+          <View style={[styles.levelIcon, { backgroundColor: `${levelColor}22` }]}> 
+            <Crown size={24} color={levelColor} />
           </View>
           <View style={styles.levelInfo}>
-            <Text style={[styles.levelNumber, { color: colors.text }]}>
-              VIP {level.level}
-            </Text>
-            <Text style={[styles.levelName, { color: levelColor }]}>
-              {getVIPLevelName(level.level)}
-            </Text>
+            <Text style={[styles.levelNumber, { color: levelColor, fontSize: 18, fontWeight: 'bold' }]}>VIP {level.level}</Text>
+            <Text style={[styles.levelName, { color: levelColor, fontWeight: 'bold', fontSize: 13 }]}> {getVIPLevelName(level.level)} </Text>
           </View>
           {isCurrentLevel && (
-            <View style={[styles.currentBadge, { backgroundColor: levelColor }]}>
+            <View style={[styles.currentBadge, { backgroundColor: levelColor, shadowColor: levelColor, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }]}> 
               <Text style={styles.currentBadgeText}>Current</Text>
             </View>
           )}
         </View>
-        
         <View style={styles.levelDetails}>
           <View style={styles.levelBenefit}>
-            <Text style={[styles.benefitLabel, { color: colors.textSecondary }]}>
-              Rate Bonus
-            </Text>
-            <Text style={[styles.benefitValue, { color: levelColor }]}>
-              +{level.rate}%
-            </Text>
+            <Text style={[styles.benefitLabel, { color: colors.textSecondary }]}>Rate Bonus</Text>
+            <Text style={[styles.benefitValue, { color: levelColor, fontWeight: 'bold' }]}>+{level.rate}%</Text>
           </View>
-          
           <View style={styles.levelRequirement}>
-            <Text style={[styles.requirementLabel, { color: colors.textSecondary }]}>
-              Required EXP
-            </Text>
-            <Text style={[styles.requirementValue, { color: colors.text }]}>
-              {level.exp.toLocaleString()}
-            </Text>
+            <Text style={[styles.requirementLabel, { color: colors.textSecondary }]}>Required EXP</Text>
+            <Text style={[styles.requirementValue, { color: colors.text, fontWeight: 'bold' }]}>{level.exp.toLocaleString()}</Text>
           </View>
         </View>
-        
         {!isUnlocked && (
           <View style={styles.lockedOverlay}>
-            <Text style={[styles.lockedText, { color: colors.textSecondary }]}>
-              Locked
-            </Text>
+            <Text style={[styles.lockedText, { color: colors.textSecondary }]}>Locked</Text>
           </View>
         )}
       </View>
@@ -229,48 +224,6 @@ function VIPScreenContent() {
             <Text style={styles.completedText}>Completed</Text>
           </View>
         )}
-      </View>
-    </View>
-  );
-
-  const renderLogEntry = ({ item: log }: { item: VIPLogEntry }) => (
-    <View style={[
-      styles.logEntry,
-      { borderBottomColor: colors.border }
-    ]}>
-      <View style={styles.logHeader}>
-        <View style={[
-          styles.logIcon,
-          { backgroundColor: log.exp > 0 ? `${colors.success}15` : `${colors.error}15` }
-        ]}>
-          {log.exp > 0 ? (
-            <TrendingUp size={16} color={colors.success} />
-          ) : (
-            <TrendingUp size={16} color={colors.error} style={{ transform: [{ rotate: '180deg' }] }} />
-          )}
-        </View>
-        <View style={styles.logContent}>
-          <Text style={[styles.logSource, { color: colors.text }]}>
-            {log.source}
-          </Text>
-          <Text style={[styles.logMemo, { color: colors.textSecondary }]}>
-            {log.memo}
-          </Text>
-          <Text style={[styles.logDate, { color: colors.textSecondary }]}>
-            {formatDate(log.create_time)}
-          </Text>
-        </View>
-        <View style={styles.logExp}>
-          <Text style={[
-            styles.expChange,
-            { color: log.exp > 0 ? colors.success : colors.error }
-          ]}>
-            {formatExpChange(log.exp)} EXP
-          </Text>
-          <Text style={[styles.afterExp, { color: colors.textSecondary }]}>
-            Total: {log.after_exp.toLocaleString()}
-          </Text>
-        </View>
       </View>
     </View>
   );
@@ -400,24 +353,17 @@ function VIPScreenContent() {
         </LinearGradient>
 
         {/* Stats Cards */}
-        <View style={styles.statsContainer}>
-          <View style={[styles.statCard, { backgroundColor: colors.card }]}>
-            <DollarSign size={24} color={colors.success} />
-            <Text style={[styles.statValue, { color: colors.text }]}>
+        <View style={styles.statsTableContainer}>
+          <View style={styles.statsTableHeader}>
+            <Text style={[styles.statsTableHeaderText, { color: colors.text }]}>Total Rebate</Text>
+            <Text style={[styles.statsTableHeaderText, { color: colors.text }]}>USDT Rebate</Text>
+          </View>
+          <View style={styles.statsTableRow}>
+            <Text style={[styles.statsTableCell, { color: colors.text }]}> 
               {vipData.currency_symbol}{vipData.total_bonus.toLocaleString()}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              Total Bonus Earned
-            </Text>
-          </View>
-
-          <View style={[styles.statCard, { backgroundColor: colors.card }]}>
-            <Users size={24} color={colors.primary} />
-            <Text style={[styles.statValue, { color: colors.text }]}>
-              {vipData.currency_symbol}{vipData.referred_total_bonus.toLocaleString()}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              Referral Bonus
+            <Text style={[styles.statsTableCell, { color: '#26C6DA' }]}> 
+              USDT {vipData.total_bonus_usdt?.toLocaleString?.() ?? '0'}
             </Text>
           </View>
         </View>
@@ -429,77 +375,24 @@ function VIPScreenContent() {
             onPress={() => setShowTasksModal(true)}
           >
             <Target size={24} color={colors.primary} />
-            <Text style={[styles.actionTitle, { color: colors.primary }]}>
-              Complete Tasks
-            </Text>
-            <Text style={[styles.actionSubtitle, { color: colors.text }]}>
-              Earn EXP by completing tasks
-            </Text>
+            <Text style={[styles.actionTitle, { color: colors.primary }]}>Complete Tasks</Text>
+            <Text style={[styles.actionSubtitle, { color: colors.text }]}>Earn EXP by completing tasks</Text>
             <View style={styles.taskProgress}>
-              <Text style={[styles.taskCount, { color: colors.textSecondary }]}>
-                {vipData.task_list.filter(task => task.is_get).length}/{vipData.task_list.length} completed
-              </Text>
+              <Text style={[styles.taskCount, { color: colors.textSecondary }]}> {vipData.task_list.filter(task => task.is_get).length}/{vipData.task_list.length} completed </Text>
             </View>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={[styles.actionCard, { backgroundColor: `${colors.secondary}15` }]}
             onPress={() => setShowLogsModal(true)}
           >
             <Calendar size={24} color={colors.secondary} />
-            <Text style={[styles.actionTitle, { color: colors.secondary }]}>
-              EXP History
-            </Text>
-            <Text style={[styles.actionSubtitle, { color: colors.text }]}>
-              View your experience log
-            </Text>
+            <Text style={[styles.actionTitle, { color: colors.secondary }]}>EXP History</Text>
+            <Text style={[styles.actionSubtitle, { color: colors.text }]}>View your experience log</Text>
             <View style={styles.taskProgress}>
-              <Text style={[styles.taskCount, { color: colors.textSecondary }]}>
-                {vipLogs.length} entries
-              </Text>
+              <Text style={[styles.taskCount, { color: colors.textSecondary }]}> {vipLogs.length} entries </Text>
             </View>
           </TouchableOpacity>
         </View>
-
-        {/* Bonus Information */}
-        {(vipData.first_order_bonus > 0 || vipData.amount_order_bonus.bonus_amount > 0) && (
-          <View style={[
-            styles.bonusCard,
-            { backgroundColor: `${colors.warning}10` }
-          ]}>
-            <View style={styles.bonusHeader}>
-              <Gift size={20} color={colors.warning} />
-              <Text style={[styles.bonusTitle, { color: colors.warning }]}>
-                Available Bonuses
-              </Text>
-            </View>
-
-            {vipData.first_order_bonus > 0 && (
-              <View style={styles.bonusItem}>
-                <Text style={[styles.bonusLabel, { color: colors.text }]}>
-                  First Order Bonus
-                </Text>
-                <Text style={[styles.bonusValue, { color: colors.warning }]}>
-                  {vipData.currency_symbol}{vipData.first_order_bonus}
-                </Text>
-              </View>
-            )}
-
-            {vipData.amount_order_bonus.bonus_amount > 0 && (
-              <View style={styles.bonusItem}>
-                <Text style={[styles.bonusLabel, { color: colors.text }]}>
-                  Volume Bonus
-                </Text>
-                <Text style={[styles.bonusValue, { color: colors.warning }]}>
-                  {vipData.currency_symbol}{vipData.amount_order_bonus.bonus_amount}
-                </Text>
-                <Text style={[styles.bonusCondition, { color: colors.textSecondary }]}>
-                  For orders ≥ {vipData.currency_symbol}{vipData.amount_order_bonus.order_amount}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
 
         {/* Start Trading CTA */}
         <View style={styles.ctaContainer}>
@@ -521,16 +414,13 @@ function VIPScreenContent() {
         onRequestClose={() => setShowLevelsModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}> 
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                VIP Levels
-              </Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>VIP Levels</Text>
               <TouchableOpacity onPress={() => setShowLevelsModal(false)}>
                 <X size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
-            
             <FlatList
               data={vipData.vip_info}
               keyExtractor={(item) => item.level.toString()}
@@ -550,16 +440,13 @@ function VIPScreenContent() {
         onRequestClose={() => setShowTasksModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}> 
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                VIP Tasks
-              </Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>VIP Tasks</Text>
               <TouchableOpacity onPress={() => setShowTasksModal(false)}>
                 <X size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
-            
             <FlatList
               data={vipData.task_list}
               keyExtractor={(item, index) => index.toString()}
@@ -572,42 +459,7 @@ function VIPScreenContent() {
       </Modal>
 
       {/* Logs Modal */}
-      <Modal
-        visible={showLogsModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowLogsModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                EXP History
-              </Text>
-              <TouchableOpacity onPress={() => setShowLogsModal(false)}>
-                <X size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-            
-            <FlatList
-              data={vipLogs}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={renderLogEntry}
-              onEndReached={handleLoadMoreLogs}
-              onEndReachedThreshold={0.1}
-              ListFooterComponent={
-                isLoadingMore ? (
-                  <View style={styles.loadingFooter}>
-                    <ActivityIndicator size="small" color={colors.primary} />
-                  </View>
-                ) : null
-              }
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.modalList}
-            />
-          </View>
-        </View>
-      </Modal>
+      <VIPLogList visible={showLogsModal} onClose={() => setShowLogsModal(false)} />
     </SafeAreaView>
   );
 }
@@ -761,30 +613,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 4,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: Spacing.md,
+  statsTableContainer: {
     marginBottom: Spacing.lg,
-  },
-  statCard: {
-    flex: 1,
-    alignItems: 'center',
-    padding: Spacing.lg,
     borderRadius: 16,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#23272F',
   },
-  statValue: {
-    fontSize: 18,
+  statsTableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#23272F',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+  },
+  statsTableHeaderText: {
+    flex: 1,
+    fontSize: 14,
     fontFamily: 'Inter-Bold',
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.xs,
+    color: '#fff',
+    textAlign: 'center',
   },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
+  statsTableRow: {
+    flexDirection: 'row',
+    backgroundColor: '#181A20',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  statsTableCell: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
     textAlign: 'center',
   },
   actionsContainer: {
@@ -816,43 +674,6 @@ const styles = StyleSheet.create({
   taskCount: {
     fontSize: 11,
     fontFamily: 'Inter-Medium',
-  },
-  bonusCard: {
-    padding: Spacing.lg,
-    borderRadius: 16,
-    marginBottom: Spacing.lg,
-  },
-  bonusHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  bonusTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-  },
-  bonusItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  bonusLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    flex: 1,
-  },
-  bonusValue: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-  },
-  bonusCondition: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    position: 'absolute',
-    bottom: -16,
-    right: 0,
   },
   ctaContainer: {
     marginTop: Spacing.lg,
@@ -1008,51 +829,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 10,
     fontFamily: 'Inter-Bold',
-  },
-  logEntry: {
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-  },
-  logHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.sm,
-  },
-  logContent: {
-    flex: 1,
-  },
-  logSource: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 2,
-  },
-  logMemo: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    marginBottom: 2,
-  },
-  logDate: {
-    fontSize: 11,
-    fontFamily: 'Inter-Regular',
-  },
-  logExp: {
-    alignItems: 'flex-end',
-  },
-  expChange: {
-    fontSize: 14,
-    fontFamily: 'Inter-Bold',
-    marginBottom: 2,
-  },
-  afterExp: {
-    fontSize: 11,
-    fontFamily: 'Inter-Regular',
   },
   loadingFooter: {
     padding: Spacing.lg,
