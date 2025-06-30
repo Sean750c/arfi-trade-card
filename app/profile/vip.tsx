@@ -14,6 +14,7 @@ import {
   Dimensions,
   Animated,
   Easing,
+  PanResponder,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
@@ -33,6 +34,7 @@ import {
   Circle,
   X,
   Info,
+  HelpCircle,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AuthGuard from '@/components/UI/AuthGuard';
@@ -46,20 +48,24 @@ import VIPLogList from '@/components/vip/VIPLogList';
 
 const { width } = Dimensions.get('window');
 
-const VIP_COLORS = {
-  bronze: ['#CD7F32', '#A97142'],
-  silver: ['#C0C0C0', '#A8A9AD'],
-  gold: ['#FFD700', '#FFB300'],
-  platinum: ['#E5E4E2', '#B3B3B3'],
-  diamond: ['#00CFFF', '#0078A0'],
-};
+// 11级VIP配色
+const VIP_LEVEL_COLORS: [string, string][] = [
+  ['#CD7F32', '#A97142'],    // VIP 1 Bronze
+  ['#C0C0C0', '#A9A9A9'],    // VIP 2 Silver
+  ['#FFD700', '#DAA520'],    // VIP 3 Gold
+  ['#E5E4E2', '#BCC6CC'],    // VIP 4 Platinum
+  ['#B9F2FF', '#89CFF0'],    // VIP 5 Diamond
+  ['#9B111E', '#FF0033'],    // VIP 6 Ruby
+  ['#0F52BA', '#4682B4'],    // VIP 7 Sapphire
+  ['#50C878', '#2E8B57'],    // VIP 8 Emerald
+  ['#9966CC', '#8A2BE2'],    // VIP 9 Amethyst
+  ['#343434', '#4F4F4F'],    // VIP 10 Obsidian
+  ['#7F00FF', '#E100FF'],    // VIP 11 Celestial (or use gradient)
+];
 
 const getVIPLevelGradient = (level: number): [string, string] => {
-  if (level <= 2) return VIP_COLORS.bronze as [string, string];
-  if (level <= 4) return VIP_COLORS.silver as [string, string];
-  if (level <= 6) return VIP_COLORS.gold as [string, string];
-  if (level <= 8) return VIP_COLORS.platinum as [string, string];
-  return VIP_COLORS.diamond as [string, string];
+  // level 1-11, 数组下标0-10
+  return VIP_LEVEL_COLORS[Math.max(0, Math.min(level - 1, VIP_LEVEL_COLORS.length - 1))];
 };
 
 function VIPScreenContent() {
@@ -85,6 +91,46 @@ function VIPScreenContent() {
   const [showLevelsModal, setShowLevelsModal] = useState(false);
   const [showTasksModal, setShowTasksModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
+  const [showVIPTipsModal, setShowVIPTipsModal] = useState(false);
+
+  // 浮动问号按钮拖动逻辑
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const [helpButtonPosition, setHelpButtonPosition] = useState({
+    x: screenWidth - 60,
+    y: screenHeight - 200,
+  });
+  const pan = useRef(new Animated.ValueXY(helpButtonPosition)).current;
+
+  useEffect(() => {
+    pan.setValue(helpButtonPosition);
+  }, [helpButtonPosition]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        pan.extractOffset();
+      },
+      onPanResponderMove: Animated.event([
+        null,
+        { dx: pan.x, dy: pan.y },
+      ], { useNativeDriver: false }),
+      onPanResponderRelease: () => {
+        pan.flattenOffset();
+        const buttonSize = 40;
+        const margin = 20;
+        // @ts-ignore
+        let newX = pan.x._value ?? 0;
+        // @ts-ignore
+        let newY = pan.y._value ?? 0;
+        newX = Math.max(margin, Math.min(screenWidth - buttonSize - margin, newX));
+        newY = Math.max(margin, Math.min(screenHeight - buttonSize - margin, newY));
+        setHelpButtonPosition({ x: newX, y: newY });
+        pan.setValue({ x: newX, y: newY });
+      },
+    })
+  ).current;
 
   // calculateProgress函数在前，避免未定义
   const calculateProgress = () => {
@@ -177,22 +223,8 @@ function VIPScreenContent() {
   }, [user?.token, loadMoreLogs]);
 
   const getVIPLevelColor = (level: number) => {
-    switch (level) {
-      case 1:
-      case 2:
-        return '#CD7F32'; // Bronze
-      case 3:
-      case 4:
-        return '#C0C0C0'; // Silver
-      case 5:
-      case 6:
-        return '#FFD700'; // Gold
-      case 7:
-      case 8:
-        return '#E5E4E2'; // Platinum
-      default:
-        return '#00CFFF'; // Diamond
-    }
+    // 取主色
+    return getVIPLevelGradient(level)[0];
   };
 
   const formatDate = (timestamp: number) => {
@@ -369,7 +401,7 @@ function VIPScreenContent() {
           style={[styles.infoButton, { backgroundColor: `${colors.primary}15` }]}
           onPress={() => setShowLogsModal(true)}
         >
-          <FileText size={22} color={colors.primary} />
+          <FileText size={22} color={getVIPLevelGradient(vipData.vip_level)[0]} />
         </TouchableOpacity>
       </View>
 
@@ -496,6 +528,47 @@ function VIPScreenContent() {
 
       {/* Logs Modal */}
       <VIPLogList visible={showLogsModal} onClose={() => setShowLogsModal(false)} />
+
+      {/* 说明弹窗 */}
+      <Modal
+        visible={showVIPTipsModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowVIPTipsModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: colors.card, borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 24, width: '100%', minHeight: 180 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              <HelpCircle size={22} color={getVIPLevelGradient(vipData.vip_level)[0]} style={{ marginRight: 8 }} />
+              <Text style={{ color: colors.text, fontSize: 18, fontWeight: 'bold', flex: 1 }}>VIP Info</Text>
+              <TouchableOpacity onPress={() => setShowVIPTipsModal(false)}>
+                <X size={22} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            <Text style={{ color: colors.textSecondary, fontSize: 15, lineHeight: 22 }}>
+              Here you can view your VIP level, experience, and exclusive benefits. Complete tasks to earn EXP and unlock higher VIP levels for more rewards!
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 浮动问号按钮 */}
+      <Animated.View
+        style={{
+          position: 'absolute',
+          left: pan.x,
+          top: pan.y,
+          zIndex: 100,
+        }}
+        {...panResponder.panHandlers}
+      >
+        <TouchableOpacity
+          onPress={() => setShowVIPTipsModal(true)}
+          style={[styles.helpButtonContainer, { borderColor: getVIPLevelGradient(vipData.vip_level)[0] }]}
+        >
+          <HelpCircle size={20} color={getVIPLevelGradient(vipData.vip_level)[0]} />
+        </TouchableOpacity>
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -890,4 +963,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     letterSpacing: 0.5,
   },
+  helpButtonContainer: {
+    width: 30,
+    height: 30,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+    borderWidth: 1.5,
+  }
 });

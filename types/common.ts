@@ -155,10 +155,17 @@ export interface FAQListRequest {
     page_size: number;
 }
 
-
-
 export type CountryListResponse = APIResponse<Country[]>;
 export type InitResponse = APIResponse<InitData>;
 export type BannerListResponse = APIResponse<BannerData>; // Updated to use BannerData
 export type NoticeListResponse = APIResponse<NoticeListData>;
 export type FAQListResponse = APIResponse<FAQItem[]>;
+
+// /gc/public/lead 返回数据结构
+export interface LeadData {
+  status: number;
+  value: string;
+  title: string;
+}
+
+export type LeadResponse = APIResponse<LeadData>;
