@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  FlatList,
   Modal,
   Dimensions,
   Animated,
@@ -19,11 +18,8 @@ import { router } from 'expo-router';
 import { 
   ChevronLeft, 
   Crown, 
-  TrendingUp,
   Gift,
   FileText,
-  CircleCheck as CheckCircle,
-  Circle,
   X,
   Info,
   HelpCircle,
@@ -35,7 +31,6 @@ import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useVIPStore } from '@/stores/useVIPStore';
-import type { VIPInfo, VIPTask } from '@/types';
 import VIPLogList from '@/components/vip/VIPLogList';
 import VIPTaskList from '@/components/vip/VIPTaskList';
 import VIPLevelModal from '@/components/vip/VIPLevelModal';
@@ -70,7 +65,6 @@ function VIPScreenContent() {
     vipError,
     fetchVIPInfo,
     fetchVIPDefault,
-    loadMoreLogs,
   } = useVIPStore();
 
   const [refreshing, setRefreshing] = useState(false);
