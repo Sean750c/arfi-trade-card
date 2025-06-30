@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  useColorScheme,
   Image,
   Alert,
   Platform,
@@ -16,7 +15,6 @@ import {
 import { router } from 'expo-router';
 import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt, CircleUser as UserCircle, Camera, Check, X, Edit3, } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import Button from '@/components/UI/Button';

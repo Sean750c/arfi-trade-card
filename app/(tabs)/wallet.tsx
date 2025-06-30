@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -50,19 +50,7 @@ function WalletScreenContent() {
   // Get current balance data
   const balanceData = getCurrentBalanceData();
 
-  useEffect(() => {
-    if (user?.token) {
-      fetchBalance(user.token);
-      fetchTransactions(user.token, true);
-    }
-  }, [user?.token, fetchBalance, fetchTransactions]);
-
-  useEffect(() => {
-    if (user?.token) {
-      fetchTransactions(user.token, false);
-    }
-  }, [activeWalletType, activeTransactionType]);
-
+  // 每次进入页面都刷新余额和交易数据
   useFocusEffect(
     useCallback(() => {
       if (user?.token) {
@@ -70,6 +58,14 @@ function WalletScreenContent() {
         fetchTransactions(user.token, true);
       }
     }, [user?.token, fetchBalance, fetchTransactions])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (user?.token) {
+        fetchTransactions(user.token, false);
+      }
+    }, [user?.token, activeWalletType, activeTransactionType, fetchTransactions])
   );
 
   const handleRefresh = useCallback(async () => {
@@ -97,14 +93,19 @@ function WalletScreenContent() {
     setActiveTransactionType(type);
   };
 
-  const handleLoadMore = useCallback(() => {
-    if (user?.token) {
-      loadMoreTransactions(user.token);
-    }
-  }, [user?.token, loadMoreTransactions]);
+  const handleLoadMore = () => {
+    if (!user?.token) return;
+    loadMoreTransactions(user.token);
+  };
+
+  const handleWithdraw = () => {
+    router.push('/wallet/withdraw');
+  };
 
   const handleTransactionPress = (transaction: WalletTransaction) => {
-    router.push(`/wallet/${transaction.log_id}` as any);
+    if (transaction.type === 'order') {
+      router.push(`/orders/${transaction.order_no}`);
+    }
   };
 
   const handleRebatePress = () => {
@@ -113,10 +114,6 @@ function WalletScreenContent() {
       pathname: '/wallet/rebate',
       params: { walletType: activeWalletType },
     });
-  };
-
-  const handleWithdraw = () => {
-    router.push('/wallet/withdraw' as any);
   };
 
   return (
