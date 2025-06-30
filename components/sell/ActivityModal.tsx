@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { X, Trophy, Star, Gift, DollarSign, Calendar, Target, TrendingUp } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
@@ -19,6 +20,8 @@ interface ActivityModalProps {
   currencySymbol?: string;
 }
 
+const { height: screenHeight } = Dimensions.get('window');
+
 export default function ActivityModal({ 
   visible, 
   onClose, 
@@ -31,6 +34,41 @@ export default function ActivityModal({
   const firstOrderBonus = orderSellDetail?.first_order_bonus || 0;
   const amountOrderBonus = orderSellDetail?.amount_order_bonus || [];
   const activities = orderSellDetail?.activity || [];
+
+  // Calculate modal height based on content
+  const calculateModalHeight = () => {
+    const headerHeight = 80; // Header height including padding
+    const padding = Spacing.lg * 2; // Top and bottom padding
+    const minHeight = 300; // Minimum height in pixels
+    const maxHeight = screenHeight * 0.8; // Maximum 80% of screen height
+    
+    // Calculate content sections
+    let contentHeight = 0;
+    
+    // First order bonus section
+    if (firstOrderBonus > 0) {
+      contentHeight += 120;
+    }
+    
+    // Amount order bonus section
+    if (amountOrderBonus.length > 0) {
+      contentHeight += 150 + (amountOrderBonus.length * 80);
+    }
+    
+    // Activity section
+    if (activities.length > 0) {
+      contentHeight += 150 + (activities.length * 120);
+    }
+    
+    // Info box height
+    contentHeight += 150;
+    
+    const totalHeight = headerHeight + padding + contentHeight;
+    
+    return Math.max(minHeight, Math.min(totalHeight, maxHeight));
+  };
+
+  const modalHeight = calculateModalHeight();
 
   // Format amount with currency symbol
   const formatAmount = (amount: number) => {
@@ -54,7 +92,13 @@ export default function ActivityModal({
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+        <View style={[
+          styles.modalContent, 
+          { 
+            backgroundColor: colors.card,
+            height: modalHeight,
+          }
+        ]}>
           <View style={styles.modalHeader}>
             <View style={styles.titleContainer}>
               <Trophy size={24} color={colors.primary} />
@@ -227,7 +271,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: Spacing.lg,
-    maxHeight: '85%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -246,6 +289,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flex: 1,
+    paddingBottom: Spacing.xl,
   },
   section: {
     padding: Spacing.lg,
