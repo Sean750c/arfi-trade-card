@@ -74,6 +74,7 @@ const AnnouncementBar: React.FC = () => {
 
     useEffect(() => {
         if (!mergedContent.length) return;
+        startAnimation();
         return () => cancelAnimation(offsetX);
     }, [mergedContent, textWidth, startAnimation, offsetX]);
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import {
   Dimensions,
   PanResponder,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, Camera, X, ArrowLeft, Zap, CircleHelp as HelpCircle, Wallet, CircleCheck as CheckCircle, Tag, Upload, Image as ImageIcon, Clock } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AuthGuard from '@/components/UI/AuthGuard';
@@ -73,9 +73,14 @@ function SellScreenContent() {
     y: screenHeight - 200,
   });
 
-  useEffect(() => {
-    fetchOrderSellDetail(user?.token);
-  }, [user?.token]);
+  // Load data when page comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (user?.token) {
+        fetchOrderSellDetail(user.token);
+      }
+    }, [user?.token])
+  );
 
   // VIP数据来源
   const vipList = orderSellDetail?.vip || [];

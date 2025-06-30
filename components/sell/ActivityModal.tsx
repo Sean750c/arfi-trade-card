@@ -7,8 +7,10 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Linking,
+  Alert,
 } from 'react-native';
-import { X, Trophy, Star, Gift, DollarSign, Calendar, Target, TrendingUp } from 'lucide-react-native';
+import { X, Trophy, Star, Gift, DollarSign, Calendar, Target, TrendingUp, ExternalLink } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import type { OrderSellDetail } from '@/types/order';
@@ -35,6 +37,20 @@ export default function ActivityModal({
   const amountOrderBonus = orderSellDetail?.amount_order_bonus || [];
   const activities = orderSellDetail?.activity || [];
 
+  // Handle activity link click
+  const handleActivityLink = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Error', 'Cannot open this link');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to open link');
+    }
+  };
+
   // Calculate modal height based on content
   const calculateModalHeight = () => {
     const headerHeight = 80; // Header height including padding
@@ -52,12 +68,12 @@ export default function ActivityModal({
     
     // Amount order bonus section
     if (amountOrderBonus.length > 0) {
-      contentHeight += 150 + (amountOrderBonus.length * 80);
+      contentHeight += 150 + (amountOrderBonus.length * 60);
     }
     
     // Activity section
     if (activities.length > 0) {
-      contentHeight += 150 + (activities.length * 120);
+      contentHeight += 150 + (activities.length * 80);
     }
     
     // Info box height
@@ -147,32 +163,35 @@ export default function ActivityModal({
                   Earn bonus rewards based on your order amount. The higher the amount, the bigger the bonus!
                 </Text>
                 
-                <View style={styles.bonusTiers}>
+                <View style={[styles.bonusTable, { borderColor: colors.border }]}>
+                  {/* Table Header */}
+                  <View style={[styles.tableHeader, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                    <Text style={[styles.tableHeaderText, { color: colors.text }]}>
+                      Order Amount
+                    </Text>
+                    <Text style={[styles.tableHeaderText, { color: colors.text }]}>
+                      Bonus Reward
+                    </Text>
+                  </View>
+                  
+                  {/* Table Rows */}
                   {amountOrderBonus.map((bonus, index) => (
                     <View 
                       key={index} 
                       style={[
-                        styles.bonusTier, 
+                        styles.tableRow, 
                         { 
                           backgroundColor: colors.background,
                           borderColor: colors.border,
                         }
                       ]}
                     >
-                      <View style={styles.bonusTierContent}>
-                        <Text style={[styles.bonusTierAmount, { color: colors.success }]}>
-                          +{formatAmount(bonus.bonus_amount)}
-                        </Text>
-                        <Text style={[styles.bonusTierLabel, { color: colors.text }]}>
-                          Bonus Reward
-                        </Text>
-                      </View>
-                      <View style={styles.bonusTierRequirement}>
-                        <Target size={16} color={colors.textSecondary} />
-                        <Text style={[styles.bonusTierRequirementText, { color: colors.textSecondary }]}>
-                          Order ≥ {formatAmount(bonus.order_amount)}
-                        </Text>
-                      </View>
+                      <Text style={[styles.tableCell, { color: colors.textSecondary }]}>
+                        ≥ {formatAmount(bonus.order_amount)}
+                      </Text>
+                      <Text style={[styles.tableCell, { color: colors.success, fontFamily: 'Inter-Bold' }]}>
+                        +{formatAmount(bonus.bonus_amount)}
+                      </Text>
                     </View>
                   ))}
                 </View>
@@ -196,7 +215,7 @@ export default function ActivityModal({
                 
                 <View style={styles.activityList}>
                   {activities.map((activity, index) => (
-                    <View 
+                    <TouchableOpacity 
                       key={activity.id} 
                       style={[
                         styles.activityItem, 
@@ -205,23 +224,25 @@ export default function ActivityModal({
                           borderColor: colors.border,
                         }
                       ]}
+                      onPress={() => {
+                        if (activity.activity_url) {
+                          handleActivityLink(activity.activity_url);
+                        }
+                      }}
                     >
                       <View style={styles.activityHeader}>
                         <Text style={[styles.activityName, { color: colors.text }]}>
                           {activity.name}
                         </Text>
-                        <View style={[styles.activityType, { backgroundColor: `${colors.primary}15` }]}>
-                          <Text style={[styles.activityTypeText, { color: colors.primary }]}>
-                            Type {activity.activity_type}
-                          </Text>
-                        </View>
+                        {activity.activity_url && (
+                          <View style={[styles.activityLink, { backgroundColor: `${colors.primary}15` }]}>
+                            <ExternalLink size={12} color={colors.primary} />
+                            <Text style={[styles.activityLinkText, { color: colors.primary }]}>
+                              View
+                            </Text>
+                          </View>
+                        )}
                       </View>
-                      
-                      {activity.memo && (
-                        <Text style={[styles.activityMemo, { color: colors.textSecondary }]}>
-                          {activity.memo}
-                        </Text>
-                      )}
                       
                       <View style={styles.activityTime}>
                         <Calendar size={14} color={colors.textSecondary} />
@@ -229,13 +250,7 @@ export default function ActivityModal({
                           {formatDate(activity.start_time)} - {formatDate(activity.end_time)}
                         </Text>
                       </View>
-                      
-                      {activity.remark && (
-                        <Text style={[styles.activityRemark, { color: colors.textSecondary }]}>
-                          {activity.remark}
-                        </Text>
-                      )}
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </View>
               </View>
@@ -247,11 +262,14 @@ export default function ActivityModal({
                 💡 How It Works
               </Text>
               <Text style={[styles.infoText, { color: colors.text }]}>
-                • First order bonus is automatically applied to your initial transaction{'\n'}
-                • Amount bonuses are credited when you reach qualifying order amounts{'\n'}
-                • Activity bonuses are available during special promotional periods{'\n'}
-                • All bonuses are automatically credited to your account{'\n'}
-                • Bonuses can be combined with VIP rate bonuses
+                {firstOrderBonus > 0 && '• First order bonus is automatically applied to your initial transaction\n'}
+                {amountOrderBonus.length > 0 && '• Amount bonuses are credited when you reach qualifying order amounts\n'}
+                {activities.length > 0 && '• Activity bonuses are available during special promotional periods\n'}
+                {firstOrderBonus > 0 || amountOrderBonus.length > 0 || activities.length > 0 ? (
+                  '• All bonuses are automatically credited to your account\n• Bonuses can be combined with VIP rate bonuses'
+                ) : (
+                  '• No active bonus programs at the moment\n• Check back later for new promotions and rewards'
+                )}
               </Text>
             </View>
           </ScrollView>
@@ -324,37 +342,36 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     marginBottom: Spacing.sm,
   },
-  bonusTiers: {
-    gap: Spacing.sm,
+  bonusTable: {
+    borderWidth: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  bonusTier: {
+  tableHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: Spacing.md,
-    borderRadius: 8,
-    borderWidth: 1,
+    borderBottomWidth: 1,
   },
-  bonusTierContent: {
-    flex: 1,
-  },
-  bonusTierAmount: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  bonusTierLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    marginTop: 2,
-  },
-  bonusTierRequirement: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  bonusTierRequirementText: {
+  tableHeaderText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Inter-Bold',
+    flex: 1,
+    textAlign: 'center',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  tableCell: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    flex: 1,
+    textAlign: 'center',
   },
   activityList: {
     gap: Spacing.md,
@@ -375,20 +392,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     flex: 1,
   },
-  activityType: {
+  activityLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
     borderRadius: 12,
+    gap: Spacing.xs,
   },
-  activityTypeText: {
+  activityLinkText: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
-  },
-  activityMemo: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
-    marginBottom: Spacing.sm,
   },
   activityTime: {
     flexDirection: 'row',
@@ -399,11 +413,6 @@ const styles = StyleSheet.create({
   activityTimeText: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
-  },
-  activityRemark: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    fontStyle: 'italic',
   },
   infoBox: {
     padding: Spacing.lg,
