@@ -441,22 +441,26 @@ function VIPScreenContent() {
               </View>
             </View>
           )}
-          <View style={styles.rebateRowInCard}>
-            <View style={styles.rebateInCardBlock}>
-              <Gift size={18} color="#FFD700" style={{ marginBottom: 2 }} />
-              <Text style={styles.rebateInCardLabel}>Total Rebate</Text>
-              <Text style={styles.rebateInCardAmount}>{vipData.currency_symbol}{vipData.total_bonus.toLocaleString()}</Text>
-            </View>
-            <View style={styles.rebateInCardBlock}>
-              <Gift size={18} color="#26C6DA" style={{ marginBottom: 2 }} />
-              <Text style={styles.rebateInCardLabel}>USDT Rebate</Text>
-              <Text style={styles.rebateInCardAmount}>USDT {vipData.total_bonus_usdt?.toLocaleString?.() ?? '0'}</Text>
-            </View>
-          </View>
+          {/* 合并Rebate与USDT奖励为一行，icon缩小，并可点击跳转返利页面 */}
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}
+            activeOpacity={0.8}
+            onPress={() => router.push('/wallet/rebate')}
+          >
+            <Gift size={14} color="#FFD700" style={{ marginRight: 5 }} />
+            <Text style={{ color: '#fff', fontSize: 13, marginRight: 40 }}>
+              {vipData.currency_symbol}{vipData.total_bonus.toLocaleString()}
+            </Text>
+            <Gift size={14} color="#26C6DA" style={{ marginRight: 5 }} />
+            <Text style={{ color: '#fff', fontSize: 13 }}>
+              USDT {vipData.total_bonus_usdt?.toLocaleString?.() ?? '0'}
+            </Text>
+          </TouchableOpacity>
         </LinearGradient>
 
         {/* Tasks Section */}
         <View style={styles.tasksSection}>
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: 'bold', marginBottom: 10, marginLeft: 2 }}>Task List</Text>
           {renderTaskCard({ item: sellTask })}
           {vipData.task_list.map((task, idx) => renderTaskCard({ item: task, idx }))}
         </View>
