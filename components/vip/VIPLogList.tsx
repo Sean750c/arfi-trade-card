@@ -8,12 +8,13 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { X, TrendingUp } from 'lucide-react-native';
+import { X, TrendingUp, FileText } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useVIPStore } from '@/stores/useVIPStore';
 import type { VIPLogEntry } from '@/types';
+import { formatDate as formatDateUtil } from '@/utils/date';
 
 interface VIPLogListProps {
   visible: boolean;
@@ -30,11 +31,15 @@ export default function VIPLogList({ visible, onClose }: VIPLogListProps) {
     logsError,
     fetchVIPLogs,
     loadMoreLogs,
+    hasMore,
   } = useVIPStore();
+
+  const [logsInitialized, setLogsInitialized] = useState(false);
 
   useEffect(() => {
     if (visible && user?.token) {
-      fetchVIPLogs(user.token, true);
+      setLogsInitialized(false);
+      fetchVIPLogs(user.token, true).then(() => setLogsInitialized(true));
     }
   }, [visible, user?.token, fetchVIPLogs]);
 
@@ -44,9 +49,7 @@ export default function VIPLogList({ visible, onClose }: VIPLogListProps) {
     }
   }, [user?.token, loadMoreLogs]);
 
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString();
-  };
+  const formatDate = (timestamp: number) => formatDateUtil(timestamp);
 
   const formatExpChange = (exp: number) => {
     return exp > 0 ? `+${exp}` : exp.toString();
@@ -71,9 +74,6 @@ export default function VIPLogList({ visible, onClose }: VIPLogListProps) {
         <View style={styles.logContent}>
           <Text style={[styles.logSource, { color: colors.text }]}>
             {log.source}
-          </Text>
-          <Text style={[styles.logMemo, { color: colors.textSecondary }]}>
-            {log.memo}
           </Text>
           <Text style={[styles.logDate, { color: colors.textSecondary }]}>
             {formatDate(log.create_time)}
@@ -116,7 +116,11 @@ export default function VIPLogList({ visible, onClose }: VIPLogListProps) {
               data={vipLogs}
               keyExtractor={(item) => item.id.toString()}
               renderItem={renderLogEntry}
-              onEndReached={handleLoadMore}
+              onEndReached={() => {
+                if (logsInitialized && !isLoadingMore && hasMore) {
+                  handleLoadMore();
+                }
+              }}
               onEndReachedThreshold={0.1}
               ListFooterComponent={
                 isLoadingMore ? (

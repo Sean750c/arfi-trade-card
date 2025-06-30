@@ -25,6 +25,7 @@ import {
   Users,
   DollarSign,
   Calendar,
+  FileText,
   Award,
   Target,
   Zap,
@@ -368,7 +369,7 @@ function VIPScreenContent() {
           style={[styles.infoButton, { backgroundColor: `${colors.primary}15` }]}
           onPress={() => setShowLogsModal(true)}
         >
-          <Calendar size={20} color={colors.primary} />
+          <FileText size={22} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
