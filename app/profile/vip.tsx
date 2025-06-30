@@ -194,14 +194,6 @@ function VIPScreenContent() {
     }
   };
 
-  const getVIPLevelName = (level: number) => {
-    if (level <= 2) return 'Bronze';
-    if (level <= 4) return 'Silver';
-    if (level <= 6) return 'Gold';
-    if (level <= 8) return 'Platinum';
-    return 'Diamond';
-  };
-
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleDateString();
   };
@@ -245,7 +237,6 @@ function VIPScreenContent() {
           </View>
           <View style={styles.levelInfo}>
             <Text style={[styles.levelNumber, { color: levelColor, fontSize: 18, fontWeight: 'bold' }]}>VIP {level.level}</Text>
-            <Text style={[styles.levelName, { color: levelColor, fontWeight: 'bold', fontSize: 13 }]}> {getVIPLevelName(level.level)} </Text>
           </View>
           {isCurrentLevel && (
             <View style={[styles.currentBadge, { backgroundColor: levelColor, shadowColor: levelColor, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }]}> 
@@ -371,7 +362,7 @@ function VIPScreenContent() {
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>VIP Membership</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Level {vipData.vip_level} • {getVIPLevelName(vipData.vip_level)}</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Level {vipData.vip_level}</Text>
         </View>
         <TouchableOpacity 
           style={[styles.infoButton, { backgroundColor: `${colors.primary}15` }]}
@@ -401,22 +392,18 @@ function VIPScreenContent() {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.md }}>
-            <Text style={[styles.title, { color: '#fff', flex: 1 }]}>VIP Membership</Text>
-            <TouchableOpacity 
-              style={[styles.infoButton, { backgroundColor: 'rgba(255,255,255,0.12)', marginLeft: 8 }]}
-              onPress={() => setShowLevelsModal(true)}
-            >
-              <Info size={18} color={'#fff'} />
-            </TouchableOpacity>
-          </View>
           <View style={styles.vipStatusHeader}>
             <View style={styles.vipLevelContainer}>
               <Crown size={40} color="#fff" />
               <Text style={[styles.vipLevelText, { fontSize: 28, letterSpacing: 1, textShadowColor: '#000', textShadowRadius: 8 }]}>VIP {vipData.vip_level}</Text>
-              <Text style={[styles.vipLevelName, { fontSize: 16, fontWeight: 'bold', color: '#fff', textShadowColor: '#000', textShadowRadius: 6 }]}>{getVIPLevelName(vipData.vip_level)}</Text>
             </View>
             <View style={styles.vipBenefits}>
+              <TouchableOpacity 
+                style={[styles.infoButton, { backgroundColor: 'rgba(255,255,255,0.12)', marginLeft: 8 }]}
+                onPress={() => setShowLevelsModal(true)}
+              >
+                <Info size={18} color={'#fff'} />
+              </TouchableOpacity>
               <Text style={[styles.benefitText, { fontSize: 18, fontWeight: 'bold', textShadowColor: '#000', textShadowRadius: 6 }]}>+{currentLevel?.rate || 0}% Rate Bonus</Text>
               <Text style={[styles.expText, { fontSize: 15, color: '#fff' }]}>{vipData.vip_exp.toLocaleString()} EXP</Text>
             </View>
@@ -425,7 +412,7 @@ function VIPScreenContent() {
             <View style={styles.progressContainer}>
               <View style={styles.progressHeader}>
                 <Text style={[styles.progressLabel, { color: '#fff', fontWeight: 'bold' }]}>Progress to VIP {nextLevel.level}</Text>
-                <Text style={[styles.progressText, { color: '#fff' }]}>{vipData.next_exp.toLocaleString()} EXP needed</Text>
+                <Text style={[styles.progressText, { color: '#fff' }]}>{vipData.next_exp.toLocaleString()} EXP</Text>
               </View>
               <View style={[styles.progressBar, { backgroundColor: 'rgba(255,255,255,0.2)' }]}> 
                 <Animated.View style={[styles.progressFill, {
@@ -460,7 +447,7 @@ function VIPScreenContent() {
 
         {/* Tasks Section */}
         <View style={styles.tasksSection}>
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: 'bold', marginBottom: 10, marginLeft: 2 }}>Task List</Text>
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: 'bold', marginBottom: 4, marginLeft: 2 }}>Task List</Text>
           {renderTaskCard({ item: sellTask })}
           {vipData.task_list.map((task, idx) => renderTaskCard({ item: task, idx }))}
         </View>
@@ -586,7 +573,7 @@ const styles = StyleSheet.create({
   vipStatusCard: {
     borderRadius: 24,
     padding: Spacing.xl,
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.md,
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.35,
     shadowRadius: 24,
