@@ -129,7 +129,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   markAsRead: async (noticeId: number, token: string) => {
     try {
-      await NotificationService.markAsRead(noticeId, token);
+      //await NotificationService.markAsRead(noticeId, token);
       
       // Update local state
       const state = get();
