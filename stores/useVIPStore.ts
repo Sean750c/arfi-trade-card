@@ -66,7 +66,6 @@ export const useVIPStore = create<VIPState>((set, get) => ({
 
   fetchVIPLogs: async (token: string, refresh = false) => {
     const state = get();
-    
     if (refresh) {
       set({ 
         isLoadingLogs: true, 
@@ -102,26 +101,6 @@ export const useVIPStore = create<VIPState>((set, get) => ({
       set({
         logsError: error instanceof Error ? error.message : 'Failed to fetch VIP logs',
         isLoadingLogs: false,
-      });
-    }
-  },
-
-  fetchVIPDefault: async () => {
-    set({ isLoadingDefault: true, defaultError: null });
-    
-    try {
-      const defaultData = await VIPService.getVIPDefault();
-      set({ vipDefault: defaultData, isLoadingDefault: false });
-    } catch (error) {
-      // Handle token expiration errors specifically
-      if (error instanceof Error && error.message.includes('Session expired')) {
-        set({ isLoadingDefault: false });
-        return;
-      }
-      
-      set({
-        defaultError: error instanceof Error ? error.message : 'Failed to fetch VIP default info',
-        isLoadingDefault: false,
       });
     }
   },
@@ -163,6 +142,26 @@ export const useVIPStore = create<VIPState>((set, get) => ({
       set({
         logsError: error instanceof Error ? error.message : 'Failed to load more VIP logs',
         isLoadingMore: false,
+      });
+    }
+  },
+
+  fetchVIPDefault: async () => {
+    set({ isLoadingDefault: true, defaultError: null });
+    
+    try {
+      const defaultData = await VIPService.getVIPDefault();
+      set({ vipDefault: defaultData, isLoadingDefault: false });
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        set({ isLoadingDefault: false });
+        return;
+      }
+      
+      set({
+        defaultError: error instanceof Error ? error.message : 'Failed to fetch VIP default info',
+        isLoadingDefault: false,
       });
     }
   },

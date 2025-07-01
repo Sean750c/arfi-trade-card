@@ -117,7 +117,7 @@ export default function VIPLogList({ visible, onClose }: VIPLogListProps) {
               keyExtractor={(item) => item.id.toString()}
               renderItem={renderLogEntry}
               onEndReached={() => {
-                if (logsInitialized && !isLoadingMore && hasMore) {
+                if (logsInitialized && !isLoadingMore && hasMore && !isLoadingLogs) {
                   handleLoadMore();
                 }
               }}

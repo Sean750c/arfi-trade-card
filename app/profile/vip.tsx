@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Modal,
   Dimensions,
   Animated,
   Easing,
@@ -20,7 +19,6 @@ import {
   Crown, 
   Gift,
   FileText,
-  X,
   Info,
   HelpCircle,
 } from 'lucide-react-native';
@@ -34,6 +32,9 @@ import { useVIPStore } from '@/stores/useVIPStore';
 import VIPLogList from '@/components/vip/VIPLogList';
 import VIPTaskList from '@/components/vip/VIPTaskList';
 import VIPLevelModal from '@/components/vip/VIPLevelModal';
+import HtmlRenderer from '@/components/UI/HtmlRenderer';
+import { CommonService } from '@/services/common';
+import { LeadData } from '@/types';
 
 // 11级VIP配色
 const VIP_LEVEL_COLORS: [string, string][] = [
@@ -71,6 +72,11 @@ function VIPScreenContent() {
   const [showLevelsModal, setShowLevelsModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [showVIPTipsModal, setShowVIPTipsModal] = useState(false);
+  
+  // VIP Help Modal 状态
+  const [vipHelpLoading, setVipHelpLoading] = useState(false);
+  const [vipHelpError, setVipHelpError] = useState<string | null>(null);
+  const [leadData, setLeadData] = useState<LeadData>();
 
   // 浮动问号按钮拖动逻辑
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -156,6 +162,29 @@ function VIPScreenContent() {
       setRefreshing(false);
     }
   }, [user?.token, fetchVIPInfo, fetchVIPDefault]);
+
+  // 获取VIP介绍内容
+  const fetchVIPHelp = useCallback(async () => {
+    setVipHelpLoading(true);
+    setVipHelpError(null);
+    try {
+      const leadData = await CommonService.getLead('app_vip_introduction');
+      setLeadData(leadData);
+    } catch (error) {
+      setVipHelpError('Failed to load VIP information');
+    } finally {
+      setVipHelpLoading(false);
+    }
+  }, []);
+
+  // 处理VIP帮助按钮点击
+  const handleVIPHelpPress = useCallback(() => {
+    setShowVIPTipsModal(true);
+    // 如果还没有加载过内容，则开始加载
+    if (!leadData && !vipHelpLoading && !vipHelpError) {
+      fetchVIPHelp();
+    }
+  }, [leadData, vipHelpLoading, vipHelpError, fetchVIPHelp]);
 
   const getVIPLevelColor = (level: number) => {
     // 取主色
@@ -323,28 +352,19 @@ function VIPScreenContent() {
       {/* Logs Modal */}
       <VIPLogList visible={showLogsModal} onClose={() => setShowLogsModal(false)} />
 
-      {/* 说明弹窗 */}
-      <Modal
+      {/* VIP Help Modal */}
+      <HtmlRenderer
         visible={showVIPTipsModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowVIPTipsModal(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: colors.card, borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 24, width: '100%', minHeight: 180 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-              <HelpCircle size={22} color={getVIPLevelGradient(vipData.vip_level)[0]} style={{ marginRight: 8 }} />
-              <Text style={{ color: colors.text, fontSize: 18, fontWeight: 'bold', flex: 1 }}>VIP Info</Text>
-              <TouchableOpacity onPress={() => setShowVIPTipsModal(false)}>
-                <X size={22} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-            <Text style={{ color: colors.textSecondary, fontSize: 15, lineHeight: 22 }}>
-              Here you can view your VIP level, experience, and exclusive benefits. Complete tasks to earn EXP and unlock higher VIP levels for more rewards!
-            </Text>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => {
+          setShowVIPTipsModal(false);
+          // 重置错误状态，下次可以重新尝试
+          if (vipHelpError) {
+            setVipHelpError(null);
+          }
+        }}
+        title={leadData?.title || 'VIP Info'}
+        htmlContent={vipHelpLoading ? 'Loading...' : vipHelpError ? `Error: ${vipHelpError}` : (leadData?.value || 'Here you can view your VIP level, experience, and exclusive benefits. Complete tasks to earn EXP and unlock higher VIP levels for more rewards!')}
+      />
 
       {/* 浮动问号按钮 */}
       <Animated.View
@@ -357,7 +377,7 @@ function VIPScreenContent() {
         {...panResponder.panHandlers}
       >
         <TouchableOpacity
-          onPress={() => setShowVIPTipsModal(true)}
+          onPress={handleVIPHelpPress}
           style={[styles.helpButtonContainer, { borderColor: getVIPLevelGradient(vipData.vip_level)[0] }]}
         >
           <HelpCircle size={20} color={getVIPLevelGradient(vipData.vip_level)[0]} />
