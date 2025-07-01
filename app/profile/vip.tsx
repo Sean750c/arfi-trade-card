@@ -512,8 +512,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   infoButton: {
-    width: 36,
-    height: 36,
+    width: 30,
+    height: 30,
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
