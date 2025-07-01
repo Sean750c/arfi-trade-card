@@ -2,10 +2,13 @@ import { APIRequest } from '@/utils/api';
 import type {
     EmptyReponse,
     InviteDetailRequest,
+    InviteDetailItem,
     InviteDetailResponse,
     InviteInfoRequest,
+    InviteInfo,
     InviteInfoResponse,
     InviteRankRequest,
+    InviteRankInfo,
     InviteRankResponse,
     RebateListRequest,
     RebateListResponse,
@@ -14,7 +17,7 @@ import type {
 
 export class RebateService {
 
-    static async getInviteInfo(params: InviteInfoRequest): Promise<InviteInfoResponse> {
+    static async getInviteInfo(params: InviteInfoRequest): Promise<InviteInfo> {
         try {
             const response = await APIRequest.request<InviteInfoResponse>(
                 '/gc/rebate/inviteinfo',
@@ -26,7 +29,7 @@ export class RebateService {
                 throw new Error(response.msg || 'Failed to fetch invite information');
             }
 
-            return response;
+            return response.data;
         } catch (error) {
             // Handle token expiration errors specifically
             if (error instanceof Error && error.message.includes('Session expired')) {
@@ -66,7 +69,7 @@ export class RebateService {
         }
     }
 
-    static async getInviteRankList(params: InviteRankRequest): Promise<InviteRankResponse> {
+    static async getInviteRankList(params: InviteRankRequest): Promise<InviteRankInfo> {
         try {
             const response = await APIRequest.request<InviteRankResponse>(
                 '/gc/rebate/inviteRankList',
@@ -78,7 +81,7 @@ export class RebateService {
                 throw new Error(response.msg || 'Failed to fetch invite rank list');
             }
 
-            return response;
+            return response.data;
         } catch (error) {
             // Handle token expiration errors specifically
             if (error instanceof Error && error.message.includes('Session expired')) {
@@ -92,7 +95,7 @@ export class RebateService {
         }
     }
 
-    static async getInvitingDetails(params: InviteDetailRequest): Promise<InviteDetailResponse> {
+    static async getInvitingList(params: InviteDetailRequest): Promise<InviteDetailItem[]> {
         try {
             const response = await APIRequest.request<InviteDetailResponse>(
                 '/gc/rebate/getInvitingDetails',
@@ -104,7 +107,7 @@ export class RebateService {
                 throw new Error(response.msg || 'Failed to fetch wallet transactions');
             }
 
-            return response;
+            return response.data;
         } catch (error) {
             // Handle token expiration errors specifically
             if (error instanceof Error && error.message.includes('Session expired')) {
