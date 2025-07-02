@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,7 @@ import {
   TextInput,
   Alert,
   Platform,
-  FlatList,
-  RefreshControl,
+  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Share, Copy, User, ChevronLeft } from 'lucide-react-native';
@@ -24,6 +23,9 @@ import { useInviteStore } from '@/stores/useInviteStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { InviteDetailItem } from '@/types';
 import { ScrollView as RNScrollView } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { Share as RNShare } from 'react-native';
+import MyInvitesList from '@/components/invite/MyInvitesList';
 
 function ReferScreenContent() {
   const { colors } = useTheme();
@@ -31,74 +33,43 @@ function ReferScreenContent() {
   const {
     inviteInfo,
     inviteRank,
-    invitingList,
-    isLoadingInvitingList,
-    invitingListError,
     fetchInviteInfo,
     fetchInviteRank,
-    fetchInvitingList,
-    loadMoreInvitingList,
-    receiveInviteRebate,
     isReceivingInviteRebate,
   } = useInviteStore();
+
+  const [showInvitesModal, setShowInvitesModal] = useState(false);
 
   useEffect(() => {
     if (user?.token) {
       fetchInviteInfo(user.token);
       fetchInviteRank(user.token);
-      fetchInvitingList(user.token, true);
     }
-  }, [user?.token, fetchInviteInfo, fetchInviteRank, fetchInvitingList]);
+  }, [user?.token, fetchInviteInfo, fetchInviteRank]);
 
   // Claim reward
   const handleReceive = () => {
-    if (user?.token && inviteInfo?.can_receive_money) {
-      receiveInviteRebate(user.token, user.user_id);
-    }
+    setShowInvitesModal(true);
   };
 
-  // Copy/share
-  const handleCopyLink = () => {
+  // 复制链接
+  const handleCopyLink = async () => {
     if (inviteInfo?.act_url) {
+      await Clipboard.setStringAsync(inviteInfo.act_url);
       Alert.alert('Copied', 'Referral link copied!');
     }
   };
+
+  // 分享链接
   const handleShare = async () => {
     try {
-      if (Platform.OS === 'web') {
-        Alert.alert('Share', 'Sharing is not available on web');
-      } else {
-        Alert.alert('Share', 'Sharing options would open here');
+      if (inviteInfo?.act_url) {
+        await RNShare.share({ message: inviteInfo.act_url });
       }
     } catch (error) {
       Alert.alert('Error', 'Something went wrong');
     }
   };
-
-  // Pagination
-  const handleLoadMore = () => {
-    if (user?.token && !isLoadingInvitingList) {
-      loadMoreInvitingList(user.token);
-    }
-  };
-  // Refresh
-  const handleRefresh = () => {
-    if (user?.token) {
-      fetchInvitingList(user.token, true);
-    }
-  };
-
-  // Render invitee
-  const renderReferralItem = ({ item }: { item: InviteDetailItem }) => (
-    <View style={styles.referralItem}>
-      <View style={styles.avatar}><User size={20} color={colors.primary} /></View>
-      <View style={styles.referralInfo}>
-        <Text style={styles.referralName}>{item.username}</Text>
-        <Text style={styles.referralDate}>Joined: {item.register_date}</Text>
-      </View>
-      <Text style={styles.referralEarnings}>{item.amount ? `₦${item.amount}` : ''}</Text>
-    </View>
-  );
 
   // Render rank
   const renderRankItem = (item: any, idx: number, isMe = false) => (
@@ -198,8 +169,6 @@ function ReferScreenContent() {
           </TouchableOpacity>
         </View>
       </Card>
-      {/* Section Title: My Invites */}
-      <View><Text style={styles.listSectionTitle}>My Invites</Text></View>
     </>
   );
 
@@ -222,33 +191,23 @@ function ReferScreenContent() {
         title="Share Referral Link"
         onPress={handleShare}
         style={styles.shareButton}
-        fullWidth
       />
     </>
   );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <FlatList
-        data={invitingList}
-        renderItem={renderReferralItem}
-        keyExtractor={(item, idx) => String(item.user_id || `${item.username}_${item.register_date}_${idx}`)}
-        ListEmptyComponent={isLoadingInvitingList ? (
-          <View style={styles.emptyReferrals}><Text style={{ color: colors.textSecondary }}>Loading...</Text></View>
-        ) : invitingListError ? (
-          <View style={styles.emptyReferrals}><Text style={{ color: 'red' }}>{invitingListError}</Text></View>
-        ) : (
-          <View style={styles.emptyReferrals}><Text style={[styles.emptyReferralsText, { color: colors.textSecondary }]}>No invitees yet</Text></View>
-        )}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.2}
-        refreshControl={<RefreshControl refreshing={isLoadingInvitingList} onRefresh={handleRefresh} />}
-        ItemSeparatorComponent={() => <View style={styles.listSeparator} />}
-        style={{ backgroundColor: '#F5F7FB' }}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
-        contentContainerStyle={{ paddingBottom: 32 }}
-      />
+      <ScrollView style={{ backgroundColor: '#F5F7FB' }} contentContainerStyle={{ paddingBottom: 32 }}>
+        {renderHeader()}
+        {renderFooter()}
+        <MyInvitesList
+          visible={showInvitesModal}
+          onClose={() => setShowInvitesModal(false)}
+          token={user?.token || ''}
+          colors={colors}
+          styles={styles}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -344,7 +303,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   progressTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#333',
@@ -414,13 +373,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#222',
   },
   listSectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#2563eb',
     marginHorizontal: 16,
@@ -451,18 +410,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   listCard: {
-    marginHorizontal: 16,
-    marginBottom: 12,
+    marginHorizontal: Spacing.lg,
     borderRadius: 12,
     padding: 0,
     backgroundColor: '#fff',
+    overflow: 'hidden',
   },
   referralItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    backgroundColor: '#fff',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
   },
   avatar: {
     width: 36,
@@ -543,7 +501,7 @@ const styles = StyleSheet.create({
     color: '#10B981',
   },
   shareButton: {
-    marginHorizontal: 16,
+    marginHorizontal: Spacing.lg,
     marginBottom: Spacing.xxl,
     borderRadius: 12,
   },
@@ -558,5 +516,11 @@ const styles = StyleSheet.create({
   infoHighlight: {
     color: '#2563eb',
     fontWeight: 'bold',
+  },
+  myInvitesHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginRight: 20,
   },
 });
