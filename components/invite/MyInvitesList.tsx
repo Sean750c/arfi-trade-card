@@ -230,6 +230,10 @@ export default function MyInvitesList({
                   </View>
                 )
               }
+              initialNumToRender={6}
+              maxToRenderPerBatch={8}
+              windowSize={10}
+              removeClippedSubviews={true}
             />
           )}
         </View>

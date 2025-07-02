@@ -211,6 +211,10 @@ export default function RebateList({
         styles.listContainer,
         rebateList.length === 0 && !isLoading && styles.emptyListContainer,
       ]}
+      initialNumToRender={6}
+      maxToRenderPerBatch={8}
+      windowSize={10}
+      removeClippedSubviews={true}
     />
   );
 }

@@ -310,6 +310,10 @@ function PromoCodesScreenContent() {
             styles.listContainer,
             coupons.length === 0 && styles.emptyListContainer,
           ]}
+          initialNumToRender={6}
+          maxToRenderPerBatch={8}
+          windowSize={10}
+          removeClippedSubviews={true}
         />
       )}
     </SafeAreaView>

@@ -218,6 +218,10 @@ export default function DiscountCodeModal({
                   </Text>
                 </View>
               }
+              initialNumToRender={6}
+              maxToRenderPerBatch={8}
+              windowSize={10}
+              removeClippedSubviews={true}
             />
           )}
 

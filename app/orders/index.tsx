@@ -232,6 +232,10 @@ function OrdersScreenContent() {
           styles.listContainer,
           orders.length === 0 && !isLoadingOrders && styles.emptyListContainer,
         ]}
+        initialNumToRender={6}
+        maxToRenderPerBatch={8}
+        windowSize={10}
+        removeClippedSubviews={true}
       />
 
       {/* Loading overlay for initial load */}

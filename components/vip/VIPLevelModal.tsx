@@ -86,6 +86,10 @@ const VIPLevelModal: React.FC<VIPLevelModalProps> = ({ visible, onClose, vipInfo
             renderItem={renderVIPLevelCard}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 24 }}
+            initialNumToRender={6}
+            maxToRenderPerBatch={8}
+            windowSize={10}
+            removeClippedSubviews={true}
           />
         </View>
       </View>
