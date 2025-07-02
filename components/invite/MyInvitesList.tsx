@@ -7,6 +7,11 @@ import {
   Modal,
   StyleSheet,
   TouchableOpacity,
+  Alert,
+  Animated,
+  StyleProp,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
 import { X } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
@@ -18,7 +23,71 @@ interface MyInvitesListProps {
   onClose: () => void;
   token: string;
   colors: any;
-  styles: any;
+}
+
+// 新增ReferralItem组件
+interface ReferralItemProps {
+  item: InviteDetailItem;
+  index: number;
+  colors: any;
+  canClaim: boolean;
+  statusInfo: { text: string; color: string };
+  handleClaim: (item: InviteDetailItem) => void;
+  isReceivingInviteRebate: boolean;
+  styles: {
+    referralItem: StyleProp<ViewStyle>;
+    avatar: StyleProp<ViewStyle>;
+    referralInfo: StyleProp<ViewStyle>;
+    referralName: StyleProp<TextStyle>;
+    referralDate: StyleProp<TextStyle>;
+    statusText: StyleProp<TextStyle>;
+    rightSection: StyleProp<ViewStyle>;
+    referralEarnings: StyleProp<TextStyle>;
+    claimButton: StyleProp<ViewStyle>;
+    claimButtonText: StyleProp<TextStyle>;
+  };
+}
+function ReferralItem({ item, index, colors, canClaim, statusInfo, handleClaim, isReceivingInviteRebate, styles }: ReferralItemProps) {
+  const animatedValue = React.useRef(new Animated.Value(0)).current;
+  React.useEffect(() => {
+    Animated.timing(animatedValue, {
+      toValue: 1,
+      duration: 400,
+      delay: index * 60,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+  return (
+    <Animated.View
+      style={{
+        opacity: animatedValue,
+        transform: [{ translateY: animatedValue.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+      }}
+    >
+      <View style={styles.referralItem}>
+        <View style={styles.avatar}><Text style={{ color: colors.primary, fontWeight: 'bold' }}>{item.username?.[0]?.toUpperCase() || '?'}</Text></View>
+        <View style={styles.referralInfo}>
+          <Text style={styles.referralName}>{item.username}</Text>
+          <Text style={styles.referralDate}>Joined: {item.register_date}</Text>
+          <Text style={[styles.statusText, { color: statusInfo.color }]}>{statusInfo.text}</Text>
+        </View>
+        <View style={styles.rightSection}>
+          <Text style={styles.referralEarnings}>{item.amount ? `${item.currency_symbol}${item.amount}` : ''}</Text>
+          {canClaim && (
+            <TouchableOpacity
+              style={[styles.claimButton, { backgroundColor: colors.primary }]}
+              onPress={() => handleClaim(item)}
+              disabled={isReceivingInviteRebate}
+            >
+              <Text style={styles.claimButtonText}>
+                {isReceivingInviteRebate ? 'Claiming...' : 'Claim'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    </Animated.View>
+  );
 }
 
 export default function MyInvitesList({
@@ -26,7 +95,6 @@ export default function MyInvitesList({
   onClose,
   token,
   colors,
-  styles,
 }: MyInvitesListProps) {
   const {
     invitingList,
@@ -77,44 +145,43 @@ export default function MyInvitesList({
   // 处理领取
   const handleClaim = async (item: InviteDetailItem) => {
     if (item.status === 1 && token) {
-      try {
-        await receiveInviteRebate(token, item.user_id);
-        // 领取成功后刷新列表
-        fetchInvitingList(token, true);
-      } catch (error) {
-        // 错误处理已在store中处理
-      }
+      Alert.alert(
+        'Confirm Claim',
+        `Are you sure you want to claim the invite reward for ${item.username}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Confirm',
+            onPress: async () => {
+              try {
+                await receiveInviteRebate(token, item.user_id);
+                // 领取成功后刷新列表
+                fetchInvitingList(token, true);
+              } catch (error) {
+                // 错误处理已在store中处理
+              }
+            },
+          },
+        ]
+      );
     }
   };
 
   // 渲染单个邀请用户
-  const renderReferralItem = ({ item }: { item: InviteDetailItem }) => {
+  const renderReferralItem = ({ item, index }: { item: InviteDetailItem, index: number }) => {
     const statusInfo = getStatusInfo(item.status);
     const canClaim = item.status === 1;
-
     return (
-      <View style={styles.referralItem}>
-        <View style={styles.avatar}><Text style={{ color: colors.primary, fontWeight: 'bold' }}>{item.username?.[0]?.toUpperCase() || '?'}</Text></View>
-        <View style={styles.referralInfo}>
-          <Text style={styles.referralName}>{item.username}</Text>
-          <Text style={styles.referralDate}>Joined: {item.register_date}</Text>
-          <Text style={[styles.statusText, { color: statusInfo.color }]}>{statusInfo.text}</Text>
-        </View>
-        <View style={styles.rightSection}>
-          <Text style={styles.referralEarnings}>{item.amount ? `${item.currency_symbol}${item.amount}` : ''}</Text>
-          {canClaim && (
-            <TouchableOpacity
-              style={[styles.claimButton, { backgroundColor: colors.primary }]}
-              onPress={() => handleClaim(item)}
-              disabled={isReceivingInviteRebate}
-            >
-              <Text style={styles.claimButtonText}>
-                {isReceivingInviteRebate ? 'Claiming...' : 'Claim'}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+      <ReferralItem
+        item={item}
+        index={index}
+        colors={colors}
+        canClaim={canClaim}
+        statusInfo={statusInfo}
+        handleClaim={handleClaim}
+        isReceivingInviteRebate={isReceivingInviteRebate}
+        styles={styles}
+      />
     );
   };
 
@@ -125,10 +192,10 @@ export default function MyInvitesList({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={modalStyles.modalOverlay}>
-        <View style={[modalStyles.modalContent, { backgroundColor: colors.card }]}> 
-          <View style={modalStyles.modalHeader}>
-            <Text style={[modalStyles.modalTitle, { color: colors.text }]}>My Invited Users</Text>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { backgroundColor: colors.card }]}> 
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>My Invited Users</Text>
             <TouchableOpacity onPress={onClose}>
               <X size={24} color={colors.text} />
             </TouchableOpacity>
@@ -142,15 +209,16 @@ export default function MyInvitesList({
               renderItem={renderReferralItem}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.1}
+              ItemSeparatorComponent={() => <View style={styles.listSeparator} />}
               ListFooterComponent={
                 isLoadingInvitingList && invitingList.length > 0 ? (
-                  <View style={modalStyles.loadingFooter}>
+                  <View style={styles.loadingFooter}>
                     <ActivityIndicator size="small" color={colors.primary} />
                   </View>
                 ) : null
               }
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={modalStyles.modalList}
+              contentContainerStyle={styles.modalList}
               refreshing={refreshing}
               onRefresh={handleRefresh}
               ListEmptyComponent={
@@ -170,17 +238,17 @@ export default function MyInvitesList({
   );
 }
 
-const modalStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
+    height: '50%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: Spacing.lg,
-    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -220,5 +288,52 @@ const modalStyles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  referralItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  referralInfo: {
+    flex: 1,
+  },
+  referralName: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginBottom: 2,
+    color: '#222',
+  },
+  referralDate: {
+    fontSize: 12,
+    color: '#888',
+  },
+  referralEarnings: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#10B981',
+    marginLeft: 8,
+  },
+  emptyReferrals: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  emptyReferralsText: {
+    fontSize: 14,
+    color: '#888',
+  },
+  listSeparator: {
+    height: 1,
+    backgroundColor: '#F1F1F1',
+    marginLeft: 64,
   },
 }); 

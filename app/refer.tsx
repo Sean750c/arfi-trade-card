@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
   Platform,
   Modal,
+  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Share, Copy, User, ChevronLeft } from 'lucide-react-native';
@@ -27,6 +28,21 @@ import * as Clipboard from 'expo-clipboard';
 import { Share as RNShare } from 'react-native';
 import MyInvitesList from '@/components/invite/MyInvitesList';
 
+function AnimatedNumber({value, style, prefix = ''}: {value: number, style?: any, prefix?: string}) {
+  const anim = useRef(new Animated.Value(0)).current;
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: value,
+      duration: 800,
+      useNativeDriver: false,
+    }).start();
+    const id = anim.addListener(({value}) => setDisplay(value));
+    return () => anim.removeListener(id);
+  }, [value]);
+  return <Text style={style}>{prefix}{Math.round(display)}</Text>;
+}
+
 function ReferScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
@@ -40,12 +56,31 @@ function ReferScreenContent() {
 
   const [showInvitesModal, setShowInvitesModal] = useState(false);
 
+  // 新增Animated.Value用于奖励数字
+  const totalRewardsAnim = useRef(new Animated.Value(0)).current;
+  const availableAnim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     if (user?.token) {
       fetchInviteInfo(user.token);
       fetchInviteRank(user.token);
     }
   }, [user?.token, fetchInviteInfo, fetchInviteRank]);
+
+  useEffect(() => {
+    if (inviteInfo) {
+      Animated.timing(totalRewardsAnim, {
+        toValue: inviteInfo.referred_total_bonus ?? 0,
+        duration: 800,
+        useNativeDriver: false,
+      }).start();
+      Animated.timing(availableAnim, {
+        toValue: inviteInfo.can_receive_money ?? 0,
+        duration: 800,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [inviteInfo]);
 
   // Claim reward
   const handleReceive = () => {
@@ -96,7 +131,7 @@ function ReferScreenContent() {
         <Card style={styles.statsCard}>
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>₦{inviteInfo?.referred_total_bonus ?? 0}</Text>
+              <AnimatedNumber value={inviteInfo?.referred_total_bonus ?? 0} style={styles.statValue} prefix="₦" />
               <Text style={styles.statLabel}>Total Rewards</Text>
             </View>
             <View style={styles.statBox}>
@@ -104,7 +139,7 @@ function ReferScreenContent() {
               <Text style={styles.statLabel}>Invited Friends</Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>₦{inviteInfo?.can_receive_money ?? 0}</Text>
+              <AnimatedNumber value={inviteInfo?.can_receive_money ?? 0} style={styles.statValue} prefix="₦" />
               <Text style={styles.statLabel}>Available</Text>
             </View>
           </View>
@@ -205,7 +240,6 @@ function ReferScreenContent() {
           onClose={() => setShowInvitesModal(false)}
           token={user?.token || ''}
           colors={colors}
-          styles={styles}
         />
       </ScrollView>
     </SafeAreaView>
@@ -415,53 +449,6 @@ const styles = StyleSheet.create({
     padding: 0,
     backgroundColor: '#fff',
     overflow: 'hidden',
-  },
-  referralItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  referralInfo: {
-    flex: 1,
-  },
-  referralName: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    marginBottom: 2,
-    color: '#222',
-  },
-  referralDate: {
-    fontSize: 12,
-    color: '#888',
-  },
-  referralEarnings: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#10B981',
-    marginLeft: 8,
-  },
-  emptyReferrals: {
-    padding: 24,
-    alignItems: 'center',
-  },
-  emptyReferralsText: {
-    fontSize: 14,
-    color: '#888',
-  },
-  listSeparator: {
-    height: 1,
-    backgroundColor: '#F1F1F1',
-    marginLeft: 64,
   },
   rankCard: {
     marginHorizontal: 16,
