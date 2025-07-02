@@ -112,13 +112,13 @@ function ReferScreenContent() {
       key={item.user_id || idx}
       style={[
         styles.rankItem,
-        { backgroundColor: isMe ? colors.warning : idx < 3 ? colors.background : colors.card, borderBottomColor: colors.border },
+        { backgroundColor: isMe ? `${colors.warning}85` : idx < 3 ? colors.background : colors.card, borderBottomColor: colors.border },
       ]}
     >
       <Text style={[styles.rankIndex, { color: colors.primary }]}>{item.rank ?? item.top}</Text>
       <Text style={[styles.rankName, { color: colors.text }]}>{item.username}{isMe ? ' (Me)' : ''}</Text>
       <Text style={[styles.rankAmount, { color: colors.success }]}>
-        ₦{item.total_amount ?? item.amount}
+        {item.currency_symbol}{item.total_amount ?? item.amount}
       </Text>
     </View>
   );
@@ -174,7 +174,7 @@ function ReferScreenContent() {
                     <View
                       style={[
                         styles.progressCircle,
-                        { backgroundColor: reached ? colors.primary : current ? colors.warning : colors.background },
+                        { backgroundColor: reached ? colors.primary : current ? colors.warning : `${colors.textSecondary}25` },
                       ]}
                     >
                       <Text style={[
@@ -184,7 +184,7 @@ function ReferScreenContent() {
                         {idx + 1}
                       </Text>
                     </View>
-                    <Text style={[styles.progressStepAmount, { color: colors.primary }]}>₦{amount}</Text>
+                    <Text style={[styles.progressStepAmount, { color: colors.primary }]}>{user?.currency_symbol}{amount}</Text>
                   </View>
                   {idx < inviteInfo.rebate_money_config.length - 1 && <View style={[styles.progressLine, { backgroundColor: colors.border }]} />}
                 </View>
