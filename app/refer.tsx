@@ -108,10 +108,18 @@ function ReferScreenContent() {
 
   // Render rank
   const renderRankItem = (item: any, idx: number, isMe = false) => (
-    <View key={item.user_id || idx} style={[styles.rankItem, isMe ? styles.myRank : idx < 3 ? styles.topRank : null]}>
-      <Text style={styles.rankIndex}>{item.rank ?? item.top}</Text>
-      <Text style={styles.rankName}>{item.username}{isMe ? ' (Me)' : ''}</Text>
-      <Text style={styles.rankAmount}>₦{item.total_amount ?? item.amount}</Text>
+    <View
+      key={item.user_id || idx}
+      style={[
+        styles.rankItem,
+        { backgroundColor: isMe ? colors.warning : idx < 3 ? colors.background : colors.card, borderBottomColor: colors.border },
+      ]}
+    >
+      <Text style={[styles.rankIndex, { color: colors.primary }]}>{item.rank ?? item.top}</Text>
+      <Text style={[styles.rankName, { color: colors.text }]}>{item.username}{isMe ? ' (Me)' : ''}</Text>
+      <Text style={[styles.rankAmount, { color: colors.success }]}>
+        ₦{item.total_amount ?? item.amount}
+      </Text>
     </View>
   );
 
@@ -119,7 +127,7 @@ function ReferScreenContent() {
   const renderHeader = () => (
     <>
       {/* Banner */}
-      <LinearGradient colors={[colors.primary, '#2563eb']} style={styles.banner}>
+      <LinearGradient colors={[colors.primary, colors.card]} style={styles.banner}>
         <TouchableOpacity onPress={() => router.back()} style={styles.bannerBack}>
           <ChevronLeft size={28} color="#fff" />
         </TouchableOpacity>
@@ -128,19 +136,19 @@ function ReferScreenContent() {
       </LinearGradient>
       {/* Stats Card */}
       <View style={styles.statsCardShadow}>
-        <Card style={styles.statsCard}>
+        <Card style={[styles.statsCard, { backgroundColor: colors.card }]}> 
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
-              <AnimatedNumber value={inviteInfo?.referred_total_bonus ?? 0} style={styles.statValue} prefix="₦" />
-              <Text style={styles.statLabel}>Total Rewards</Text>
+              <AnimatedNumber value={inviteInfo?.referred_total_bonus ?? 0} style={[styles.statValue, { color: colors.primary }]} prefix="₦" />
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total Rewards</Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{inviteInfo?.invite_friends ?? 0}</Text>
-              <Text style={styles.statLabel}>Invited Friends</Text>
+              <Text style={[styles.statValue, { color: colors.primary }]}>{inviteInfo?.invite_friends ?? 0}</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Invited Friends</Text>
             </View>
             <View style={styles.statBox}>
-              <AnimatedNumber value={inviteInfo?.can_receive_money ?? 0} style={styles.statValue} prefix="₦" />
-              <Text style={styles.statLabel}>Available</Text>
+              <AnimatedNumber value={inviteInfo?.can_receive_money ?? 0} style={[styles.statValue, { color: colors.primary }]} prefix="₦" />
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Available</Text>
             </View>
           </View>
           <Button
@@ -154,8 +162,8 @@ function ReferScreenContent() {
       </View>
       {/* Progress Bar 横向滚动 */}
       {inviteInfo && (
-        <Card style={styles.progressCard}>
-          <Text style={styles.progressTitle}>Invite Progress</Text>
+        <Card style={[styles.progressCard, { backgroundColor: colors.card }]}> 
+          <Text style={[styles.progressTitle, { color: colors.text }]} >Invite Progress</Text>
           <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.progressBarWrap}>
             {inviteInfo.rebate_money_config.map((amount, idx) => {
               const reached = (inviteInfo.invite_friends ?? 0) > idx;
@@ -163,33 +171,37 @@ function ReferScreenContent() {
               return (
                 <View key={idx} style={styles.progressStepWrapRow}>
                   <View style={styles.progressStepWrap}>
-                    <View style={[styles.progressCircle, reached && styles.progressCircleReached, current && styles.progressCircleCurrent]}>
-                      <Text style={[styles.progressCircleText, (reached || current) && styles.progressCircleTextActive]}>{idx + 1}</Text>
+                    <View
+                      style={[
+                        styles.progressCircle,
+                        { backgroundColor: reached ? colors.primary : current ? colors.warning : colors.background },
+                      ]}
+                    >
+                      <Text style={[
+                        styles.progressCircleText,
+                        { color: reached || current ? '#fff' : colors.textSecondary },
+                      ]}>
+                        {idx + 1}
+                      </Text>
                     </View>
-                    <Text style={styles.progressStepAmount}>₦{amount}</Text>
+                    <Text style={[styles.progressStepAmount, { color: colors.primary }]}>₦{amount}</Text>
                   </View>
-                  {idx < inviteInfo.rebate_money_config.length - 1 && <View style={styles.progressLine} />}
+                  {idx < inviteInfo.rebate_money_config.length - 1 && <View style={[styles.progressLine, { backgroundColor: colors.border }]} />}
                 </View>
               );
             })}
           </RNScrollView>
 
           {/* 奖励说明 */}
-          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            1. When your friend completes an order of <Text style={styles.infoHighlight}>${inviteInfo.recommend_enough_amount}</Text>.
-          </Text>
-          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            2. They will receive a rebate of <Text style={styles.infoHighlight}>{user?.currency_symbol}{inviteInfo.friend_amount}</Text>.
-          </Text>
-          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            3. You will also receive a rebate of <Text style={styles.infoHighlight}>{user?.currency_symbol}{inviteInfo.self_amount}</Text>.
-          </Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>1. When your friend completes an order of <Text style={[styles.infoHighlight, { color: colors.primary }]} >${inviteInfo.recommend_enough_amount}</Text>.</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>2. They will receive a rebate of <Text style={[styles.infoHighlight, { color: colors.primary }]}>{user?.currency_symbol}{inviteInfo.friend_amount}</Text>.</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>3. You will also receive a rebate of <Text style={[styles.infoHighlight, { color: colors.primary }]}>{user?.currency_symbol}{inviteInfo.self_amount}</Text>.</Text>
         </Card>
       )}
       {/* Referral Link Card */}
-      <Card style={styles.linkCard}>
-        <Text style={styles.sectionTitle}>Your Referral Link</Text>
-        <View style={styles.linkContainer}>
+      <Card style={[styles.linkCard, { backgroundColor: colors.card }]}> 
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Referral Link</Text>
+        <View style={[styles.linkContainer, { borderColor: colors.border, backgroundColor: colors.background }]}> 
           <TouchableOpacity style={styles.linkAction} onPress={handleCopyLink}>
             <Copy size={18} color={colors.primary} />
           </TouchableOpacity>
@@ -211,11 +223,11 @@ function ReferScreenContent() {
   const renderFooter = () => (
     <>
       {/* Invite Rank */}
-      <View><Text style={styles.listSectionTitle}>Top Inviters</Text></View>
-      <Card style={styles.rankCard}>
+      <View><Text style={[styles.listSectionTitle, { color: colors.primary }]}>Top Inviters</Text></View>
+      <Card style={[styles.rankCard, { backgroundColor: colors.card }]}> 
         {inviteRank && Array.isArray(inviteRank.top_list) && inviteRank.top_list.length > 0 ? inviteRank.top_list.map((item, idx) => (
           <React.Fragment key={item.user_id || idx}>
-            {typeof item === 'string' ? <Text>{item}</Text> : renderRankItem(item, idx)}
+            {typeof item === 'string' ? <Text style={{ color: colors.text }}>{item}</Text> : renderRankItem(item, idx)}
           </React.Fragment>
         )) : (
           <Text style={{ color: colors.textSecondary, textAlign: 'center', marginVertical: 8 }}>No ranking data</Text>
@@ -232,7 +244,7 @@ function ReferScreenContent() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView style={{ backgroundColor: '#F5F7FB' }} contentContainerStyle={{ paddingBottom: 32 }}>
+      <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ paddingBottom: 32 }}>
         {renderHeader()}
         {renderFooter()}
         <MyInvitesList
