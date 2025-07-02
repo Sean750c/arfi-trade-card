@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   useColorScheme,
   ActivityIndicator,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import { ArrowDownLeft, ArrowUpRight, Gift, Users, Crown, CreditCard, TrendingUp, CircleAlert as AlertCircle } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
@@ -38,6 +39,7 @@ const TransactionItem = React.memo(function TransactionItem({
   formatAmount,
   formatBalanceAmount,
   formatDate,
+  index,
 }: {
   transaction: WalletTransaction;
   colors: any;
@@ -49,76 +51,94 @@ const TransactionItem = React.memo(function TransactionItem({
   formatAmount: (amount: number, isPositive: boolean, currencySymbol: string) => string;
   formatBalanceAmount: (amount: number, currencySymbol: string) => string;
   formatDate: (timestamp: number) => string;
+  index: number;
 }) {
   const isPositive = transaction.amount > 0;
   const transactionColor = getTransactionColor(transaction.type);
+  // 动画
+  const animatedValue = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(animatedValue, {
+      toValue: 1,
+      duration: 400,
+      delay: index * 40,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.transactionItem,
-        {
-          backgroundColor: colors.card_id,
-          borderColor: colors.border,
-        },
-      ]}
-      onPress={() => onTransactionPress(transaction)}
-      activeOpacity={0.7}
+    <Animated.View
+      style={{
+        opacity: animatedValue,
+        transform: [{ translateY: animatedValue.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+      }}
     >
-      <View style={[
-        styles.iconContainer,
-        { backgroundColor: `${transactionColor}15` }
-      ]}>
-        {getTransactionIcon(transaction.type)}
-      </View>
-
-      <View style={styles.transactionDetails}>
-        <View style={styles.transactionHeader}>
-          <Text style={[styles.transactionTitle, { color: colors.text }]}> 
-            {getTransactionTitle(transaction)}
-          </Text>
-          <Text style={[
-            styles.transactionAmount,
-            { color: isPositive ? colors.success : colors.error }
-          ]}>
-            {formatAmount(transaction.amount, isPositive, transaction.currency_symbol)}
-          </Text>
+      <TouchableOpacity
+        style={[
+          styles.transactionItem,
+          {
+            backgroundColor: colors.card_id,
+            borderColor: colors.border,
+          },
+        ]}
+        onPress={() => onTransactionPress(transaction)}
+        activeOpacity={0.7}
+      >
+        <View style={[
+          styles.iconContainer,
+          { backgroundColor: `${transactionColor}15` }
+        ]}>
+          {getTransactionIcon(transaction.type)}
         </View>
 
-        <View style={styles.transactionMeta}>
-          <Text style={[styles.transactionMemo, { color: colors.textSecondary }]}> 
-            {transaction.memo || 'No description'}
-          </Text>
-          <Text style={[styles.transactionDate, { color: colors.textSecondary }]}> 
-            {formatBalanceAmount(transaction.balance_amount, transaction.currency_symbol)}
-          </Text>
-        </View>
-        <View style={styles.transactionOrder}>
-          {/* Order number for order transactions */}
-          {transaction.order_no ? (
-            <Text style={[styles.orderNumber, { color: colors.textSecondary }]}> 
-              Order: #{transaction.order_no.slice(-14)}
+        <View style={styles.transactionDetails}>
+          <View style={styles.transactionHeader}>
+            <Text style={[styles.transactionTitle, { color: colors.text }]}> 
+              {getTransactionTitle(transaction)}
             </Text>
-          ) : (
-            <Text style={[styles.orderNumber, { color: colors.textSecondary }]}> 
-              {' '}
-            </Text>
-          )}
-          <Text style={[styles.transactionDate, { color: colors.textSecondary }]}> 
-            {formatDate(transaction.create_time)}
-          </Text>
-        </View>
-
-        {/* Bank details for withdrawal transactions */}
-        {transaction.type === 'withdraw' && transaction.bank_name && (
-          <View style={styles.bankDetails}>
-            <Text style={[styles.bankName, { color: colors.textSecondary }]}> 
-              {transaction.bank_name} • {transaction.account_no?.slice(-4)}
+            <Text style={[
+              styles.transactionAmount,
+              { color: isPositive ? colors.success : colors.error }
+            ]}>
+              {formatAmount(transaction.amount, isPositive, transaction.currency_symbol)}
             </Text>
           </View>
-        )}
-      </View>
-    </TouchableOpacity>
+
+          <View style={styles.transactionMeta}>
+            <Text style={[styles.transactionMemo, { color: colors.textSecondary }]}> 
+              {transaction.memo || 'No description'}
+            </Text>
+            <Text style={[styles.transactionDate, { color: colors.textSecondary }]}> 
+              {formatBalanceAmount(transaction.balance_amount, transaction.currency_symbol)}
+            </Text>
+          </View>
+          <View style={styles.transactionOrder}>
+            {/* Order number for order transactions */}
+            {transaction.order_no ? (
+              <Text style={[styles.orderNumber, { color: colors.textSecondary }]}> 
+                Order: #{transaction.order_no.slice(-14)}
+              </Text>
+            ) : (
+              <Text style={[styles.orderNumber, { color: colors.textSecondary }]}> 
+                {' '}
+              </Text>
+            )}
+            <Text style={[styles.transactionDate, { color: colors.textSecondary }]}> 
+              {formatDate(transaction.create_time)}
+            </Text>
+          </View>
+
+          {/* Bank details for withdrawal transactions */}
+          {transaction.type === 'withdraw' && transaction.bank_name && (
+            <View style={styles.bankDetails}>
+              <Text style={[styles.bankName, { color: colors.textSecondary }]}> 
+                {transaction.bank_name} • {transaction.account_no?.slice(-4)}
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
   );
 });
 
@@ -216,7 +236,7 @@ export default function TransactionList({
 
   // 用 useCallback 包裹 renderTransaction，依赖项只写必要的
   const renderTransaction = React.useCallback(
-    ({ item: transaction }: { item: WalletTransaction }) => (
+    ({ item: transaction, index }: { item: WalletTransaction; index: number }) => (
       <TransactionItem
         transaction={transaction}
         colors={colors}
@@ -228,6 +248,7 @@ export default function TransactionList({
         formatAmount={formatAmount}
         formatBalanceAmount={formatBalanceAmount}
         formatDate={formatDate}
+        index={index}
       />
     ),
     [colors, walletType, onTransactionPress]

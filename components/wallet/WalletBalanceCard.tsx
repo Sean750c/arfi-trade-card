@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Animated,
 } from 'react-native';
 import { Eye, EyeOff, Gift, TrendingUp, ArrowRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,6 +18,24 @@ interface WalletBalanceCardProps {
   onToggleVisibility: () => void;
   onRebatePress?: () => void;
   walletType: '1' | '2'; // Add wallet type prop
+}
+
+function AnimatedNumber({value, style, prefix = ''}: {value: number, style?: any, prefix?: string}) {
+  const anim = useRef(new Animated.Value(value)).current;
+  const prevValue = useRef(value);
+  const [display, setDisplay] = useState(value);
+  useEffect(() => {
+    anim.setValue(0);
+    Animated.timing(anim, {
+      toValue: value,
+      duration: 800,
+      useNativeDriver: false,
+    }).start();
+    const id = anim.addListener(({value}) => setDisplay(value));
+    prevValue.current = value;
+    return () => anim.removeListener(id);
+  }, [value]);
+  return <Text style={[style, {minWidth: 120}]} numberOfLines={1}>{prefix}{display.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</Text>;
 }
 
 export default function WalletBalanceCard({
@@ -107,7 +126,9 @@ export default function WalletBalanceCard({
         {/* <Text style={styles.balanceLabel}>Available Balance</Text> */}
         <View style={styles.balanceRow}>
           <Text style={styles.balanceAmount}>
-            {getCurrencySymbol()}{formatBalance(getBalanceAmount())}
+            {balanceVisible ? (
+              <AnimatedNumber value={Number(getBalanceAmount())} style={styles.balanceAmount} prefix={getCurrencySymbol()} />
+            ) : '****'}
           </Text>
         </View>
       </View>
