@@ -1642,6 +1642,16 @@ ajv-keywords@^5.1.0:
   dependencies:
     fast-deep-equal "^3.1.3"
 
+ajv@8.11.0:
+  version "8.11.0"
+  resolved "https://registry.npmmirror.com/ajv/-/ajv-8.11.0.tgz#977e91dd96ca669f54a11e23e378e33b884a565f"
+  integrity sha512-wGgprdCvMalC0BztXvitD2hC04YffAvtsUn93JbGXYLAtCUO4xd17mCCZQxUOItiBwZvJScWo8NIvQMQ71rdpg==
+  dependencies:
+    fast-deep-equal "^3.1.1"
+    json-schema-traverse "^1.0.0"
+    require-from-string "^2.0.2"
+    uri-js "^4.2.2"
+
 ajv@^8.0.0, ajv@^8.9.0:
   version "8.17.1"
   resolved "https://registry.npmmirror.com/ajv/-/ajv-8.17.1.tgz"
@@ -2536,6 +2546,39 @@ expo-constants@~17.1.3, expo-constants@~17.1.5, expo-constants@~17.1.6:
     "@expo/config" "~11.0.9"
     "@expo/env" "~1.0.5"
 
+expo-dev-client@~5.2.3:
+  version "5.2.3"
+  resolved "https://registry.npmmirror.com/expo-dev-client/-/expo-dev-client-5.2.3.tgz#9728db447b6e21bf647a51c04e64278f8ccdd024"
+  integrity sha512-UFbNFSWeRCmuOPTVHu23bPNyTEgzZb2oWqaxiu3qIPmumtDY13xmWnPBeRdzUgk9DHH11jRBZntEXEHdNjWJmw==
+  dependencies:
+    expo-dev-launcher "5.1.15"
+    expo-dev-menu "6.1.13"
+    expo-dev-menu-interface "1.10.0"
+    expo-manifests "~0.16.5"
+    expo-updates-interface "~1.1.0"
+
+expo-dev-launcher@5.1.15:
+  version "5.1.15"
+  resolved "https://registry.npmmirror.com/expo-dev-launcher/-/expo-dev-launcher-5.1.15.tgz#937363490a19d269d87cb7a09158fe71049f601a"
+  integrity sha512-n+ZH24tt1f0tqxIVNM+/cJPwgccd5cLq064NrdDj8LYAKgVeSDCADVyR0z+iVZsosu2/7X9xdmnHk2J4w3KCwQ==
+  dependencies:
+    ajv "8.11.0"
+    expo-dev-menu "6.1.13"
+    expo-manifests "~0.16.5"
+    resolve-from "^5.0.0"
+
+expo-dev-menu-interface@1.10.0:
+  version "1.10.0"
+  resolved "https://registry.npmmirror.com/expo-dev-menu-interface/-/expo-dev-menu-interface-1.10.0.tgz#04671bda3c163d1d7b9438ce7095c3913a3f53f9"
+  integrity sha512-NxtM/qot5Rh2cY333iOE87dDg1S8CibW+Wu4WdLua3UMjy81pXYzAGCZGNOeY7k9GpNFqDPNDXWyBSlk9r2pBg==
+
+expo-dev-menu@6.1.13:
+  version "6.1.13"
+  resolved "https://registry.npmmirror.com/expo-dev-menu/-/expo-dev-menu-6.1.13.tgz#e3ae5182a9119d4ed24837dc4e174035d271188b"
+  integrity sha512-SxQGYWJCxR/DzOfa8gzmj0VE9LTaKToOW7dACBbhYNwAa7FZIXARXYwPkm43cMVUZ5IsIuqOzX5KXelkxuXvxw==
+  dependencies:
+    expo-dev-menu-interface "1.10.0"
+
 expo-device@^7.1.4:
   version "7.1.4"
   resolved "https://registry.npmmirror.com/expo-device/-/expo-device-7.1.4.tgz"
@@ -2572,6 +2615,11 @@ expo-image-picker@~16.1.4:
   dependencies:
     expo-image-loader "~5.1.0"
 
+expo-json-utils@~0.15.0:
+  version "0.15.0"
+  resolved "https://registry.npmmirror.com/expo-json-utils/-/expo-json-utils-0.15.0.tgz#6723574814b9e6b0a90e4e23662be76123ab6ae9"
+  integrity sha512-duRT6oGl80IDzH2LD2yEFWNwGIC2WkozsB6HF3cDYNoNNdUvFk6uN3YiwsTsqVM/D0z6LEAQ01/SlYvN+Fw0JQ==
+
 expo-keep-awake@~14.1.4:
   version "14.1.4"
   resolved "https://registry.npmmirror.com/expo-keep-awake/-/expo-keep-awake-14.1.4.tgz"
@@ -2589,6 +2637,14 @@ expo-linking@~7.1.5:
   dependencies:
     expo-constants "~17.1.6"
     invariant "^2.2.4"
+
+expo-manifests@~0.16.5:
+  version "0.16.5"
+  resolved "https://registry.npmmirror.com/expo-manifests/-/expo-manifests-0.16.5.tgz#bb57ceff3db4eb74679d4a155b2ca2050375ce10"
+  integrity sha512-zLUeJogn2C7qOE75Zz7jcmJorMfIbSRR35ctspN0OK/Hq/+PAAptA8p9jNVC8xp/91uP9uI8f3xPhh+A11eR2A==
+  dependencies:
+    "@expo/config" "~11.0.10"
+    expo-json-utils "~0.15.0"
 
 expo-modules-autolinking@2.1.12:
   version "2.1.12"
@@ -2660,6 +2716,11 @@ expo-system-ui@~5.0.7:
     "@react-native/normalize-colors" "0.79.4"
     debug "^4.3.2"
 
+expo-updates-interface@~1.1.0:
+  version "1.1.0"
+  resolved "https://registry.npmmirror.com/expo-updates-interface/-/expo-updates-interface-1.1.0.tgz#62497d4647b381da9fdb68868ed180203ae737ef"
+  integrity sha512-DeB+fRe0hUDPZhpJ4X4bFMAItatFBUPjw/TVSbJsaf3Exeami+2qbbJhWkcTMoYHOB73nOIcaYcWXYJnCJXO0w==
+
 expo-web-browser@~14.2.0:
   version "14.2.0"
   resolved "https://registry.npmmirror.com/expo-web-browser/-/expo-web-browser-14.2.0.tgz"
@@ -2693,7 +2754,7 @@ exponential-backoff@^3.1.1:
   resolved "https://registry.npmmirror.com/exponential-backoff/-/exponential-backoff-3.1.2.tgz"
   integrity sha512-8QxYTVXUkuy7fIIoitQkPwGonB8F3Zj8eEO8Sqg9Zv/bkI7RJAzowee4gr81Hak/dUTpA2Z7VfQgoijjPNlUZA==
 
-fast-deep-equal@^3.1.3:
+fast-deep-equal@^3.1.1, fast-deep-equal@^3.1.3:
   version "3.1.3"
   resolved "https://registry.npmmirror.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz"
   integrity sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==
@@ -4065,7 +4126,7 @@ prompts@^2.3.2:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-punycode@^2.1.1:
+punycode@^2.1.0, punycode@^2.1.1:
   version "2.3.1"
   resolved "https://registry.npmmirror.com/punycode/-/punycode-2.3.1.tgz"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
@@ -4946,6 +5007,13 @@ update-browserslist-db@^1.1.3:
   dependencies:
     escalade "^3.2.0"
     picocolors "^1.1.1"
+
+uri-js@^4.2.2:
+  version "4.4.1"
+  resolved "https://registry.npmmirror.com/uri-js/-/uri-js-4.4.1.tgz#9b1a52595225859e55f669d928f88c6c57f2a77e"
+  integrity sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==
+  dependencies:
+    punycode "^2.1.0"
 
 use-latest-callback@^0.2.4:
   version "0.2.4"
