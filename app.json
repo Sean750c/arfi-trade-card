@@ -39,6 +39,7 @@
       }
     },
     "android": {
+      "proguard": true,
       "package": "com.bsdb.afritrade"
     },
     "jsEngine": "hermes"
