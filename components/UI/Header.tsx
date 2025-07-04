@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
+import { getStatusBarHeight } from '@/utils/device';
 
 interface HeaderProps {
   title: string;
@@ -38,8 +39,8 @@ export default function Header({
       { 
         backgroundColor: backgroundColor || colors.card,
         borderBottomColor: colors.border,
-        // 为Android设备添加额外的顶部padding
-        paddingTop: Platform.OS === 'android' ? Spacing.md : Spacing.sm,
+        // 统一加状态栏高度，适配所有Android设备
+        paddingTop: Platform.OS === 'android' ? getStatusBarHeight() : Spacing.sm,
       }
     ]}>
       {showBack && (

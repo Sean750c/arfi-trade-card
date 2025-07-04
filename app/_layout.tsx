@@ -57,16 +57,13 @@ export default function RootLayout() {
           headerShown: false,
         }}
       >
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="rates" />
-        <Stack.Screen name="notifications" />
-        <Stack.Screen name="refer" />
+        <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="notifications" options={{ headerShown: false }} />
+        <Stack.Screen name="rates" options={{ headerShown: false }} />
+        <Stack.Screen name="refer" options={{ headerShown: false }} />
         <Stack.Screen name="calculator" />
-        <Stack.Screen name="orders" />
-        <Stack.Screen name="profile" />
-        <Stack.Screen name="wallet" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
