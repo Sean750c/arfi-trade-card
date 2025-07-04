@@ -7,6 +7,7 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   error: string | null;
+  isInitialized: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearAuth: () => void; // Add method to clear auth state
@@ -24,6 +25,7 @@ interface AuthState {
   googleLogin: (accessToken: string) => Promise<void>;
   facebookLogin: (accessToken: string) => Promise<void>;
   appleLogin: (accessToken: string) => Promise<void>;
+  initialize: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -31,6 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: false,
   error: null,
+  isInitialized: false,
   login: async (username: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
@@ -91,6 +94,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isLoading: false,
       error: null 
     });
+  },
+  initialize: async () => {
+    // 初始化认证状态，可以从本地存储恢复用户信息
+    try {
+      // 这里可以添加从AsyncStorage恢复用户信息的逻辑
+      // 暂时设置为已初始化
+      set({ isInitialized: true });
+    } catch (error) {
+      console.error('Auth initialization failed:', error);
+      set({ isInitialized: true }); // 即使失败也要标记为已初始化
+    }
   },
   register: async (params) => {
     set({ isLoading: true, error: null });

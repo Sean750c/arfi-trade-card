@@ -17,6 +17,18 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
   const { colors } = useTheme();
   const { isAuthenticated } = useAuthStore();
 
+  if (typeof isAuthenticated === 'undefined') {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.content, { backgroundColor: colors.card }]}>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Loading...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   if (!isAuthenticated) {
     if (fallback) {
       return <>{fallback}</>;
@@ -40,7 +52,14 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
           <View style={styles.buttonContainer}>
             <Button
               title="Login"
-              onPress={() => router.push('/(auth)/login')}
+              onPress={() => {
+                try {
+                  router.replace('/(auth)/login');
+                } catch (error) {
+                  console.error('Navigation error:', error);
+                  router.push('/(auth)/login');
+                }
+              }}
               style={styles.loginButton}
               fullWidth
             />
@@ -48,7 +67,14 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
             <Button
               title="Create Account"
               variant="outline"
-              onPress={() => router.push('/(auth)/register')}
+              onPress={() => {
+                try {
+                  router.replace('/(auth)/register');
+                } catch (error) {
+                  console.error('Navigation error:', error);
+                  router.push('/(auth)/register');
+                }
+              }}
               style={styles.registerButton}
               fullWidth
             />
@@ -57,7 +83,14 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
           <Button
             title="Continue as Guest"
             variant="ghost"
-            onPress={() => router.back()}
+            onPress={() => {
+              try {
+                router.back();
+              } catch (error) {
+                console.error('Navigation error:', error);
+                router.replace('/(tabs)');
+              }
+            }}
             style={styles.guestButton}
             fullWidth
           />

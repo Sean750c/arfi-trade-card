@@ -16,7 +16,7 @@ export default function RootLayout() {
   const { initialize } = useAppStore();
   const { fetchCountries } = useCountryStore();
   const { fetchBanners } = useBannerStore();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, initialize: initializeAuth } = useAuthStore();
   
   useFrameworkReady();
   useAuthProtection(); // Add auth protection
@@ -24,6 +24,9 @@ export default function RootLayout() {
   useEffect(() => {
     const init = async () => {
       try {
+        // 首先初始化认证状态
+        await initializeAuth();
+        
         // Fetch countries and banners in parallel (these don't require auth)
         await Promise.all([
           fetchCountries(),
@@ -45,19 +48,28 @@ export default function RootLayout() {
     };
 
     init();
-  }, [initialize, fetchCountries, fetchBanners, router, isAuthenticated, user?.token]);
+  }, [initialize, fetchCountries, fetchBanners, router, isAuthenticated, user?.token, initializeAuth]);
 
   return (
     <ThemeProvider>
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="notifications" options={{ headerShown: false }} />
-        <Stack.Screen name="rates" options={{ headerShown: false }} />
-        <Stack.Screen name="refer" options={{ headerShown: false }} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="rates" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="refer" />
+        <Stack.Screen name="calculator" />
+        <Stack.Screen name="orders" />
+        <Stack.Screen name="profile" />
+        <Stack.Screen name="wallet" />
+        <Stack.Screen name="+not-found" />
       </Stack>
+      <StatusBar style="auto" />
     </ThemeProvider>
   );
 }
