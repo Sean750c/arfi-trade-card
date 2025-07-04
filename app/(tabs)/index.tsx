@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Bell, ChevronDown, Sparkles, Eye, EyeOff, RefreshCw } from 'lucide-react-native';
@@ -25,6 +26,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { Country } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import AnnouncementBar from '@/components/home/AnnouncementBar';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 export default function HomeScreen() {
   // const colorScheme = useColorScheme() ?? 'light';
@@ -96,7 +98,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -151,7 +153,7 @@ export default function HomeScreen() {
                   <View style={styles.vipBadge}>
                     <Sparkles size={12} color={colors.primary} />
                     <Text style={[styles.vipText, { color: colors.primary }]}>
-                      VIP {user.vip_level}
+                      VIP {user.vip_level}1
                     </Text>
                   </View>
                 </View>
@@ -300,23 +302,24 @@ export default function HomeScreen() {
         {/* <PromoTimer /> */}
         <RecentTransactions />
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollContent: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
+    // 为Android设备添加额外的顶部padding
+    paddingTop: Platform.OS === 'android' ? Spacing.md : Spacing.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: Spacing.sm,
+    // 为Android设备添加额外的顶部margin
+    marginTop: Platform.OS === 'android' ? Spacing.sm : 0,
   },
   headerLeft: {
     flex: 1,
@@ -325,6 +328,8 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     gap: Spacing.sm,
+    // 为Android设备调整按钮位置
+    marginTop: Platform.OS === 'android' ? Spacing.xs : 0,
   },
   actionButton: {
     width: 36,
@@ -333,6 +338,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    // 为Android设备增加按钮大小
+    ...(Platform.OS === 'android' && {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+    }),
   },
   locationContainer: {
     marginBottom: Spacing.sm,

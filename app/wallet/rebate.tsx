@@ -3,8 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
@@ -21,6 +21,8 @@ import Spacing from '@/constants/Spacing';
 import Card from '@/components/UI/Card';
 import OrderBonusModal from '@/components/wallet/OrderBounsCard';
 import AuthGuard from '@/components/UI/AuthGuard';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import Header from '@/components/UI/Header';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useRebateStore } from '@/stores/useRebateStore';
 import RebateList from '@/components/wallet/RebateList';
@@ -34,9 +36,8 @@ function RebateDetailsContent() {
     rebateList,
     isLoadingRebateList,
     isLoadingMore,
-    infoError,
-    activeWalletType,
     rebateListError,
+    activeWalletType,
     hasMore,
     setActiveWalletType,
     fetchRebateList,
@@ -101,19 +102,12 @@ function RebateDetailsContent() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={[styles.backButton, { backgroundColor: `${colors.primary}15` }]}
-        >
-          <ChevronLeft size={24} color={colors.primary} />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={[styles.title, { color: colors.text }]}>Rebate Details</Text>
-        </View>
-      </View>
+      <Header 
+        title="Rebate Details"
+        backgroundColor={colors.card}
+      />
 
       <View style={styles.balanceContainer}>
         {/* Rebate Balance Card */}
@@ -139,9 +133,9 @@ function RebateDetailsContent() {
                   ? parseFloat(rebateInfo?.transfer_rebate || '0') || 0
                   : parseFloat(rebateInfo?.transfer_rebate_usd || '0') || 0,
                   walletType === '1'
-                  ? rebateInfo?.currency_symbol || '₦'
-                  : rebateInfo?.currency_symbol_usd || 'USDT',
-                0
+                    ? rebateInfo?.currency_symbol || '₦'
+                    : rebateInfo?.currency_symbol_usd || 'USDT',
+                  0
               )} to cash wallet.
             </Text>
           </View>
@@ -199,56 +193,47 @@ function RebateDetailsContent() {
           {rebateInfo && rebateInfo.vip_info && rebateInfo.vip_info.length > 0 && (
             <TouchableOpacity
               style={[styles.earningMethod, { backgroundColor: colors.card }]}
-              onPress={() => router.push('/profile/vip')}
             >
-              <View style={[styles.earningMethodIcon, { backgroundColor: '#FFD70015' }]}>
-                <Crown size={20} color="#FFD700" />
+              <View style={[styles.earningMethodIcon, { backgroundColor: `${colors.warning}15` }]}>
+                <Crown size={20} color={colors.warning} />
               </View>
               <View style={styles.earningMethodContent}>
                 <Text style={[styles.earningMethodTitle, { color: colors.text }]}>
                   VIP Rebate
                 </Text>
                 <Text style={[styles.earningMethodDescription, { color: colors.textSecondary }]}>
-                  Higher VIP levels earn better rebate rates
+                  Earn {rebateInfo.vip_info[0]?.rate || 0}% rebate on every order
                 </Text>
               </View>
-              <ArrowRight size={18} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
 
-          {/* Invitation Rebate */}
-          {walletType === '1' && rebateInfo && rebateInfo.referred_bonus > 0 && (
+          {/* Referral Bonus */}
+          {rebateInfo && rebateInfo.referred_bonus && rebateInfo.referred_bonus > 0 && (
             <TouchableOpacity
               style={[styles.earningMethod, { backgroundColor: colors.card }]}
-              onPress={() => router.push('/refer')}
             >
-              <View style={[styles.earningMethodIcon, { backgroundColor: `${colors.warning}15` }]}>
-                <Users size={20} color={colors.warning} />
+              <View style={[styles.earningMethodIcon, { backgroundColor: `${colors.secondary}15` }]}>
+                <Users size={20} color={colors.secondary} />
               </View>
               <View style={styles.earningMethodContent}>
                 <Text style={[styles.earningMethodTitle, { color: colors.text }]}>
-                  Invitation Rebate
+                  Referral Bonus
                 </Text>
                 <Text style={[styles.earningMethodDescription, { color: colors.textSecondary }]}>
-                  Earned {formatAmount(rebateInfo.referred_bonus, rebateInfo.currency_symbol)} from referrals
+                  Earn rewards by inviting friends
                 </Text>
               </View>
-              <ArrowRight size={18} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      <View style={styles.rebateListHeader}>
+      {/* Rebate List */}
+      <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Rebate History
+          Recent Rebates
         </Text>
-        <Text style={[styles.rebateListCount, { color: colors.textSecondary }]}>
-          {rebateList.length} rebates
-        </Text>
-      </View>
-      {/* Rebate History */}
-      <View style={styles.rebateListContainer}>
         <RebateList
           rebateInfo={rebateInfo}
           rebateList={rebateList}
@@ -262,14 +247,14 @@ function RebateDetailsContent() {
         />
       </View>
 
-      {/* Amount Order Bonus Modal */}
+      {/* Amount Bonus Modal */}
       <OrderBonusModal
         visible={showAmountBonusModal}
         onClose={() => setShowAmountBonusModal(false)}
         bonusData={rebateInfo?.amount_order_bonus || []}
         currencySymbol={rebateInfo?.currency_symbol || '₦'}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 
@@ -282,48 +267,17 @@ export default function RebateDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  loadingText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-  },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.md,
-  },
-  headerContent: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-  },
-
-  // Balance Card
   balanceContainer: {
     paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   balanceCard: {
-    marginBottom: Spacing.sm,
-    shadowOffset: { width: 0, height: 4 },
+    borderRadius: 16,
+    padding: Spacing.lg,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
@@ -346,47 +300,45 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   transferRebateContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: Spacing.sm,
+    borderRadius: 8,
   },
   transferRebateLabel: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 12,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
   },
-
-  // Sections
   section: {
-    marginBottom: Spacing.sm,
     paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
-
-  // Earning Methods
   earningMethods: {
-    gap: Spacing.xs,
+    gap: Spacing.md,
   },
   earningMethod: {
-    height:60,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.sm,
+    padding: Spacing.md,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'transparent',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   earningMethodIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
@@ -395,28 +347,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   earningMethodTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     marginBottom: 2,
   },
   earningMethodDescription: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-  },
-
-  // Rebate List
-  rebateListHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-  },
-  rebateListCount: {
     fontSize: 13,
-    fontFamily: 'Inter-Medium',
-  },
-  rebateListContainer: {
-    flex: 1,
-    paddingHorizontal: Spacing.lg,
+    fontFamily: 'Inter-Regular',
   },
 });

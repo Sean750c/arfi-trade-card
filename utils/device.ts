@@ -1,7 +1,8 @@
-import { Platform } from 'react-native';
+import { Platform, StatusBar, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Application from 'expo-application';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 
 export async function getDeviceType(): Promise<string> {
   const deviceType = Device.deviceType === 1 ? 'phone' :
@@ -96,3 +97,52 @@ function generateWebFingerprint(): string {
 
   return `web_${Math.abs(hash).toString(36)}`;
 }
+
+// 获取状态栏高度
+export const getStatusBarHeight = (): number => {
+  if (Platform.OS === 'ios') {
+    return Constants.statusBarHeight || 0;
+  } else {
+    // Android 状态栏高度
+    return StatusBar.currentHeight || 0;
+  }
+};
+
+// 获取安全区域顶部高度（状态栏 + 可能的刘海屏区域）
+export const getSafeAreaTopHeight = (): number => {
+  const statusBarHeight = getStatusBarHeight();
+  
+  if (Platform.OS === 'ios') {
+    // iOS 需要额外的安全区域
+    return statusBarHeight + (Constants.statusBarHeight ? 0 : 44);
+  } else {
+    // Android 通常只需要状态栏高度
+    return statusBarHeight;
+  }
+};
+
+// 获取屏幕尺寸
+export const getScreenDimensions = () => {
+  const { width, height } = Dimensions.get('window');
+  return { width, height };
+};
+
+// 检查是否为刘海屏设备
+export const isNotchDevice = (): boolean => {
+  const { height, width } = Dimensions.get('window');
+  const aspectRatio = height / width;
+  
+  // 根据屏幕比例判断是否为刘海屏
+  return aspectRatio > 2.1;
+};
+
+// 获取设备信息
+export const getDeviceInfo = () => {
+  return {
+    platform: Platform.OS,
+    statusBarHeight: getStatusBarHeight(),
+    safeAreaTopHeight: getSafeAreaTopHeight(),
+    screenDimensions: getScreenDimensions(),
+    isNotch: isNotchDevice(),
+  };
+};
