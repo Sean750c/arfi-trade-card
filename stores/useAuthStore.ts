@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { User } from '@/types';
 import { AuthService } from '@/services/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -46,6 +47,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         error: null,
       });
+      await AsyncStorage.setItem('user', JSON.stringify(response));
     } catch (error) {
       set({
         isLoading: false,
@@ -71,7 +73,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         error: null 
       });
-      
+      await AsyncStorage.removeItem('user');
       console.log('User logged out successfully');
     } catch (error) {
       // Even if API call fails, clear local state
@@ -81,7 +83,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         error: null 
       });
-      
+      await AsyncStorage.removeItem('user');
       console.warn('Logout API call failed, but local state cleared:', error);
       // Don't throw error here to ensure logout always succeeds locally
     }
@@ -96,14 +98,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
   initialize: async () => {
-    // 初始化认证状态，可以从本地存储恢复用户信息
     try {
-      // 这里可以添加从AsyncStorage恢复用户信息的逻辑
-      // 暂时设置为已初始化
-      set({ isInitialized: true });
+      const userStr = await AsyncStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        set({ user, isAuthenticated: true, isInitialized: true });
+      } else {
+        set({ user: null, isAuthenticated: false, isInitialized: true });
+      }
     } catch (error) {
-      console.error('Auth initialization failed:', error);
-      set({ isInitialized: true }); // 即使失败也要标记为已初始化
+      set({ user: null, isAuthenticated: false, isInitialized: true });
     }
   },
   register: async (params) => {
@@ -118,6 +122,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         error: null,
       });
+      await AsyncStorage.setItem('user', JSON.stringify(response));
     } catch (error) {
       set({
         isLoading: false,
@@ -133,6 +138,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isLoading: false,
       error: null,
     });
+    AsyncStorage.setItem('user', JSON.stringify(user));
   },
   googleLogin: async (accessToken) => {
     set({ isLoading: true, error: null });

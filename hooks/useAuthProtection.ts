@@ -26,10 +26,11 @@ const PROTECTED_ROUTES = [
 ];
 
 export function useAuthProtection() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isInitialized } = useAuthStore();
   const segments = useSegments();
 
   useEffect(() => {
+    if (!isInitialized) return; // 未初始化时不做跳转
     // Get the current route path
     const currentPath = segments.join('/');
     
@@ -56,5 +57,5 @@ export function useAuthProtection() {
       router.replace('/(tabs)');
       return;
     }
-  }, [isAuthenticated, segments]);
+  }, [isAuthenticated, isInitialized, segments]);
 }
