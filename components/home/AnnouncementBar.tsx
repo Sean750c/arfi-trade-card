@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableWithoutFeedback, Platform } from 'react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -90,7 +90,7 @@ const AnnouncementBar: React.FC = () => {
     }, [loopCount, offsetX]);
 
     const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ translateX: offsetX.value % textWidth }],
+        transform: [{ translateX: offsetX.value }],
     }));
 
     const handlePressIn = useCallback(() => {
@@ -137,7 +137,13 @@ const AnnouncementBar: React.FC = () => {
             onPressOut={handlePressOut}
             accessible={false}
         >
-            <View style={[styles.container, { backgroundColor: `${colors.primary}15` }]}>
+            <View style={[
+                styles.container,
+                {
+                    backgroundColor: '#FFFBEA', // 更亮的公告底色
+                    borderColor: colors.border, // 主题灰色边框
+                }
+            ]}>
                 {/* Icon */}
                 <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15`, position: 'relative' }]}>
                     <Animated.View
@@ -199,12 +205,13 @@ const styles = StyleSheet.create({
         height: BAR_HEIGHT,
         flexDirection: 'row',
         alignItems: 'center',
-        borderBottomWidth: 0,
+        borderWidth: 1,
+        borderColor: '#E5E7EB', // 默认灰色，运行时用colors.border覆盖
         borderRadius: 8,
         position: 'relative',
         overflow: 'hidden',
         paddingHorizontal: Spacing.xs,
-        backgroundColor: 'rgba(255, 251, 234, 0.92)',
+        backgroundColor: '#FFFBEA', // 默认亮黄，运行时可被覆盖
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
@@ -240,18 +247,32 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 14,
         color: '#B8860B',
-        includeFontPadding: false,
-        textAlignVertical: 'center',
-        flexShrink: 0,
-        flexGrow: 0,
-        flexWrap: 'nowrap',
         fontWeight: '500',
         letterSpacing: 0.2,
+        ...(
+            Platform.OS === 'web'
+                ? {
+                    whiteSpace: 'nowrap',
+                    minWidth: 10,
+                  }
+                : {
+                    flexShrink: 0,
+                    flexGrow: 0,
+                  }
+        ),
     },
     hiddenText: {
         position: 'absolute',
         opacity: 0,
         paddingHorizontal: 16,
+        ...(
+            Platform.OS === 'web'
+                ? {
+                    whiteSpace: 'nowrap',
+                    minWidth: 10,
+                  }
+                : {}
+        ),
     },
 });
 

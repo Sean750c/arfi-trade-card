@@ -77,7 +77,7 @@ const TransactionItem = React.memo(function TransactionItem({
         style={[
           styles.transactionItem,
           {
-            backgroundColor: colors.card_id,
+            backgroundColor: colors.card,
             borderColor: colors.border,
           },
         ]}

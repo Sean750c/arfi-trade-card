@@ -218,11 +218,6 @@ export default function ProfileScreen() {
       title: 'VIP Membership',
       subtitle: `Level ${user?.vip_level || 1}`,
       route: '/profile/vip',
-      badge: (
-        <View style={[styles.vipBadge, { backgroundColor: colors.secondary }]}>
-          <Text style={styles.vipBadgeText}>{user?.vip_level || 1}</Text>
-        </View>
-      ),
     },
     {
       id: '3',
