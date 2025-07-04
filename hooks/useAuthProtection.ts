@@ -18,10 +18,8 @@ const PUBLIC_ROUTES = [
 const PROTECTED_ROUTES = [
   '(tabs)/sell',
   '(tabs)/wallet',
-  '(tabs)/profile',
   'notifications',
   'refer',
-  'profile',
   'orders',
   'wallet',
   'calculator',

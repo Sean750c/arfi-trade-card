@@ -1,4 +1,4 @@
-import md5 from 'md5';
+import md5 from 'crypto-js/md5';
 import { Platform } from 'react-native';
 import { router } from 'expo-router';
 
@@ -41,7 +41,7 @@ export class APIRequest {
     const signString = paramString + appKey;
     
     // 3. 添加APP_KEY并生成MD5（确保与服务器的$appkey相同）
-    return md5(signString);
+    return md5(signString).toString();
   }
 
   private static async handleTokenExpiration(code: string) {
