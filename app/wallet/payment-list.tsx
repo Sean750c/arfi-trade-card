@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { useTheme } from '@/theme/ThemeContext';
 import { ChevronLeft, Plus } from 'lucide-react-native';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -88,7 +88,7 @@ export default function PaymentListScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
+    <SafeAreaWrapper style={[styles.container, { backgroundColor: colors.background }]}> 
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -160,7 +160,7 @@ export default function PaymentListScreen() {
         availablePaymentMethods={availablePaymentMethods}
         walletType={activeWalletType}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

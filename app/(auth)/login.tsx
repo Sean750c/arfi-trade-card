@@ -6,21 +6,19 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  useColorScheme,
   KeyboardAvoidingView,
   Platform,
   Alert,
-  SafeAreaView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useTheme } from '@/theme/ThemeContext';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 export default function LoginScreen() {
   // const colorScheme = useColorScheme() ?? 'light';
@@ -82,7 +80,7 @@ export default function LoginScreen() {
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
       >
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaWrapper style={styles.safeArea}>
           <View style={styles.header}>
             <TouchableOpacity 
               onPress={handleBack} 
@@ -165,7 +163,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </SafeAreaView>
+        </SafeAreaWrapper>
       </ScrollView>
     </KeyboardAvoidingView>
   );

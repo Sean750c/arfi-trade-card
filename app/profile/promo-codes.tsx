@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
@@ -17,6 +16,7 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useCouponStore } from '@/stores/useCouponStore';
 import type { Coupon } from '@/types';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 function PromoCodesScreenContent() {
   const { colors } = useTheme();
@@ -203,7 +203,7 @@ function PromoCodesScreenContent() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[
         styles.header,
@@ -316,7 +316,7 @@ function PromoCodesScreenContent() {
           removeClippedSubviews={true}
         />
       )}
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

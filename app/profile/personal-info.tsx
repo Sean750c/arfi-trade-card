@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
@@ -17,6 +16,7 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UserService } from '@/services/user';
 import type { UserInfo } from '@/types';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 function PersonalInfoContent() {
   const { colors } = useTheme();
@@ -89,20 +89,20 @@ function PersonalInfoContent() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Loading personal information...
           </Text>
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: colors.error }]}>
             {error}
@@ -114,12 +114,12 @@ function PersonalInfoContent() {
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -239,7 +239,7 @@ function PersonalInfoContent() {
           </View>
         </Card>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

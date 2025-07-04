@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { X, Crown, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { X, Crown } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { OrderVip, OrderVipInfo } from '@/types';

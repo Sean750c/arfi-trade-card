@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  useColorScheme,
   Image,
   Alert,
 } from 'react-native';
@@ -87,7 +86,7 @@ export default function PaymentMethodCard({
             backgroundColor: colors.card,
             borderColor: isDefault ? colors.primary : colors.border,
             borderWidth: isDefault ? 2 : 1,
-            shadowColor: colors.shadow,
+            shadowColor: colors.secondary,
           },
         ]}
         onPress={onSelect}

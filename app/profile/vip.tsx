@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
@@ -35,6 +34,7 @@ import VIPLevelModal from '@/components/vip/VIPLevelModal';
 import HtmlRenderer from '@/components/UI/HtmlRenderer';
 import { CommonService } from '@/services/common';
 import { LeadData } from '@/types';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 // 11级VIP配色
 const VIP_LEVEL_COLORS: [string, string][] = [
@@ -203,20 +203,20 @@ function VIPScreenContent() {
 
   if (isLoadingVIP && !vipData) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Loading VIP information...
           </Text>
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   if (vipError || !vipData) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: colors.error }]}>
             {vipError || 'Failed to load VIP information'}
@@ -227,12 +227,12 @@ function VIPScreenContent() {
             style={styles.retryButton}
           />
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[
         styles.header, 
@@ -383,7 +383,7 @@ function VIPScreenContent() {
           <HelpCircle size={20} color={getVIPLevelGradient(vipData.vip_level)[0]} />
         </TouchableOpacity>
       </Animated.View>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

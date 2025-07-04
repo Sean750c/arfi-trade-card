@@ -3,10 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
-  useColorScheme,
   ActivityIndicator,
   RefreshControl,
   Image,
@@ -16,13 +14,13 @@ import { router } from 'expo-router';
 import { ChevronLeft, Plus, CreditCard, Star, CreditCard as Edit, Trash2 } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Button from '@/components/UI/Button';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { PaymentService } from '@/services/payment';
 import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/types';
 import AddPaymentMethodModal from '@/components/wallet/AddPaymentMethodModal';
 import { useTheme } from '@/theme/ThemeContext';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 function BankAccountsScreenContent() {
   const { colors } = useTheme();
@@ -211,7 +209,7 @@ function BankAccountsScreenContent() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[
         styles.header, 
@@ -322,7 +320,7 @@ function BankAccountsScreenContent() {
         availablePaymentMethods={availablePaymentMethods}
         walletType={activeWalletType}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

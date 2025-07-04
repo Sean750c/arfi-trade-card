@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native';
-import { Eye, EyeOff, Gift, TrendingUp, ArrowRight } from 'lucide-react-native';
+import { Eye, EyeOff, Gift, ArrowRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';

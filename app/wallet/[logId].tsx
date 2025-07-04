@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, useColorScheme, SafeAreaView, TouchableOpacity, Image, RefreshControl, Dimensions, } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, useColorScheme, TouchableOpacity, Image, RefreshControl, Dimensions, } from 'react-native';
 import { ChevronLeft, CircleAlert as AlertCircle, CircleX as XCircle } from 'lucide-react-native';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { MoneyLogDetail } from '@/types';
@@ -8,6 +8,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import Button from '@/components/UI/Button';
 import { useWalletStore } from '@/stores/useWalletStore';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 const { width } = Dimensions.get('window');
 
@@ -46,20 +47,20 @@ export default function TransactionDetailScreen() {
 
   if (isLoadingDetail) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Loading transaction details...
           </Text>
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   if (detailError || !detail) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.errorContainer}>
           <AlertCircle size={48} color={colors.error} />
           <Text style={[styles.errorTitle, { color: colors.error }]}>
@@ -74,12 +75,12 @@ export default function TransactionDetailScreen() {
             style={styles.retryButton}
           />
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[
         styles.header,
@@ -196,7 +197,7 @@ export default function TransactionDetailScreen() {
           />
         </View>
       )}
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

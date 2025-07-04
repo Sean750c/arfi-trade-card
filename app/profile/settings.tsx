@@ -3,10 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  useColorScheme,
   Switch,
   Alert,
 } from 'react-native';
@@ -15,7 +13,6 @@ import {
   ChevronLeft, 
   Moon, 
   Sun, 
-  Bell, 
   Globe, 
   Shield, 
   Download,
@@ -24,9 +21,9 @@ import {
   ChevronRight,
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 export default function SettingsScreen() {
   // const systemColorScheme = useColorScheme() ?? 'light';
@@ -215,7 +212,7 @@ export default function SettingsScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[
         styles.header, 
@@ -366,7 +363,7 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

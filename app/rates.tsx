@@ -3,11 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
   TextInput,
-  useColorScheme,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
@@ -30,6 +28,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import CategoryCard from '@/components/rates/CategoryCard';
 import FilterModal from '@/components/rates/FilterModal';
 import type { CategoryData } from '@/types';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 export default function RatesScreen() {
   const { colors } = useTheme();
@@ -129,7 +128,7 @@ export default function RatesScreen() {
 
   if (error && !allRatesData) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: colors.error }]}>
             {error}
@@ -140,12 +139,12 @@ export default function RatesScreen() {
             style={styles.retryButton}
           />
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -285,7 +284,7 @@ export default function RatesScreen() {
           setShowFilters(false);
         }}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

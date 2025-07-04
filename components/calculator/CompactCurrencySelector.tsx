@@ -4,10 +4,8 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  useColorScheme,
 } from 'react-native';
 import { CircleCheck as CheckCircle } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 

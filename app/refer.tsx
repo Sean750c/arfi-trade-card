@@ -3,17 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   TextInput,
   Alert,
-  Platform,
-  Modal,
   Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Share, Copy, User, ChevronLeft } from 'lucide-react-native';
+import { Share, Copy, ChevronLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
@@ -22,11 +19,11 @@ import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useInviteStore } from '@/stores/useInviteStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-import type { InviteDetailItem } from '@/types';
 import { ScrollView as RNScrollView } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Share as RNShare } from 'react-native';
 import MyInvitesList from '@/components/invite/MyInvitesList';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 function AnimatedNumber({value, style, prefix = ''}: {value: number, style?: any, prefix?: string}) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -243,7 +240,7 @@ function ReferScreenContent() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ paddingBottom: 32 }}>
         {renderHeader()}
         {renderFooter()}
@@ -254,7 +251,7 @@ function ReferScreenContent() {
           colors={colors}
         />
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

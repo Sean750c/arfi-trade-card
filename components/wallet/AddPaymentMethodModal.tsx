@@ -6,7 +6,6 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
   Image,
   TextInput,
   Alert,

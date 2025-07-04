@@ -6,24 +6,22 @@ import {
   TouchableOpacity,
   ScrollView,
   Switch,
-  useColorScheme,
   KeyboardAvoidingView,
   Platform,
   Alert,
   Image,
-  SafeAreaView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft, Mail, Phone, ChevronDown } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { Country } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 type RegistrationType = 'email' | 'whatsapp';
 
@@ -144,7 +142,7 @@ export default function RegisterScreen() {
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
       >
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaWrapper style={styles.safeArea}>
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity 
@@ -418,7 +416,7 @@ export default function RegisterScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </SafeAreaView>
+        </SafeAreaWrapper>
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  useColorScheme,
   Modal,
   ScrollView,
 } from 'react-native';
@@ -13,7 +12,6 @@ import {
   Info,
   X,
 } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 

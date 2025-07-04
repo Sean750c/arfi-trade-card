@@ -3,10 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
-  useColorScheme,
   Platform,
   ActivityIndicator,
   RefreshControl,
@@ -15,13 +13,13 @@ import {
 import { router } from 'expo-router';
 import { ChevronLeft, Bell, Filter, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Image as ImageIcon } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { Notice } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import { formatDate } from '@/utils/date';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
   
 const NOTIFICATION_TYPES = [
   { key: 'all', label: 'All' },
@@ -237,7 +235,7 @@ function NotificationsScreenContent() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[styles.header, Platform.OS === 'android' && styles.androidHeader]}>
         <TouchableOpacity 
@@ -324,7 +322,7 @@ function NotificationsScreenContent() {
           </Text>
         </View>
       )}
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

@@ -3,10 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  useColorScheme,
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -18,13 +16,13 @@ import CompactAmountSelector from '@/components/calculator/CompactAmountSelector
 import CompactCurrencySelector from '@/components/calculator/CompactCurrencySelector';
 import VIPBenefits from '@/components/calculator/VIPBenefits';
 import BonusInfo from '@/components/calculator/BonusInfo';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { CalculatorService } from '@/services/calculator';
 import type { CalculatorData, CardItem } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 const denominations = ['$25', '$50', '$100', '$200', '$500'];
 const currencies = [
@@ -116,19 +114,19 @@ export default function CalculatorScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Loading calculator data...
           </Text>
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -288,7 +286,7 @@ export default function CalculatorScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

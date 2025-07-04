@@ -5,12 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
   Modal,
 } from 'react-native';
 import { X, Filter } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { CategoryData } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';

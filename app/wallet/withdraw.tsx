@@ -12,7 +12,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
 import { ChevronLeft, Plus, CreditCard, Clock, ArrowRight, AlertCircle } from 'lucide-react-native';
@@ -196,20 +196,20 @@ function WithdrawScreenContent() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Loading withdrawal methods...
           </Text>
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: colors.error }]}>
             {error}
@@ -220,12 +220,12 @@ function WithdrawScreenContent() {
             style={styles.retryButton}
           />
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -447,7 +447,7 @@ function WithdrawScreenContent() {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

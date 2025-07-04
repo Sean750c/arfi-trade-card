@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Image,
@@ -21,6 +20,7 @@ import Button from '@/components/UI/Button';
 import { UserService } from '@/services/user';
 import { UploadService } from '@/services/upload';
 import { useTheme } from '@/theme/ThemeContext';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 type MenuItemType = {
   id: string;
@@ -295,7 +295,7 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={[styles.header, 
         { 
@@ -454,7 +454,7 @@ export default function ProfileScreen() {
           </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

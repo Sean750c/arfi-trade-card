@@ -3,16 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  useColorScheme,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft, Shield } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 export default function PrivacyPolicyScreen() {
   // const colorScheme = useColorScheme() ?? 'light';
@@ -20,7 +18,7 @@ export default function PrivacyPolicyScreen() {
   const { colors } = useTheme();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[
         styles.header, 
@@ -198,7 +196,7 @@ export default function PrivacyPolicyScreen() {
           </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

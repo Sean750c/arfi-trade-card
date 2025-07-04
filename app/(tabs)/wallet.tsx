@@ -3,10 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
-  useColorScheme,
-  RefreshControl,
-  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import Button from '@/components/UI/Button';
@@ -21,6 +17,7 @@ import { useWalletStore } from '@/stores/useWalletStore';
 import type { WalletTransaction } from '@/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@/theme/ThemeContext';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 function WalletScreenContent() {
   const { colors } = useTheme();
@@ -117,7 +114,7 @@ function WalletScreenContent() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Enhanced Header */}
       <View style={[
         styles.header, 
@@ -201,7 +198,7 @@ function WalletScreenContent() {
           walletType={activeWalletType}
         />
       </View>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

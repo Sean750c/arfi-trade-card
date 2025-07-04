@@ -7,7 +7,6 @@ import {
   ScrollView, 
   Text, 
   TouchableOpacity, 
-  useColorScheme,
   Linking,
   Alert
 } from 'react-native';

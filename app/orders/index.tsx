@@ -3,25 +3,16 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
-  useColorScheme,
   ActivityIndicator,
   RefreshControl,
-  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
   ChevronLeft, 
-  Filter, 
-  Calendar,
   Gift,
-  Clock,
-  CircleCheck as CheckCircle,
   CircleAlert as AlertCircle,
-  CircleX as XCircle,
-  Search,
   TrendingUp,
 } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
@@ -32,6 +23,7 @@ import { useOrderStore } from '@/stores/useOrderStore';
 import OrderStatusFilter from '@/components/orders/OrderStatusFilter';
 import OrderCard from '@/components/orders/OrderCard';
 import type { OrderListItem } from '@/types';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 function OrdersScreenContent() {
   const { colors } = useTheme();
@@ -146,7 +138,7 @@ function OrdersScreenContent() {
 
   if (ordersError) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.errorContainer}>
           <AlertCircle size={48} color={colors.error} />
           <Text style={[styles.errorTitle, { color: colors.error }]}>
@@ -162,12 +154,12 @@ function OrdersScreenContent() {
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[
         styles.header, 
@@ -247,7 +239,7 @@ function OrdersScreenContent() {
           </Text>
         </View>
       )}
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

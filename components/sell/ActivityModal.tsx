@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Linking,
   Alert,
 } from 'react-native';
-import { X, Trophy, Star, Gift, DollarSign, Calendar, Target, TrendingUp, ExternalLink } from 'lucide-react-native';
+import { X, Trophy, Gift, DollarSign, Calendar, TrendingUp, ExternalLink } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import type { OrderSellDetail } from '@/types/order';

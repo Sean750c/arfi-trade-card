@@ -3,10 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
-  useColorScheme,
   ActivityIndicator,
   TextInput,
   RefreshControl,
@@ -22,6 +20,7 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useFAQStore } from '@/stores/useFAQStore';
 import type { FAQItem } from '@/types';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 // 只保留AnswerHTML组件，兼容web端
 interface AnswerHTMLProps {
@@ -298,7 +297,7 @@ function SupportScreenContent() {
 
   if (faqsError) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.errorContainer}>
           <HelpCircle size={48} color={colors.error} />
           <Text style={[styles.errorTitle, { color: colors.error }]}>
@@ -314,12 +313,12 @@ function SupportScreenContent() {
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[
         styles.header,
@@ -404,7 +403,7 @@ function SupportScreenContent() {
           </Text>
         </View>
       )}
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

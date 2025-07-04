@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  useColorScheme,
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -28,6 +26,7 @@ import AuthGuard from '@/components/UI/AuthGuard';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 function SecurityScreenContent() {
   const { colors } = useTheme();
@@ -197,7 +196,7 @@ function SecurityScreenContent() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[
         styles.header, 
@@ -285,7 +284,7 @@ function SecurityScreenContent() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

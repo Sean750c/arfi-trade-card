@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useColorScheme, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { router } from 'expo-router';
 import { Gift, TrendingUp, Users, CreditCard, Zap, Star } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';

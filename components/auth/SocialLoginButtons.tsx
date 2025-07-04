@@ -4,10 +4,8 @@ import {
   StyleSheet,
   Alert,
   Platform,
-  useColorScheme,
 } from 'react-native';
 import Button from '@/components/UI/Button';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { AuthService } from '@/services/auth';
 import { useAuthStore } from '@/stores/useAuthStore';

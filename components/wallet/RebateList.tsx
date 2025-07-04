@@ -5,14 +5,12 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  useColorScheme,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { DollarSign, Star, Gift, Users, Crown, TrendingUp, CircleAlert as AlertCircle } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import type { RebateInfo, RebateItem, WalletTransaction } from '@/types';
+import type { RebateInfo, RebateItem } from '@/types';
 import { formatDateString } from '@/utils/date';
 import { useTheme } from '@/theme/ThemeContext';
 

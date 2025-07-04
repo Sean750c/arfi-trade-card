@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  useColorScheme,
   Dimensions,
   ScrollView,
   TouchableOpacity,
@@ -13,7 +12,6 @@ import {
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ArrowRight } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import Button from '@/components/UI/Button';
 import { useTheme } from '@/theme/ThemeContext';

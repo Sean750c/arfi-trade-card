@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  useColorScheme,
   ActivityIndicator,
   RefreshControl,
   Animated,

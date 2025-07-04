@@ -1,25 +1,20 @@
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Image,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  useColorScheme,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Bell, ChevronDown, Sparkles, Eye, EyeOff, RefreshCw } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import PromoBanner from '@/components/home/PromoBanner';
 import QuickActions from '@/components/home/QuickActions';
 import RecentTransactions from '@/components/home/RecentTransactions';
-import PromoTimer from '@/components/home/PromoTimer';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useAppStore } from '@/stores/useAppStore';
@@ -28,30 +23,14 @@ import { useTheme } from '@/theme/ThemeContext';
 import AnnouncementBar from '@/components/home/AnnouncementBar';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
+
 export default function HomeScreen() {
-  // const colorScheme = useColorScheme() ?? 'light';
-  // const colors = Colors[colorScheme];
   const { colors } = useTheme();
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { isAuthenticated, user } = useAuthStore();
   const { initData, isLoading: initLoading, error: initError, initialize } = useAppStore();
-
-  // Initialize app data on component mount
-  // useEffect(() => {
-  //   const initializeApp = async () => {
-  //     try {
-  //       // Check if user is authenticated and pass token if available
-  //       const userToken = isAuthenticated && user?.token ? user.token : undefined;
-  //       await initialize(userToken);
-  //     } catch (error) {
-  //       console.error('Failed to initialize app:', error);
-  //     }
-  //   };
-
-  //   initializeApp();
-  // }, [initialize, isAuthenticated, user?.token]);
 
   useFocusEffect(
     useCallback(() => {
@@ -153,7 +132,7 @@ export default function HomeScreen() {
                   <View style={styles.vipBadge}>
                     <Sparkles size={12} color={colors.primary} />
                     <Text style={[styles.vipText, { color: colors.primary }]}>
-                      VIP {user.vip_level}1
+                      VIP {user.vip_level}
                     </Text>
                   </View>
                 </View>
@@ -307,19 +286,18 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   scrollContent: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
-    // 为Android设备添加额外的顶部padding
-    paddingTop: Platform.OS === 'android' ? Spacing.md : Spacing.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: Spacing.sm,
-    // 为Android设备添加额外的顶部margin
-    marginTop: Platform.OS === 'android' ? Spacing.sm : 0,
   },
   headerLeft: {
     flex: 1,
@@ -328,8 +306,6 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     gap: Spacing.sm,
-    // 为Android设备调整按钮位置
-    marginTop: Platform.OS === 'android' ? Spacing.xs : 0,
   },
   actionButton: {
     width: 36,
@@ -338,12 +314,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    // 为Android设备增加按钮大小
-    ...(Platform.OS === 'android' && {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-    }),
   },
   locationContainer: {
     marginBottom: Spacing.sm,

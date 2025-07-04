@@ -5,20 +5,18 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
   KeyboardAvoidingView,
   Platform,
   Alert,
-  SafeAreaView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft, Mail, MessageCircle, ArrowRight, Shield } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { AuthService } from '@/services/auth';
 import { useTheme } from '@/theme/ThemeContext';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 type RecoveryMethod = 'email' | 'whatsapp';
 
@@ -325,7 +323,7 @@ export default function ForgotPasswordScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.header}>
           <TouchableOpacity 
             onPress={handleBack} 
@@ -344,7 +342,7 @@ export default function ForgotPasswordScreen() {
           {step === 'verify' && renderVerificationStep()}
           {step === 'reset' && renderPasswordReset()}
         </ScrollView>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     </KeyboardAvoidingView>
   );
 }

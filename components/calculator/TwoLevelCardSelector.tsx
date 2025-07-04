@@ -7,10 +7,8 @@ import {
   Modal,
   FlatList,
   Image,
-  useColorScheme,
 } from 'react-native';
 import { ChevronDown, X, ArrowLeft } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { CardCategory, CardItem } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';

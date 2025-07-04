@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -31,6 +30,7 @@ import { OrderService } from '@/services/order';
 import { useTheme } from '@/theme/ThemeContext';
 import { Coupon } from '@/types';
 import { useOrderStore } from '@/stores/useOrderStore';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -442,7 +442,7 @@ function SellScreenContent() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -740,7 +740,7 @@ function SellScreenContent() {
           }
         />
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 

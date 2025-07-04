@@ -5,11 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
-  useColorScheme,
   ScrollView,
 } from 'react-native';
 import { Crown, ChevronDown, X, Star } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { VIPDetail, VIPLevel } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';

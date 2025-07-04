@@ -4,13 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  useColorScheme,
   Image,
   ScrollView,
 } from 'react-native';
 import { 
   Star, 
-  ChevronDown, 
   TrendingUp,
   Clock,
   Crown,
@@ -19,7 +17,6 @@ import {
   DollarSign,
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { CategoryData, CardRate, RateDetail } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';

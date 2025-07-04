@@ -4,10 +4,8 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  useColorScheme,
 } from 'react-native';
 import { Gift, Star, ChevronDown, ChevronUp, DollarSign, Users } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import type { AmountOrderBonus } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';

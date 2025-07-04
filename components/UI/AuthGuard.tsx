@@ -1,11 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useAuthStore } from '@/stores/useAuthStore';
 import Button from '@/components/UI/Button';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import { Lock, User } from 'lucide-react-native';
+import { Lock } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 
 interface AuthGuardProps {

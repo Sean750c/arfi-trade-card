@@ -3,25 +3,23 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  useColorScheme,
   ActivityIndicator,
   Image,
   Dimensions,
   Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Calendar, DollarSign, Gift, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, CircleX as XCircle, Copy, Share, Eye, Tag, Crown, Sparkles, Image as ImageIcon } from 'lucide-react-native';
+import { ChevronLeft, Gift, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, CircleX as XCircle, Copy, Share, Tag, Crown, Sparkles, Image as ImageIcon } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Button from '@/components/UI/Button';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOrderStore } from '@/stores/useOrderStore';
-import type { OrderDetail, OrderImage } from '@/types';
+import type { OrderDetail } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
+import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 const { width } = Dimensions.get('window');
 
@@ -110,20 +108,20 @@ function OrderDetailScreenContent() {
 
   if (isLoadingDetail) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Loading order details...
           </Text>
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   if (detailError || !orderDetail) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.errorContainer}>
           <AlertCircle size={48} color={colors.error} />
           <Text style={[styles.errorTitle, { color: colors.error }]}>
@@ -138,12 +136,12 @@ function OrderDetailScreenContent() {
             style={styles.retryButton}
           />
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[
         styles.header, 
@@ -421,7 +419,7 @@ function OrderDetailScreenContent() {
           />
         </View>
       )}
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }
 
