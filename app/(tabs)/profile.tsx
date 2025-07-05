@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import { UserService } from '@/services/user';
 import { UploadService } from '@/services/upload';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { PerformanceMonitor } from '@/utils/performance';
 
 type MenuItemType = {
   id: string;
@@ -42,14 +43,18 @@ export default function ProfileScreen() {
   const [newNickname, setNewNickname] = useState('');
   const [updatingNickname, setUpdatingNickname] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     const confirmLogout = async () => {
+      const endTimer = PerformanceMonitor.getInstance().startTimer('profile_logout');
+      
       try {
         await logout();
         // No need to navigate as the UI will update automatically
       } catch (error) {
         console.error('Logout error:', error);
         Alert.alert('Error', 'Failed to logout completely. Please try again.');
+      } finally {
+        endTimer();
       }
     };
 
@@ -76,15 +81,17 @@ export default function ProfileScreen() {
         ]
       );
     }
-  };
+  }, [logout]);
 
-  const handleLogin = () => {
+  const handleLogin = useCallback(() => {
     router.push('/(auth)/login');
-  };
+  }, []);
 
-  const handleUpdateNickname = async () => {
+  const handleUpdateNickname = useCallback(async () => {
     if (!user?.token || !newNickname.trim()) return;
 
+    const endTimer = PerformanceMonitor.getInstance().startTimer('profile_update_nickname');
+    
     setUpdatingNickname(true);
     try {
       await UserService.modifyNickname({
@@ -103,10 +110,13 @@ export default function ProfileScreen() {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to update nickname');
     } finally {
       setUpdatingNickname(false);
+      endTimer();
     }
-  };
+  }, [user?.token, newNickname, setUser]);
 
-  const handleUpdateAvatar = async () => {
+  const handleUpdateAvatar = useCallback(async () => {
+    const endTimer = PerformanceMonitor.getInstance().startTimer('profile_update_avatar');
+    
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
@@ -164,6 +174,7 @@ export default function ProfileScreen() {
             Alert.alert('Error', error instanceof Error ? error.message : 'Failed to update avatar');
           } finally {
             setUpdatingAvatar(false);
+            endTimer();
           }
         };
 
@@ -172,10 +183,21 @@ export default function ProfileScreen() {
     } catch (error) {
       Alert.alert('Error', 'Failed to select image');
       setUpdatingAvatar(false);
+      endTimer();
     }
-  };
+  }, [user?.token, setUser]);
 
-  const renderMenuItem = (item: MenuItemType) => (
+  const handleEditNickname = useCallback(() => {
+    setEditingNickname(true);
+    setNewNickname(user?.nickname || user?.username || '');
+  }, [user?.nickname, user?.username]);
+
+  const handleCancelEditNickname = useCallback(() => {
+    setEditingNickname(false);
+    setNewNickname(user?.nickname || user?.username || '');
+  }, [user?.nickname, user?.username]);
+
+  const renderMenuItem = useCallback((item: MenuItemType) => (
     <TouchableOpacity
       key={item.id}
       style={[
@@ -201,10 +223,10 @@ export default function ProfileScreen() {
         <ChevronRight size={20} color={colors.textSecondary} />
       </View>
     </TouchableOpacity>
-  );
+  ), [colors.border, colors.primary, colors.text, colors.textSecondary]);
 
-  // Menu items for authenticated users
-  const authenticatedAccountMenu: MenuItemType[] = [
+  // 使用 useMemo 缓存菜单项数据
+  const authenticatedAccountMenu = useMemo((): MenuItemType[] => [
     {
       id: '1',
       icon: <UserCircle size={20} color={colors.primary} />,
@@ -233,10 +255,10 @@ export default function ProfileScreen() {
       subtitle: 'View your trading history',
       route: '/orders',
     },
-  ];
+  ], [colors.primary, user?.vip_level]);
 
-  // Menu items for guest users
-  const guestAccountMenu: MenuItemType[] = [
+  // 使用 useMemo 缓存访客菜单项
+  const guestAccountMenu = useMemo((): MenuItemType[] => [
     {
       id: '1',
       icon: <LogIn size={20} color={colors.primary} />,
@@ -251,9 +273,9 @@ export default function ProfileScreen() {
       subtitle: 'Join AfriTrade today',
       route: '/(auth)/register',
     },
-  ];
+  ], [colors.primary, handleLogin]);
 
-  const referralMenu: MenuItemType[] = [
+  const referralMenu = useMemo((): MenuItemType[] => [
     {
       id: '1',
       icon: <Users size={20} color={colors.primary} />,
@@ -261,9 +283,9 @@ export default function ProfileScreen() {
       subtitle: 'Invite friends, earn cash rewards',
       route: '/refer',
     },
-  ];
+  ], [colors.primary]);
 
-  const otherMenu: MenuItemType[] = [
+  const otherMenu = useMemo((): MenuItemType[] => [
     {
       id: '1',
       icon: <Tag size={20} color={colors.primary} />,
@@ -292,18 +314,49 @@ export default function ProfileScreen() {
       subtitle: 'App preferences',
       route: '/profile/settings',
     },
-  ];
+  ], [colors.primary]);
+
+  // 使用 useMemo 缓存动态样式
+  const headerStyle = useMemo(() => [
+    styles.header, 
+    { 
+      backgroundColor: colors.card,
+      borderBottomColor: colors.border,
+      shadowColor: 'rgba(0, 0, 0, 0.05)',
+    }
+  ], [colors.card, colors.border]);
+
+  const titleStyle = useMemo(() => [styles.title, { color: colors.text }], [colors.text]);
+  const menuSectionTitleStyle = useMemo(() => [styles.menuSectionTitle, { color: colors.text }], [colors.text]);
+  const userNameStyle = useMemo(() => [styles.userName, { color: colors.text }], [colors.text]);
+  const guestTitleStyle = useMemo(() => [styles.guestTitle, { color: colors.text }], [colors.text]);
+  const guestSubtitleStyle = useMemo(() => [styles.guestSubtitle, { color: colors.textSecondary }], [colors.textSecondary]);
+  const guestAvatarStyle = useMemo(() => [styles.guestAvatar, { backgroundColor: `${colors.primary}20` }], [colors.primary]);
+  const avatarEditButtonStyle = useMemo(() => [styles.avatarEditButton, { backgroundColor: colors.secondary }], [colors.secondary]);
+  const nicknameInputStyle = useMemo(() => [styles.nicknameInput, { backgroundColor: 'lightgray' }], []);
+  const nicknameActionButtonSuccessStyle = useMemo(() => [styles.nicknameActionButton, { backgroundColor: colors.success }], [colors.success]);
+  const nicknameActionButtonErrorStyle = useMemo(() => [styles.nicknameActionButton, { backgroundColor: colors.error }], [colors.error]);
+  const logoutButtonStyle = useMemo(() => [
+    styles.logoutButton,
+    {
+      borderColor: colors.error,
+      backgroundColor: 'transparent',
+      opacity: isLoading ? 0.6 : 1,
+    },
+  ], [colors.error, isLoading]);
+  const logoutTextStyle = useMemo(() => [styles.logoutText, { color: colors.error }], [colors.error]);
+  const versionTextStyle = useMemo(() => [styles.versionText, { color: colors.textSecondary }], [colors.textSecondary]);
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={[styles.header, 
-        { 
-          backgroundColor: colors.card,
-          borderBottomColor: colors.border,
-          shadowColor: 'rgba(0, 0, 0, 0.05)',
-        }]}>
-          <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        removeClippedSubviews={true}
+        contentContainerStyle={{ paddingBottom: Spacing.xl }}
+      >
+        <View style={headerStyle}>
+          <Text style={titleStyle}>Profile</Text>
         </View>
 
         {/* Profile Section */}
@@ -318,9 +371,11 @@ export default function ProfileScreen() {
                       uri: user?.avatar || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg',
                     }}
                     style={styles.avatar}
+                    resizeMode="cover"
+                    fadeDuration={300}
                   />
                   <TouchableOpacity
-                    style={[styles.avatarEditButton, { backgroundColor: colors.secondary }]}
+                    style={avatarEditButtonStyle}
                     onPress={handleUpdateAvatar}
                     disabled={updatingAvatar}
                   >
@@ -337,16 +392,19 @@ export default function ProfileScreen() {
                 {editingNickname ? (
                   <View style={styles.nicknameEditContainer}>
                     <TextInput
-                      style={[styles.nicknameInput, { backgroundColor: 'lightgray' }]}
+                      style={nicknameInputStyle}
                       value={newNickname}
                       onChangeText={setNewNickname}
                       placeholder="Enter nickname"
                       placeholderTextColor="rgba(255, 255, 255, 0.7)"
                       autoFocus
+                      maxLength={20}
+                      autoCapitalize="words"
+                      autoCorrect={false}
                     />
                     <View style={styles.nicknameActions}>
                       <TouchableOpacity
-                        style={[styles.nicknameActionButton, { backgroundColor: colors.success }]}
+                        style={nicknameActionButtonSuccessStyle}
                         onPress={handleUpdateNickname}
                         disabled={updatingNickname}
                       >
@@ -357,11 +415,8 @@ export default function ProfileScreen() {
                         )}
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.nicknameActionButton, { backgroundColor: colors.error }]}
-                        onPress={() => {
-                          setEditingNickname(false);
-                          setNewNickname(user?.nickname || user?.username || '');
-                        }}
+                        style={nicknameActionButtonErrorStyle}
+                        onPress={handleCancelEditNickname}
                       >
                         <X size={16} color="#FFFFFF" />
                       </TouchableOpacity>
@@ -369,12 +424,12 @@ export default function ProfileScreen() {
                   </View>
                 ) : (
                   <View style={styles.nicknameDisplayContainer}>
-                    <Text style={[styles.userName, { color: colors.text }]}>
+                    <Text style={userNameStyle}>
                       {user?.nickname || user?.username}
                     </Text>
                     <TouchableOpacity
                       style={styles.editNicknameButton}
-                      onPress={() => setEditingNickname(true)}
+                      onPress={handleEditNickname}
                     >
                       <Edit3 size={16} color={colors.primary} />
                     </TouchableOpacity>
@@ -385,14 +440,14 @@ export default function ProfileScreen() {
           ) : (
             // Guest User Profile
             <View style={styles.guestProfile}>
-              <View style={[styles.guestAvatar, { backgroundColor: `${colors.primary}20` }]}>
+              <View style={guestAvatarStyle}>
                 <User size={40} color={colors.primary} />
               </View>
               <View style={styles.guestInfo}>
-                <Text style={[styles.guestTitle, { color: colors.text }]}>
+                <Text style={guestTitleStyle}>
                   Welcome to AfriTrade
                 </Text>
-                <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>
+                <Text style={guestSubtitleStyle}>
                   Login or create an account to get started
                 </Text>
                 <Button
@@ -408,48 +463,41 @@ export default function ProfileScreen() {
 
         {/* Menu Sections */}
         <View style={styles.menuSection}>
-          <Text style={[styles.menuSectionTitle, { color: colors.text }]}>Account</Text>
+          <Text style={menuSectionTitleStyle}>Account</Text>
           {isAuthenticated ? authenticatedAccountMenu.map(renderMenuItem) : guestAccountMenu.map(renderMenuItem)}
         </View>
 
         {/* Only show referral section for authenticated users */}
         {isAuthenticated && (
           <View style={styles.menuSection}>
-            <Text style={[styles.menuSectionTitle, { color: colors.text }]}>Referrals</Text>
+            <Text style={menuSectionTitleStyle}>Referrals</Text>
             {referralMenu.map(renderMenuItem)}
           </View>
         )}
 
         <View style={styles.menuSection}>
-          <Text style={[styles.menuSectionTitle, { color: colors.text }]}>Other</Text>
+          <Text style={menuSectionTitleStyle}>Other</Text>
           {otherMenu.map(renderMenuItem)}
         </View>
 
         {/* Logout Button - Only for authenticated users */}
-        {isAuthenticated && (
+        {isAuthenticated && !isLoading && (
           <TouchableOpacity
-            style={[
-              styles.logoutButton,
-              {
-                borderColor: colors.error,
-                backgroundColor: 'transparent',
-                opacity: isLoading ? 0.6 : 1,
-              },
-            ]}
+            style={logoutButtonStyle}
             onPress={handleLogout}
             disabled={isLoading}
             activeOpacity={0.7}
             hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
           >
             <LogOut size={20} color={colors.error} />
-            <Text style={[styles.logoutText, { color: colors.error }]}>
+            <Text style={logoutTextStyle}>
               {isLoading ? 'Logging out...' : 'Log Out'}
             </Text>
           </TouchableOpacity>
         )}
 
         <View style={styles.versionContainer}>
-          <Text style={[styles.versionText, { color: colors.textSecondary }]}>
+          <Text style={versionTextStyle}>
             Version 1.0.0
           </Text>
         </View>
