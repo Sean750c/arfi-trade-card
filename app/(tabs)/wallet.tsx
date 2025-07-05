@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -91,6 +91,13 @@ function WalletScreenContent() {
       endTimer();
     }, [user?.token, fetchBalance, fetchTransactions, lastRefreshTime])
   );
+
+  // 强制刷新余额数据
+  useEffect(() => {
+    if (user?.token && !balanceData) {
+      fetchBalance(user.token);
+    }
+  }, [user?.token, balanceData, fetchBalance]);
 
   // 当钱包类型或交易类型改变时重新获取交易数据
   useFocusEffect(

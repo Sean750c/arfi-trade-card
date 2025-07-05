@@ -65,7 +65,11 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     
     try {
       const balanceData = await WalletService.getWalletBalance(token);
-      set({ balanceData, isLoadingBalance: false });
+      set((state) => ({
+        ...state,
+        balanceData,
+        isLoadingBalance: false,
+      }));
     } catch (error) {
       // Handle token expiration errors specifically
       if (error instanceof Error && error.message.includes('Session expired')) {
@@ -73,10 +77,11 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         return;
       }
       
-      set({
+      set((state) => ({
+        ...state,
         balanceError: error instanceof Error ? error.message : 'Failed to fetch balance',
         isLoadingBalance: false,
-      });
+      }));
     }
   },
 
