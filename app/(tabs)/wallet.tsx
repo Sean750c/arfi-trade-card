@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import type { WalletTransaction } from '@/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { PerformanceMonitor } from '@/utils/performance';
 
 function WalletScreenContent() {
   const { colors } = useTheme();
@@ -45,12 +46,36 @@ function WalletScreenContent() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(0);
 
-  // Get current balance data
-  const balanceData = getCurrentBalanceData();
+  // 使用 useMemo 缓存余额数据
+  const balanceData = useMemo(() => getCurrentBalanceData(), [getCurrentBalanceData]);
+
+  // 使用 useMemo 缓存交易统计
+  const transactionStats = useMemo(() => ({
+    totalCount: transactions.length,
+    hasTransactions: transactions.length > 0,
+  }), [transactions.length]);
+
+  // 使用 useMemo 缓存样式
+  const headerStyle = useMemo(() => [
+    styles.header, 
+    { 
+      backgroundColor: colors.card,
+      borderBottomColor: colors.border,
+      shadowColor: 'rgba(0, 0, 0, 0.5)',
+    }
+  ], [colors.card, colors.border]);
+
+  const titleStyle = useMemo(() => [styles.title, { color: colors.text }], [colors.text]);
+  const errorContainerStyle = useMemo(() => [styles.errorContainer, { backgroundColor: colors.error + '10' }], [colors.error]);
+  const errorTextStyle = useMemo(() => [styles.errorText, { color: colors.error }], [colors.error]);
+  const sectionTitleStyle = useMemo(() => [styles.sectionTitle, { color: colors.text }], [colors.text]);
+  const transactionCountStyle = useMemo(() => [styles.transactionCount, { color: colors.textSecondary }], [colors.textSecondary]);
 
   // 优化：只在必要时刷新数据，避免频繁 API 调用
   useFocusEffect(
     useCallback(() => {
+      const endTimer = PerformanceMonitor.getInstance().startTimer('wallet_focus_effect');
+      
       if (user?.token) {
         const now = Date.now();
         const timeSinceLastRefresh = now - lastRefreshTime;
@@ -62,19 +87,27 @@ function WalletScreenContent() {
           setLastRefreshTime(now);
         }
       }
+      
+      endTimer();
     }, [user?.token, fetchBalance, fetchTransactions, lastRefreshTime])
   );
 
   // 当钱包类型或交易类型改变时重新获取交易数据
   useFocusEffect(
     useCallback(() => {
+      const endTimer = PerformanceMonitor.getInstance().startTimer('wallet_type_change_effect');
+      
       if (user?.token) {
         fetchTransactions(user.token, false);
       }
+      
+      endTimer();
     }, [user?.token, activeWalletType, activeTransactionType, fetchTransactions])
   );
 
   const handleRefresh = useCallback(async () => {
+    const endTimer = PerformanceMonitor.getInstance().startTimer('wallet_refresh');
+    
     if (!user?.token) return;
 
     setRefreshing(true);
@@ -85,55 +118,52 @@ function WalletScreenContent() {
       ]);
     } finally {
       setRefreshing(false);
+      endTimer();
     }
   }, [user?.token, fetchBalance, fetchTransactions]);
 
-  const handleWalletTypeChange = (type: '1' | '2') => {
+  const handleWalletTypeChange = useCallback((type: '1' | '2') => {
     setActiveWalletType(type);
     setSelectedWithdrawAccount(null);
-  };
+  }, [setActiveWalletType, setSelectedWithdrawAccount]);
 
-  const handleTransactionTypeChange = (
+  const handleTransactionTypeChange = useCallback((
     type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip'
   ) => {
     setActiveTransactionType(type);
-  };
+  }, [setActiveTransactionType]);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     if (!user?.token) return;
     loadMoreTransactions(user.token);
-  };
+  }, [user?.token, loadMoreTransactions]);
 
-  const handleWithdraw = () => {
+  const handleWithdraw = useCallback(() => {
     router.push('/wallet/withdraw');
-  };
+  }, []);
 
-  const handleTransactionPress = (transaction: WalletTransaction) => {
+  const handleTransactionPress = useCallback((transaction: WalletTransaction) => {
     if (transaction.type === 'order') {
       router.push(`/orders/${transaction.order_no}`);
     }
-  };
+  }, []);
 
-  const handleRebatePress = () => {
-    // router.push('/wallet/rebate' as any);
+  const handleRebatePress = useCallback(() => {
     router.push({
       pathname: '/wallet/rebate',
       params: { walletType: activeWalletType },
     });
-  };
+  }, [activeWalletType]);
+
+  const handleToggleBalanceVisibility = useCallback(() => {
+    setBalanceVisible(prev => !prev);
+  }, []);
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Enhanced Header */}
-      <View style={[
-        styles.header, 
-        { 
-          backgroundColor: colors.card,
-          borderBottomColor: colors.border,
-          shadowColor: 'rgba(0, 0, 0, 0.5)',
-        }
-      ]}>
-        <Text style={[styles.title, { color: colors.text }]}>Wallet</Text>
+      <View style={headerStyle}>
+        <Text style={titleStyle}>Wallet</Text>
       </View>
 
       {/* Wallet Tabs */}
@@ -151,7 +181,7 @@ function WalletScreenContent() {
           <WalletBalanceCard
             balanceData={balanceData}
             balanceVisible={balanceVisible}
-            onToggleVisibility={() => setBalanceVisible(!balanceVisible)}
+            onToggleVisibility={handleToggleBalanceVisibility}
             onRebatePress={handleRebatePress}
             walletType={activeWalletType}
           />
@@ -160,8 +190,8 @@ function WalletScreenContent() {
 
       {/* Balance Error */}
       {balanceError && (
-        <View style={[styles.errorContainer, { backgroundColor: colors.error + '10' }]}>
-          <Text style={[styles.errorText, { color: colors.error }]}>
+        <View style={errorContainerStyle}>
+          <Text style={errorTextStyle}>
             ⚠️ {balanceError}
           </Text>
         </View>
@@ -187,11 +217,11 @@ function WalletScreenContent() {
 
       {/* Transactions Header */}
       <View style={styles.transactionsHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        <Text style={sectionTitleStyle}>
           Transaction History
         </Text>
-        <Text style={[styles.transactionCount, { color: colors.textSecondary }]}>
-          {transactions.length} transactions
+        <Text style={transactionCountStyle}>
+          {transactionStats.totalCount} transactions
         </Text>
       </View>
       {/* Transaction List */}

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,8 @@ interface WalletBalanceCardProps {
   walletType: '1' | '2'; // Add wallet type prop
 }
 
-function AnimatedNumber({value, style, prefix = ''}: {value: number, style?: any, prefix?: string}) {
+// 优化 AnimatedNumber 组件，使用 React.memo
+const AnimatedNumber = React.memo(({value, style, prefix = ''}: {value: number, style?: any, prefix?: string}) => {
   const anim = useRef(new Animated.Value(value)).current;
   const prevValue = useRef(value);
   const [display, setDisplay] = useState(value);
@@ -47,7 +48,7 @@ function AnimatedNumber({value, style, prefix = ''}: {value: number, style?: any
   return <Text style={[style, {minWidth: 120}]} numberOfLines={1}>
     {prefix}{display.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
   </Text>;
-}
+});
 
 export default function WalletBalanceCard({
   balanceData,
@@ -58,44 +59,55 @@ export default function WalletBalanceCard({
 }: WalletBalanceCardProps) {
   const { colors } = useTheme();
 
-  const formatBalance = (amount: number | string) => {
-    if (!balanceVisible) return '****';
-    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return numAmount.toLocaleString(undefined, {
-      minimumFractionDigits: walletType === '2' ? 4 : 2,
-      maximumFractionDigits: walletType === '2' ? 6 : 2,
-    });
-  };
+  // 使用 useMemo 缓存计算结果
+  const balanceInfo = useMemo(() => {
+    const formatBalance = (amount: number | string) => {
+      if (!balanceVisible) return '****';
+      const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+      return numAmount.toLocaleString(undefined, {
+        minimumFractionDigits: walletType === '2' ? 4 : 2,
+        maximumFractionDigits: walletType === '2' ? 6 : 2,
+      });
+    };
 
-  const getBalanceAmount = () => {
-    if (walletType === '2') {
-      // USDT wallet - use usd_amount
-      return balanceData.usd_amount || '0';
-    } else {
-      // NGN wallet - use total_amount
-      return balanceData.total_amount || 0;
-    }
-  };
+    const getBalanceAmount = () => {
+      if (walletType === '2') {
+        // USDT wallet - use usd_amount
+        return balanceData.usd_amount || '0';
+      } else {
+        // NGN wallet - use total_amount
+        return balanceData.total_amount || 0;
+      }
+    };
 
-  const getRebateAmount = () => {
-    if (walletType === '2') {
-      // USDT wallet - use usd_rebate_money
-      return balanceData.usd_rebate_money || 0;
-    } else {
-      // NGN wallet - use rebate_amount
-      return balanceData.rebate_amount || 0;
-    }
-  };
+    const getRebateAmount = () => {
+      if (walletType === '2') {
+        // USDT wallet - use usd_rebate_money
+        return balanceData.usd_rebate_money || 0;
+      } else {
+        // NGN wallet - use rebate_amount
+        return balanceData.rebate_amount || 0;
+      }
+    };
 
-  const getCurrencySymbol = () => {
-    if (walletType === '2') {
-      return 'USDT';
-    } else {
-      return balanceData.currency_name === 'NGN' ? '₦' : balanceData.currency_name;
-    }
-  };
+    const getCurrencySymbol = () => {
+      if (walletType === '2') {
+        return 'USDT';
+      } else {
+        return balanceData.currency_name === 'NGN' ? '₦' : balanceData.currency_name;
+      }
+    };
 
-  const getGradientColors = (): [string, string] => {
+    return {
+      balanceAmount: getBalanceAmount(),
+      rebateAmount: getRebateAmount(),
+      currencySymbol: getCurrencySymbol(),
+      formattedRebate: formatBalance(getRebateAmount()),
+    };
+  }, [balanceData, balanceVisible, walletType]);
+
+  // 使用 useMemo 缓存渐变颜色
+  const gradientColors = useMemo((): [string, string] => {
     if (walletType === '2') {
       // USDT - Green gradient
       return ['#10B981', '#059669'];
@@ -103,11 +115,20 @@ export default function WalletBalanceCard({
       // NGN - Blue gradient (primary color)
       return [colors.primary, '#0066CC'];
     }
-  };
+  }, [walletType, colors.primary]);
+
+  // 使用 useCallback 优化事件处理
+  const handleToggleVisibility = useCallback(() => {
+    onToggleVisibility();
+  }, [onToggleVisibility]);
+
+  const handleRebatePress = useCallback(() => {
+    onRebatePress?.();
+  }, [onRebatePress]);
 
   return (
     <LinearGradient
-      colors={getGradientColors()}
+      colors={gradientColors}
       style={styles.container}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -121,7 +142,7 @@ export default function WalletBalanceCard({
         </View>
         <TouchableOpacity
           style={styles.eyeButton}
-          onPress={onToggleVisibility}
+          onPress={handleToggleVisibility}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           {balanceVisible ? (
@@ -138,7 +159,7 @@ export default function WalletBalanceCard({
         <View style={styles.balanceRow}>
           <Text style={styles.balanceAmount}>
             {balanceVisible ? (
-              <AnimatedNumber value={Number(getBalanceAmount())} style={styles.balanceAmount} prefix={getCurrencySymbol()} />
+              <AnimatedNumber value={Number(balanceInfo.balanceAmount)} style={styles.balanceAmount} prefix={balanceInfo.currencySymbol} />
             ) : '****'}
           </Text>
         </View>
@@ -149,7 +170,7 @@ export default function WalletBalanceCard({
         {/* Rebate Amount */}
         <TouchableOpacity
           style={styles.statItem}
-          onPress={onRebatePress}
+          onPress={handleRebatePress}
           activeOpacity={0.7}
         >
           <View style={styles.statIconContainer}>
@@ -159,7 +180,7 @@ export default function WalletBalanceCard({
             <Text style={styles.statLabel}>Rebate</Text>
             <View style={styles.rebateValueContainer}>
               <Text style={styles.statValue}>
-                {getCurrencySymbol()}{formatBalance(getRebateAmount())}
+                {balanceInfo.currencySymbol}{balanceInfo.formattedRebate}
               </Text>
             </View>
           </View>

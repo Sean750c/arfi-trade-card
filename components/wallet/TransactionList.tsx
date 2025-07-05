@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -154,7 +154,8 @@ export default function TransactionList({
 }: TransactionListProps) {
   const { colors } = useTheme();
 
-  const getTransactionIcon = (type: string) => {
+  // 使用 useMemo 缓存函数，避免重复创建
+  const getTransactionIcon = useMemo(() => (type: string) => {
     switch (type) {
       case 'order':
         return <Gift size={20} color={colors.success} />;
@@ -171,9 +172,9 @@ export default function TransactionList({
       default:
         return <TrendingUp size={20} color={colors.text} />;
     }
-  };
+  }, [colors]);
 
-  const getTransactionColor = (type: string) => {
+  const getTransactionColor = useMemo(() => (type: string) => {
     switch (type) {
       case 'order':
       case 'recommend':
@@ -188,9 +189,9 @@ export default function TransactionList({
       default:
         return colors.text;
     }
-  };
+  }, [colors]);
 
-  const formatAmount = (amount: number, isPositive: boolean = true, currencySymbol: string = '₦') => {
+  const formatAmount = useMemo(() => (amount: number, isPositive: boolean = true, currencySymbol: string = '₦') => {
     const prefix = isPositive ? '+' : '-';
     const symbol = walletType === '2' ? 'USDT' : currencySymbol;
     const decimals = walletType === '2' ? 4 : 2;
@@ -199,9 +200,9 @@ export default function TransactionList({
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     })}`;
-  };
+  }, [walletType]);
 
-  const formatBalanceAmount = (amount: number, currencySymbol: string = '₦') => {
+  const formatBalanceAmount = useMemo(() => (amount: number, currencySymbol: string = '₦') => {
     const symbol = walletType === '2' ? 'USDT' : currencySymbol;
     const decimals = walletType === '2' ? 4 : 2;
 
@@ -209,9 +210,9 @@ export default function TransactionList({
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     })}`;
-  };
+  }, [walletType]);
 
-  const getTransactionTitle = (transaction: WalletTransaction) => {
+  const getTransactionTitle = useMemo(() => (transaction: WalletTransaction) => {
     if (transaction.name) return transaction.name;
 
     switch (transaction.type) {
@@ -232,7 +233,7 @@ export default function TransactionList({
       default:
         return 'Transaction';
     }
-  };
+  }, []);
 
   // 用 useCallback 包裹 renderTransaction，依赖项只写必要的
   const renderTransaction = React.useCallback(
@@ -299,36 +300,47 @@ export default function TransactionList({
   }
 
   return (
-    <FlatList
-      data={transactions}
-      keyExtractor={(item) => item.log_id.toString()}
-      renderItem={renderTransaction}
-      ListEmptyComponent={!isLoading ? renderEmptyState : null}
-      ListFooterComponent={renderFooter}
-      refreshControl={
-        <RefreshControl
-          refreshing={isLoading && transactions.length === 0}
-          onRefresh={onRefresh}
-          colors={[colors.primary]}
-          tintColor={colors.primary}
-        />
-      }
-      onEndReached={onLoadMore}
-      onEndReachedThreshold={0.1}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={[
-        styles.listContainer,
-        transactions.length === 0 && !isLoading && styles.emptyListContainer,
-      ]}
-      initialNumToRender={6}
-      maxToRenderPerBatch={8}
-      windowSize={10}
-      removeClippedSubviews={true}
-    />
+    <View style={styles.container}>
+      <FlatList
+        data={transactions}
+        renderItem={renderTransaction}
+        keyExtractor={(item) => item.log_id.toString()}
+        onEndReached={onLoadMore}
+        onEndReachedThreshold={0.1}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
+        ListEmptyComponent={renderEmptyState}
+        ListFooterComponent={renderFooter}
+        // 性能优化配置
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        initialNumToRender={10}
+        updateCellsBatchingPeriod={50}
+        scrollEventThrottle={16}
+        getItemLayout={(data, index) => ({
+          length: 100, // 预估的 item 高度
+          offset: 100 * index,
+          index,
+        })}
+        // 优化滚动性能
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={transactions.length === 0 ? styles.emptyContainer : undefined}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   listContainer: {
     paddingBottom: Spacing.lg,
   },

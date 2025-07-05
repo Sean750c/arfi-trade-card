@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -26,7 +26,8 @@ export default function WalletTabs({
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
 
-  const tabs = [
+  // 使用 useMemo 缓存 tabs 数据
+  const tabs = useMemo(() => [
     { 
       key: '1', 
       label: countryCurrencyName || ' Wallet', 
@@ -39,7 +40,12 @@ export default function WalletTabs({
       symbol: 'USDT',
       icon: <DollarSign size={18} color={activeWalletType === '2' ? '#FFFFFF' : colors.primary} />
     },
-  ];
+  ], [countryCurrencyName, countryCurrencySymbol, activeWalletType, colors.primary]);
+
+  // 使用 useCallback 优化事件处理
+  const handleTabPress = useCallback((tabKey: string) => {
+    onWalletTypeChange(tabKey as '1' | '2');
+  }, [onWalletTypeChange]);
 
   return (
     <View style={[
@@ -63,7 +69,7 @@ export default function WalletTabs({
               elevation: activeWalletType === tab.key ? 6 : 0,
             },
           ]}
-          onPress={() => onWalletTypeChange(tab.key as '1' | '2')}
+          onPress={() => handleTabPress(tab.key)}
           activeOpacity={0.7}
         >
           <View style={styles.tabContent}>

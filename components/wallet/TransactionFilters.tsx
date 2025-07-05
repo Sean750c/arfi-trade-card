@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -21,14 +21,20 @@ export default function TransactionFilters({
 }: TransactionFiltersProps) {
   const { colors } = useTheme();
 
-  const filterTypes = [
+  // 使用 useMemo 缓存 filterTypes 数据
+  const filterTypes = useMemo(() => [
     { key: 'all', label: 'All' },
     { key: 'order', label: 'Orders' },
     { key: 'withdraw', label: 'Withdrawals' },
     { key: 'transfer', label: 'Transfers' },
     { key: 'recommend', label: 'Referrals' },
     { key: 'vip', label: 'VIP' },
-  ];
+  ], []);
+
+  // 使用 useCallback 优化事件处理
+  const handleFilterPress = useCallback((filterKey: string) => {
+    onTypeChange(filterKey as any);
+  }, [onTypeChange]);
 
   return (
     <View style={styles.container}>
@@ -58,7 +64,7 @@ export default function TransactionFilters({
                 borderColor: activeType === filter.key ? colors.primary : colors.border,
               },
             ]}
-            onPress={() => onTypeChange(filter.key as any)}
+            onPress={() => handleFilterPress(filter.key)}
           >
             <Text
               style={[
