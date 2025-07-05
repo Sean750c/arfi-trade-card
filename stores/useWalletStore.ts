@@ -35,7 +35,6 @@ interface WalletState {
   fetchLogDetail: (token: string, logId: number) => Promise<MoneyLogDetail>;
   setActiveWalletType: (type: '1' | '2') => void;
   setActiveTransactionType: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip') => void;
-  getCurrentBalanceData: () => WalletBalanceData | null;
   clearWalletData: () => void;
   selectedWithdrawAccount: any | null;
   setSelectedWithdrawAccount: (account: any | null) => void;
@@ -242,10 +241,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     });
   },
 
-  getCurrentBalanceData: () => {
-    const state = get();
-    return state.balanceData;
-  },
+
 
   clearWalletData: () => {
     set({

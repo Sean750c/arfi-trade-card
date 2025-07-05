@@ -25,6 +25,7 @@ function WalletScreenContent() {
   const { user } = useAuthStore();
 
   const {
+    balanceData,
     transactions,
     isLoadingBalance,
     isLoadingTransactions,
@@ -39,15 +40,13 @@ function WalletScreenContent() {
     setActiveWalletType,
     setActiveTransactionType,
     setSelectedWithdrawAccount,
-    getCurrentBalanceData,
   } = useWalletStore();
 
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(0);
 
-  // 使用 useMemo 缓存余额数据
-  const balanceData = useMemo(() => getCurrentBalanceData(), [getCurrentBalanceData]);
+
 
   // 使用 useMemo 缓存交易统计
   const transactionStats = useMemo(() => ({
