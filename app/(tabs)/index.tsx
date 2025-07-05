@@ -37,7 +37,10 @@ export default function HomeScreen() {
       const initializeApp = async () => {
         try {
           const userToken = isAuthenticated && user?.token ? user.token : undefined;
-          await initialize(userToken);
+          // 只在数据为空时初始化
+          if (!initData) {
+            await initialize(userToken);
+          }
         } catch (error) {
           console.error('Failed to initialize app:', error);
         }
@@ -47,7 +50,7 @@ export default function HomeScreen() {
   
       // 可选清理函数（一般不用）
       return () => {};
-    }, [initialize, isAuthenticated, user?.token])
+    }, [initialize, isAuthenticated, user?.token, initData])
   );
 
   const handleCountrySelect = (country: Country) => {

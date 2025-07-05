@@ -77,9 +77,12 @@ function SellScreenContent() {
   useFocusEffect(
     useCallback(() => {
       if (user?.token) {
-        fetchOrderSellDetail(user.token);
+        // 避免重复加载数据
+        if (!orderSellDetail) {
+          fetchOrderSellDetail(user.token);
+        }
       }
-    }, [user?.token])
+    }, [user?.token, orderSellDetail])
   );
 
   // VIP数据来源

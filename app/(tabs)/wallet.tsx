@@ -43,20 +43,29 @@ function WalletScreenContent() {
 
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState(0);
 
   // Get current balance data
   const balanceData = getCurrentBalanceData();
 
-  // 每次进入页面都刷新余额和交易数据
+  // 优化：只在必要时刷新数据，避免频繁 API 调用
   useFocusEffect(
     useCallback(() => {
       if (user?.token) {
-        fetchBalance(user.token);
-        fetchTransactions(user.token, true);
+        const now = Date.now();
+        const timeSinceLastRefresh = now - lastRefreshTime;
+        
+        // 如果距离上次刷新超过 30 秒，才重新获取数据
+        if (timeSinceLastRefresh > 30000) {
+          fetchBalance(user.token);
+          fetchTransactions(user.token, true);
+          setLastRefreshTime(now);
+        }
       }
-    }, [user?.token, fetchBalance, fetchTransactions])
+    }, [user?.token, fetchBalance, fetchTransactions, lastRefreshTime])
   );
 
+  // 当钱包类型或交易类型改变时重新获取交易数据
   useFocusEffect(
     useCallback(() => {
       if (user?.token) {

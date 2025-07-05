@@ -30,17 +30,22 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "tsconfigPaths": true
     },
     "extra": {
-      "router": {},
+      "router": {
+        "unstable_allowRequireContext": true
+      },
       "eas": {
         "projectId": "a9bf453b-4767-468a-908a-55707311d988"
       }
     },
     "android": {
       "proguard": true,
-      "package": "com.bsdb.afritrade"
+      "package": "com.bsdb.afritrade",
+      "enableProguardInReleaseBuilds": true,
+      "enableShrinkResourcesInReleaseBuilds": true
     },
     "jsEngine": "hermes"
   }
