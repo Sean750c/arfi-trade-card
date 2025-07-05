@@ -53,10 +53,10 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
               title="Login"
               onPress={() => {
                 try {
-                  router.replace('/(auth)/login');
+                  router.push('/(auth)/login');
                 } catch (error) {
                   console.error('Navigation error:', error);
-                  router.push('/(auth)/login');
+                  router.replace('/(auth)/login');
                 }
               }}
               style={styles.loginButton}
@@ -68,10 +68,10 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
               variant="outline"
               onPress={() => {
                 try {
-                  router.replace('/(auth)/register');
+                  router.push('/(auth)/register');
                 } catch (error) {
                   console.error('Navigation error:', error);
-                  router.push('/(auth)/register');
+                  router.replace('/(auth)/register');
                 }
               }}
               style={styles.registerButton}
@@ -133,13 +133,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontFamily: 'Inter-Bold',
+    fontWeight: 'bold',
     marginBottom: Spacing.md,
     textAlign: 'center',
   },
   message: {
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
+    fontWeight: 'normal',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: Spacing.xl,

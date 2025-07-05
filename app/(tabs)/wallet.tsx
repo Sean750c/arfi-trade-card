@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontFamily: 'Inter-Bold',
+    fontWeight: 'bold',
   },
   tabsContainer: {
     paddingHorizontal: Spacing.lg,
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
     textAlign: 'center',
   },
   actionContainer: {
@@ -270,11 +270,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontFamily: 'Inter-Bold',
+    fontWeight: 'bold',
   },
   transactionCount: {
     fontSize: 13,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
   },
   transactionListContainer: {
     flex: 1,

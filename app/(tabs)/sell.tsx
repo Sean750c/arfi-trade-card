@@ -788,7 +788,7 @@ const styles = StyleSheet.create({
   contactText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
   },
 
   // Sections
@@ -797,7 +797,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontWeight: '600',
     marginBottom: Spacing.md,
   },
 
@@ -807,7 +807,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: Spacing.md,
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
+    fontWeight: 'normal',
     minHeight: 60,
     marginBottom: Spacing.md,
   },
