@@ -27,40 +27,41 @@ interface TransactionListProps {
 }
 
 // TransactionItem 组件，使用 React.memo 优化
-const TransactionItem = React.memo(function TransactionItem({
-  transaction,
-  colors,
-  walletType,
-  onTransactionPress,
+const TransactionItem = React.memo(({ 
+  transaction, 
+  index, 
+  onTransactionPress, 
+  colors, 
+  styles,
   getTransactionIcon,
   getTransactionColor,
   getTransactionTitle,
   formatAmount,
   formatBalanceAmount,
-  formatDate,
-  index,
+  formatDate
 }: {
   transaction: WalletTransaction;
-  colors: any;
-  walletType: '1' | '2';
+  index: number;
   onTransactionPress: (transaction: WalletTransaction) => void;
+  colors: any;
+  styles: any;
   getTransactionIcon: (type: string) => React.ReactNode;
   getTransactionColor: (type: string) => string;
   getTransactionTitle: (transaction: WalletTransaction) => string;
   formatAmount: (amount: number, isPositive: boolean, currencySymbol: string) => string;
   formatBalanceAmount: (amount: number, currencySymbol: string) => string;
   formatDate: (timestamp: number) => string;
-  index: number;
-}) {
+}) => {
   const isPositive = transaction.amount > 0;
   const transactionColor = getTransactionColor(transaction.type);
-  // 动画
+  
+  // 优化动画：减少延迟和复杂度
   const animatedValue = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(animatedValue, {
       toValue: 1,
-      duration: 400,
-      delay: index * 40,
+      duration: 300, // 减少动画时长
+      delay: index * 20, // 减少延迟间隔
       useNativeDriver: true,
     }).start();
   }, []);
@@ -69,7 +70,7 @@ const TransactionItem = React.memo(function TransactionItem({
     <Animated.View
       style={{
         opacity: animatedValue,
-        transform: [{ translateY: animatedValue.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+        transform: [{ translateY: animatedValue.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }], // 减少位移距离
       }}
     >
       <TouchableOpacity
@@ -239,18 +240,18 @@ export default function TransactionList({
       <TransactionItem
         transaction={transaction}
         colors={colors}
-        walletType={walletType}
+        index={index}
         onTransactionPress={onTransactionPress}
+        styles={styles}
         getTransactionIcon={getTransactionIcon}
         getTransactionColor={getTransactionColor}
         getTransactionTitle={getTransactionTitle}
         formatAmount={formatAmount}
         formatBalanceAmount={formatBalanceAmount}
         formatDate={formatDate}
-        index={index}
       />
     ),
-    [colors, walletType, onTransactionPress]
+    [colors, onTransactionPress]
   );
 
   const renderFooter = () => {

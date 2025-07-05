@@ -15,8 +15,8 @@ import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SCROLL_SPEED = 50; // 每秒滚动40像素
-const MAX_LOOP = 3;
+const SCROLL_SPEED = 30; // 降低滚动速度，减少性能消耗
+const MAX_LOOP = 2; // 减少循环次数
 const BAR_HEIGHT = 32;
 
 const AnnouncementBar: React.FC = () => {
@@ -74,18 +74,22 @@ const AnnouncementBar: React.FC = () => {
 
     useEffect(() => {
         if (!mergedContent.length) return;
-        startAnimation();
-        return () => cancelAnimation(offsetX);
+        // 延迟启动动画，避免页面加载时的性能问题
+        const timer = setTimeout(() => {
+            startAnimation();
+        }, 1000);
+        return () => {
+            clearTimeout(timer);
+            cancelAnimation(offsetX);
+        };
     }, [mergedContent, textWidth, startAnimation, offsetX]);
 
     useEffect(() => {
-        // console.log('loopCount', loopCount);
         if (loopCount >= MAX_LOOP) {
             cancelAnimation(offsetX);
             setVisible(false);
         } else {
             setVisible(true);
-            startAnimation();
         }
     }, [loopCount, offsetX]);
 
@@ -115,56 +119,30 @@ const AnnouncementBar: React.FC = () => {
         }
     }, [offsetX, textWidth, getDuration, startAnimation]);
 
-    // 声波动画
+    // 简化声波动画，减少性能消耗
     const waveAnim = useSharedValue(0);
     useEffect(() => {
         waveAnim.value = withRepeat(
-            withTiming(1, { duration: 1200, easing: Easing.linear }),
+            withTiming(1, { duration: 2000, easing: Easing.linear }), // 增加动画时长，减少频率
             -1,
             false
         );
     }, [waveAnim]);
     const waveStyle = useAnimatedStyle(() => ({
         opacity: 1 - waveAnim.value,
-        transform: [{ scale: 1 + waveAnim.value }],
+        transform: [{ scale: 1 + waveAnim.value * 0.3 }], // 减少缩放幅度
     }));
 
     if (!visible || !mergedContent.length) return null;
 
     return (
-        <TouchableWithoutFeedback
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            accessible={false}
-        >
-            <View style={[
-                styles.container,
-                {
-                    backgroundColor: '#FFFBEA', // 更亮的公告底色
-                    borderColor: colors.border, // 主题灰色边框
-                }
-            ]}>
-                {/* Icon */}
-                <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15`, position: 'relative' }]}>
-                    <Animated.View
-                        style={[
-                            {
-                                position: 'absolute',
-                                width: 24,
-                                height: 24,
-                                borderRadius: 12,
-                                borderWidth: 1,
-                                borderColor: `${colors.primary}80`,
-                                zIndex: 1,
-                                left: 2,
-                                top: 2,
-                            },
-                            waveStyle,
-                        ]}
-                    />
-                    <Volume2 size={16} color={colors.primary} />
+        <TouchableWithoutFeedback onPressIn={handlePressIn} onPressOut={handlePressOut}>
+            <View style={[styles.container, { backgroundColor: `#FFFBEA` }]}>
+                <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
+                    <Animated.View style={[waveStyle, { borderColor: `${colors.primary}80` }]}>
+                        <Volume2 size={16} color={colors.primary} />
+                    </Animated.View>
                 </View>
-
                 <View style={styles.textContainer}>
                     <Animated.View style={[animatedStyle, { flexDirection: 'row' }]}>
                         <View style={[styles.scrollContent, { width: textWidth }]}>

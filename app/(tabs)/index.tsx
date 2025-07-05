@@ -14,7 +14,7 @@ import { Bell, ChevronDown, Sparkles, Eye, EyeOff, RefreshCw } from 'lucide-reac
 import Spacing from '@/constants/Spacing';
 import PromoBanner from '@/components/home/PromoBanner';
 import QuickActions from '@/components/home/QuickActions';
-import RecentTransactions from '@/components/home/RecentTransactions';
+import PromoTimer from '@/components/home/PromoTimer';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useAppStore } from '@/stores/useAppStore';
@@ -281,8 +281,8 @@ export default function HomeScreen() {
         {/* Content Sections */}
         <PromoBanner />
         <QuickActions />
-        {/* <PromoTimer /> */}
-        <RecentTransactions />
+        <PromoTimer />
+        {/* <RecentTransactions /> */}
       </ScrollView>
     </SafeAreaWrapper>
   );

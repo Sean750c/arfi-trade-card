@@ -20,25 +20,32 @@ export default function QuickActions() {
   const { colors } = useTheme();
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Pulse animation for the primary button
+  // 优化脉冲动画，减少频率
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 1000,
+          toValue: 1.02, // 减少缩放幅度
+          duration: 2000, // 增加动画时长
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 1000,
+          duration: 2000, // 增加动画时长
           useNativeDriver: true,
         }),
       ])
     );
-    pulse.start();
+    
+    // 延迟启动动画，避免页面加载时的性能问题
+    const timer = setTimeout(() => {
+      pulse.start();
+    }, 500);
 
-    return () => pulse.stop();
+    return () => {
+      clearTimeout(timer);
+      pulse.stop();
+    };
   }, [pulseAnim]);
 
   const actions: QuickActionItem[] = [

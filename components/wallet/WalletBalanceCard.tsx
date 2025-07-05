@@ -24,18 +24,29 @@ function AnimatedNumber({value, style, prefix = ''}: {value: number, style?: any
   const anim = useRef(new Animated.Value(value)).current;
   const prevValue = useRef(value);
   const [display, setDisplay] = useState(value);
+  
   useEffect(() => {
+    // 只有当数值变化超过一定阈值时才播放动画
+    const threshold = 100; // 设置阈值
+    if (Math.abs(value - prevValue.current) < threshold) {
+      setDisplay(value);
+      return;
+    }
+    
     anim.setValue(0);
     Animated.timing(anim, {
       toValue: value,
-      duration: 800,
+      duration: 600, // 减少动画时长
       useNativeDriver: false,
     }).start();
     const id = anim.addListener(({value}) => setDisplay(value));
     prevValue.current = value;
     return () => anim.removeListener(id);
   }, [value]);
-  return <Text style={[style, {minWidth: 120}]} numberOfLines={1}>{prefix}{display.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</Text>;
+  
+  return <Text style={[style, {minWidth: 120}]} numberOfLines={1}>
+    {prefix}{display.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+  </Text>;
 }
 
 export default function WalletBalanceCard({
