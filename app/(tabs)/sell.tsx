@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { Coupon } from '@/types';
 import { useOrderStore } from '@/stores/useOrderStore';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { PerformanceMonitor } from '@/utils/performance';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -73,6 +74,38 @@ function SellScreenContent() {
     y: screenHeight - 200,
   });
 
+  // 优化 PanResponder，减少状态更新频率
+  const panResponder = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt, gestureState) => {
+      // Store initial position
+    },
+    onPanResponderMove: (evt, gestureState) => {
+      // 使用节流来减少状态更新频率
+      const newX = helpButtonPosition.x + gestureState.dx;
+      const newY = helpButtonPosition.y + gestureState.dy;
+      
+      // Constrain to screen boundaries
+      const buttonSize = 30;
+      const margin = 20;
+      
+      const constrainedX = Math.max(margin, Math.min(screenWidth - buttonSize - margin, newX));
+      const constrainedY = Math.max(margin, Math.min(screenHeight - buttonSize - margin, newY));
+      
+      // 只有当位置真正改变时才更新状态
+      if (Math.abs(constrainedX - helpButtonPosition.x) > 2 || Math.abs(constrainedY - helpButtonPosition.y) > 2) {
+        setHelpButtonPosition({
+          x: constrainedX,
+          y: constrainedY,
+        });
+      }
+    },
+    onPanResponderRelease: () => {
+      // Position is already constrained in onPanResponderMove
+    },
+  }), [helpButtonPosition.x, helpButtonPosition.y, screenWidth, screenHeight]);
+
   // Load data when page comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -92,35 +125,6 @@ function SellScreenContent() {
   const currentVipRate = vipDetail?.rate || '0';
   const nextVipLevel = vipDetail?.next_level;
   const nextVipRate = vipDetail?.next_level_rate;
-
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (evt, gestureState) => {
-      // Store initial position
-    },
-    onPanResponderMove: (evt, gestureState) => {
-      setHelpButtonPosition(prevPosition => {
-        const newX = prevPosition.x + gestureState.dx;
-        const newY = prevPosition.y + gestureState.dy;
-        
-        // Constrain to screen boundaries
-        const buttonSize = 30;
-        const margin = 20;
-        
-        const constrainedX = Math.max(margin, Math.min(screenWidth - buttonSize - margin, newX));
-        const constrainedY = Math.max(margin, Math.min(screenHeight - buttonSize - margin, newY));
-        
-        return {
-          x: constrainedX,
-          y: constrainedY,
-        };
-      });
-    },
-    onPanResponderRelease: () => {
-      // Position is already constrained in onPanResponderMove
-    },
-  });
 
   const handleHelpPress = () => {
     setShowSellTipsModal(true);
@@ -262,10 +266,12 @@ function SellScreenContent() {
         uploadUrl.url,
         imageUri,
         (progress) => {
+          // 使用节流来减少进度更新频率
+          const throttledProgress = Math.round(progress * 10) / 10; // 只保留一位小数
           setSelectedCards(prev => 
             prev.map(card => 
               card.id === newCard.id 
-                ? { ...card, uploadProgress: 25 + (progress * 0.75) }
+                ? { ...card, uploadProgress: 25 + (throttledProgress * 0.75) }
                 : card
             )
           );
@@ -320,16 +326,26 @@ function SellScreenContent() {
     setSelectedCards(prev => prev.filter(c => c.id !== cardId));
   };
 
-  const isFormValid = () => {
+  // 使用 useMemo 缓存表单验证结果
+  const isFormValid = useMemo(() => {
     const hasUploadedImages = selectedCards.some(card => card.isUploaded);
     const hasCardInfo = cardInfo.trim() !== '';
     const noUploadingImages = !selectedCards.some(card => card.isUploading);
     
     return (hasUploadedImages || hasCardInfo) && noUploadingImages;
-  };
+  }, [selectedCards, cardInfo]);
+
+  // 使用 useMemo 缓存上传进度统计
+  const uploadStats = useMemo(() => {
+    const uploadedCount = selectedCards.filter(c => c.isUploaded).length;
+    const totalCount = selectedCards.length;
+    return { uploadedCount, totalCount };
+  }, [selectedCards]);
 
   const handleSubmit = async () => {
-    if (!isFormValid() || !user?.token) {
+    const endTimer = PerformanceMonitor.getInstance().startTimer('sell_submit');
+    
+    if (!isFormValid || !user?.token) {
       Alert.alert('Incomplete Form', 'Please add at least one card image or enter card information.');
       return;
     }
@@ -379,6 +395,7 @@ function SellScreenContent() {
       );
     } finally {
       setIsSubmitting(false);
+      endTimer();
     }
   };
 
@@ -400,7 +417,8 @@ function SellScreenContent() {
     return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
   };
 
-  const renderCardPreview = (card: SelectedCard) => (
+  // 优化图片预览组件，使用 React.memo 减少重渲染
+  const CardPreviewItem = React.memo(({ card }: { card: SelectedCard }) => (
     <View key={card.id} style={styles.cardPreview}>
       <Image source={{ uri: card.localUri }} style={styles.cardPreviewImage} />
       
@@ -442,7 +460,14 @@ function SellScreenContent() {
         <X size={12} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
-  );
+  ));
+
+  // 使用 useMemo 缓存图片预览列表
+  const cardPreviewList = useMemo(() => {
+    return selectedCards.map(card => (
+      <CardPreviewItem key={card.id} card={card} />
+    ));
+  }, [selectedCards, colors.success, colors.error]);
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
@@ -453,6 +478,8 @@ function SellScreenContent() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          removeClippedSubviews={true}
+          scrollEventThrottle={16}
         >
           {/* Compact Header */}
           <View style={styles.header}>
@@ -524,11 +551,11 @@ function SellScreenContent() {
                 <View style={styles.cardPreviewHeader}>
                   <ImageIcon size={16} color={colors.primary} />
                   <Text style={[styles.cardPreviewTitle, { color: colors.text }]}>
-                    Uploaded Images ({selectedCards.filter(c => c.isUploaded).length}/{selectedCards.length})
+                    Uploaded Images ({uploadStats.uploadedCount}/{uploadStats.totalCount})
                   </Text>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardPreviewScroll}>
-                  {selectedCards.map(renderCardPreview)}
+                  {cardPreviewList}
                 </ScrollView>
               </View>
             )}
@@ -661,12 +688,12 @@ function SellScreenContent() {
             style={[
               styles.sellButton,
               { 
-                backgroundColor: isFormValid() && !isSubmitting ? colors.primary : colors.border,
+                backgroundColor: isFormValid && !isSubmitting ? colors.primary : colors.border,
                 opacity: isSubmitting ? 0.7 : 1,
               }
             ]}
             onPress={handleSubmit}
-            disabled={!isFormValid() || isSubmitting}
+            disabled={!isFormValid || isSubmitting}
           >
             {isSubmitting ? (
               <ActivityIndicator size={20} color="#FFFFFF" />
@@ -699,49 +726,59 @@ function SellScreenContent() {
         </View>
 
         {/* Modals */}
-        <DiscountCodeModal
-          visible={showCouponModal}
-          onClose={() => setShowCouponModal(false)}
-          onSelect={(coupon) => {
-            setSelectedCoupon(coupon);
-            setShowCouponModal(false);
-          }}
-          selectedCoupon={selectedCoupon}
-          userToken={user?.token || ''}
-          walletType={selectedWallet || ''}
-        />
+        {showCouponModal && (
+          <DiscountCodeModal
+            visible={showCouponModal}
+            onClose={() => setShowCouponModal(false)}
+            onSelect={(coupon) => {
+              setSelectedCoupon(coupon);
+              setShowCouponModal(false);
+            }}
+            selectedCoupon={selectedCoupon}
+            userToken={user?.token || ''}
+            walletType={selectedWallet || ''}
+          />
+        )}
 
-        <VIPModal
-          visible={showVIPModal}
-          onClose={() => setShowVIPModal(false)}
-          vipList={vipList}
-          vipDetail={vipDetail}
-        />
+        {showVIPModal && (
+          <VIPModal
+            visible={showVIPModal}
+            onClose={() => setShowVIPModal(false)}
+            vipList={vipList}
+            vipDetail={vipDetail}
+          />
+        )}
 
-        <ActivityModal
-          visible={showActivityModal}
-          onClose={() => setShowActivityModal(false)}
-          orderSellDetail={orderSellDetail}
-          currencySymbol={user?.currency_symbol || '₦'}
-        />
+        {showActivityModal && (
+          <ActivityModal
+            visible={showActivityModal}
+            onClose={() => setShowActivityModal(false)}
+            orderSellDetail={orderSellDetail}
+            currencySymbol={user?.currency_symbol || '₦'}
+          />
+        )}
 
-        <OrderCompensationModal
-          visible={showOverdueModal}
-          onClose={() => setShowOverdueModal(false)}
-          overdueData={orderSellDetail?.overdue_data || []}
-          maxPercent={orderSellDetail?.overdue_max_percent}
-        />
+        {showOverdueModal && (
+          <OrderCompensationModal
+            visible={showOverdueModal}
+            onClose={() => setShowOverdueModal(false)}
+            overdueData={orderSellDetail?.overdue_data || []}
+            maxPercent={orderSellDetail?.overdue_max_percent}
+          />
+        )}
 
-        <HtmlRenderer
-          visible={showSellTipsModal}
-          onClose={() => setShowSellTipsModal(false)}
-          title="Card Selling Guide"
-          htmlContent={
-            isLoadingOrderSellDetail 
-              ? '<p>Loading...</p>' 
-              : orderSellDetail?.sell_card_tips || '<p>No content available</p>'
-          }
-        />
+        {showSellTipsModal && (
+          <HtmlRenderer
+            visible={showSellTipsModal}
+            onClose={() => setShowSellTipsModal(false)}
+            title="Card Selling Guide"
+            htmlContent={
+              isLoadingOrderSellDetail 
+                ? '<p>Loading...</p>' 
+                : orderSellDetail?.sell_card_tips || '<p>No content available</p>'
+            }
+          />
+        )}
       </KeyboardAvoidingView>
     </SafeAreaWrapper>
   );
