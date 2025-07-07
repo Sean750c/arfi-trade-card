@@ -52,6 +52,9 @@ export default function RegisterScreen() {
   const [verifyCodeLoading, setVerifyCodeLoading] = useState(false);
   const [verifyCodeCountdown, setVerifyCodeCountdown] = useState(0);
 
+  // 获取当前国家区号
+  const countryCode = selectedCountry?.code || '';
+
   React.useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     if (verifyCodeCountdown > 0) {
@@ -123,10 +126,10 @@ export default function RegisterScreen() {
         await register({
           register_type: registrationType === 'email' ? '1' : '2',
           country_id: selectedCountry?.id.toString() || '',
-          username: registrationType === 'email' ? formData.email : formData.whatsapp,
+          username: registrationType === 'email' ? formData.email : countryCode + formData.whatsapp,
           password: formData.password,
           email: registrationType === 'email' ? formData.email : '',
-          whatsapp: registrationType === 'whatsapp' ? formData.whatsapp : '',
+          whatsapp: registrationType === 'whatsapp' ? countryCode + formData.whatsapp : '',
           recommend_code: formData.referralCode || '',
           code: initData?.is_need_verify === '1' ? verifyCode : '',
         });
@@ -171,7 +174,7 @@ export default function RegisterScreen() {
       if (registrationType === 'email') {
         await AuthService.sendEmailVerifyCode(formData.email);
       } else {
-        await AuthService.sendWhatsAppCode(formData.whatsapp);
+        await AuthService.sendWhatsAppCode(countryCode + formData.whatsapp);
       }
       setVerifyCodeCountdown(60);
       Alert.alert('Success', 'Verification code sent');
@@ -371,8 +374,8 @@ export default function RegisterScreen() {
             </View>
 
             {/* Input Fields */}
-            <View style={styles.inputGroup}>
-              {registrationType === 'email' ? (
+            {registrationType === 'email' ? (
+              <View style={styles.inputGroup}>
                 <Input
                   label="Email Address"
                   placeholder="Enter your email address"
@@ -382,18 +385,39 @@ export default function RegisterScreen() {
                   error={errors.email}
                   onBlur={() => checkUsername(formData.email, 'email')}
                 />
-              ) : (
-                <Input
-                  label="WhatsApp Number"
-                  placeholder="Enter your WhatsApp number"
-                  keyboardType="phone-pad"
-                  value={formData.whatsapp}
-                  onChangeText={(value) => updateField('whatsapp', value)}
-                  error={errors.whatsapp}
-                  onBlur={() => checkUsername(formData.whatsapp, 'whatsapp')}
-                />
-              )}
-            </View>
+              </View>
+            ) : (
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: colors.text }]}>WhatsApp Number</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={{
+                    paddingHorizontal: 12,
+                    height: 48,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: errors.whatsapp ? colors.error : colors.border,
+                    borderRadius: 12,
+                    marginRight: 8,
+                  }}>
+                    <Text style={{ color: colors.text, fontSize: 16 }}>
+                      {countryCode ? `+${countryCode}` : ''}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1, height: 48, }}>
+                    <Input
+                      placeholder="Enter your WhatsApp number"
+                      keyboardType="phone-pad"
+                      value={formData.whatsapp}
+                      onChangeText={(value) => updateField('whatsapp', value)}
+                      error={errors.whatsapp}
+                      onBlur={() => checkUsername(countryCode + formData.whatsapp, 'whatsapp')}
+                      // 不要label，label已在外层
+                    />
+                  </View>
+                </View>
+              </View>
+            )}
 
             {initData?.is_need_verify === '1' && (
               <View style={styles.inputGroup}>

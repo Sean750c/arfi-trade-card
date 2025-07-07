@@ -254,7 +254,7 @@ function BankAccountsScreenContent() {
             styles.tabText,
             { color: activeWalletType === '1' ? '#FFFFFF' : colors.text }
           ]}>
-            NGN Accounts
+            {user?.currency_name} Accounts
           </Text>
         </TouchableOpacity>
         

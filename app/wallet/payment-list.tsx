@@ -43,7 +43,7 @@ export default function PaymentListScreen() {
       });
       setPaymentMethods(methods);
     } catch (error) {
-      setError(error instanceof Error ? error.message : '加载失败');
+      setError(error instanceof Error ? error.message : 'Load failed');
     } finally {
       setIsLoading(false);
     }

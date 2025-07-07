@@ -87,7 +87,7 @@ export default function ActivityModal({
   const modalHeight = calculateModalHeight();
 
   // Format amount with currency symbol
-  const formatAmount = (amount: number) => {
+  const formatAmount = (amount: number, currencySymbol: string) => {
     return `${currencySymbol}${amount.toLocaleString()}`;
   };
 
@@ -140,7 +140,7 @@ export default function ActivityModal({
                   </Text>
                 </View>
                 <Text style={[styles.bonusAmount, { color: colors.warning }]}>
-                  +{formatAmount(firstOrderBonus)}
+                  +{formatAmount(firstOrderBonus, currencySymbol)}
                 </Text>
                 <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
                   Welcome bonus for your first order. This bonus will be automatically credited to your account.
@@ -187,10 +187,10 @@ export default function ActivityModal({
                       ]}
                     >
                       <Text style={[styles.tableCell, { color: colors.textSecondary }]}>
-                        ≥ {formatAmount(bonus.order_amount)}
+                        ≥ {formatAmount(bonus.order_amount, '$')}
                       </Text>
                       <Text style={[styles.tableCell, { color: colors.success, fontFamily: 'Inter-Bold' }]}>
-                        +{formatAmount(bonus.bonus_amount)}
+                        +{formatAmount(bonus.bonus_amount, currencySymbol)}
                       </Text>
                     </View>
                   ))}

@@ -30,7 +30,7 @@ export default function CompactAmountSelector({
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: colors.text }]}>Amount (USD)</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Amount</Text>
       
       {/* Quick Denominations */}
       <View style={styles.denominationRow}>

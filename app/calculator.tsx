@@ -24,15 +24,7 @@ import type { CalculatorData, CardItem } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
-const denominations = ['$25', '$50', '$100', '$200', '$500'];
-const currencies = [
-  { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
-  { code: 'USDT', symbol: 'USDT', name: 'Tether' },
-];
-
 export default function CalculatorScreen() {
-  // const colorScheme = useColorScheme() ?? 'light';
-  // const colors = Colors[colorScheme];
   const { colors } = useTheme();
   const { user, isAuthenticated } = useAuthStore();
   const { selectedCountry } = useCountryStore();
@@ -40,12 +32,18 @@ export default function CalculatorScreen() {
   const [calculatorData, setCalculatorData] = useState<CalculatorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCard, setSelectedCard] = useState<CardItem | null>(null);
-  const [selectedDenomination, setSelectedDenomination] = useState('$100');
-  const [selectedCurrency, setSelectedCurrency] = useState('NGN');
+  const [selectedDenomination, setSelectedDenomination] = useState('100');
+  const [selectedCurrency, setSelectedCurrency] = useState(user?.currency_name || 'NGN');
   const [customAmount, setCustomAmount] = useState('');
   const [calculatedAmount, setCalculatedAmount] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [amountVisible, setAmountVisible] = useState(true);
+
+  const denominations = ['25', '50', '100', '200', '500'];
+  const currencies = [
+    { code: user?.currency_name || 'NGN', symbol: user?.currency_symbol || '₦', name: user?.currency_name || 'Nigerian Naira' },
+    { code: 'USDT', symbol: 'USDT', name: 'Tether' },
+  ];
 
   // Fetch calculator data on component mount
   useEffect(() => {
@@ -87,10 +85,10 @@ export default function CalculatorScreen() {
   const calculateAmount = () => {
     if (!selectedCard || !calculatorData) return;
 
-    const amount = customAmount ? parseFloat(customAmount) : parseFloat(selectedDenomination.replace('$', ''));
+    const amount = customAmount ? parseFloat(customAmount) : parseFloat(selectedDenomination);
     if (isNaN(amount)) return;
 
-    let baseRate = selectedCurrency === 'NGN' ? selectedCard.rate : selectedCard.usdt_rate;
+    let baseRate = selectedCurrency === user?.currency_name ? selectedCard.rate : selectedCard.usdt_rate;
     
     // Apply VIP bonus
     const vipBonus = calculatorData.vip_detail.rate ? parseFloat(calculatorData.vip_detail.rate) / 100 : 0;
@@ -105,8 +103,7 @@ export default function CalculatorScreen() {
 
   const formatCalculatedAmount = () => {
     if (!amountVisible) return '****';
-    const currencySymbol = currencies.find(c => c.code === selectedCurrency)?.symbol || '₦';
-    return `${currencySymbol}${calculatedAmount.toLocaleString(undefined, { 
+    return `${user?.currency_symbol}${calculatedAmount.toLocaleString(undefined, { 
       minimumFractionDigits: 2, 
       maximumFractionDigits: 2 
     })}`;
@@ -170,7 +167,7 @@ export default function CalculatorScreen() {
             {formatCalculatedAmount()}
           </Text>
           <Text style={styles.resultCurrency}>
-            {currencies.find(c => c.code === selectedCurrency)?.name || 'Nigerian Naira'}
+            {user?.country_name || '₦'} {user?.currency_name || '₦'}
           </Text>
         </Card>
 
@@ -179,6 +176,7 @@ export default function CalculatorScreen() {
           {/* Card Selection - Two Level */}
           {calculatorData && (
             <TwoLevelCardSelector
+              currencySymbol={user?.currency_symbol || '₦'}
               categories={calculatorData.card_list}
               selectedCard={selectedCard}
               onSelectCard={setSelectedCard}
@@ -236,9 +234,9 @@ export default function CalculatorScreen() {
                     Base Rate:
                   </Text>
                   <Text style={[styles.rateDetailValue, { color: colors.text }]}>
-                    {selectedCurrency === 'NGN' 
-                      ? `₦${selectedCard.rate.toFixed(2)}/$1`
-                      : `USDT ${selectedCard.usdt_rate.toFixed(4)}/$1`
+                    {selectedCurrency === user?.currency_name 
+                      ? `${user?.currency_symbol}${selectedCard.rate.toFixed(2)}`
+                      : `USDT ${selectedCard.usdt_rate.toFixed(4)}`
                     }
                   </Text>
                 </View>

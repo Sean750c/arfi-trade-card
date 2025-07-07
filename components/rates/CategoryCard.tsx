@@ -20,6 +20,7 @@ import Card from '@/components/UI/Card';
 import Spacing from '@/constants/Spacing';
 import type { CategoryData, CardRate, RateDetail } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 interface CategoryCardProps {
   category: CategoryData;
@@ -33,6 +34,8 @@ export default function CategoryCard({
   // const colorScheme = useColorScheme() ?? 'light';
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
+
+  const { user } = useAuthStore();
   
   // State for managing expanded cards
   const [expandedCards, setExpandedCards] = useState(false);
@@ -109,7 +112,7 @@ export default function CategoryCard({
                   Base:
                 </Text>
                 <Text style={[styles.baseRate, { color: colors.text }]}>
-                  {cardData.currency_symbol}{cardData.rate.toFixed(2)}
+                  {user?.currency_symbol}{cardData.rate.toFixed(2)}
                 </Text>
                 <Text style={[styles.currencyLabel, { color: colors.textSecondary }]}>
                   per {cardData.currency}
@@ -124,7 +127,7 @@ export default function CategoryCard({
                     VIP +{bonuses.vipBonus}%
                   </Text>
                   <Text style={[styles.bonusAmount, { color: colors.textSecondary }]}>
-                    (+{cardData.currency_symbol}{bonuses.vipAmount.toFixed(2)})
+                    (+{user?.currency_symbol}{bonuses.vipAmount.toFixed(2)})
                   </Text>
                 </View>
               )}
@@ -137,7 +140,7 @@ export default function CategoryCard({
                     Coupon +{bonuses.couponBonus}%
                   </Text>
                   <Text style={[styles.bonusAmount, { color: colors.success }]}>
-                    (+{cardData.currency_symbol}{bonuses.couponAmount.toFixed(2)})
+                    (+{user?.currency_symbol}{bonuses.couponAmount.toFixed(2)})
                   </Text>
                 </View>
               )}
@@ -146,7 +149,7 @@ export default function CategoryCard({
           
           <View style={styles.optimalRateContainer}>
             <Text style={[styles.optimalRate, { color: colors.primary }]}>
-              {cardData.currency_symbol}{cardData.optimal_rate}
+              {user?.currency_symbol}{cardData.optimal_rate}
             </Text>
             <View style={styles.rateIndicator}>
               <TrendingUp size={12} color={colors.success} />
@@ -205,7 +208,7 @@ export default function CategoryCard({
             <Text style={styles.topRateLabel}>Best Rate</Text>
           </View>
           <Text style={[styles.topRate, { color: colors.primary }]}>
-            {category.top_currency_symbol}{category.top_optimal_rate}
+            {user?.currency_symbol}{category.top_optimal_rate}
           </Text>
           <Text style={[styles.topCurrency, { color: colors.textSecondary }]}>
             per {category.top_currency}

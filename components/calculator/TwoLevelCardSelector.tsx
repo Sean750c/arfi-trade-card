@@ -14,12 +14,13 @@ import type { CardCategory, CardItem } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 
 interface TwoLevelCardSelectorProps {
+  currencySymbol: string;
   categories: CardCategory[];
   selectedCard: CardItem | null;
   onSelectCard: (card: CardItem) => void;
 }
 
-export default function TwoLevelCardSelector({ categories, selectedCard, onSelectCard }: TwoLevelCardSelectorProps) {
+export default function TwoLevelCardSelector({ currencySymbol, categories, selectedCard, onSelectCard }: TwoLevelCardSelectorProps) {
   // const colorScheme = useColorScheme() ?? 'light';
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
@@ -89,7 +90,7 @@ export default function TwoLevelCardSelector({ categories, selectedCard, onSelec
         </Text>
         <View style={styles.rateContainer}>
           <Text style={[styles.cardRate, { color: colors.primary }]}>
-            ₦{card.rate.toFixed(2)}
+            {currencySymbol}{card.rate.toFixed(2)}
           </Text>
           <Text style={[styles.cardUsdtRate, { color: colors.textSecondary }]}>
             USDT {card.usdt_rate.toFixed(4)}
@@ -123,7 +124,7 @@ export default function TwoLevelCardSelector({ categories, selectedCard, onSelec
                 {selectedCard.name}
               </Text>
               <Text style={[styles.selectedCardRate, { color: colors.textSecondary }]}>
-                ₦{selectedCard.rate.toFixed(2)}/$1
+                {currencySymbol}{selectedCard.rate.toFixed(2)}
               </Text>
             </View>
           ) : (

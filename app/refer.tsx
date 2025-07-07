@@ -136,7 +136,7 @@ function ReferScreenContent() {
         <Card style={[styles.statsCard, { backgroundColor: colors.card }]}> 
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
-              <AnimatedNumber value={inviteInfo?.referred_total_bonus ?? 0} style={[styles.statValue, { color: colors.primary }]} prefix="₦" />
+              <AnimatedNumber value={inviteInfo?.referred_total_bonus ?? 0} style={[styles.statValue, { color: colors.primary }]} prefix={user?.currency_symbol} />
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total Rewards</Text>
             </View>
             <View style={styles.statBox}>
@@ -144,7 +144,7 @@ function ReferScreenContent() {
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Invited Friends</Text>
             </View>
             <View style={styles.statBox}>
-              <AnimatedNumber value={inviteInfo?.can_receive_money ?? 0} style={[styles.statValue, { color: colors.primary }]} prefix="₦" />
+              <AnimatedNumber value={inviteInfo?.can_receive_money ?? 0} style={[styles.statValue, { color: colors.primary }]} prefix={user?.currency_symbol} />
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Available</Text>
             </View>
           </View>
