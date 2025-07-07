@@ -67,6 +67,8 @@ export function getItemLayout(height: number) {
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor;
   private metrics: Map<string, number[]> = new Map();
+  private navigationMetrics: Map<string, number> = new Map();
+  private memoryMetrics: number[] = [];
 
   static getInstance(): PerformanceMonitor {
     if (!PerformanceMonitor.instance) {
@@ -107,6 +109,64 @@ export class PerformanceMonitor {
 
   clearMetrics(): void {
     this.metrics.clear();
+    this.navigationMetrics.clear();
+    this.memoryMetrics = [];
+  }
+
+  // Navigation performance tracking
+  trackNavigation(screenName: string, startTime: number): void {
+    const endTime = performance.now();
+    const duration = endTime - startTime;
+    this.navigationMetrics.set(screenName, duration);
+    
+    if (duration > 200) {
+      console.warn(`Navigation to ${screenName} took ${duration.toFixed(2)}ms (target: <200ms)`);
+    }
+  }
+
+  // Memory usage tracking
+  trackMemoryUsage(): void {
+    if (typeof performance !== 'undefined' && 'memory' in performance) {
+      const memory = (performance as any).memory;
+      this.memoryMetrics.push(memory.usedJSHeapSize);
+      
+      // Keep only last 50 measurements
+      if (this.memoryMetrics.length > 50) {
+        this.memoryMetrics.shift();
+      }
+      
+      // Alert if memory usage is high
+      const currentMemory = memory.usedJSHeapSize / 1024 / 1024; // MB
+      if (currentMemory > 150) {
+        console.warn(`High memory usage: ${currentMemory.toFixed(2)}MB`);
+      }
+    }
+  }
+
+  // Get navigation performance report
+  getNavigationReport(): Record<string, number> {
+    const report: Record<string, number> = {};
+    this.navigationMetrics.forEach((duration, screen) => {
+      report[screen] = duration;
+    });
+    return report;
+  }
+
+  // Get memory usage statistics
+  getMemoryStats(): { average: number; peak: number; current: number } {
+    if (this.memoryMetrics.length === 0) {
+      return { average: 0, peak: 0, current: 0 };
+    }
+    
+    const average = this.memoryMetrics.reduce((sum, val) => sum + val, 0) / this.memoryMetrics.length;
+    const peak = Math.max(...this.memoryMetrics);
+    const current = this.memoryMetrics[this.memoryMetrics.length - 1];
+    
+    return {
+      average: average / 1024 / 1024, // Convert to MB
+      peak: peak / 1024 / 1024,
+      current: current / 1024 / 1024,
+    };
   }
 }
 

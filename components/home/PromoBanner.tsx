@@ -13,6 +13,7 @@ import {
 import { useBannerStore } from '@/stores/useBannerStore';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
+import OptimizedImage from '@/components/optimization/OptimizedImage';
 
 export default function PromoBanner() {
   const { colors } = useTheme();
@@ -131,10 +132,13 @@ export default function PromoBanner() {
             onPress={() => handleBannerPress(banner)}
             activeOpacity={0.9}
           >
-            <Image 
+            <OptimizedImage 
               source={{ uri: banner.image }} 
               style={styles.image}
-              resizeMode="cover"
+              lazy={true}
+              placeholder={
+                <View style={[styles.image, { backgroundColor: colors.border }]} />
+              }
             />
             <View style={styles.overlay} />
           </TouchableOpacity>
