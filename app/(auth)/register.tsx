@@ -22,6 +22,8 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { Country } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { useAppStore } from '@/stores/useAppStore';
+import { AuthService } from '@/services/auth';
 
 type RegistrationType = 'email' | 'whatsapp';
 
@@ -31,7 +33,7 @@ export default function RegisterScreen() {
   const { colors } = useTheme();
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { register, isLoading } = useAuthStore();
-  
+
   const [registrationType, setRegistrationType] = useState<RegistrationType>('email');
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [formData, setFormData] = useState({
@@ -41,9 +43,22 @@ export default function RegisterScreen() {
     confirmPassword: '',
     referralCode: '',
   });
-  
+
   const [termsAccepted, setTermsAccepted] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { initData } = useAppStore();
+  const [verifyCode, setVerifyCode] = useState('');
+  const [verifyCodeLoading, setVerifyCodeLoading] = useState(false);
+  const [verifyCodeCountdown, setVerifyCodeCountdown] = useState(0);
+
+  React.useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (verifyCodeCountdown > 0) {
+      timer = setTimeout(() => setVerifyCodeCountdown(verifyCodeCountdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [verifyCodeCountdown]);
 
   const updateField = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
@@ -59,11 +74,11 @@ export default function RegisterScreen() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!selectedCountry) {
       newErrors.country = 'Please select a country';
     }
-    
+
     if (registrationType === 'email') {
       if (!formData.email) {
         newErrors.email = 'Email is required';
@@ -77,21 +92,27 @@ export default function RegisterScreen() {
         newErrors.whatsapp = 'Please enter a valid phone number';
       }
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
+
     if (!termsAccepted) {
       newErrors.terms = 'You must accept the terms and conditions';
     }
-    
+
+    if (initData?.is_need_verify === '1') {
+      if (!verifyCode) {
+        newErrors.verifyCode = 'Verification code is required';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -107,8 +128,9 @@ export default function RegisterScreen() {
           email: registrationType === 'email' ? formData.email : '',
           whatsapp: registrationType === 'whatsapp' ? formData.whatsapp : '',
           recommend_code: formData.referralCode || '',
+          code: initData?.is_need_verify === '1' ? verifyCode : '',
         });
-        
+
         router.replace('/(tabs)');
       } catch (error) {
         Alert.alert('Registration Failed', error instanceof Error ? error.message : 'Please try again');
@@ -132,6 +154,34 @@ export default function RegisterScreen() {
     router.push('/profile/privacy-policy');
   };
 
+  const sendVerifyCode = async () => {
+    if (registrationType === 'email') {
+      if (!formData.email) {
+        setErrors((prev) => ({ ...prev, email: 'Email is required' }));
+        return;
+      }
+    } else {
+      if (!formData.whatsapp) {
+        setErrors((prev) => ({ ...prev, whatsapp: 'WhatsApp number is required' }));
+        return;
+      }
+    }
+    setVerifyCodeLoading(true);
+    try {
+      if (registrationType === 'email') {
+        await AuthService.sendEmailVerifyCode(formData.email);
+      } else {
+        await AuthService.sendWhatsAppCode(formData.whatsapp);
+      }
+      setVerifyCodeCountdown(60);
+      Alert.alert('Success', 'Verification code sent');
+    } catch (error) {
+      Alert.alert('Failed', error instanceof Error ? error.message : 'Failed to send code');
+    } finally {
+      setVerifyCodeLoading(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -145,8 +195,8 @@ export default function RegisterScreen() {
         <SafeAreaWrapper style={styles.safeArea}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity 
-              onPress={handleBack} 
+            <TouchableOpacity
+              onPress={handleBack}
               style={styles.backButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
@@ -231,7 +281,7 @@ export default function RegisterScreen() {
               <TouchableOpacity
                 style={[
                   styles.countrySelector,
-                  { 
+                  {
                     backgroundColor: colors.card,
                     borderColor: errors.country ? colors.error : colors.border,
                   },
@@ -240,9 +290,9 @@ export default function RegisterScreen() {
               >
                 {selectedCountry ? (
                   <View style={styles.selectedCountry}>
-                    <Image 
-                      source={{ uri: selectedCountry.image }} 
-                      style={styles.countryFlag} 
+                    <Image
+                      source={{ uri: selectedCountry.image }}
+                      style={styles.countryFlag}
                       resizeMode="cover"
                     />
                     <Text style={[styles.countryName, { color: colors.text }]}>
@@ -256,18 +306,18 @@ export default function RegisterScreen() {
                 )}
                 <ChevronDown size={20} color={colors.text} />
               </TouchableOpacity>
-              
+
               {showCountryPicker && (
-                <View 
+                <View
                   style={[
                     styles.countryDropdown,
-                    { 
+                    {
                       backgroundColor: colors.card,
                       borderColor: colors.border,
                     },
                   ]}
                 >
-                  <ScrollView 
+                  <ScrollView
                     style={styles.countryScrollView}
                     showsVerticalScrollIndicator={false}
                     nestedScrollEnabled={true}
@@ -281,9 +331,9 @@ export default function RegisterScreen() {
                         ]}
                         onPress={() => handleCountrySelect(country)}
                       >
-                        <Image 
-                          source={{ uri: country.image }} 
-                          style={styles.countryFlag} 
+                        <Image
+                          source={{ uri: country.image }}
+                          style={styles.countryFlag}
                           resizeMode="cover"
                         />
                         <Text style={[styles.countryName, { color: colors.text }]}>
@@ -294,7 +344,7 @@ export default function RegisterScreen() {
                   </ScrollView>
                 </View>
               )}
-              
+
               {errors.country && (
                 <Text style={[styles.errorText, { color: colors.error }]}>
                   {errors.country}
@@ -324,7 +374,30 @@ export default function RegisterScreen() {
                 />
               )}
             </View>
-            
+
+            {initData?.is_need_verify === '1' && (
+              <View style={styles.inputGroup}>
+                <Input
+                  label="Verification Code"
+                  placeholder="Enter verification code"
+                  value={verifyCode}
+                  onChangeText={setVerifyCode}
+                  error={errors.verifyCode}
+                  rightElement={
+                    <TouchableOpacity
+                      onPress={sendVerifyCode}
+                      disabled={verifyCodeCountdown > 0 || verifyCodeLoading}
+                      style={{ paddingHorizontal: 8 }}
+                    >
+                      <Text style={{ color: verifyCodeCountdown > 0 ? colors.textSecondary : colors.primary }}>
+                        {verifyCodeCountdown > 0 ? `${verifyCodeCountdown}s` : 'Send Code'}
+                      </Text>
+                    </TouchableOpacity>
+                  }
+                />
+              </View>
+            )}
+
             <View style={styles.inputGroup}>
               <Input
                 label="Password"
@@ -335,7 +408,7 @@ export default function RegisterScreen() {
                 error={errors.password}
               />
             </View>
-            
+
             <View style={styles.inputGroup}>
               <Input
                 label="Confirm Password"
@@ -346,7 +419,7 @@ export default function RegisterScreen() {
                 error={errors.confirmPassword}
               />
             </View>
-            
+
             <View style={styles.inputGroup}>
               <Input
                 label="Referral Code (Optional)"
@@ -355,7 +428,7 @@ export default function RegisterScreen() {
                 onChangeText={(value) => updateField('referralCode', value)}
               />
             </View>
-            
+
             {/* Terms Agreement */}
             <View style={[styles.inputGroup, styles.termsContainer]}>
               <Switch
@@ -366,14 +439,14 @@ export default function RegisterScreen() {
               />
               <Text style={[styles.termsText, { color: colors.text }]}>
                 I agree to the{' '}
-                <Text 
+                <Text
                   style={[styles.termsLink, { color: colors.primary }]}
                   onPress={handleTermsPress}
                 >
                   Terms of Service
                 </Text>{' '}
                 and{' '}
-                <Text 
+                <Text
                   style={[styles.termsLink, { color: colors.primary }]}
                   onPress={handlePrivacyPress}
                 >
@@ -386,7 +459,7 @@ export default function RegisterScreen() {
                 </Text>
               )}
             </View>
-            
+
             {/* Register Button */}
             <View style={styles.buttonContainer}>
               <Button
@@ -397,7 +470,7 @@ export default function RegisterScreen() {
                 fullWidth
               />
             </View>
-            
+
             {/* <View style={styles.orContainer}>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
               <Text style={[styles.orText, { color: colors.textSecondary }]}>OR</Text>
@@ -405,7 +478,7 @@ export default function RegisterScreen() {
             </View>
             
             <SocialLoginButtons /> */}
-            
+
             {/* Login Link */}
             <View style={styles.loginContainer}>
               <Text style={[styles.loginText, { color: colors.textSecondary }]}>
