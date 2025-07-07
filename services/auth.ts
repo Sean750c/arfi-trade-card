@@ -125,6 +125,48 @@ export class AuthService {
     }
   }
 
+  static async checkUsername(username: string) {
+    try {
+      const response = await APIRequest.request<SendResetEmailResponse>(
+        '/gc/user/checkUsername',
+        'POST',
+        { username }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to check username');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to check username: ${error.message}`);
+      }
+      throw new Error('Failed to check username');
+    }
+  }
+
+  static async sendEmailVerifyCode(email: string) {
+    try {
+      const response = await APIRequest.request<SendResetEmailResponse>(
+        '/gc/user/sendEmailVerifyCode',
+        'POST',
+        { email }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to send register email');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to send register email: ${error.message}`);
+      }
+      throw new Error('Failed to send register email');
+    }
+  }
+
   // Password Recovery Methods
   static async sendResetPasswordEmail(email: string) {
     try {
