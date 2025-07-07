@@ -171,7 +171,9 @@ function SupportScreenContent() {
   }, [hasLoadedOnce, isLoadingMore, isLoadingFAQList, loadMoreFAQs]);
 
   const toggleExpanded = (id: number) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (Platform.OS === 'ios') {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
     const newExpanded = new Set(expandedItems);
     if (newExpanded.has(id)) {
       newExpanded.delete(id);
