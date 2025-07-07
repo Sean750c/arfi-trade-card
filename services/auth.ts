@@ -171,7 +171,7 @@ export class AuthService {
   static async sendResetPasswordEmail(email: string) {
     try {
       const response = await APIRequest.request<SendResetEmailResponse>(
-        '/gc/user/sendResetPasswordEmail',
+        '/gc/public/sendMail',
         'POST',
         { email }
       );

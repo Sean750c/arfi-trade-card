@@ -182,6 +182,24 @@ export default function RegisterScreen() {
     }
   };
 
+  // 检查用户名是否已注册
+  const checkUsername = async (value: string, type: RegistrationType) => {
+    if (!value) return;
+    try {
+      await AuthService.checkUsername(value);
+      // 未注册，清除错误
+      setErrors((prev) => ({ ...prev, [type === 'email' ? 'email' : 'whatsapp']: '' }));
+    } catch (error) {
+      setErrors((prev) => ({
+        ...prev,
+        [type === 'email' ? 'email' : 'whatsapp']:
+          type === 'email'
+            ? 'This email is already registered'
+            : 'This WhatsApp is already registered',
+      }));
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -362,6 +380,7 @@ export default function RegisterScreen() {
                   value={formData.email}
                   onChangeText={(value) => updateField('email', value)}
                   error={errors.email}
+                  onBlur={() => checkUsername(formData.email, 'email')}
                 />
               ) : (
                 <Input
@@ -371,6 +390,7 @@ export default function RegisterScreen() {
                   value={formData.whatsapp}
                   onChangeText={(value) => updateField('whatsapp', value)}
                   error={errors.whatsapp}
+                  onBlur={() => checkUsername(formData.whatsapp, 'whatsapp')}
                 />
               )}
             </View>
