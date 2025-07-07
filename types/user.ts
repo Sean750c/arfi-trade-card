@@ -85,13 +85,13 @@ export interface SendWhatsAppCodeRequest {
 
 export interface UpdatePasswordByEmailRequest {
     email: string;
-    code: string;
+    verify_code: string;
     new_password: string;
 }
 
 export interface UpdatePasswordByWhatsAppRequest {
     whatsapp: string;
-    code: string;
+    verify_code: string;
     new_password: string;
 }
 

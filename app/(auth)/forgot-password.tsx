@@ -105,13 +105,13 @@ export default function ForgotPasswordScreen() {
       if (recoveryMethod === 'email') {
         await AuthService.updatePasswordByEmail({
           email,
-          code: verificationCode,
+          verify_code: verificationCode,
           new_password: newPassword,
         });
       } else {
         await AuthService.updatePasswordByWhatsApp({
           whatsapp,
-          code: verificationCode,
+          verify_code: verificationCode,
           new_password: newPassword,
         });
       }
