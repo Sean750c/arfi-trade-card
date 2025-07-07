@@ -22,13 +22,10 @@ import { Country } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import AnnouncementBar from '@/components/home/AnnouncementBar';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
-import { useNavigationPerformance } from '@/hooks/useNavigationPerformance';
-import OptimizedImage from '@/components/optimization/OptimizedImage';
 
 
 export default function HomeScreen() {
   const { colors } = useTheme();
-  useNavigationPerformance('HomeScreen');
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
@@ -96,9 +93,10 @@ export default function HomeScreen() {
             <View style={styles.locationContainer}>
               {isAuthenticated && user ? (
                 <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}15` }]}>
-                  <OptimizedImage 
+                  <Image 
                     source={{ uri: user.country_logo_image }} 
                     style={styles.flagImage} 
+                    resizeMode="cover"
                   />
                   <Text style={[styles.countryText, { color: colors.text }]}>
                     {user.country_name}
@@ -110,9 +108,10 @@ export default function HomeScreen() {
                   onPress={() => setShowCountryPicker(!showCountryPicker)}
                 >
                   <View style={styles.countryInfoContainer}>
-                    <OptimizedImage 
+                    <Image 
                       source={{ uri: selectedCountry?.image }} 
                       style={styles.flagImage} 
+                      resizeMode="cover"
                     />
                     <Text style={[styles.countryText, { color: colors.text }]}>
                       {selectedCountry?.name}
@@ -180,9 +179,10 @@ export default function HomeScreen() {
                       onPress={() => handleCountrySelect(country)}
                     >
                       <View style={styles.countryInfoContainer}>
-                        <OptimizedImage 
+                        <Image 
                           source={{ uri: country.image }} 
                           style={styles.flagImage} 
+                          resizeMode="cover"
                         />
                         <Text style={[styles.countryOptionText, { color: colors.text }]}>
                           {country.name}
@@ -279,11 +279,8 @@ export default function HomeScreen() {
         {/* 公告栏 */}
         <AnnouncementBar />
         {/* Content Sections */}
-        {/* Lazy load heavy components */}
-        <React.Suspense fallback={null}>
-          <PromoBanner />
-          <QuickActions />
-        </React.Suspense>
+        <PromoBanner />
+        <QuickActions />
         {/* <PromoTimer /> */}
         {/* <RecentTransactions /> */}
       </ScrollView>

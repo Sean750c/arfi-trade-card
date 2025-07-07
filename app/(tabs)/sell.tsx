@@ -32,8 +32,6 @@ import { Coupon } from '@/types';
 import { useOrderStore } from '@/stores/useOrderStore';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { PerformanceMonitor } from '@/utils/performance';
-import { useNavigationPerformance } from '@/hooks/useNavigationPerformance';
-import LazyScreen from '@/components/optimization/LazyScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -51,7 +49,6 @@ interface SelectedCard {
 function SellScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
-  useNavigationPerformance('SellScreen');
   const { 
     fetchOrderSellDetail, 
     orderSellDetail, 
@@ -473,23 +470,17 @@ function SellScreenContent() {
   }, [selectedCards, colors.success, colors.error]);
 
   return (
-    <LazyScreen>
-      <SafeAreaWrapper backgroundColor={colors.background}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <SafeAreaWrapper backgroundColor={colors.background}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          removeClippedSubviews={true}
+          scrollEventThrottle={16}
         >
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-            removeClippedSubviews={true}
-            scrollEventThrottle={16}
-            // Performance optimizations
-            initialNumToRender={5}
-            maxToRenderPerBatch={10}
-            windowSize={10}
-            getItemLayout={undefined} // Let ScrollView handle layout
-          >
           {/* Compact Header */}
           <View style={styles.header}>
             <TouchableOpacity
@@ -788,9 +779,8 @@ function SellScreenContent() {
             }
           />
         )}
-        </KeyboardAvoidingView>
-      </SafeAreaWrapper>
-    </LazyScreen>
+      </KeyboardAvoidingView>
+    </SafeAreaWrapper>
   );
 }
 

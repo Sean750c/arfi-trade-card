@@ -1,13 +1,11 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
+import { useColorScheme, Platform } from 'react-native';
 import { Chrome as Home, Gift, Wallet, User } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
-import { useNavigationPerformance } from '@/hooks/useNavigationPerformance';
 
 export default function TabLayout() {
   const { colors } = useTheme();
-  useNavigationPerformance('TabLayout');
 
   return (
     <Tabs
@@ -28,9 +26,6 @@ export default function TabLayout() {
         },
         headerShown: false,
         lazy: true,
-        // Optimize tab performance
-        unmountOnBlur: false, // Keep tabs mounted for faster switching
-        freezeOnBlur: true, // Freeze inactive tabs to save memory
       }}
     >
       <Tabs.Screen
@@ -38,7 +33,6 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
-          lazy: true,
         }}
       />
       <Tabs.Screen
@@ -46,7 +40,6 @@ export default function TabLayout() {
         options={{
           title: 'Sell Card',
           tabBarIcon: ({ color, size }) => <Gift size={size} color={color} />,
-          lazy: true,
         }}
       />
       <Tabs.Screen
@@ -54,7 +47,6 @@ export default function TabLayout() {
         options={{
           title: 'Wallet',
           tabBarIcon: ({ color, size }) => <Wallet size={size} color={color} />,
-          lazy: true,
         }}
       />
       <Tabs.Screen
@@ -62,7 +54,6 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
-          lazy: true,
         }}
       />
     </Tabs>

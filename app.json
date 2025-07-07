@@ -45,14 +45,8 @@
       "proguard": true,
       "package": "com.bsdb.afritrade",
       "enableProguardInReleaseBuilds": true,
-      "enableShrinkResourcesInReleaseBuilds": true,
-      "buildType": "apk"
+      "enableShrinkResourcesInReleaseBuilds": true
     },
-    "jsEngine": "hermes",
-    "optimization": {
-      "web": {
-        "bundler": "metro"
-      }
-    }
+    "jsEngine": "hermes"
   }
 }
