@@ -30,6 +30,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
 
+  const isBrowserStackIOS = __DEV__ && Platform.OS === 'ios' && !('ontouchstart' in window);
+
   const validateForm = () => {
     const newErrors: { username?: string; password?: string } = {};
     
@@ -75,6 +77,11 @@ export default function LoginScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <ScrollView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+      >
         <SafeAreaWrapper style={styles.safeArea}>
           <View style={styles.header}>
             <TouchableOpacity 
@@ -115,6 +122,7 @@ export default function LoginScreen() {
               <Input
                 label="Password"
                 placeholder="Enter your password"
+                secureTextEntry={!isBrowserStackIOS}
                 value={password}
                 onChangeText={setPassword}
                 error={errors.password}
@@ -158,6 +166,7 @@ export default function LoginScreen() {
             </View>
           </View>
         </SafeAreaWrapper>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

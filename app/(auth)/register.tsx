@@ -54,6 +54,7 @@ export default function RegisterScreen() {
 
   // 获取当前国家区号
   const countryCode = selectedCountry?.code || '';
+  const isBrowserStackIOS = __DEV__ && Platform.OS === 'ios' && !('ontouchstart' in window);
 
   React.useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -208,7 +209,11 @@ export default function RegisterScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-
+      <ScrollView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+      >
         <SafeAreaWrapper style={styles.safeArea}>
           {/* Header */}
           <View style={styles.header}>
@@ -442,7 +447,7 @@ export default function RegisterScreen() {
               <Input
                 label="Password"
                 placeholder="Create a password"
-                secureTextEntry
+                secureTextEntry={!isBrowserStackIOS}
                 value={formData.password}
                 onChangeText={(value) => updateField('password', value)}
                 error={errors.password}
@@ -453,7 +458,7 @@ export default function RegisterScreen() {
               <Input
                 label="Confirm Password"
                 placeholder="Confirm your password"
-                secureTextEntry
+                secureTextEntry={!isBrowserStackIOS}
                 value={formData.confirmPassword}
                 onChangeText={(value) => updateField('confirmPassword', value)}
                 error={errors.confirmPassword}
@@ -530,6 +535,7 @@ export default function RegisterScreen() {
             </View>
           </View>
         </SafeAreaWrapper>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
