@@ -45,8 +45,8 @@ export default function OrderCard({ currencySymbol, currencyName, order, onPress
     return new Date(timestamp * 1000).toLocaleDateString();
   };
 
-  const formatAmount = (amount: number, currency: string) => {
-    const symbol = currency === currencyName ? currencySymbol : currency === 'USDT' ? 'USDT' : currency;
+  const formatAmount = (amount: number, walletType: number) => {
+    const symbol = (walletType === 1 ? currencySymbol : 'USDT');
     return `${symbol}${amount.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -112,7 +112,7 @@ export default function OrderCard({ currencySymbol, currencyName, order, onPress
 
         <View style={styles.amountContainer}>
           <Text style={[styles.amount, { color: colors.success }]}>
-            {formatAmount(order.amount, order.currency)}
+            {formatAmount(order.amount, order.wallet_type)}
           </Text>
           <ChevronRight size={16} color={colors.textSecondary} />
         </View>

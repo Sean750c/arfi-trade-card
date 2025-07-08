@@ -37,7 +37,6 @@ export interface OrderListItem {
   amount: number;
   status: number;
   wallet_type: number;
-  currency: string;
   order_rebate: number;
   refused_reason: string;
   images: string;
