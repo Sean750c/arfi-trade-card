@@ -11,9 +11,9 @@ jobs:
     params:
       platform: android
       profile: production
-  # build_ios:
-  #   name: Build iOS
-  #   type: build # This job type creates a production build for iOS
-  #   params:
-  #     platform: ios
-  #     profile: production
+  build_ios:
+    name: Build iOS
+    type: build # This job type creates a production build for iOS
+    params:
+      platform: ios
+      profile: production
