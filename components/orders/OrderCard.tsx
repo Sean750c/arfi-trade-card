@@ -6,11 +6,13 @@ import type { OrderListItem } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 
 interface OrderCardProps {
+  currencySymbol: String,
+  currencyName: String,
   order: OrderListItem;
   onPress: () => void;
 }
 
-export default function OrderCard({ order, onPress }: OrderCardProps) {
+export default function OrderCard({ currencySymbol, currencyName, order, onPress }: OrderCardProps) {
   const { colors } = useTheme();
 
   const getStatusIcon = (status: number) => {
@@ -44,7 +46,7 @@ export default function OrderCard({ order, onPress }: OrderCardProps) {
   };
 
   const formatAmount = (amount: number, currency: string) => {
-    const symbol = currency === 'NGN' ? '₦' : currency === 'USDT' ? 'USDT' : currency;
+    const symbol = currency === currencyName ? currencySymbol : currency === 'USDT' ? 'USDT' : currency;
     return `${symbol}${amount.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -103,7 +105,7 @@ export default function OrderCard({ order, onPress }: OrderCardProps) {
               {order.card_name || 'Gift Card Trade'}
             </Text>
             <Text style={[styles.walletType, { color: colors.textSecondary }]}>
-              {order.wallet_type === 1 ? 'NGN Wallet' : 'USDT Wallet'}
+              {order.wallet_type === 1 ? `${currencyName} Wallet` : 'USDT Wallet'}
             </Text>
           </View>
         </View>

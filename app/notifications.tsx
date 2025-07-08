@@ -287,7 +287,7 @@ function NotificationsScreenContent() {
       ) : (
         <FlatList
           data={safeNotifications}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, idx) => (item?.id ? item.id.toString() : `notice-${idx}`)}
           renderItem={renderNotificationItem}
           ListEmptyComponent={!isLoading ? renderEmptyState : null}
           ListFooterComponent={renderFooter}

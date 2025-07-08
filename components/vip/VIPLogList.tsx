@@ -122,6 +122,13 @@ export default function VIPLogList({ visible, onClose }: VIPLogListProps) {
                 }
               }}
               onEndReachedThreshold={0.1}
+              ListEmptyComponent={
+                !isLoadingLogs && logsInitialized ? (
+                  <Text style={{ textAlign: 'center', color: colors.textSecondary, marginTop: 32 }}>
+                    No history found
+                  </Text>
+                ) : null
+              }
               ListFooterComponent={
                 isLoadingMore ? (
                   <View style={styles.loadingFooter}>

@@ -203,6 +203,8 @@ function OrdersScreenContent() {
         keyExtractor={(item) => item.order_no}
         renderItem={({ item }) => (
           <OrderCard 
+            currencyName={user?.currency_name || 'NGN'}
+            currencySymbol={user?.currency_symbol || '₦'}
             order={item} 
             onPress={() => handleOrderPress(item)}
           />
