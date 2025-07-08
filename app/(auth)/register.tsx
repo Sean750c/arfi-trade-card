@@ -208,11 +208,7 @@ export default function RegisterScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView
-        style={[styles.container, { backgroundColor: colors.background }]}
-        contentContainerStyle={styles.contentContainer}
-        keyboardShouldPersistTaps="always"
-      >
+
         <SafeAreaWrapper style={styles.safeArea}>
           {/* Header */}
           <View style={styles.header}>
@@ -534,7 +530,6 @@ export default function RegisterScreen() {
             </View>
           </View>
         </SafeAreaWrapper>
-      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

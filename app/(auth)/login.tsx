@@ -75,11 +75,6 @@ export default function LoginScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView
-        style={[styles.container, { backgroundColor: colors.background }]}
-        contentContainerStyle={styles.contentContainer}
-        keyboardShouldPersistTaps="always"
-      >
         <SafeAreaWrapper style={styles.safeArea}>
           <View style={styles.header}>
             <TouchableOpacity 
@@ -164,7 +159,6 @@ export default function LoginScreen() {
             </View>
           </View>
         </SafeAreaWrapper>
-      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
