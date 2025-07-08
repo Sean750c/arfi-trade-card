@@ -115,8 +115,6 @@ export default function LoginScreen() {
               <Input
                 label="Password"
                 placeholder="Enter your password"
-                keyboardType="default"
-                secureTextEntry
                 value={password}
                 onChangeText={setPassword}
                 error={errors.password}
