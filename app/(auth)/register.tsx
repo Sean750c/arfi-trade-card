@@ -211,7 +211,7 @@ export default function RegisterScreen() {
       <ScrollView
         style={[styles.container, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.contentContainer}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
       >
         <SafeAreaWrapper style={styles.safeArea}>
           {/* Header */}
