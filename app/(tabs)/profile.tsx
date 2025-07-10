@@ -270,7 +270,7 @@ export default function ProfileScreen() {
       id: '2',
       icon: <User size={20} color={colors.primary} />,
       title: 'Create Account',
-      subtitle: 'Join AfriTrade today',
+      subtitle: 'Join CardKing today',
       route: '/(auth)/register',
     },
   ], [colors.primary, handleLogin]);
@@ -304,7 +304,7 @@ export default function ProfileScreen() {
       id: '3',
       icon: <HelpCircle size={20} color={colors.primary} />,
       title: 'Help & Support',
-      subtitle: 'Get help with using AfriTrade',
+      subtitle: 'Get help with using CardKing',
       route: '/profile/support',
     },
     {
@@ -445,7 +445,7 @@ export default function ProfileScreen() {
               </View>
               <View style={styles.guestInfo}>
                 <Text style={guestTitleStyle}>
-                  Welcome to AfriTrade
+                  Welcome to CardKing
                 </Text>
                 <Text style={guestSubtitleStyle}>
                   Login or create an account to get started

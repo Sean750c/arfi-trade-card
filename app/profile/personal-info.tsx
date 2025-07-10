@@ -15,7 +15,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UserService } from '@/services/user';
-import type { UserInfo } from '@/types';
+import type { User as UserInfo } from '@/types';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 function PersonalInfoContent() {

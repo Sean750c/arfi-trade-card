@@ -55,7 +55,7 @@ export default function PrivacyPolicyScreen() {
             1. Introduction
           </Text>
           <Text style={[styles.sectionContent, { color: colors.textSecondary }]}>
-            AfriTrade ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our gift card trading platform.
+          CardKing ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our gift card trading platform.
           </Text>
         </View>
 
@@ -183,8 +183,8 @@ export default function PrivacyPolicyScreen() {
           </Text>
           <Text style={[styles.sectionContent, { color: colors.textSecondary }]}>
             If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at:
-            {'\n\n'}Email: privacy@afritrade.com
-            {'\n'}Phone: +234 123 456 7890
+            {'\n\n'}Email: privacy@cardking.ng
+            {'\n'}Phone: +44 774 681 0750
             {'\n'}Address: Lagos, Nigeria
           </Text>
         </View>
@@ -192,7 +192,7 @@ export default function PrivacyPolicyScreen() {
         {/* Footer */}
         <View style={[styles.footer, { backgroundColor: `${colors.primary}10` }]}>
           <Text style={[styles.footerText, { color: colors.text }]}>
-            By using AfriTrade, you acknowledge that you have read and understood this Privacy Policy and agree to our collection, use, and disclosure practices described herein.
+            By using CardKing, you acknowledge that you have read and understood this Privacy Policy and agree to our collection, use, and disclosure practices described herein.
           </Text>
         </View>
       </ScrollView>

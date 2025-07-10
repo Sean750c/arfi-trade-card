@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { User } from '@/types';
 import { AuthService } from '@/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { UserService } from '@/services/user';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -22,6 +23,7 @@ interface AuthState {
     recommend_code?: string;
     code?: string;
   }) => Promise<void>;
+  reloadUser: () => Promise<void>;
   setUser: (user: User) => void; // Add method to set user directly (for social login)
   googleLogin: (accessToken: string) => Promise<void>;
   facebookLogin: (accessToken: string) => Promise<void>;
@@ -96,6 +98,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isLoading: false,
       error: null 
     });
+    AsyncStorage.removeItem('user');
   },
   initialize: async () => {
     try {
@@ -127,6 +130,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         isLoading: false,
         error: error instanceof Error ? error.message : 'Registration failed',
+      });
+      throw error;
+    }
+  },
+  reloadUser: async () => {
+    const { user } = get();
+    if (!user?.token) {
+      set({ user: null, isAuthenticated: false, isInitialized: true });
+      return;
+    }
+    set({ isLoading: true, error: null });
+    try {
+      const response = await UserService.getUserInfo(user.token);
+      set({
+        user: {
+          ...response,
+          token: user.token, // 保证 token 不丢失
+        },
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to reload user info',
       });
       throw error;
     }

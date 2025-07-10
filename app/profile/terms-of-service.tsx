@@ -55,7 +55,7 @@ export default function TermsOfServiceScreen() {
             1. Introduction
           </Text>
           <Text style={[styles.sectionContent, { color: colors.textSecondary }]}>
-            Welcome to AfriTrade. These Terms of Service ("Terms") govern your use of our gift card trading platform and services. By accessing or using AfriTrade, you agree to be bound by these Terms.
+            Welcome to CardKing. These Terms of Service ("Terms") govern your use of our gift card trading platform and services. By accessing or using CardKing, you agree to be bound by these Terms.
           </Text>
         </View>
 
@@ -75,7 +75,7 @@ export default function TermsOfServiceScreen() {
             3. Eligibility
           </Text>
           <Text style={[styles.sectionContent, { color: colors.textSecondary }]}>
-            You must be at least 18 years old to use AfriTrade. By using our services, you represent and warrant that you meet this age requirement and have the legal capacity to enter into these Terms.
+            You must be at least 18 years old to use CardKing. By using our services, you represent and warrant that you meet this age requirement and have the legal capacity to enter into these Terms.
           </Text>
         </View>
 
@@ -95,7 +95,7 @@ export default function TermsOfServiceScreen() {
             5. Gift Card Trading
           </Text>
           <Text style={[styles.sectionContent, { color: colors.textSecondary }]}>
-            AfriTrade provides a platform for trading gift cards. You acknowledge that:
+          CardKing provides a platform for trading gift cards. You acknowledge that:
             {'\n\n'}• All gift cards must be legitimate and obtained through legal means
             {'\n'}• You are responsible for the authenticity of gift cards you trade
             {'\n'}• We reserve the right to verify gift card validity
@@ -124,7 +124,7 @@ export default function TermsOfServiceScreen() {
             7. Fees and Payments
           </Text>
           <Text style={[styles.sectionContent, { color: colors.textSecondary }]}>
-            AfriTrade may charge fees for certain services. All applicable fees will be clearly disclosed before you complete a transaction. Fees are non-refundable except as required by law.
+            CardKing may charge fees for certain services. All applicable fees will be clearly disclosed before you complete a transaction. Fees are non-refundable except as required by law.
           </Text>
         </View>
 
@@ -134,7 +134,7 @@ export default function TermsOfServiceScreen() {
             8. Intellectual Property
           </Text>
           <Text style={[styles.sectionContent, { color: colors.textSecondary }]}>
-            All content, features, and functionality of AfriTrade are owned by us and are protected by copyright, trademark, and other intellectual property laws. You may not copy, modify, or distribute our content without permission.
+            All content, features, and functionality of CardKing are owned by us and are protected by copyright, trademark, and other intellectual property laws. You may not copy, modify, or distribute our content without permission.
           </Text>
         </View>
 
@@ -144,7 +144,7 @@ export default function TermsOfServiceScreen() {
             9. Limitation of Liability
           </Text>
           <Text style={[styles.sectionContent, { color: colors.textSecondary }]}>
-            To the maximum extent permitted by law, AfriTrade shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of our services.
+            To the maximum extent permitted by law, CardKing shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of our services.
           </Text>
         </View>
 
@@ -175,8 +175,8 @@ export default function TermsOfServiceScreen() {
           </Text>
           <Text style={[styles.sectionContent, { color: colors.textSecondary }]}>
             If you have any questions about these Terms of Service, please contact us at:
-            {'\n\n'}Email: legal@afritrade.com
-            {'\n'}Phone: +234 123 456 7890
+            {'\n\n'}Email: legal@cardking.ng
+            {'\n'}Phone: +44 774 681 0750
             {'\n'}Address: Lagos, Nigeria
           </Text>
         </View>
@@ -184,7 +184,7 @@ export default function TermsOfServiceScreen() {
         {/* Footer */}
         <View style={[styles.footer, { backgroundColor: `${colors.primary}10` }]}>
           <Text style={[styles.footerText, { color: colors.text }]}>
-            By using AfriTrade, you acknowledge that you have read and understood these Terms of Service and agree to be bound by them.
+            By using CardKing, you acknowledge that you have read and understood these Terms of Service and agree to be bound by them.
           </Text>
         </View>
       </ScrollView>

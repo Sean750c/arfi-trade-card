@@ -98,7 +98,7 @@ export default function LoginScreen() {
               source={{ uri: 'https://images.pexels.com/photos/6969809/pexels-photo-6969809.jpeg' }}
               style={styles.logo}
             />
-            <Text style={[styles.appName, { color: colors.text }]}>AfriTrade</Text>
+            <Text style={[styles.appName, { color: colors.text }]}>CardKing</Text>
             <Text style={[styles.tagline, { color: colors.textSecondary }]}>
               Trade gift cards at the best rates
             </Text>

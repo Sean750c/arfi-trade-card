@@ -29,14 +29,14 @@ export default function HomeScreen() {
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, reloadUser } = useAuthStore();
   const { initData, isLoading: initLoading, error: initError, initialize } = useAppStore();
 
   useFocusEffect(
     useCallback(() => {
       const initializeApp = async () => {
         try {
-          const userToken = isAuthenticated && user?.token ? user.token : undefined;
+          const userToken = isAuthenticated && user?.token ? user.token : '';
           // 只在数据为空时初始化
           if (!initData) {
             await initialize(userToken);
@@ -74,6 +74,7 @@ export default function HomeScreen() {
       // Include user token if authenticated
       const userToken = isAuthenticated && user?.token ? user.token : undefined;
       await initialize(userToken);
+      await reloadUser();
     } catch (error) {
       console.error('Failed to refresh app data:', error);
     }
@@ -146,7 +147,7 @@ export default function HomeScreen() {
             {!isAuthenticated && (
               <View style={styles.guestWelcome}>
                 <Text style={[styles.guestTitle, { color: colors.text }]}>
-                  Welcome to AfriTrade
+                  Welcome to CardKing
                 </Text>
                 <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>
                   Trade gift cards at the best rates

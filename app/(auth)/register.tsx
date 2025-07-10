@@ -227,7 +227,7 @@ export default function RegisterScreen() {
             <View style={styles.headerContent}>
               <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
               <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-                Join AfriTrade to start trading gift cards
+                Join CardKing to start trading gift cards
               </Text>
             </View>
           </View>

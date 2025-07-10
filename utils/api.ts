@@ -65,7 +65,7 @@ export class APIRequest {
         router.replace('/(auth)/login');
       }
       
-      throw new Error('Session expired. Please login again.');
+      // throw new Error('Session expired. Please login again.');
     }
   }
 

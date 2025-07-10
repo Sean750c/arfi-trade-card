@@ -31,30 +31,24 @@ export function useAuthProtection() {
 
   useEffect(() => {
     if (!isInitialized) return; // 未初始化时不做跳转
-    
+
     // Get the current route path
     const currentPath = segments.join('/');
-    
+
     // Check if current route is protected
-    const isProtectedRoute = PROTECTED_ROUTES.some(route => 
+    const isProtectedRoute = PROTECTED_ROUTES.some(route =>
       currentPath.includes(route) || currentPath.startsWith(route)
     );
 
     // Check if current route is public
-    const isPublicRoute = PUBLIC_ROUTES.some(route => 
+    const isPublicRoute = PUBLIC_ROUTES.some(route =>
       currentPath === route || currentPath.startsWith(route)
     );
 
     // If user is not authenticated and trying to access a protected route
     if (!isAuthenticated && isProtectedRoute) {
-      console.log(`User not authenticated, accessing protected route: ${currentPath}`);
-      
-      // 对于 tab 路由组内的受保护页面，不进行跳转，让 AuthGuard 组件处理
-      // 只对非 tab 路由组的受保护页面进行跳转
-      if (!currentPath.startsWith('(tabs)')) {
-        console.log(`Redirecting to login from protected route: ${currentPath}`);
-        router.replace('/(auth)/login');
-      }
+      console.log(`Redirecting to login from protected route: ${currentPath}`);
+      router.replace('/(auth)/login');
       return;
     }
 

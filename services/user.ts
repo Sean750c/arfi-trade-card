@@ -1,7 +1,7 @@
 import { APIRequest } from '@/utils/api';
 import type { 
   UserInfoResponse,
-  UserInfo,
+  User,
   UserInfoRequest,
   ModifyNicknameRequest,
   UploadAvatarRequest,
@@ -9,7 +9,7 @@ import type {
 } from '@/types';
 
 export class UserService {
-  static async getUserInfo(token: string): Promise<UserInfo> {
+  static async getUserInfo(token: string): Promise<User> {
     try {
       const response = await APIRequest.request<UserInfoResponse>(
         '/gc/user/userInfo',

@@ -21,7 +21,7 @@ const { width } = Dimensions.get('window');
 const slides = [
   {
     id: '1',
-    title: 'Welcome to AfriTrade',
+    title: 'Welcome to CardKing',
     description: 'Your trusted platform for trading gift cards at the best rates in Africa',
     image: 'https://images.pexels.com/photos/7821487/pexels-photo-7821487.jpeg',
   },
