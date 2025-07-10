@@ -10,19 +10,19 @@ const getAppConfig = () => {
   switch (Platform.OS) {
     case 'android':
       return {
-        appid: 'android-v1',
-        appKey: '20422c90f70341cf9c2b444189d373cf'
+        appid: 'android-cardking-v1',
+        appKey: 'kxI2tTK5iQNMzAOYiZDh0XdD3OmgPSnK'
       };
     case 'ios':
       return {
-        appid: 'ios-v1',
-        appKey: 'dfcc5d57bf38472c92bd9f2d2af5211c'
+        appid: 'ios-cardking-v1',
+        appKey: 'iScF9BJLCZwkaUPR5QrTSPHYNhlKivnL'
       };
     case 'web':
     default:
       return {
-        appid: 'web-v1',
-        appKey: 'f55b967cad863f21a385e904dceae165'
+        appid: 'web-cardking-v1',
+        appKey: '8yQB4Nl70iYmw1lP4Za5evyGAt1nbVAE'
       };
   }
 };
