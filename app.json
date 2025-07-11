@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "CardKing",
-    "slug": "afritrade",
+    "slug": "cardking",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bsdb.afritrade",
+      "bundleIdentifier": "com.bsdb.cardking",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -40,16 +40,18 @@
       "router": {
         "unstable_allowRequireContext": true
       },
+      "EXPO_PUBLIC_API_URL": "https://test-giftcard8-api.gcard8.com",
       "eas": {
-        "projectId": "a9bf453b-4767-468a-908a-55707311d988"
+        "projectId": "7a99d540-03c2-4396-8cf3-93c1ac7f6105"
       }
     },
     "android": {
       "proguard": true,
-      "package": "com.bsdb.afritrade",
+      "package": "com.bsdb.cardking",
       "enableProguardInReleaseBuilds": true,
       "enableShrinkResourcesInReleaseBuilds": true
     },
-    "jsEngine": "hermes"
+    "jsEngine": "hermes",
+    "owner": "sean750"
   }
 }
