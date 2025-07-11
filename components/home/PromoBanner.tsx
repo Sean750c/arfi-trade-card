@@ -111,7 +111,17 @@ export default function PromoBanner() {
 
   // No banners state
   if (banners.length === 0) {
-    return null;
+    return (
+      <View style={styles.container}>
+        <View style={styles.slide}>
+          <Image
+            source={require('@/assets/images/default_banner.png')}
+            style={styles.fullImage}
+            resizeMode="cover"
+          />
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -166,7 +176,7 @@ export default function PromoBanner() {
 const styles = StyleSheet.create({
   container: {
     height: 160,
-    marginBottom: Spacing.lg,
+    marginVertical: Spacing.md,
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -212,7 +222,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
   },
   slide: {
-    height: 140,
+    height: 150,
     position: 'relative',
   },
   image: {
@@ -240,5 +250,13 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     marginHorizontal: 3,
+  },
+  fullImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
 });

@@ -33,8 +33,22 @@ export default function RegisterScreen() {
   const { colors } = useTheme();
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { register, isLoading } = useAuthStore();
+  const { initData } = useAppStore();
 
   const [registrationType, setRegistrationType] = useState<RegistrationType>('email');
+  // 新增：根据initData.register_type动态生成可用注册方式
+  const availableTypes = React.useMemo(() => {
+    if (!initData?.register_type) return ['email'];
+    return initData.register_type.split(',').map(type => type.trim()).filter(Boolean);
+  }, [initData?.register_type]);
+
+  // 新增：如果当前选中的注册方式不可用，自动切换到第一个可用方式
+  React.useEffect(() => {
+    if (availableTypes.length && !availableTypes.includes(registrationType)) {
+      setRegistrationType(availableTypes[0] as RegistrationType);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableTypes]);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -47,7 +61,6 @@ export default function RegisterScreen() {
   const [termsAccepted, setTermsAccepted] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { initData } = useAppStore();
   const [verifyCode, setVerifyCode] = useState('');
   const [verifyCodeLoading, setVerifyCodeLoading] = useState(false);
   const [verifyCodeCountdown, setVerifyCodeCountdown] = useState(0);
@@ -233,67 +246,72 @@ export default function RegisterScreen() {
           </View>
 
           {/* Registration Type Selection */}
-          <View style={styles.registrationTypeContainer}>
-            <TouchableOpacity
-              style={[
-                styles.typeOption,
-                {
-                  backgroundColor:
-                    registrationType === 'email'
-                      ? `${colors.primary}20`
-                      : colors.card,
-                  borderColor:
-                    registrationType === 'email' ? colors.primary : colors.border,
-                },
-              ]}
-              onPress={() => setRegistrationType('email')}
-            >
-              <Mail
-                size={20}
-                color={registrationType === 'email' ? colors.primary : colors.text}
-              />
-              <Text
-                style={[
-                  styles.typeText,
-                  {
-                    color: registrationType === 'email' ? colors.primary : colors.text,
-                  },
-                ]}
-              >
-                Email
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.typeOption,
-                {
-                  backgroundColor:
-                    registrationType === 'whatsapp'
-                      ? `${colors.primary}20`
-                      : colors.card,
-                  borderColor:
-                    registrationType === 'whatsapp' ? colors.primary : colors.border,
-                },
-              ]}
-              onPress={() => setRegistrationType('whatsapp')}
-            >
-              <Phone
-                size={20}
-                color={registrationType === 'whatsapp' ? colors.primary : colors.text}
-              />
-              <Text
-                style={[
-                  styles.typeText,
-                  {
-                    color: registrationType === 'whatsapp' ? colors.primary : colors.text,
-                  },
-                ]}
-              >
-                WhatsApp
-              </Text>
-            </TouchableOpacity>
-          </View>
+          {availableTypes.length > 1 && (
+            <View style={styles.registrationTypeContainer}>
+              {availableTypes.includes('email') && (
+                <TouchableOpacity
+                  style={[
+                    styles.typeOption,
+                    {
+                      backgroundColor:
+                        registrationType === 'email'
+                          ? `${colors.primary}20`
+                          : colors.card,
+                      borderColor:
+                        registrationType === 'email' ? colors.primary : colors.border,
+                    },
+                  ]}
+                  onPress={() => setRegistrationType('email')}
+                >
+                  <Mail
+                    size={20}
+                    color={registrationType === 'email' ? colors.primary : colors.text}
+                  />
+                  <Text
+                    style={[
+                      styles.typeText,
+                      {
+                        color: registrationType === 'email' ? colors.primary : colors.text,
+                      },
+                    ]}
+                  >
+                    Email
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {availableTypes.includes('whatsapp') && (
+                <TouchableOpacity
+                  style={[
+                    styles.typeOption,
+                    {
+                      backgroundColor:
+                        registrationType === 'whatsapp'
+                          ? `${colors.primary}20`
+                          : colors.card,
+                      borderColor:
+                        registrationType === 'whatsapp' ? colors.primary : colors.border,
+                    },
+                  ]}
+                  onPress={() => setRegistrationType('whatsapp')}
+                >
+                  <Phone
+                    size={20}
+                    color={registrationType === 'whatsapp' ? colors.primary : colors.text}
+                  />
+                  <Text
+                    style={[
+                      styles.typeText,
+                      {
+                        color: registrationType === 'whatsapp' ? colors.primary : colors.text,
+                      },
+                    ]}
+                  >
+                    WhatsApp
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
 
           {/* Form */}
           <View style={styles.formContainer}>

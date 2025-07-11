@@ -92,15 +92,15 @@ export default function HomeScreen() {
           <View style={styles.headerLeft}>
             {/* Country Display - Always on Left */}
             <View style={styles.locationContainer}>
-              {isAuthenticated && user ? (
-                <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}15` }]}>
+              {(isAuthenticated && user) ? (
+                <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}15` }]}> 
                   <Image 
-                    source={{ uri: user.country_logo_image }} 
+                    source={{ uri: user.country_logo_image || '' }} 
                     style={styles.flagImage} 
                     resizeMode="cover"
                   />
-                  <Text style={[styles.countryText, { color: colors.text }]}>
-                    {user.country_name}
+                  <Text style={[styles.countryText, { color: colors.text }]}> 
+                    {user.country_name || ''}
                   </Text>
                 </View>
               ) : (
@@ -110,12 +110,12 @@ export default function HomeScreen() {
                 >
                   <View style={styles.countryInfoContainer}>
                     <Image 
-                      source={{ uri: selectedCountry?.image }} 
+                      source={{ uri: selectedCountry?.image || '' }} 
                       style={styles.flagImage} 
                       resizeMode="cover"
                     />
-                    <Text style={[styles.countryText, { color: colors.text }]}>
-                      {selectedCountry?.name}
+                    <Text style={[styles.countryText, { color: colors.text }]}> 
+                      {selectedCountry?.name || ''}
                     </Text>
                   </View>
                   <ChevronDown size={14} color={colors.text} />
@@ -123,47 +123,32 @@ export default function HomeScreen() {
               )}
             </View>
 
-            {/* User Info - Compact */}
-            {isAuthenticated && user && (
-              <View style={styles.userInfoCompact}>
-                <Text style={[styles.welcomeText, { color: colors.textSecondary }]}>
-                  Welcome back,
-                </Text>
-                <View style={styles.userNameRow}>
-                  <Text style={[styles.userName, { color: colors.text }]}>
-                    {user.username}
-                  </Text>
-                  <View style={styles.vipBadge}>
-                    <Sparkles size={12} color={colors.primary} />
-                    <Text style={[styles.vipText, { color: colors.primary }]}>
-                      VIP {user.vip_level}
-                    </Text>
+            {/* User Info - Compact/Guest Welcome 始终渲染 */}
+            <View style={isAuthenticated && user ? styles.userInfoCompact : styles.guestWelcome}>
+              {isAuthenticated && user ? (
+                <>
+                  <Text style={[styles.welcomeText, { color: colors.textSecondary }]}>Welcome back,</Text>
+                  <View style={styles.userNameRow}>
+                    <Text style={[styles.userName, { color: colors.text }]}> {user.username || ''} </Text>
+                    <View style={styles.vipBadge}>
+                      <Sparkles size={12} color={colors.primary} />
+                      <Text style={[styles.vipText, { color: colors.primary }]}>VIP {user.vip_level || ''}</Text>
+                    </View>
                   </View>
-                </View>
-              </View>
-            )}
-
-            {/* Guest Welcome */}
-            {!isAuthenticated && (
-              <View style={styles.guestWelcome}>
-                <Text style={[styles.guestTitle, { color: colors.text }]}>
-                  Welcome to CardKing
-                </Text>
-                <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>
-                  Trade gift cards at the best rates
-                </Text>
-              </View>
-            )}
+                </>
+              ) : (
+                <>
+                  <Text style={[styles.guestTitle, { color: colors.text }]}>Welcome to CardKing</Text>
+                  <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>Trade gift cards at the best rates</Text>
+                </>
+              )}
+            </View>
 
             {/* Country Picker Dropdown */}
             {showCountryPicker && !isAuthenticated && (
               <View style={[
                 styles.countryDropdown, 
-                { 
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  shadowColor: 'rgba(0, 0, 0, 0.1)',
-                }
+                { backgroundColor: colors.card, borderColor: colors.border, shadowColor: 'rgba(0, 0, 0, 0.1)' }
               ]}>
                 <ScrollView 
                   style={styles.countryScrollView}
@@ -185,9 +170,7 @@ export default function HomeScreen() {
                           style={styles.flagImage} 
                           resizeMode="cover"
                         />
-                        <Text style={[styles.countryOptionText, { color: colors.text }]}>
-                          {country.name}
-                        </Text>
+                        <Text style={[styles.countryOptionText, { color: colors.text }]}> {country.name} </Text>
                       </View>
                     </TouchableOpacity>
                   ))}
@@ -218,7 +201,7 @@ export default function HomeScreen() {
             >
               <Bell size={18} color={colors.primary} />
               {(initData?.notice_count || 0) > 0 && (
-                <View style={[styles.notificationBadge, { backgroundColor: colors.error }]}>
+                <View style={[styles.notificationBadge, { backgroundColor: colors.error }]}> 
                   <Text style={styles.notificationCount}>
                     {(initData?.notice_count || 0) > 99 ? '99+' : initData?.notice_count}
                   </Text>
@@ -230,10 +213,8 @@ export default function HomeScreen() {
 
         {/* Initialization Error */}
         {initError && (
-          <View style={[styles.errorContainer, { backgroundColor: `${colors.error}10` }]}>
-            <Text style={[styles.errorText, { color: colors.error }]}>
-              {initError}
-            </Text>
+          <View style={[styles.errorContainer, { backgroundColor: `${colors.error}10` }]}> 
+            <Text style={[styles.errorText, { color: colors.error }]}> {initError} </Text>
             <TouchableOpacity 
               onPress={handleRefresh}
               style={[styles.retryButton, { backgroundColor: colors.error }]}
@@ -243,43 +224,37 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Compact Balance Card for Authenticated Users */}
-        {isAuthenticated && user && (
-          <View style={[
-            styles.balanceCard,
-            { 
-              backgroundColor: colors.primary,
-              shadowColor: 'rgba(0, 0, 0, 0.1)',
-            }
-          ]}>
-            <View style={styles.balanceHeader}>
-              <View style={styles.balanceInfo}>
-                <Text style={styles.balanceLabel}>Total Balance</Text>
-                <Text style={styles.balanceAmount}>
-                  {user.currency_symbol}{formatBalance(user.money)}
-                </Text>
-              </View>
-              <TouchableOpacity 
-                style={styles.eyeButton}
-                onPress={toggleBalanceVisibility}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                {balanceVisible ? (
-                  <Eye size={20} color="rgba(255, 255, 255, 0.8)" />
-                ) : (
-                  <EyeOff size={20} color="rgba(255, 255, 255, 0.8)" />
-                )}
-              </TouchableOpacity>
+        {/* Compact Balance Card for Authenticated Users，结构始终渲染 */}
+        <View style={[
+          styles.balanceCard,
+          { backgroundColor: colors.primary, shadowColor: 'rgba(0, 0, 0, 0.1)' }
+        ]}>
+          <View style={styles.balanceHeader}>
+            <View style={styles.balanceInfo}>
+              <Text style={styles.balanceLabel}>Total Balance</Text>
+              <Text style={styles.balanceAmount}>
+                {(user?.currency_symbol || '₦')}{balanceVisible && user ? user.money : '0'}
+              </Text>
             </View>
-            <Text style={styles.rebateBalance}>
-              Rebate: {user.currency_symbol}{formatBalance(user.rebate_money)}
-            </Text>
+            <TouchableOpacity 
+              style={styles.eyeButton}
+              onPress={toggleBalanceVisibility}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              {balanceVisible ? (
+                <Eye size={20} color="rgba(255, 255, 255, 0.8)" />
+              ) : (
+                <EyeOff size={20} color="rgba(255, 255, 255, 0.8)" />
+              )}
+            </TouchableOpacity>
           </View>
-        )}
+          <Text style={styles.rebateBalance}>
+            Rebate: {(user?.currency_symbol || '₦')}{balanceVisible && user ? user.rebate_money : '0'}
+          </Text>
+        </View>
 
-        {/* 公告栏 */}
+        {/* 公告栏、Banner、PromoBanner、QuickActions等始终渲染 */}
         <AnnouncementBar />
-        {/* Content Sections */}
         <PromoBanner />
         <QuickActions />
         {/* <PromoTimer /> */}

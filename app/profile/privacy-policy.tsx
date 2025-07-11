@@ -36,7 +36,7 @@ export default function PrivacyPolicyScreen() {
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Privacy Policy</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Last updated: January 1, 2024
+            Last updated: January 1, 2025
           </Text>
         </View>
         <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
