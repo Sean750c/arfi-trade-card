@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "CardKing",
-    "slug": "cardking",
+    "slug": "afritrade",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bsdb.cardking",
+      "bundleIdentifier": "com.bsdb.afritrade",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -46,7 +46,7 @@
     },
     "android": {
       "proguard": true,
-      "package": "com.bsdb.cardking",
+      "package": "com.bsdb.afritrade",
       "enableProguardInReleaseBuilds": true,
       "enableShrinkResourcesInReleaseBuilds": true
     },
