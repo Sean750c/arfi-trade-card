@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bsdb.afritrade",
+      "bundleIdentifier": "com.bsdb.cardking",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -46,7 +46,7 @@
     },
     "android": {
       "proguard": true,
-      "package": "com.bsdb.afritrade",
+      "package": "com.bsdb.cardking",
       "enableProguardInReleaseBuilds": true,
       "enableShrinkResourcesInReleaseBuilds": true
     },
