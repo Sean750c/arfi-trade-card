@@ -12,7 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Mail, Phone, ChevronDown } from 'lucide-react-native';
+import { ChevronLeft, Mail, Phone, ChevronDown, Eye, EyeOff } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
@@ -65,9 +65,11 @@ export default function RegisterScreen() {
   const [verifyCodeLoading, setVerifyCodeLoading] = useState(false);
   const [verifyCodeCountdown, setVerifyCodeCountdown] = useState(0);
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   // 获取当前国家区号
   const countryCode = selectedCountry?.code || '';
-  const isBrowserStackIOS = __DEV__ && Platform.OS === 'ios' && !('ontouchstart' in window);
 
   React.useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -465,10 +467,19 @@ export default function RegisterScreen() {
               <Input
                 label="Password"
                 placeholder="Create a password"
-                secureTextEntry={!isBrowserStackIOS}
+                secureTextEntry={!showPassword}
                 value={formData.password}
                 onChangeText={(value) => updateField('password', value)}
                 error={errors.password}
+                rightElement={
+                  <TouchableOpacity onPress={() => setShowPassword(v => !v)}>
+                    {showPassword ? (
+                      <EyeOff size={20} color={colors.textSecondary} />
+                    ) : (
+                      <Eye size={20} color={colors.textSecondary} />
+                    )}
+                  </TouchableOpacity>
+                }
               />
             </View>
 
@@ -476,10 +487,19 @@ export default function RegisterScreen() {
               <Input
                 label="Confirm Password"
                 placeholder="Confirm your password"
-                secureTextEntry={!isBrowserStackIOS}
+                secureTextEntry={!showConfirmPassword}
                 value={formData.confirmPassword}
                 onChangeText={(value) => updateField('confirmPassword', value)}
                 error={errors.confirmPassword}
+                rightElement={
+                  <TouchableOpacity onPress={() => setShowConfirmPassword(v => !v)}>
+                    {showConfirmPassword ? (
+                      <EyeOff size={20} color={colors.textSecondary} />
+                    ) : (
+                      <Eye size={20} color={colors.textSecondary} />
+                    )}
+                  </TouchableOpacity>
+                }
               />
             </View>
 

@@ -7,7 +7,6 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useAuthProtection } from '@/hooks/useAuthProtection';
 import { useAppStore } from '@/stores/useAppStore';
 import { useCountryStore } from '@/stores/useCountryStore';
-import { useBannerStore } from '@/stores/useBannerStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ThemeProvider } from '@/theme/ThemeContext';
 
@@ -15,7 +14,6 @@ export default function RootLayout() {
   const router = useRouter();
   const { initialize } = useAppStore();
   const { fetchCountries } = useCountryStore();
-  const { fetchBanners } = useBannerStore();
   const { isAuthenticated, user, initialize: initializeAuth } = useAuthStore();
   
   useFrameworkReady();
@@ -30,7 +28,6 @@ export default function RootLayout() {
         // Fetch countries and banners in parallel (these don't require auth)
         await Promise.all([
           fetchCountries(),
-          fetchBanners()
         ]);
         
         // Initialize app data with user token if authenticated
@@ -48,7 +45,7 @@ export default function RootLayout() {
     };
 
     init();
-  }, [initialize, fetchCountries, fetchBanners, router, isAuthenticated, user?.token, initializeAuth]);
+  }, []); // 只依赖 []
 
   return (
     <ThemeProvider>

@@ -348,7 +348,7 @@ export default function AddPaymentMethodModal({
                       style={styles.methodLogo}
                       resizeMode="contain"
                     />
-                    <Text style={styles.methodName}>{method.name}</Text>
+                    <Text style={[styles.methodName, , { color: colors.text }]}>{method.name}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -531,7 +531,6 @@ const styles = StyleSheet.create({
     height: 32,
   },
   methodName: {
-    color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     flex: 1,

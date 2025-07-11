@@ -23,7 +23,6 @@ import { useTheme } from '@/theme/ThemeContext';
 import AnnouncementBar from '@/components/home/AnnouncementBar';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
-
 export default function HomeScreen() {
   const { colors } = useTheme();
   const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -32,26 +31,18 @@ export default function HomeScreen() {
   const { isAuthenticated, user, reloadUser } = useAuthStore();
   const { initData, isLoading: initLoading, error: initError, initialize } = useAppStore();
 
-  useFocusEffect(
-    useCallback(() => {
-      const initializeApp = async () => {
-        try {
-          const userToken = isAuthenticated && user?.token ? user.token : '';
-          // 只在数据为空时初始化
-          if (!initData) {
-            await initialize(userToken);
-          }
-        } catch (error) {
-          console.error('Failed to initialize app:', error);
-        }
-      };
-  
-      initializeApp();
-  
-      // 可选清理函数（一般不用）
-      return () => {};
-    }, [initialize, isAuthenticated, user?.token, initData])
-  );
+  // 删除 useFocusEffect 里的自动 initialize 逻辑
+  // 保留 handleRefresh 按钮和相关逻辑
+  const handleRefresh = async () => {
+    try {
+      // Include user token if authenticated
+      const userToken = isAuthenticated && user?.token ? user.token : undefined;
+      await initialize(userToken);
+      await reloadUser();
+    } catch (error) {
+      console.error('Failed to refresh app data:', error);
+    }
+  };
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
@@ -67,17 +58,6 @@ export default function HomeScreen() {
       return '****';
     }
     return amount;
-  };
-
-  const handleRefresh = async () => {
-    try {
-      // Include user token if authenticated
-      const userToken = isAuthenticated && user?.token ? user.token : undefined;
-      await initialize(userToken);
-      await reloadUser();
-    } catch (error) {
-      console.error('Failed to refresh app data:', error);
-    }
   };
 
   return (

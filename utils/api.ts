@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import { router } from 'expo-router';
 
 // Use environment variable for API host, with fallback to original value
-const API_HOST = process.env.EXPO_PUBLIC_API_URL || 'https://test-giftcard8-api.gcard8.com';
+const API_HOST = process.env.EXPO_PUBLIC_API_URL || 'https://api.giftcard8.com';
 
 // Platform-specific configurations
 const getAppConfig = () => {
@@ -81,7 +81,7 @@ export class APIRequest {
       const requestParams = {
         ...params,
         appid,
-        app_version: '2.2',
+        app_version: '1.0',
       };
   
       // Generate signature

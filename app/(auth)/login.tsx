@@ -11,7 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
@@ -29,8 +29,7 @@ export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
-
-  const isBrowserStackIOS = __DEV__ && Platform.OS === 'ios' && !('ontouchstart' in window);
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
     const newErrors: { username?: string; password?: string } = {};
@@ -122,10 +121,19 @@ export default function LoginScreen() {
               <Input
                 label="Password"
                 placeholder="Enter your password"
-                secureTextEntry={!isBrowserStackIOS}
+                secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
                 error={errors.password}
+                rightElement={
+                  <TouchableOpacity onPress={() => setShowPassword(v => !v)}>
+                    {showPassword ? (
+                      <EyeOff size={20} color={colors.textSecondary} />
+                    ) : (
+                      <Eye size={20} color={colors.textSecondary} />
+                    )}
+                  </TouchableOpacity>
+                }
               />
             </View>
             

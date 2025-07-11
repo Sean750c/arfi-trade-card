@@ -22,9 +22,7 @@ import WithdrawCompensationModal from '@/components/wallet/WithdrawCompensationM
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
 import { WithdrawService } from '@/services/withdraw';
-import Colors from '@/constants/Colors';
 import Spacing from '@/constants/Spacing';
-import type { PaymentAccount } from '@/types';
 import type { WithdrawInformation } from '@/types/withdraw';
 import Input from '@/components/UI/Input';
 
@@ -379,13 +377,13 @@ function WithdrawScreenContent() {
           )}
 
           {/* 超时赔付最大比例 */}
-          {withdrawInfo?.overdue_max_percent && (
+          {!!withdrawInfo?.overdue_max_percent && (
             <TouchableOpacity
               style={[styles.compensationContainer,]}
               onPress={() => setShowOverdueModal(true)}
             >
               <Text style={[styles.compensationLabel, { color: colors.primary }]}>
-                Delay compensation: up to {withdrawInfo.overdue_max_percent}% maximum payout.
+                Delay compensation: up to {withdrawInfo?.overdue_max_percent}% maximum payout.
               </Text>
               {/* <ArrowRight size={18} color={colors.textSecondary} /> */}
             </TouchableOpacity>
