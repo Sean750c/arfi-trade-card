@@ -21,10 +21,12 @@ import type { PaymentMethod, PaymentAccount, AvailablePaymentMethod } from '@/ty
 import AddPaymentMethodModal from '@/components/wallet/AddPaymentMethodModal';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { useAppStore } from '@/stores/useAppStore';
 
 function BankAccountsScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
+  const { initData } = useAppStore();
 
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,6 +34,9 @@ function BankAccountsScreenContent() {
   const [activeWalletType, setActiveWalletType] = useState<'1' | '2'>('1');
   const [showAddModal, setShowAddModal] = useState(false);
   const [availablePaymentMethods, setAvailablePaymentMethods] = useState<AvailablePaymentMethod[]>([]);
+
+  // 判断是否隐藏钱包类型tab
+  const hideWalletTabs = initData?.hidden_flag === '1';
 
   useEffect(() => {
     if (user?.token) {
@@ -239,43 +244,45 @@ function BankAccountsScreenContent() {
       </View>
 
       {/* Wallet Type Tabs */}
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            {
-              backgroundColor: activeWalletType === '1' ? colors.primary : 'transparent',
-              borderColor: colors.border,
-            },
-          ]}
-          onPress={() => setActiveWalletType('1')}
-        >
-          <Text style={[
-            styles.tabText,
-            { color: activeWalletType === '1' ? '#FFFFFF' : colors.text }
-          ]}>
-            {user?.currency_name} Accounts
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            {
-              backgroundColor: activeWalletType === '2' ? colors.primary : 'transparent',
-              borderColor: colors.border,
-            },
-          ]}
-          onPress={() => setActiveWalletType('2')}
-        >
-          <Text style={[
-            styles.tabText,
-            { color: activeWalletType === '2' ? '#FFFFFF' : colors.text }
-          ]}>
-            USDT Accounts
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {!hideWalletTabs && (
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[
+              styles.tab,
+              {
+                backgroundColor: activeWalletType === '1' ? colors.primary : 'transparent',
+                borderColor: colors.border,
+              },
+            ]}
+            onPress={() => setActiveWalletType('1')}
+          >
+            <Text style={[
+              styles.tabText,
+              { color: activeWalletType === '1' ? '#FFFFFF' : colors.text }
+            ]}>
+              {user?.currency_name} Accounts
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.tab,
+              {
+                backgroundColor: activeWalletType === '2' ? colors.primary : 'transparent',
+                borderColor: colors.border,
+              },
+            ]}
+            onPress={() => setActiveWalletType('2')}
+          >
+            <Text style={[
+              styles.tabText,
+              { color: activeWalletType === '2' ? '#FFFFFF' : colors.text }
+            ]}>
+              USDT Accounts
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Content */}
       {isLoading ? (

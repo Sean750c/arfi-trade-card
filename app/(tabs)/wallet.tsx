@@ -19,10 +19,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { PerformanceMonitor } from '@/utils/performance';
+import { useAppStore } from '@/stores/useAppStore';
 
 function WalletScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
+  const { initData } = useAppStore();
 
   const {
     balanceData,
@@ -88,6 +90,9 @@ function WalletScreenContent() {
     rate: '0',
     point: 0,
   };
+
+  // 判断是否隐藏钱包tab和USDT钱包
+  const hideWalletTabs = initData?.hidden_flag === '1';
 
   // 优化：只在必要时刷新数据，避免频繁 API 调用
   useFocusEffect(
@@ -192,14 +197,16 @@ function WalletScreenContent() {
       </View>
 
       {/* Wallet Tabs */}
-      <View style={styles.tabsContainer}>
-        <WalletTabs
-          countryCurrencyName={user?.currency_name || 'NGN'}
-          countryCurrencySymbol={user?.currency_symbol || '₦'}
-          activeWalletType={activeWalletType}
-          onWalletTypeChange={handleWalletTypeChange}
-        />
-      </View>
+      {!hideWalletTabs && (
+        <View style={styles.tabsContainer}>
+          <WalletTabs
+            countryCurrencyName={user?.currency_name || 'NGN'}
+            countryCurrencySymbol={user?.currency_symbol || '₦'}
+            activeWalletType={activeWalletType}
+            onWalletTypeChange={handleWalletTypeChange}
+          />
+        </View>
+      )}
       {/* Balance Card */}
       <View style={styles.balanceContainer}>
         <WalletBalanceCard
@@ -291,9 +298,10 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingTop: Spacing.sm,
   },
   balanceContainer: {
+    paddingTop: Spacing.md,
     paddingHorizontal: Spacing.lg,
   },
   errorContainer: {
