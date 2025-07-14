@@ -70,6 +70,25 @@ function WalletScreenContent() {
   const sectionTitleStyle = useMemo(() => [styles.sectionTitle, { color: colors.text }], [colors.text]);
   const transactionCountStyle = useMemo(() => [styles.transactionCount, { color: colors.textSecondary }], [colors.textSecondary]);
 
+  // WalletBalanceData 默认空对象
+  const defaultBalanceData = {
+    total_amount: 0,
+    usd_amount: '0',
+    frozen_amount: 0,
+    withdraw_amount: 0,
+    transfer_rebate: '0',
+    rebate_amount: 0,
+    usd_rebate_money: 0,
+    checkin_status: false,
+    lottery_status: false,
+    rank_status: false,
+    default_wallet_type: '1',
+    dealing_cnt: 0,
+    currency_name: user?.currency_name || 'NGN',
+    rate: '0',
+    point: 0,
+  };
+
   // 优化：只在必要时刷新数据，避免频繁 API 调用
   useFocusEffect(
     useCallback(() => {
@@ -182,17 +201,15 @@ function WalletScreenContent() {
         />
       </View>
       {/* Balance Card */}
-      {balanceData && (
-        <View style={styles.balanceContainer}>
-          <WalletBalanceCard
-            balanceData={balanceData}
-            balanceVisible={balanceVisible}
-            onToggleVisibility={handleToggleBalanceVisibility}
-            onRebatePress={handleRebatePress}
-            walletType={activeWalletType}
-          />
-        </View>
-      )}
+      <View style={styles.balanceContainer}>
+        <WalletBalanceCard
+          balanceData={balanceData || defaultBalanceData}
+          balanceVisible={balanceVisible}
+          onToggleVisibility={handleToggleBalanceVisibility}
+          onRebatePress={handleRebatePress}
+          walletType={activeWalletType}
+        />
+      </View>
 
       {/* Balance Error */}
       {balanceError && (

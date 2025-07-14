@@ -77,8 +77,8 @@ export default function BonusInfo({
           {amountOrderBonus.bonus_amount > 0 && (
             <View style={[styles.bonusItem, { borderBottomColor: colors.border }]}>
               <View style={styles.bonusItemHeader}>
-                <View style={[styles.bonusIcon, { backgroundColor: `${colors.primary}20` }]}>
-                  <DollarSign size={16} color={colors.primary} />
+                <View style={[styles.bonusIcon, { backgroundColor: `${colors.warning}20` }]}>
+                  <DollarSign size={16} color={colors.warning} />
                 </View>
                 <View style={styles.bonusItemContent}>
                   <Text style={[styles.bonusItemTitle, { color: colors.text }]}>
@@ -98,8 +98,8 @@ export default function BonusInfo({
           {/* Referral Bonus Info */}
           <View style={styles.bonusItem}>
             <View style={styles.bonusItemHeader}>
-              <View style={[styles.bonusIcon, { backgroundColor: `${colors.secondary}20` }]}>
-                <Users size={16} color={colors.secondary} />
+              <View style={[styles.bonusIcon, { backgroundColor: `${colors.warning}20` }]}>
+                <Users size={16} color={colors.warning} />
               </View>
               <View style={styles.bonusItemContent}>
                 <Text style={[styles.bonusItemTitle, { color: colors.text }]}>

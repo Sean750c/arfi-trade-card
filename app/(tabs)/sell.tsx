@@ -110,12 +110,9 @@ function SellScreenContent() {
   useFocusEffect(
     useCallback(() => {
       if (user?.token) {
-        // 避免重复加载数据
-        if (!orderSellDetail) {
-          fetchOrderSellDetail(user.token);
-        }
+        fetchOrderSellDetail(user.token);
       }
-    }, [user?.token, orderSellDetail])
+    }, [user?.token])
   );
 
   // VIP数据来源
@@ -658,7 +655,7 @@ function SellScreenContent() {
             </TouchableOpacity>
             
             {/* Overdue Compensation */}
-            {orderSellDetail?.overdue_max_percent && (
+            {!!orderSellDetail?.overdue_max_percent && (
               <TouchableOpacity 
                 style={[styles.featureButton, { backgroundColor: '#DC2626' }]}
                 onPress={() => setShowOverdueModal(true)}
@@ -707,23 +704,25 @@ function SellScreenContent() {
         </View>
 
         {/* Floating Help Button */}
-        <View 
-          style={[
-            styles.helpButtonContainer, 
-            {
-              left: helpButtonPosition.x,
-              top: helpButtonPosition.y,
-            }
-          ]}
-          {...panResponder.panHandlers}
-        >
-          <TouchableOpacity
-            style={[styles.helpButton, { backgroundColor: '#25D366' }]}
-            onPress={handleHelpPress}
+        {orderSellDetail && !!orderSellDetail?.sell_card_tips && (
+          <View 
+            style={[
+              styles.helpButtonContainer, 
+              {
+                left: helpButtonPosition.x,
+                top: helpButtonPosition.y,
+              }
+            ]}
+            {...panResponder.panHandlers}
           >
-            <HelpCircle size={20} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={[styles.helpButton, { backgroundColor: '#25D366' }]}
+              onPress={handleHelpPress}
+            >
+              <HelpCircle size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Modals */}
         {showCouponModal && (

@@ -22,6 +22,7 @@ import { UploadService } from '@/services/upload';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { PerformanceMonitor } from '@/utils/performance';
+import { useFocusEffect } from '@react-navigation/native';
 
 type MenuItemType = {
   id: string;
@@ -37,11 +38,20 @@ export default function ProfileScreen() {
   // const colorScheme = useColorScheme() ?? 'light';
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
-  const { isAuthenticated, user, logout, isLoading, setUser } = useAuthStore();
+  const { isAuthenticated, user, logout, isLoading, setUser, reloadUser } = useAuthStore();
   const [updatingAvatar, setUpdatingAvatar] = useState(false);
   const [editingNickname, setEditingNickname] = useState(false);
   const [newNickname, setNewNickname] = useState('');
   const [updatingNickname, setUpdatingNickname] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isAuthenticated && user?.token) {
+        // 重新获取用户信息
+        reloadUser();
+      }
+    }, [isAuthenticated, user?.token])
+  );
 
   const handleLogout = useCallback(() => {
     const confirmLogout = async () => {
