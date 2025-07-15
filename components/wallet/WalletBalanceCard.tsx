@@ -94,7 +94,7 @@ export default function WalletBalanceCard({
       if (walletType === '2') {
         return 'USDT';
       } else {
-        return balanceData.currency_name === 'NGN' ? '₦' : balanceData.currency_name;
+        return balanceData.currency_name;
       }
     };
 

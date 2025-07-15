@@ -103,6 +103,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: async () => {
     try {
       const userStr = await AsyncStorage.getItem('user');
+      console.log(userStr);
       if (userStr) {
         const user = JSON.parse(userStr);
         set({ user, isAuthenticated: true, isInitialized: true });
@@ -143,15 +144,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await UserService.getUserInfo(user.token);
+      const newUser = { ...response, token: user.token };
       set({
-        user: {
-          ...response,
-          token: user.token, // 保证 token 不丢失
-        },
+        user: newUser,
         isLoading: false,
         error: null,
       });
-      await AsyncStorage.setItem('user', JSON.stringify(response));
+      await AsyncStorage.setItem('user', JSON.stringify(newUser));
     } catch (error) {
       set({
         isLoading: false,

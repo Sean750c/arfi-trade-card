@@ -81,9 +81,9 @@ function OrderDetailScreenContent() {
     return new Date(timestamp * 1000).toLocaleString();
   };
 
-  const formatAmount = (amount: string, currency: string) => {
+  const formatAmount = (amount: string, walletType: number) => {
     const numAmount = parseFloat(amount);
-    const symbol = currency === 'NGN' ? '₦' : currency === 'USDT' ? 'USDT' : currency;
+    const symbol = walletType === 2 ? 'USDT' : user?.currency_symbol;
     return `${symbol}${numAmount.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -235,7 +235,7 @@ function OrderDetailScreenContent() {
               Amount
             </Text>
             <Text style={[styles.infoValue, { color: colors.text }]}>
-              {formatAmount(orderDetail.amount, orderDetail.currency)}
+              {formatAmount(orderDetail.amount, orderDetail.wallet_type)}
             </Text>
           </View>
 
@@ -244,7 +244,7 @@ function OrderDetailScreenContent() {
               Wallet Type
             </Text>
             <Text style={[styles.infoValue, { color: colors.text }]}>
-              {orderDetail.wallet_type === 1 ? 'NGN Wallet' : 'USDT Wallet'}
+              {orderDetail.wallet_type === 1 ? `${user?.currency_name} Wallet` : 'USDT Wallet'}
             </Text>
           </View>
 
@@ -282,7 +282,7 @@ function OrderDetailScreenContent() {
                   First Order Bonus
                 </Text>
                 <Text style={[styles.bonusValue, { color: colors.success }]}>
-                  +{formatAmount(orderDetail.first_order_bonus.toString(), orderDetail.currency)}
+                  +{formatAmount(orderDetail.first_order_bonus.toString(), orderDetail.wallet_type)}
                 </Text>
               </View>
             )}
@@ -293,7 +293,7 @@ function OrderDetailScreenContent() {
                   Amount Bonus
                 </Text>
                 <Text style={[styles.bonusValue, { color: colors.success }]}>
-                  +{formatAmount(orderDetail.reach_amount_bonus.toString(), orderDetail.currency)}
+                  +{formatAmount(orderDetail.reach_amount_bonus.toString(), orderDetail.wallet_type)}
                 </Text>
               </View>
             )}
@@ -305,7 +305,7 @@ function OrderDetailScreenContent() {
                   VIP Bonus
                 </Text>
                 <Text style={[styles.bonusValue, { color: colors.success }]}>
-                  +{formatAmount(orderDetail.vip_bonus.toString(), orderDetail.currency)}
+                  +{formatAmount(orderDetail.vip_bonus.toString(), orderDetail.wallet_type)}
                 </Text>
               </View>
             )}
@@ -329,7 +329,7 @@ function OrderDetailScreenContent() {
                 {orderDetail.coupon_code}
               </Text>
               <Text style={[styles.couponAmount, { color: colors.primary }]}>
-                -{formatAmount(orderDetail.coupon_amount, orderDetail.currency)}
+                -{formatAmount(orderDetail.coupon_amount, orderDetail.wallet_type)}
               </Text>
             </View>
           </View>

@@ -50,8 +50,8 @@ export default function RecentTransactions() {
     return <Gift size={20} color={colors.primary} />;
   };
 
-  const formatAmount = (amount: number, currency: string) => {
-    const symbol = currency === 'NGN' ? '₦' : currency === 'USDT' ? 'USDT' : currency;
+  const formatAmount = (amount: number, walletType: number) => {
+    const symbol = walletType === 2 ? 'USDT' : user?.currency_symbol;
     return `+${symbol}${amount.toLocaleString()}`;
   };
 
@@ -109,7 +109,7 @@ export default function RecentTransactions() {
             { color: colors.success },
           ]}
         >
-          {formatAmount(order.amount, order.currency)}
+          {formatAmount(order.amount, order.wallet_type)}
         </Text>
         <ArrowRight size={16} color={colors.textSecondary} />
       </View>
