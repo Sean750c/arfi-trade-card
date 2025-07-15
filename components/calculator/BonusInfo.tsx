@@ -96,7 +96,7 @@ export default function BonusInfo({
           )}
 
           {/* Referral Bonus Info */}
-          <View style={styles.bonusItem}>
+          {/* <View style={styles.bonusItem}>
             <View style={styles.bonusItemHeader}>
               <View style={[styles.bonusIcon, { backgroundColor: `${colors.warning}20` }]}>
                 <Users size={16} color={colors.warning} />
@@ -110,10 +110,10 @@ export default function BonusInfo({
                 </Text>
               </View>
             </View>
-            <Text style={[styles.bonusAmount, { color: colors.secondary }]}>
+            <Text style={[styles.bonusAmount, { color: colors.success }]}>
               +{currencySymbol}1,000
             </Text>
-          </View>
+          </View> */}
 
           {/* Bonus Terms */}
           <View style={[styles.bonusTerms, { backgroundColor: `${colors.primary}05` }]}>
@@ -123,8 +123,8 @@ export default function BonusInfo({
             <Text style={[styles.bonusTermsText, { color: colors.text }]}>
               • Bonuses are automatically credited to your account{'\n'}
               • First order bonus applies to your initial transaction{'\n'}
-              • Volume bonuses stack with VIP rate bonuses{'\n'}
-              • Referral rewards paid when friend completes first trade
+              • Volume bonuses stack with VIP rate bonuses
+              {/* • Referral rewards paid when friend completes first trade */}
             </Text>
           </View>
         </View>

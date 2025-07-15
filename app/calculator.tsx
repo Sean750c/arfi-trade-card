@@ -19,6 +19,7 @@ import BonusInfo from '@/components/calculator/BonusInfo';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useCountryStore } from '@/stores/useCountryStore';
+import { useAppStore } from '@/stores/useAppStore';
 import { CalculatorService } from '@/services/calculator';
 import type { CalculatorData, CardItem } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
@@ -28,6 +29,7 @@ export default function CalculatorScreen() {
   const { colors } = useTheme();
   const { user, isAuthenticated } = useAuthStore();
   const { selectedCountry } = useCountryStore();
+  const { initData } = useAppStore();
   
   const [calculatorData, setCalculatorData] = useState<CalculatorData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,6 +46,9 @@ export default function CalculatorScreen() {
     { code: user?.currency_name || 'NGN', symbol: user?.currency_symbol || '₦', name: user?.currency_name || 'Nigerian Naira' },
     { code: 'USDT', symbol: 'USDT', name: 'Tether' },
   ];
+
+  // 判断是否隐藏钱包类型tab
+  const hideWalletTabs = initData?.hidden_flag === '1';
 
   // Fetch calculator data on component mount
   useEffect(() => {
@@ -193,11 +198,13 @@ export default function CalculatorScreen() {
           />
 
           {/* Compact Currency Selection */}
-          <CompactCurrencySelector
-            currencies={currencies}
-            selectedCurrency={selectedCurrency}
-            onSelectCurrency={setSelectedCurrency}
-          />
+          {!hideWalletTabs && (
+            <CompactCurrencySelector
+              currencies={currencies}
+              selectedCurrency={selectedCurrency}
+              onSelectCurrency={setSelectedCurrency}
+            />
+          )}
 
           {/* VIP Benefits - Collapsible */}
           {calculatorData && (

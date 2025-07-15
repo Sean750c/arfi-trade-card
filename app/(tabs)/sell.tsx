@@ -32,6 +32,8 @@ import { Coupon } from '@/types';
 import { useOrderStore } from '@/stores/useOrderStore';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { PerformanceMonitor } from '@/utils/performance';
+import { useAppStore } from '@/stores/useAppStore';
+import * as Linking from 'expo-linking';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -49,6 +51,7 @@ interface SelectedCard {
 function SellScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
+  const { initData } = useAppStore();
   const { 
     fetchOrderSellDetail, 
     orderSellDetail, 
@@ -123,8 +126,24 @@ function SellScreenContent() {
   const nextVipLevel = vipDetail?.next_level;
   const nextVipRate = vipDetail?.next_level_rate;
 
+  // 判断是否隐藏钱包类型tab
+  const hideWalletTabs = initData?.hidden_flag === '1';
+
   const handleHelpPress = () => {
     setShowSellTipsModal(true);
+  };
+
+  // 联系客服，打开 WhatsApp
+  const handleContactPress = () => {
+    const phone = initData?.service_phone;
+    if (phone) {
+      const url = `https://wa.me/${phone.replace(/[^\d]/g, '')}`;
+      Linking.openURL(url).catch(() => {
+        Alert.alert('Unable to open WhatsApp', 'Please check if WhatsApp is installed or if the phone number is correct.');
+      });
+    } else {
+      Alert.alert('Unable to get service phone', 'Please try again later.');
+    }
   };
 
   const addCardImage = async () => {
@@ -490,7 +509,7 @@ function SellScreenContent() {
             <View style={styles.headerSpacer} />
 
             <TouchableOpacity 
-              onPress={() => Alert.alert('Contact Us', 'Get help via WhatsApp, Email, or Live Chat.')}
+              onPress={handleContactPress}
               style={[styles.contactButton, { backgroundColor: colors.primary }]}
             >
               <Phone size={16} color="#FFFFFF" />
@@ -559,53 +578,49 @@ function SellScreenContent() {
           </View>
 
           {/* Wallet Selection */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Select Wallet</Text>
-            
-            <View style={styles.walletGrid}>
-              <TouchableOpacity
-                style={[
-                  styles.walletOption,
-                  {
-                    backgroundColor: selectedWallet === currencyName ? colors.primary : colors.card,
-                    borderColor: selectedWallet === currencyName ? colors.primary : colors.border,
-                  },
-                ]}
-                onPress={() => setSelectedWallet(currencyName)}
-              >
-                <View style={[styles.walletIcon, { backgroundColor: selectedWallet === currencyName ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
-                  <Text style={[styles.walletIconText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.primary }]}>{user?.currency_symbol}</Text>
-                </View>
-                <Text style={[styles.walletText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.text }]}>
-                  {user?.country_name} {user?.currency_name}
-                </Text>
-                {selectedWallet === currencyName && (
-                  <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
-                )}
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[
-                  styles.walletOption,
-                  {
-                    backgroundColor: selectedWallet === 'USDT' ? colors.primary : colors.card,
-                    borderColor: selectedWallet === 'USDT' ? colors.primary : colors.border,
-                  },
-                ]}
-                onPress={() => setSelectedWallet('USDT')}
-              >
-                <View style={[styles.walletIcon, { backgroundColor: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
-                  <Text style={[styles.walletIconText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.primary }]}>₮</Text>
-                </View>
-                <Text style={[styles.walletText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }]}>
-                  USDT
-                </Text>
-                {selectedWallet === 'USDT' && (
-                  <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
-                )}
-              </TouchableOpacity>
+          {!hideWalletTabs && (
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Select Wallet</Text>
+              <View style={styles.walletGrid}>
+                <TouchableOpacity
+                  style={[
+                    styles.walletOption,
+                    {
+                      backgroundColor: selectedWallet === currencyName ? colors.primary : colors.card,
+                      borderColor: selectedWallet === currencyName ? colors.primary : colors.border,
+                    },
+                  ]}
+                  onPress={() => setSelectedWallet(currencyName)}
+                >
+                  <View style={[styles.walletIcon, { backgroundColor: selectedWallet === currencyName ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}> 
+                    <Text style={[styles.walletIconText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.primary }]}>{user?.currency_symbol}</Text>
+                  </View>
+                  <Text style={[styles.walletText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.text }]}> {user?.country_name} {user?.currency_name} </Text>
+                  {selectedWallet === currencyName && (
+                    <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.walletOption,
+                    {
+                      backgroundColor: selectedWallet === 'USDT' ? colors.primary : colors.card,
+                      borderColor: selectedWallet === 'USDT' ? colors.primary : colors.border,
+                    },
+                  ]}
+                  onPress={() => setSelectedWallet('USDT')}
+                >
+                  <View style={[styles.walletIcon, { backgroundColor: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}> 
+                    <Text style={[styles.walletIconText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.primary }]}>₮</Text>
+                  </View>
+                  <Text style={[styles.walletText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }]}> USDT </Text>
+                  {selectedWallet === 'USDT' && (
+                    <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Discount Code Section */}
           <TouchableOpacity 
