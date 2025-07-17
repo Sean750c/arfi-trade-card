@@ -5,11 +5,20 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 
 export async function getDeviceType(): Promise<string> {
-  const deviceType = Device.deviceType === 1 ? 'phone' :
-    Device.deviceType === 2 ? 'tablet' :
-      Device.deviceType === 3 ? 'desktop' :
-        Device.deviceType === 4 ? 'tv' : 'unknown';
-  return deviceType;
+  // const deviceType = Device.deviceType === 1 ? 'phone' :
+  //   Device.deviceType === 2 ? 'tablet' :
+  //     Device.deviceType === 3 ? 'desktop' :
+  //       Device.deviceType === 4 ? 'tv' : 'unknown';
+  // return deviceType;
+  if (Device.modelName) {
+    return Device.modelName; // 更友好的设备名称
+  }
+
+  if (Device.modelId) {
+    return Device.modelId; // 比如 "iPhone16,1" 或 "SM-G998B"
+  }
+
+  return 'unknown';
 }
 
 // 主函数（异步）

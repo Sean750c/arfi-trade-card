@@ -13,9 +13,9 @@ import {
   PanResponder,
 } from 'react-native';
 import { router } from 'expo-router';
-import { 
-  ChevronLeft, 
-  Crown, 
+import {
+  ChevronLeft,
+  Crown,
   Gift,
   FileText,
   Info,
@@ -35,6 +35,7 @@ import HtmlRenderer from '@/components/UI/HtmlRenderer';
 import { CommonService } from '@/services/common';
 import { LeadData } from '@/types';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { useAppStore } from '@/stores/useAppStore';
 
 // 11级VIP配色
 const VIP_LEVEL_COLORS: [string, string][] = [
@@ -59,6 +60,7 @@ const getVIPLevelGradient = (level: number): [string, string] => {
 function VIPScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
+  const { initData } = useAppStore();
 
   const {
     vipData,
@@ -72,7 +74,7 @@ function VIPScreenContent() {
   const [showLevelsModal, setShowLevelsModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [showVIPTipsModal, setShowVIPTipsModal] = useState(false);
-  
+
   // VIP Help Modal 状态
   const [vipHelpLoading, setVipHelpLoading] = useState(false);
   const [vipHelpError, setVipHelpError] = useState<string | null>(null);
@@ -85,6 +87,8 @@ function VIPScreenContent() {
     y: screenHeight - 200,
   });
   const pan = useRef(new Animated.ValueXY(helpButtonPosition)).current;
+
+  const hideWalletTabs = initData?.hidden_flag === '1';
 
   useEffect(() => {
     pan.setValue(helpButtonPosition);
@@ -235,14 +239,14 @@ function VIPScreenContent() {
     <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[
-        styles.header, 
-        { 
+        styles.header,
+        {
           backgroundColor: colors.card,
           borderBottomColor: colors.border,
         }
       ]}>
-        <TouchableOpacity 
-          onPress={() => router.back()} 
+        <TouchableOpacity
+          onPress={() => router.back()}
           style={styles.backButton}
         >
           <ChevronLeft size={24} color={colors.text} />
@@ -251,7 +255,7 @@ function VIPScreenContent() {
           <Text style={[styles.title, { color: colors.text }]}>VIP Membership</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Level {vipData.vip_level}</Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.infoButton, { backgroundColor: `${colors.primary}15` }]}
           onPress={() => setShowLogsModal(true)}
         >
@@ -285,7 +289,7 @@ function VIPScreenContent() {
               <Text style={[styles.vipLevelText, { fontSize: 28, letterSpacing: 1, textShadowColor: '#000', textShadowRadius: 8 }]}>VIP {vipData.vip_level}</Text>
             </View>
             <View style={styles.vipBenefits}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.infoButton, { backgroundColor: 'rgba(255,255,255,0.12)', marginLeft: 8 }]}
                 onPress={() => setShowLevelsModal(true)}
               >
@@ -301,7 +305,7 @@ function VIPScreenContent() {
                 <Text style={[styles.progressLabel, { color: '#fff', fontWeight: 'bold' }]}>Progress to VIP {nextLevel.level}</Text>
                 <Text style={[styles.progressText, { color: '#fff' }]}>{vipData.next_exp.toLocaleString()} EXP</Text>
               </View>
-              <View style={[styles.progressBar, { backgroundColor: 'rgba(255,255,255,0.2)' }]}> 
+              <View style={[styles.progressBar, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
                 <Animated.View style={[styles.progressFill, {
                   width: progressAnim.interpolate({
                     inputRange: [0, 100],
@@ -325,10 +329,14 @@ function VIPScreenContent() {
             <Text style={{ color: '#fff', fontSize: 13, marginRight: 40 }}>
               {vipData.currency_symbol}{vipData.total_bonus.toLocaleString()}
             </Text>
-            <Gift size={14} color="#26C6DA" style={{ marginRight: 5 }} />
-            <Text style={{ color: '#fff', fontSize: 13 }}>
-              USDT {vipData.total_bonus_usdt?.toLocaleString?.() ?? '0'}
-            </Text>
+            {!hideWalletTabs && (
+              <>
+                <Gift size={14} color="#26C6DA" style={{ marginRight: 5 }} />
+                <Text style={{ color: '#fff', fontSize: 13 }}>
+                  USDT {vipData.total_bonus_usdt?.toLocaleString?.() ?? '0'}
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
         </LinearGradient>
 

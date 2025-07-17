@@ -24,7 +24,7 @@
       },
       "env": {
         "EXPO_DEBUG": "1",
-        "EXPO_PUBLIC_API_URL": "https://api.giftcard8.com"
+        "EXPO_PUBLIC_API_URL": "https://api.cardking.ng"
       }
     }
   },

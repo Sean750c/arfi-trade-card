@@ -124,10 +124,10 @@ function RebateDetailsContent() {
           </View>
           <Text style={styles.balanceAmount}>
             {formatAmount(
-              walletType === '1'
+              activeWalletType === '1'
                 ? rebateInfo?.rebate_amount || 0
                 : rebateInfo?.rebate_amount_usd || 0,
-              walletType === '1'
+              activeWalletType === '1'
                 ? rebateInfo?.currency_symbol || '₦'
                 : rebateInfo?.currency_symbol_usd || 'USDT'
             )}
@@ -135,10 +135,10 @@ function RebateDetailsContent() {
           <View style={styles.transferRebateContainer}>
             <Text style={styles.transferRebateLabel}>
               Auto transfer over {formatAmount(
-                walletType === '1'
+                activeWalletType === '1'
                   ? parseFloat(rebateInfo?.transfer_rebate || '0') || 0
                   : parseFloat(rebateInfo?.transfer_rebate_usd || '0') || 0,
-                  walletType === '1'
+                activeWalletType === '1'
                   ? rebateInfo?.currency_symbol || '₦'
                   : rebateInfo?.currency_symbol_usd || 'USDT',
                 0
@@ -156,7 +156,7 @@ function RebateDetailsContent() {
 
         <View style={styles.earningMethods}>
           {/* First Order Bonus */}
-          {walletType === '1' && rebateInfo && rebateInfo.first_order_bonus > 0 && (
+          {activeWalletType === '1' && rebateInfo && rebateInfo.first_order_bonus > 0 && (
             <TouchableOpacity
               style={[styles.earningMethod, { backgroundColor: colors.card }]}
             >
@@ -175,7 +175,7 @@ function RebateDetailsContent() {
           )}
 
           {/* Amount Order Bonus */}
-          {walletType === '1' && rebateInfo && rebateInfo.amount_order_bonus && rebateInfo.amount_order_bonus.length > 0 && (
+          {activeWalletType === '1' && rebateInfo && rebateInfo.amount_order_bonus && rebateInfo.amount_order_bonus.length > 0 && (
             <TouchableOpacity
               style={[styles.earningMethod, { backgroundColor: colors.card }]}
               onPress={() => setShowAmountBonusModal(true)}
@@ -217,7 +217,7 @@ function RebateDetailsContent() {
           )}
 
           {/* Invitation Rebate */}
-          {walletType === '1' && rebateInfo && rebateInfo.referred_bonus > 0 && (
+          {activeWalletType === '1' && rebateInfo && rebateInfo.referred_bonus > 0 && (
             <TouchableOpacity
               style={[styles.earningMethod, { backgroundColor: colors.card }]}
               onPress={() => router.push('/refer')}
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   earningMethod: {
-    height:60,
+    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.sm,

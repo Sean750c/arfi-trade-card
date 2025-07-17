@@ -17,23 +17,27 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useCouponStore } from '@/stores/useCouponStore';
 import type { Coupon } from '@/types';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { useAppStore } from '@/stores/useAppStore';
 
 function PromoCodesScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
-  const { 
-    coupons, 
-    isLoadingCoupons, 
+  const { initData } = useAppStore();
+  const {
+    coupons,
+    isLoadingCoupons,
     isLoadingMore,
-    couponsError, 
+    couponsError,
     hasMore,
-    fetchCoupons, 
+    fetchCoupons,
     loadMoreCoupons,
-    clearCouponData 
+    clearCouponData
   } = useCouponStore();
 
   const [refreshing, setRefreshing] = useState(false);
   const [activeType, setActiveType] = useState<0 | 1 | 2>(0); // 0: all, 1: NGN, 2: USDT
+
+  const hideWalletTabs = initData?.hidden_flag === '1';
 
   useEffect(() => {
     if (user?.token) {
@@ -50,7 +54,7 @@ function PromoCodesScreenContent() {
 
   const handleRefresh = async () => {
     if (!user?.token) return;
-    
+
     setRefreshing(true);
     await fetchCoupons(activeType, user.token, true);
     setRefreshing(false);
@@ -261,23 +265,25 @@ function PromoCodesScreenContent() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            {
-              backgroundColor: activeType === 2 ? colors.primary : 'transparent',
-              borderColor: colors.border,
-            },
-          ]}
-          onPress={() => setActiveType(2)}
-        >
-          <Text style={[
-            styles.filterText,
-            { color: activeType === 2 ? '#FFFFFF' : colors.text }
-          ]}>
-            USDT
-          </Text>
-        </TouchableOpacity>
+        {!hideWalletTabs && (
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              {
+                backgroundColor: activeType === 2 ? colors.primary : 'transparent',
+                borderColor: colors.border,
+              },
+            ]}
+            onPress={() => setActiveType(2)}
+          >
+            <Text style={[
+              styles.filterText,
+              { color: activeType === 2 ? '#FFFFFF' : colors.text }
+            ]}>
+              USDT
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Content */}
