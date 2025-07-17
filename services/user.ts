@@ -82,4 +82,28 @@ export class UserService {
       throw new Error('Failed to upload avatar');
     }
   }
+
+  static async deleteAccount(token: string, password: string): Promise<void> {
+    try {
+      const response = await APIRequest.request<EmptyReponse>(
+        '/gc/user/cancellation',
+        'POST',
+        { token, password }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to delete account');
+      }
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to delete account: ${error.message}`);
+      }
+      throw new Error('Failed to delete account');
+    }
+  }
 }

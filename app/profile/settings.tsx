@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  TextInput,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
@@ -24,6 +25,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { UserService } from '@/services/user';
+import * as Linking from 'expo-linking';
 
 export default function SettingsScreen() {
   // const systemColorScheme = useColorScheme() ?? 'light';
@@ -32,7 +36,12 @@ export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   
+  const { user, logout } = useAuthStore();
+
   // 根据currentTheme变量切换主题
   // const effectiveTheme = currentTheme === 'system' ? systemColorScheme : currentTheme;
   // const colors = Colors[effectiveTheme];
@@ -138,6 +147,34 @@ export default function SettingsScreen() {
         },
       ]
     );
+  };
+
+  // 账号删除功能
+  const handleDeleteAccount = () => {
+    setDeletePassword('');
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (!user?.token) {
+      Alert.alert('Error', 'User token not found.');
+      return;
+    }
+    if (!deletePassword) {
+      Alert.alert('Error', 'Please enter your password.');
+      return;
+    }
+    setDeleteLoading(true);
+    try {
+      await UserService.deleteAccount(user.token, deletePassword);
+      await logout();
+      setShowDeleteModal(false);
+      setDeleteLoading(false);
+      Alert.alert('Account Deleted', 'Your account has been deleted.');
+    } catch (e) {
+      setDeleteLoading(false);
+      Alert.alert('Error', e instanceof Error ? e.message : 'Failed to delete account.');
+    }
   };
 
   const renderThemeOption = (theme: 'light' | 'dark' | 'system', title: string, icon: React.ReactNode) => (
@@ -336,6 +373,58 @@ export default function SettingsScreen() {
             handleResetSettings
           )}
         </View>
+
+        {/* 账号删除按钮 */}
+        <TouchableOpacity
+          style={{
+            marginTop: 32,
+            backgroundColor: colors.error,
+            borderRadius: 12,
+            paddingVertical: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onPress={handleDeleteAccount}
+        >
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Delete Account</Text>
+        </TouchableOpacity>
+        {/* 删除账号弹窗 */}
+        {showDeleteModal && (
+          <View style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}>
+            <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '80%' }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16, color: colors.text }}>Delete Account</Text>
+              <Text style={{ color: colors.textSecondary, marginBottom: 12 }}>Please enter your password to confirm account deletion. This action cannot be undone.</Text>
+              <View style={{ marginBottom: 16 }}>
+                <Text style={{ color: colors.text, marginBottom: 4 }}>Password</Text>
+                <TextInput
+                  value={deletePassword}
+                  onChangeText={setDeletePassword}
+                  placeholder="Enter your password"
+                  secureTextEntry
+                  style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 8, color: colors.text }}
+                />
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12 }}>
+                <TouchableOpacity onPress={() => setShowDeleteModal(false)} style={{ padding: 10 }} disabled={deleteLoading}>
+                  <Text style={{ color: colors.text }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={confirmDeleteAccount} style={{ padding: 10, opacity: deleteLoading ? 0.5 : 1 }} disabled={deleteLoading}>
+                  <Text style={{ color: colors.error, fontWeight: 'bold' }}>{deleteLoading ? 'Deleting...' : 'Delete'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* App Information */}
         <View style={[

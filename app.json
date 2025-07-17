@@ -32,8 +32,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to let you share them with your friends.",
-          "cameraPermission": "The app accesses your camera to let you take photos."
+          "photosPermission": "We access your photo library so you can upload pictures of your gift cards for verification and selling.",
+          "cameraPermission": "We use your camera to let you take photos of your gift cards when submitting them for sale or verification."
         }
       ]
     ],
