@@ -115,10 +115,11 @@ export default function PromoBanner() {
       <View style={styles.container}>
         <View style={styles.slide}>
           <Image
-            source={require('@/assets/images/default_banner.png')}
+            source={require('@/assets/images/banner.jpg')}
             style={styles.fullImage}
             resizeMode="cover"
           />
+          <View style={styles.overlay} ></View>
         </View>
       </View>
     );

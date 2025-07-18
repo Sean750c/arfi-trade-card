@@ -12,6 +12,7 @@ import { ChevronDown, X, ArrowLeft } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import type { CardCategory, CardItem } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
+import { useAppStore } from '@/stores/useAppStore';
 
 interface TwoLevelCardSelectorProps {
   currencySymbol: string;
@@ -26,6 +27,10 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CardCategory | null>(null);
+  const { initData } = useAppStore();
+
+  // 判断是否隐藏钱包类型tab
+  const hideWalletTabs = initData?.hidden_flag === '1';
 
   const handleCategorySelect = (category: CardCategory) => {
     setSelectedCategory(category);
@@ -52,8 +57,8 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
     >
       <View style={styles.categoryContent}>
         {category.category_image && (
-          <Image 
-            source={{ uri: category.category_image }} 
+          <Image
+            source={{ uri: category.category_image }}
             style={styles.categoryImage}
             resizeMode="contain"
           />
@@ -75,9 +80,9 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
     <TouchableOpacity
       style={[
         styles.cardItem,
-        { 
-          backgroundColor: selectedCard?.card_id === card.card_id 
-            ? `${colors.primary}15` 
+        {
+          backgroundColor: selectedCard?.card_id === card.card_id
+            ? `${colors.primary}15`
             : 'transparent',
           borderBottomColor: colors.border,
         }
@@ -92,9 +97,11 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
           <Text style={[styles.cardRate, { color: colors.primary }]}>
             {currencySymbol}{card.rate.toFixed(2)}
           </Text>
-          <Text style={[styles.cardUsdtRate, { color: colors.textSecondary }]}>
-            USDT {card.usdt_rate.toFixed(4)}
-          </Text>
+          {!hideWalletTabs && (
+            <Text style={[styles.cardUsdtRate, { color: colors.textSecondary }]}>
+              USDT {card.usdt_rate.toFixed(4)}
+            </Text>
+          )}
         </View>
       </View>
       {selectedCard?.card_id === card.card_id && (
@@ -106,11 +113,11 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
   return (
     <View style={styles.container}>
       <Text style={[styles.label, { color: colors.text }]}>Gift Card Type</Text>
-      
+
       <TouchableOpacity
         style={[
           styles.selector,
-          { 
+          {
             backgroundColor: colors.card,
             borderColor: colors.border,
           }
@@ -145,7 +152,7 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
             <View style={styles.modalHeader}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={handleBack}
                 style={styles.backButton}
               >
@@ -160,7 +167,7 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
               </Text>
               <View style={styles.placeholder} />
             </View>
-            
+
             {!selectedCategory ? (
               <FlatList
                 data={categories}
