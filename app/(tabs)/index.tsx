@@ -8,36 +8,32 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Bell, ChevronDown, Sparkles, Eye, EyeOff, RefreshCw } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Bell, TrendingUp, Eye, EyeOff, RefreshCw, Zap, Shield, Award, BarChart3 } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
-import PromoBanner from '@/components/home/PromoBanner';
-import QuickActions from '@/components/home/QuickActions';
-import PromoTimer from '@/components/home/PromoTimer';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useAppStore } from '@/stores/useAppStore';
-import { Country } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
-import AnnouncementBar from '@/components/home/AnnouncementBar';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
+const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const { colors } = useTheme();
-  const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
-  const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
+  const { selectedCountry } = useCountryStore();
   const { isAuthenticated, user } = useAuthStore();
-  const { initData, isLoading: initLoading, error: initError, initialize } = useAppStore();
+  const { initData, isLoading: initLoading, initialize } = useAppStore();
 
   useFocusEffect(
     useCallback(() => {
       const initializeApp = async () => {
         try {
           const userToken = isAuthenticated && user?.token ? user.token : undefined;
-          // 只在数据为空时初始化
           if (!initData) {
             await initialize(userToken);
           }
@@ -45,33 +41,12 @@ export default function HomeScreen() {
           console.error('Failed to initialize app:', error);
         }
       };
-  
       initializeApp();
-  
-      // 可选清理函数（一般不用）
-      return () => {};
     }, [initialize, isAuthenticated, user?.token, initData])
   );
 
-  const handleCountrySelect = (country: Country) => {
-    setSelectedCountry(country);
-    setShowCountryPicker(false);
-  };
-
-  const toggleBalanceVisibility = () => {
-    setBalanceVisible(!balanceVisible);
-  };
-
-  const formatBalance = (amount: string) => {
-    if (!balanceVisible) {
-      return '****';
-    }
-    return amount;
-  };
-
   const handleRefresh = async () => {
     try {
-      // Include user token if authenticated
       const userToken = isAuthenticated && user?.token ? user.token : undefined;
       await initialize(userToken);
     } catch (error) {
@@ -79,429 +54,479 @@ export default function HomeScreen() {
     }
   };
 
+  const toggleBalanceVisibility = () => {
+    setBalanceVisible(!balanceVisible);
+  };
+
+  const formatBalance = (amount: string) => {
+    if (!balanceVisible) return '****';
+    return amount;
+  };
+
+  const quickActions = [
+    {
+      id: 'trade',
+      title: 'Trade Now',
+      subtitle: 'Start Trading',
+      icon: <Zap size={24} color="#FFFFFF" />,
+      gradient: [colors.primary, colors.accent],
+      route: '/(tabs)/sell',
+    },
+    {
+      id: 'rates',
+      title: 'Live Rates',
+      subtitle: 'Market Data',
+      icon: <BarChart3 size={24} color="#FFFFFF" />,
+      gradient: [colors.success, '#0891B2'],
+      route: '/rates',
+    },
+    {
+      id: 'analytics',
+      title: 'Analytics',
+      subtitle: 'Insights',
+      icon: <TrendingUp size={24} color="#FFFFFF" />,
+      gradient: [colors.warning, '#EA580C'],
+      route: '/calculator',
+    },
+    {
+      id: 'security',
+      title: 'Security',
+      subtitle: 'Protection',
+      icon: <Shield size={24} color="#FFFFFF" />,
+      gradient: ['#059669', '#0891B2'],
+      route: '/(tabs)/profile',
+    },
+  ];
+
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-      
-        {/* Compact Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {/* Country Display - Always on Left */}
-            <View style={styles.locationContainer}>
-              {isAuthenticated && user ? (
-                <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}15` }]}>
-                  <Image 
-                    source={{ uri: user.country_logo_image }} 
-                    style={styles.flagImage} 
-                    resizeMode="cover"
-                  />
-                  <Text style={[styles.countryText, { color: colors.text }]}>
-                    {user.country_name}
-                  </Text>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={[styles.countrySelector, { backgroundColor: `${colors.primary}15` }]}
-                  onPress={() => setShowCountryPicker(!showCountryPicker)}
-                >
-                  <View style={styles.countryInfoContainer}>
-                    <Image 
-                      source={{ uri: selectedCountry?.image }} 
-                      style={styles.flagImage} 
-                      resizeMode="cover"
-                    />
-                    <Text style={[styles.countryText, { color: colors.text }]}>
-                      {selectedCountry?.name}
-                    </Text>
-                  </View>
-                  <ChevronDown size={14} color={colors.text} />
-                </TouchableOpacity>
+        {/* Header Section */}
+        <LinearGradient
+          colors={[colors.primary, colors.accent]}
+          style={styles.headerGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <Text style={styles.welcomeText}>Welcome to</Text>
+              <Text style={styles.appName}>TradePro</Text>
+              {isAuthenticated && user && (
+                <Text style={styles.userGreeting}>Hello, {user.username}</Text>
               )}
             </View>
+            
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleRefresh}
+                disabled={initLoading}
+              >
+                {initLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <RefreshCw size={20} color="#FFFFFF" />
+                )}
+              </TouchableOpacity>
 
-            {/* User Info - Compact */}
-            {isAuthenticated && user && (
-              <View style={styles.userInfoCompact}>
-                <Text style={[styles.welcomeText, { color: colors.textSecondary }]}>
-                  Welcome back,
-                </Text>
-                <View style={styles.userNameRow}>
-                  <Text style={[styles.userName, { color: colors.text }]}>
-                    {user.username}
-                  </Text>
-                  <View style={styles.vipBadge}>
-                    <Sparkles size={12} color={colors.primary} />
-                    <Text style={[styles.vipText, { color: colors.primary }]}>
-                      VIP {user.vip_level}
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => router.push('/notifications')}
+              >
+                <Bell size={20} color="#FFFFFF" />
+                {(initData?.notice_count || 0) > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationCount}>
+                      {(initData?.notice_count || 0) > 99 ? '99+' : initData?.notice_count}
                     </Text>
                   </View>
-                </View>
-              </View>
-            )}
-
-            {/* Guest Welcome */}
-            {!isAuthenticated && (
-              <View style={styles.guestWelcome}>
-                <Text style={[styles.guestTitle, { color: colors.text }]}>
-                  Welcome to CardExchange
-                </Text>
-                <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>
-                  Secure gift card trading platform
-                </Text>
-              </View>
-            )}
-
-            {/* Country Picker Dropdown */}
-            {showCountryPicker && !isAuthenticated && (
-              <View style={[
-                styles.countryDropdown, 
-                { 
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  shadowColor: 'rgba(0, 0, 0, 0.1)',
-                }
-              ]}>
-                <ScrollView 
-                  style={styles.countryScrollView}
-                  showsVerticalScrollIndicator={false}
-                  nestedScrollEnabled={true}
-                >
-                  {countries.map((country) => (
-                    <TouchableOpacity
-                      key={country.code}
-                      style={[
-                        styles.countryOption,
-                        { borderBottomColor: colors.border },
-                      ]}
-                      onPress={() => handleCountrySelect(country)}
-                    >
-                      <View style={styles.countryInfoContainer}>
-                        <Image 
-                          source={{ uri: country.image }} 
-                          style={styles.flagImage} 
-                          resizeMode="cover"
-                        />
-                        <Text style={[styles.countryOptionText, { color: colors.text }]}>
-                          {country.name}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-          </View>
-
-          {/* Header Actions */}
-          <View style={styles.headerActions}>
-            {/* Refresh Button */}
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
-              onPress={handleRefresh}
-              disabled={initLoading}
-            >
-              {initLoading ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <RefreshCw size={18} color={colors.primary} />
-              )}
-            </TouchableOpacity>
-
-            {/* Notification Button */}
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
-              onPress={() => router.push('/notifications')}
-            >
-              <Bell size={18} color={colors.primary} />
-              {(initData?.notice_count || 0) > 0 && (
-                <View style={[styles.notificationBadge, { backgroundColor: colors.error }]}>
-                  <Text style={styles.notificationCount}>
-                    {(initData?.notice_count || 0) > 99 ? '99+' : initData?.notice_count}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Initialization Error */}
-        {initError && (
-          <View style={[styles.errorContainer, { backgroundColor: `${colors.error}10` }]}>
-            <Text style={[styles.errorText, { color: colors.error }]}>
-              {initError}
-            </Text>
-            <TouchableOpacity 
-              onPress={handleRefresh}
-              style={[styles.retryButton, { backgroundColor: colors.error }]}
-            >
-              <Text style={styles.retryButtonText}>Retry</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Compact Balance Card for Authenticated Users */}
-        {isAuthenticated && user && (
-          <View style={[
-            styles.balanceCard,
-            { 
-              backgroundColor: colors.primary,
-              shadowColor: 'rgba(0, 0, 0, 0.1)',
-            }
-          ]}>
-            <View style={styles.balanceHeader}>
-              <View style={styles.balanceInfo}>
-                <Text style={styles.balanceLabel}>Total Balance</Text>
-                <Text style={styles.balanceAmount}>
-                  {user.currency_symbol}{formatBalance(user.money)}
-                </Text>
-              </View>
-              <TouchableOpacity 
-                style={styles.eyeButton}
-                onPress={toggleBalanceVisibility}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                {balanceVisible ? (
-                  <Eye size={20} color="rgba(255, 255, 255, 0.8)" />
-                ) : (
-                  <EyeOff size={20} color="rgba(255, 255, 255, 0.8)" />
                 )}
               </TouchableOpacity>
             </View>
-            <Text style={styles.rebateBalance}>
-              Rebate: {user.currency_symbol}{formatBalance(user.rebate_money)}
-            </Text>
+          </View>
+        </LinearGradient>
+
+        {/* Balance Card */}
+        {isAuthenticated && user && (
+          <View style={styles.balanceSection}>
+            <LinearGradient
+              colors={['#1E293B', '#334155']}
+              style={styles.balanceCard}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.balanceHeader}>
+                <View>
+                  <Text style={styles.balanceLabel}>Portfolio Value</Text>
+                  <Text style={styles.balanceAmount}>
+                    {user.currency_symbol}{formatBalance(user.money)}
+                  </Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.eyeButton}
+                  onPress={toggleBalanceVisibility}
+                >
+                  {balanceVisible ? (
+                    <Eye size={24} color="#FFFFFF" />
+                  ) : (
+                    <EyeOff size={24} color="#FFFFFF" />
+                  )}
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.balanceDetails}>
+                <View style={styles.balanceItem}>
+                  <Text style={styles.balanceItemLabel}>Available</Text>
+                  <Text style={styles.balanceItemValue}>
+                    {user.currency_symbol}{formatBalance(user.money)}
+                  </Text>
+                </View>
+                <View style={styles.balanceItem}>
+                  <Text style={styles.balanceItemLabel}>Rewards</Text>
+                  <Text style={styles.balanceItemValue}>
+                    {user.currency_symbol}{formatBalance(user.rebate_money)}
+                  </Text>
+                </View>
+                <View style={styles.balanceItem}>
+                  <Text style={styles.balanceItemLabel}>VIP Level</Text>
+                  <View style={styles.vipBadge}>
+                    <Award size={12} color={colors.warning} />
+                    <Text style={[styles.balanceItemValue, { color: colors.warning }]}>
+                      {user.vip_level}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </LinearGradient>
           </View>
         )}
 
-        {/* 公告栏 */}
-        <AnnouncementBar />
-        {/* Content Sections */}
-        <PromoBanner />
-        <QuickActions />
-        {/* <PromoTimer /> */}
-        {/* <RecentTransactions /> */}
+        {/* Quick Actions Grid */}
+        <View style={styles.quickActionsSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Trading Hub
+          </Text>
+          <View style={styles.quickActionsGrid}>
+            {quickActions.map((action) => (
+              <TouchableOpacity
+                key={action.id}
+                style={styles.quickActionItem}
+                onPress={() => router.push(action.route as any)}
+              >
+                <LinearGradient
+                  colors={action.gradient}
+                  style={styles.quickActionGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <View style={styles.quickActionContent}>
+                    <View style={styles.quickActionIcon}>
+                      {action.icon}
+                    </View>
+                    <Text style={styles.quickActionTitle}>{action.title}</Text>
+                    <Text style={styles.quickActionSubtitle}>{action.subtitle}</Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Market Stats */}
+        <View style={styles.marketStatsSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Market Overview
+          </Text>
+          <View style={[styles.marketStatsCard, { backgroundColor: colors.card }]}>
+            <View style={styles.marketStatItem}>
+              <Text style={[styles.marketStatLabel, { color: colors.textSecondary }]}>
+                Active Traders
+              </Text>
+              <Text style={[styles.marketStatValue, { color: colors.success }]}>
+                12,847
+              </Text>
+            </View>
+            <View style={styles.marketStatDivider} />
+            <View style={styles.marketStatItem}>
+              <Text style={[styles.marketStatLabel, { color: colors.textSecondary }]}>
+                24h Volume
+              </Text>
+              <Text style={[styles.marketStatValue, { color: colors.primary }]}>
+                $2.4M
+              </Text>
+            </View>
+            <View style={styles.marketStatDivider} />
+            <View style={styles.marketStatItem}>
+              <Text style={[styles.marketStatLabel, { color: colors.textSecondary }]}>
+                Success Rate
+              </Text>
+              <Text style={[styles.marketStatValue, { color: colors.warning }]}>
+                99.2%
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Guest CTA */}
+        {!isAuthenticated && (
+          <View style={styles.guestSection}>
+            <LinearGradient
+              colors={[colors.primary, colors.accent]}
+              style={styles.guestCard}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Text style={styles.guestTitle}>Start Your Trading Journey</Text>
+              <Text style={styles.guestDescription}>
+                Join thousands of traders and start earning with professional-grade tools
+              </Text>
+              <TouchableOpacity
+                style={styles.guestButton}
+                onPress={() => router.push('/(auth)/register')}
+              >
+                <Text style={styles.guestButtonText}>Get Started</Text>
+                <Zap size={20} color={colors.primary} />
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollContent: {
-    padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
+  },
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 40,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
   },
   headerLeft: {
     flex: 1,
-    position: 'relative',
+  },
+  welcomeText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  appName: {
+    fontSize: 32,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  userGreeting: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   headerActions: {
     flexDirection: 'row',
     gap: Spacing.sm,
   },
   actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-  },
-  locationContainer: {
-    marginBottom: Spacing.sm,
-  },
-  countrySelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    minWidth: 120,
-  },
-  countryDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  countryInfoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  flagImage: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  },
-  countryText: {
-    fontSize: 13,
-    fontFamily: 'Inter-SemiBold',
-  },
-  countryOptionText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-  },
-  userInfoCompact: {
-    gap: 2,
-  },
-  welcomeText: {
-    fontSize: 13,
-    fontFamily: 'Inter-Regular',
-  },
-  userNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  userName: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  vipBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    backgroundColor: 'rgba(0, 135, 81, 0.1)',
-    borderRadius: 4,
-  },
-  vipText: {
-    fontSize: 10,
-    fontFamily: 'Inter-SemiBold',
-  },
-  guestWelcome: {
-    gap: 2,
-  },
-  guestTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  guestSubtitle: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-  },
-  countryDropdown: {
-    position: 'absolute',
-    top: 60,
-    left: 0,
-    right: 0,
-    maxHeight: 200,
-    borderRadius: 12,
-    borderWidth: 1,
-    zIndex: 1000,
-    elevation: 8,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-  },
-  countryScrollView: {
-    maxHeight: 200,
-  },
-  countryOption: {
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderBottomWidth: 1,
   },
   notificationBadge: {
     position: 'absolute',
     top: -2,
     right: -2,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#DC2626',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
   },
   notificationCount: {
     color: '#FFFFFF',
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter-Bold',
   },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Spacing.md,
-    borderRadius: 8,
+  balanceSection: {
+    paddingHorizontal: Spacing.lg,
+    marginTop: -20,
     marginBottom: Spacing.lg,
   },
-  errorText: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    marginRight: Spacing.sm,
-  },
-  retryButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: 6,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-  },
   balanceCard: {
-    borderRadius: 16,
+    borderRadius: 20,
     padding: Spacing.lg,
-    marginBottom: Spacing.xs,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   balanceHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.xs,
-  },
-  balanceInfo: {
-    flex: 1,
+    alignItems: 'flex-start',
+    marginBottom: Spacing.lg,
   },
   balanceLabel: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: 'Inter-Medium',
+    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 4,
   },
   balanceAmount: {
-    color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 32,
     fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
   },
   eyeButton: {
-    padding: Spacing.xs,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: Spacing.sm,
   },
-  rebateBalance: {
-    color: 'rgba(255, 255, 255, 0.8)',
+  balanceDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  balanceItem: {
+    alignItems: 'center',
+  },
+  balanceItemLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 4,
+  },
+  balanceItemValue: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
+  },
+  vipBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  quickActionsSection: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.lg,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  quickActionItem: {
+    width: (width - Spacing.lg * 2 - Spacing.md) / 2,
+    height: 120,
+  },
+  quickActionGradient: {
+    flex: 1,
+    borderRadius: 16,
+    padding: Spacing.lg,
+  },
+  quickActionContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  quickActionIcon: {
+    alignSelf: 'flex-start',
+  },
+  quickActionTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+  },
+  quickActionSubtitle: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  marketStatsSection: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  marketStatsCard: {
+    flexDirection: 'row',
+    borderRadius: 16,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  marketStatItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  marketStatLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    marginBottom: 4,
+  },
+  marketStatValue: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+  },
+  marketStatDivider: {
+    width: 1,
+    backgroundColor: '#E2E8F0',
+    marginHorizontal: Spacing.md,
+  },
+  guestSection: {
+    paddingHorizontal: Spacing.lg,
+  },
+  guestCard: {
+    borderRadius: 20,
+    padding: Spacing.xl,
+    alignItems: 'center',
+  },
+  guestTitle: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+  },
+  guestDescription: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+  },
+  guestButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: 12,
+    gap: Spacing.sm,
+  },
+  guestButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+    color: '#7C3AED',
   },
 });

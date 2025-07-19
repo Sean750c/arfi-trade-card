@@ -13,6 +13,10 @@ type ColorScheme = {
   error: string;
   notification: string;
   tabIconDefault: string;
+  accent: string;
+  surface: string;
+  gradient1: string;
+  gradient2: string;
 };
 
 type Colors = {
@@ -22,32 +26,40 @@ type Colors = {
 
 const Colors: Colors = {
   light: {
-    text: '#1F2937',
-    textSecondary: '#6B7280',
-    background: '#FFFFFF',
+    text: '#0F172A',
+    textSecondary: '#64748B',
+    background: '#F8FAFC',
     card: '#FFFFFF',
-    border: '#E5E7EB',
-    primary: '#2563EB', // Professional Blue
-    secondary: '#FFFFFF', // White
-    success: '#22C55E',
+    border: '#E2E8F0',
+    primary: '#7C3AED', // Purple primary
+    secondary: '#F1F5F9',
+    success: '#059669',
+    warning: '#D97706',
+    error: '#DC2626',
+    notification: '#DC2626',
+    tabIconDefault: '#94A3B8',
+    accent: '#EC4899', // Pink accent
+    surface: '#F8FAFC',
+    gradient1: '#7C3AED',
+    gradient2: '#EC4899',
+  },
+  dark: {
+    text: '#F1F5F9',
+    textSecondary: '#94A3B8',
+    background: '#0F172A',
+    card: '#1E293B',
+    border: '#334155',
+    primary: '#8B5CF6', // Purple primary
+    secondary: '#1E293B',
+    success: '#10B981',
     warning: '#F59E0B',
     error: '#EF4444',
     notification: '#EF4444',
-    tabIconDefault: '#9CA3AF',
-  },
-  dark: {
-    text: '#F3F4F6',
-    textSecondary: '#9CA3AF',
-    background: '#111827',
-    card: '#1F2937',
-    border: '#374151',
-    primary: '#3B82F6', // Professional Blue
-    secondary: '#FFFFFF', // White
-    success: '#4ADE80',
-    warning: '#FBBF24',
-    error: '#F87171',
-    notification: '#F87171',
-    tabIconDefault: '#6B7280',
+    tabIconDefault: '#64748B',
+    accent: '#F472B6', // Pink accent
+    surface: '#1E293B',
+    gradient1: '#8B5CF6',
+    gradient2: '#F472B6',
   },
 };
 

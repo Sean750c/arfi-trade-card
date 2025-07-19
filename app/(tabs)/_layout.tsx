@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { useColorScheme, Platform } from 'react-native';
-import { Chrome as Home, Gift, Wallet, User } from 'lucide-react-native';
+import { Platform } from 'react-native';
+import { Home, Zap, Wallet, User, BarChart3 } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 
 export default function TabLayout() {
@@ -13,16 +13,21 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.tabIconDefault,
         tabBarStyle: {
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
+          borderTopWidth: 0,
           backgroundColor: colors.card,
-          height: Platform.OS === 'ios' ? 88 : 60,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-          paddingTop: 8,
+          height: Platform.OS === 'ios' ? 88 : 65,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+          paddingTop: 12,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 8,
         },
         tabBarLabelStyle: {
-          fontWeight: '500',
-          fontSize: 12,
+          fontWeight: '600',
+          fontSize: 11,
+          fontFamily: 'Inter-SemiBold',
         },
         headerShown: false,
         lazy: true,
@@ -39,7 +44,14 @@ export default function TabLayout() {
         name="sell"
         options={{
           title: 'Trade',
-          tabBarIcon: ({ color, size }) => <Gift size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Zap size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="analytics"
+        options={{
+          title: 'Analytics',
+          tabBarIcon: ({ color, size }) => <BarChart3 size={size} color={color} />,
         }}
       />
       <Tabs.Screen

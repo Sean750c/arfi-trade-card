@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "CardExchange",
-    "slug": "cardexchange",
+    "name": "TradePro",
+    "slug": "tradepro",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cardexchange.mobile"
+      "bundleIdentifier": "com.tradepro.mobile"
     },
     "web": {
       "bundler": "metro",
@@ -43,7 +43,7 @@
     },
     "android": {
       "proguard": true,
-      "package": "com.cardexchange.mobile",
+      "package": "com.tradepro.mobile",
       "enableProguardInReleaseBuilds": true,
       "enableShrinkResourcesInReleaseBuilds": true
     },
