@@ -4,7 +4,7 @@ import { WalletService } from '@/services/wallet';
 
 interface WalletState {
   // Balance data
-  balanceData: WalletBalanceData | null;
+  walletBalance: WalletBalanceData | null;
   
   // Transactions
   isInitialLoad: boolean;
@@ -29,7 +29,7 @@ interface WalletState {
   activeTransactionType: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip';
   
   // Actions
-  fetchBalance: (token: string) => Promise<void>;
+  fetchWalletBalance: (token: string) => Promise<void>;
   fetchTransactions: (token: string, refresh?: boolean) => Promise<void>;
   loadMoreTransactions: (token: string) => Promise<void>;
   fetchLogDetail: (token: string, logId: number) => Promise<MoneyLogDetail>;
@@ -42,7 +42,7 @@ interface WalletState {
 
 export const useWalletStore = create<WalletState>((set, get) => ({
   // Initial state
-  balanceData: null,
+  walletBalance: null,
   isInitialLoad: true, // 添加这个
   transactions: [],
   currentPage: 0,
@@ -59,14 +59,14 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   activeTransactionType: 'all',
   selectedWithdrawAccount: null,
 
-  fetchBalance: async (token: string) => {
+  fetchWalletBalance: async (token: string) => {
     set({ isLoadingBalance: true, balanceError: null });
     
     try {
       const balanceData = await WalletService.getWalletBalance(token);
       set((state) => ({
         ...state,
-        balanceData,
+        walletBalance: balanceData,
         isLoadingBalance: false,
       }));
     } catch (error) {
@@ -245,7 +245,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   clearWalletData: () => {
     set({
-      balanceData: null,
+      walletBalance: null,
       transactions: [],
       currentPage: 0,
       hasMore: true,

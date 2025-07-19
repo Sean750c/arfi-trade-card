@@ -346,8 +346,8 @@ function WalletScreenContent() {
             error={transactionsError}
             onLoadMore={handleLoadMore}
             onRefresh={() => user?.token && fetchTransactions(user.token, true)}
-            refreshing={refreshing}
-            limit={10}
+            onTransactionPress={() => {}}         // 添加这一行
+            walletType={activeWalletType}     
           />
         </View>
       </ScrollView>
