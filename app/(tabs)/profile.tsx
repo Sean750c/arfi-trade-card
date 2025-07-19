@@ -12,7 +12,7 @@ import {
   TextInput,
 } from 'react-native';
 import { router } from 'expo-router';
-import { User, Settings, CreditCard, Shield, HelpCircle, FileText, LogOut, Crown, Gift, Users, ChevronRight, X, MessageSquare } from 'lucide-react-native';
+import { User, Settings, CreditCard, Shield, CircleHelp as HelpCircle, FileText, LogOut, Crown, Gift, Users, ChevronRight, X, MessageSquare } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
