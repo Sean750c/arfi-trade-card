@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import {
+  UserCircle,
   View,
   Text,
   StyleSheet,
