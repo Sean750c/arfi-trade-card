@@ -535,12 +535,12 @@ function SellScreenContent() {
             >
               <Upload size={24} color={colors.primary} />
               <Text style={[styles.uploadButtonText, { color: colors.primary }]}>
-                {Platform.OS === 'web' ? 'Select Card Images (Max 10)' : 'Add Card Images (Max 10)'}
+                {Platform.OS === 'web' ? 'Upload Trading Assets (Max 10)' : 'Add Trading Assets (Max 10)'}
               </Text>
               <Text style={[styles.uploadButtonSubtext, { color: colors.textSecondary }]}>
                 {Platform.OS === 'web'
-                  ? (isSubmitting ? 'Processing...' : 'Click to select images from your device')
-                  : (isSubmitting ? 'Processing...' : 'Trade Cards')}
+                  ? (isSubmitting ? 'Processing trade...' : 'Select high-quality images for verification')
+                  : (isSubmitting ? 'Processing trade...' : 'Professional trading platform')}
               </Text>
             </TouchableOpacity>
 
@@ -578,9 +578,14 @@ function SellScreenContent() {
                 <View style={[styles.walletIcon, { backgroundColor: selectedWallet === currencyName ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
                   <Text style={[styles.walletIconText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.primary }]}>{user?.currency_symbol}</Text>
                 </View>
-                <Text style={[styles.walletText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.text }]}>
-                  {user?.country_name} {user?.currency_name}
-                </Text>
+                <View style={styles.walletTextContainer}>
+                  <Text style={[styles.walletText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.text }]}>
+                    {user?.currency_name}
+                  </Text>
+                  <Text style={[styles.walletSubtext, { color: selectedWallet === currencyName ? 'rgba(255,255,255,0.8)' : colors.textSecondary }]}>
+                    Local Currency
+                  </Text>
+                </View>
                 {selectedWallet === currencyName && (
                   <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
                 )}
@@ -599,9 +604,14 @@ function SellScreenContent() {
                 <View style={[styles.walletIcon, { backgroundColor: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
                   <Text style={[styles.walletIconText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.primary }]}>₮</Text>
                 </View>
-                <Text style={[styles.walletText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }]}>
-                  USDT
-                </Text>
+                <View style={styles.walletTextContainer}>
+                  <Text style={[styles.walletText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }]}>
+                    USDT
+                  </Text>
+                  <Text style={[styles.walletSubtext, { color: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.8)' : colors.textSecondary }]}>
+                    Stablecoin
+                  </Text>
+                </View>
                 {selectedWallet === 'USDT' && (
                   <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
                 )}
@@ -615,10 +625,10 @@ function SellScreenContent() {
             onPress={() => setShowCouponModal(true)}
           >
             <View style={styles.discountContent}>
-              <Tag size={20} color={colors.primary} />
+              <Tag size={20} color={colors.accent} />
               <View style={styles.discountTextContainer}>
                 <Text style={[styles.discountText, { color: colors.text }]}>
-                  {selectedCoupon ? formatCouponDisplay(selectedCoupon) : 'Select Discount Code'}
+                  {selectedCoupon ? formatCouponDisplay(selectedCoupon) : 'Apply Promo Code'}
                 </Text>
                 {selectedCoupon && (
                   <Text style={[styles.discountDescription, { color: colors.textSecondary }]}>
@@ -638,8 +648,8 @@ function SellScreenContent() {
             >
               <Crown size={20} color="#FFD700" />
               <View style={styles.featureTextContainer}>
-                <Text style={styles.featureTitle}>VIP{currentVipLevel} Exchange Rate Bonus</Text>
-                <Text style={styles.featureSubtitle}>+{currentVipRate}% Extra Rate</Text>
+                <Text style={styles.featureTitle}>VIP{currentVipLevel} Premium Benefits</Text>
+                <Text style={styles.featureSubtitle}>+{currentVipRate}% Trading Bonus</Text>
               </View>
               <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
             </TouchableOpacity>
@@ -650,8 +660,8 @@ function SellScreenContent() {
             >
               <Trophy size={20} color="#FFFFFF" />
               <View style={styles.featureTextContainer}>
-                <Text style={styles.featureTitle}>Activity Rebate Program</Text>
-                <Text style={styles.featureSubtitle}>Earn up to 2% cashback</Text>
+                <Text style={styles.featureTitle}>Rewards Program</Text>
+                <Text style={styles.featureSubtitle}>Earn up to 2% rewards</Text>
               </View>
               <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
             </TouchableOpacity>
@@ -664,7 +674,7 @@ function SellScreenContent() {
               >
                 <Clock size={20} color="#FFFFFF" />
                 <View style={styles.featureTextContainer}>
-                  <Text style={styles.featureTitle}>Overdue Compensation</Text>
+                  <Text style={styles.featureTitle}>Processing Guarantee</Text>
                   <Text style={styles.featureSubtitle}>Up to {orderSellDetail.overdue_max_percent}% max payout</Text>
                 </View>
                 <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
@@ -700,7 +710,7 @@ function SellScreenContent() {
               <Zap size={20} color="#FFFFFF" />
             )}
             <Text style={styles.sellText}>
-              {isSubmitting ? 'Creating Order...' : 'Sell Cards'}
+              {isSubmitting ? 'Processing Trade...' : 'Execute Trade'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -991,7 +1001,14 @@ const styles = StyleSheet.create({
   walletText: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
-    textAlign: 'center',
+  },
+  walletTextContainer: {
+    alignItems: 'center',
+  },
+  walletSubtext: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    marginTop: 2,
   },
   selectedIcon: {
     position: 'absolute',
