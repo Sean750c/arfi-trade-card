@@ -48,10 +48,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="analytics"
+        name="rates"
         options={{
-          title: 'Analytics',
-          tabBarIcon: ({ color, size }) => <BarChart3 size={size} color={color} />,
+          title: 'Rates',
+          tabBarIcon: ({ color, size }) => <TrendingUp size={size} color={color} />,
         }}
       />
       <Tabs.Screen
