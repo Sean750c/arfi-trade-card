@@ -160,7 +160,7 @@ export default function RecentTransactions() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading recent trades...
+            Loading recent transactions...
           </Text>
         </View>
       ) : recentOrders.length > 0 ? (
@@ -171,16 +171,16 @@ export default function RecentTransactions() {
         <View style={[styles.emptyContainer, { backgroundColor: colors.card }]}>
           <Gift size={48} color={colors.textSecondary} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>
-            No Recent Trades
+            No Recent Transactions
           </Text>
           <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
-            Start trading gift cards to see your trades here
+            Start trading gift cards to see your transaction here
           </Text>
           <TouchableOpacity
             style={[styles.startTradingButton, { backgroundColor: colors.primary }]}
             onPress={() => router.push('/(tabs)/sell')}
           >
-            <Text style={styles.startTradingText}>Start Trading Now</Text>
+            <Text style={styles.startTradingText}>Start Trading</Text>
           </TouchableOpacity>
         </View>
       )}
