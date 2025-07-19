@@ -1,31 +1,48 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  Dimensions,
 } from 'react-native';
-import { router } from 'expo-router';
-import Button from '@/components/UI/Button';
+import { router, useFocusEffect } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { 
+  Eye, 
+  EyeOff, 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  Plus, 
+  CreditCard, 
+  TrendingUp,
+  Wallet as WalletIcon,
+  Shield,
+  Star,
+  Gift,
+  Zap
+} from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import WalletBalanceCard from '@/components/wallet/WalletBalanceCard';
 import WalletTabs from '@/components/wallet/WalletTabs';
-import TransactionFilters from '@/components/wallet/TransactionFilters';
 import TransactionList from '@/components/wallet/TransactionList';
-import Spacing from '@/constants/Spacing';
+import TransactionFilters from '@/components/wallet/TransactionFilters';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
-import type { WalletTransaction } from '@/types';
-import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@/theme/ThemeContext';
+import Spacing from '@/constants/Spacing';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
-import { PerformanceMonitor } from '@/utils/performance';
+
+const { width } = Dimensions.get('window');
 
 function WalletScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
-
   const {
-    balanceData,
+    walletBalance,
     transactions,
     isLoadingBalance,
     isLoadingTransactions,
@@ -34,215 +51,306 @@ function WalletScreenContent() {
     transactionsError,
     activeWalletType,
     activeTransactionType,
-    fetchBalance,
+    fetchWalletBalance,
     fetchTransactions,
     loadMoreTransactions,
     setActiveWalletType,
     setActiveTransactionType,
-    setSelectedWithdrawAccount,
   } = useWalletStore();
 
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [lastRefreshTime, setLastRefreshTime] = useState(0);
 
-
-
-  // 使用 useMemo 缓存交易统计
-  const transactionStats = useMemo(() => ({
-    totalCount: transactions.length,
-    hasTransactions: transactions.length > 0,
-  }), [transactions.length]);
-
-  // 使用 useMemo 缓存样式
-  const headerStyle = useMemo(() => [
-    styles.header, 
-    { 
-      backgroundColor: colors.card,
-      borderBottomColor: colors.border,
-      shadowColor: 'rgba(0, 0, 0, 0.5)',
-    }
-  ], [colors.card, colors.border]);
-
-  const titleStyle = useMemo(() => [styles.title, { color: colors.text }], [colors.text]);
-  const errorContainerStyle = useMemo(() => [styles.errorContainer, { backgroundColor: colors.error + '10' }], [colors.error]);
-  const errorTextStyle = useMemo(() => [styles.errorText, { color: colors.error }], [colors.error]);
-  const sectionTitleStyle = useMemo(() => [styles.sectionTitle, { color: colors.text }], [colors.text]);
-  const transactionCountStyle = useMemo(() => [styles.transactionCount, { color: colors.textSecondary }], [colors.textSecondary]);
-
-  // 优化：只在必要时刷新数据，避免频繁 API 调用
+  // Load data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      const endTimer = PerformanceMonitor.getInstance().startTimer('wallet_focus_effect');
-      
       if (user?.token) {
-        const now = Date.now();
-        const timeSinceLastRefresh = now - lastRefreshTime;
-        
-        // 如果距离上次刷新超过 30 秒，才重新获取数据
-        if (timeSinceLastRefresh > 30000) {
-          fetchBalance(user.token);
-          fetchTransactions(user.token, true);
-          setLastRefreshTime(now);
-        }
+        fetchWalletBalance(user.token);
+        fetchTransactions(user.token, true);
       }
-      
-      endTimer();
-    }, [user?.token, fetchBalance, fetchTransactions, lastRefreshTime])
+    }, [user?.token, activeWalletType, activeTransactionType])
   );
 
-  // 强制刷新余额数据
-  useEffect(() => {
-    if (user?.token && !balanceData) {
-      fetchBalance(user.token);
-    }
-  }, [user?.token, balanceData, fetchBalance]);
-
-  // 当钱包类型或交易类型改变时重新获取交易数据
-  useFocusEffect(
-    useCallback(() => {
-      const endTimer = PerformanceMonitor.getInstance().startTimer('wallet_type_change_effect');
-      
-      if (user?.token) {
-        fetchTransactions(user.token, false);
-      }
-      
-      endTimer();
-    }, [user?.token, activeWalletType, activeTransactionType, fetchTransactions])
-  );
-
-  const handleRefresh = useCallback(async () => {
-    const endTimer = PerformanceMonitor.getInstance().startTimer('wallet_refresh');
-    
+  const handleRefresh = async () => {
     if (!user?.token) return;
-
+    
     setRefreshing(true);
     try {
       await Promise.all([
-        fetchBalance(user.token),
-        fetchTransactions(user.token, true),
+        fetchWalletBalance(user.token),
+        fetchTransactions(user.token, true)
       ]);
     } finally {
       setRefreshing(false);
-      endTimer();
     }
-  }, [user?.token, fetchBalance, fetchTransactions]);
+  };
 
-  const handleWalletTypeChange = useCallback((type: '1' | '2') => {
-    setActiveWalletType(type);
-    setSelectedWithdrawAccount(null);
-  }, [setActiveWalletType, setSelectedWithdrawAccount]);
-
-  const handleTransactionTypeChange = useCallback((
-    type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip'
-  ) => {
-    setActiveTransactionType(type);
-  }, [setActiveTransactionType]);
-
-  const handleLoadMore = useCallback(() => {
-    if (!user?.token) return;
-    loadMoreTransactions(user.token);
-  }, [user?.token, loadMoreTransactions]);
-
-  const handleWithdraw = useCallback(() => {
-    router.push('/wallet/withdraw');
-  }, []);
-
-  const handleTransactionPress = useCallback((transaction: WalletTransaction) => {
-    if (transaction.type === 'order') {
-      router.push(`/orders/${transaction.order_no}`);
+  const handleLoadMore = () => {
+    if (user?.token) {
+      loadMoreTransactions(user.token);
     }
-  }, []);
+  };
 
-  const handleRebatePress = useCallback(() => {
-    router.push({
-      pathname: '/wallet/rebate',
-      params: { walletType: activeWalletType },
+  const formatBalance = (amount: number) => {
+    if (!balanceVisible) return '****';
+    return amount.toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
     });
-  }, [activeWalletType]);
+  };
 
-  const handleToggleBalanceVisibility = useCallback(() => {
-    setBalanceVisible(prev => !prev);
-  }, []);
+  const quickActions = [
+    {
+      id: 'withdraw',
+      title: 'Withdraw',
+      subtitle: 'Cash out',
+      icon: <ArrowUpRight size={24} color="#FFFFFF" />,
+      gradient: [colors.success, '#0891B2'],
+      route: '/wallet/withdraw',
+    },
+    {
+      id: 'trade',
+      title: 'Trade',
+      subtitle: 'Start trading',
+      icon: <Zap size={24} color="#FFFFFF" />,
+      gradient: [colors.primary, colors.accent],
+      route: '/(tabs)/sell',
+    },
+    {
+      id: 'rebate',
+      title: 'Rewards',
+      subtitle: 'View earnings',
+      icon: <Gift size={24} color="#FFFFFF" />,
+      gradient: [colors.warning, '#EA580C'],
+      route: '/wallet/rebate',
+    },
+    {
+      id: 'payment',
+      title: 'Payment',
+      subtitle: 'Manage methods',
+      icon: <CreditCard size={24} color="#FFFFFF" />,
+      gradient: ['#8B5CF6', '#EC4899'],
+      route: '/wallet/payment-list',
+    },
+  ];
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
-      {/* Enhanced Header */}
-      <View style={headerStyle}>
-        <Text style={titleStyle}>Wallet</Text>
-      </View>
-
-      {/* Wallet Tabs */}
-      <View style={styles.tabsContainer}>
-        <WalletTabs
-          countryCurrencyName={user?.currency_name || 'NGN'}
-          countryCurrencySymbol={user?.currency_symbol || '₦'}
-          activeWalletType={activeWalletType}
-          onWalletTypeChange={handleWalletTypeChange}
-        />
-      </View>
-      {/* Balance Card */}
-      {balanceData && (
-        <View style={styles.balanceContainer}>
-          <WalletBalanceCard
-            balanceData={balanceData}
-            balanceVisible={balanceVisible}
-            onToggleVisibility={handleToggleBalanceVisibility}
-            onRebatePress={handleRebatePress}
-            walletType={activeWalletType}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
-        </View>
-      )}
+        }
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Professional Header */}
+        <LinearGradient
+          colors={[colors.primary, colors.accent]}
+          style={styles.headerGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <View style={styles.header}>
+            <View style={styles.headerContent}>
+              <Text style={styles.headerTitle}>Portfolio Manager</Text>
+              <Text style={styles.headerSubtitle}>Professional Trading Wallet</Text>
+            </View>
+            
+            <TouchableOpacity
+              style={styles.visibilityButton}
+              onPress={() => setBalanceVisible(!balanceVisible)}
+            >
+              {balanceVisible ? (
+                <Eye size={24} color="#FFFFFF" />
+              ) : (
+                <EyeOff size={24} color="#FFFFFF" />
+              )}
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
 
-      {/* Balance Error */}
-      {balanceError && (
-        <View style={errorContainerStyle}>
-          <Text style={errorTextStyle}>
-            ⚠️ {balanceError}
+        {/* Enhanced Balance Card */}
+        <View style={styles.balanceSection}>
+          <LinearGradient
+            colors={['#1E293B', '#334155']}
+            style={styles.balanceCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            {isLoadingBalance ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#FFFFFF" />
+                <Text style={styles.loadingText}>Loading portfolio...</Text>
+              </View>
+            ) : balanceError ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{balanceError}</Text>
+              </View>
+            ) : (
+              <>
+                <View style={styles.balanceHeader}>
+                  <View>
+                    <Text style={styles.balanceLabel}>Total Portfolio Value</Text>
+                    <Text style={styles.balanceAmount}>
+                      {user?.currency_symbol}{formatBalance(walletBalance?.total_amount || 0)}
+                    </Text>
+                    <Text style={styles.balanceUSD}>
+                      ≈ ${walletBalance?.usd_amount || '0.00'} USD
+                    </Text>
+                  </View>
+                  <View style={[styles.portfolioBadge, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
+                    <TrendingUp size={20} color="#10B981" />
+                    <Text style={styles.portfolioGrowth}>+12.5%</Text>
+                  </View>
+                </View>
+
+                <View style={styles.balanceDetails}>
+                  <View style={styles.balanceItem}>
+                    <WalletIcon size={16} color="rgba(255, 255, 255, 0.7)" />
+                    <Text style={styles.balanceItemLabel}>Available</Text>
+                    <Text style={styles.balanceItemValue}>
+                      {user?.currency_symbol}{formatBalance((walletBalance?.total_amount || 0) - (walletBalance?.frozen_amount || 0))}
+                    </Text>
+                  </View>
+                  <View style={styles.balanceItem}>
+                    <Shield size={16} color="rgba(255, 255, 255, 0.7)" />
+                    <Text style={styles.balanceItemLabel}>Frozen</Text>
+                    <Text style={styles.balanceItemValue}>
+                      {user?.currency_symbol}{formatBalance(walletBalance?.frozen_amount || 0)}
+                    </Text>
+                  </View>
+                  <View style={styles.balanceItem}>
+                    <Star size={16} color="rgba(255, 255, 255, 0.7)" />
+                    <Text style={styles.balanceItemLabel}>Rewards</Text>
+                    <Text style={styles.balanceItemValue}>
+                      {user?.currency_symbol}{formatBalance(walletBalance?.rebate_amount || 0)}
+                    </Text>
+                  </View>
+                </View>
+              </>
+            )}
+          </LinearGradient>
+        </View>
+
+        {/* Quick Actions Grid */}
+        <View style={styles.quickActionsSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Quick Actions
           </Text>
+          <View style={styles.quickActionsGrid}>
+            {quickActions.map((action) => (
+              <TouchableOpacity
+                key={action.id}
+                style={styles.quickActionItem}
+                onPress={() => router.push(action.route as any)}
+              >
+                <LinearGradient
+                  colors={action.gradient as [string, string]}
+                  style={styles.quickActionGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <View style={styles.quickActionContent}>
+                    <View style={styles.quickActionIcon}>
+                      {action.icon}
+                    </View>
+                    <Text style={styles.quickActionTitle}>{action.title}</Text>
+                    <Text style={styles.quickActionSubtitle}>{action.subtitle}</Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      )}
 
-      {/* Withdraw Button */}
-      <View style={styles.actionContainer}>
-        <Button
-          title="Withdraw Funds"
-          onPress={handleWithdraw}
-          style={styles.withdrawButton}
-          fullWidth
-        />
-      </View>
+        {/* Wallet Type Selector */}
+        <View style={styles.walletTypeSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Wallet Type
+          </Text>
+          <View style={styles.walletTypeSelector}>
+            <TouchableOpacity
+              style={[
+                styles.walletTypeButton,
+                {
+                  backgroundColor: activeWalletType === '1' ? colors.primary : colors.card,
+                  borderColor: activeWalletType === '1' ? colors.primary : colors.border,
+                },
+              ]}
+              onPress={() => setActiveWalletType('1')}
+            >
+              <Text
+                style={[
+                  styles.walletTypeText,
+                  {
+                    color: activeWalletType === '1' ? '#FFFFFF' : colors.text,
+                  },
+                ]}
+              >
+                {user?.currency_name || 'Local'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.walletTypeButton,
+                {
+                  backgroundColor: activeWalletType === '2' ? colors.primary : colors.card,
+                  borderColor: activeWalletType === '2' ? colors.primary : colors.border,
+                },
+              ]}
+              onPress={() => setActiveWalletType('2')}
+            >
+              <Text
+                style={[
+                  styles.walletTypeText,
+                  {
+                    color: activeWalletType === '2' ? '#FFFFFF' : colors.text,
+                  },
+                ]}
+              >
+                USDT
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
-      {/* Transaction Filters */}
-      <View style={styles.filtersContainer}>
+        {/* Transaction Filters */}
         <TransactionFilters
           activeType={activeTransactionType}
-          onTypeChange={handleTransactionTypeChange}
+          onTypeChange={setActiveTransactionType}
         />
-      </View>
 
-      {/* Transactions Header */}
-      <View style={styles.transactionsHeader}>
-        <Text style={sectionTitleStyle}>
-          Transaction History
-        </Text>
-        <Text style={transactionCountStyle}>
-          {transactionStats.totalCount} transactions
-        </Text>
-      </View>
-      {/* Transaction List */}
-      <View style={styles.transactionListContainer}>
-        <TransactionList
-          transactions={transactions}
-          isLoading={isLoadingTransactions}
-          isLoadingMore={isLoadingMore}
-          error={transactionsError}
-          onLoadMore={handleLoadMore}
-          onRefresh={handleRefresh}
-          onTransactionPress={handleTransactionPress}
-          walletType={activeWalletType}
-        />
-      </View>
+        {/* Transaction List */}
+        <View style={[styles.transactionsSection, { backgroundColor: colors.card }]}>
+          <View style={styles.transactionsHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Recent Transactions
+            </Text>
+            <TouchableOpacity
+              style={[styles.viewAllButton, { backgroundColor: `${colors.primary}15` }]}
+              onPress={() => router.push('/wallet/transactions')}
+            >
+              <Text style={[styles.viewAllText, { color: colors.primary }]}>View All</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TransactionList
+            transactions={transactions}
+            isLoading={isLoadingTransactions}
+            isLoadingMore={isLoadingMore}
+            error={transactionsError}
+            onLoadMore={handleLoadMore}
+            onRefresh={() => user?.token && fetchTransactions(user.token, true)}
+            refreshing={refreshing}
+            limit={10}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaWrapper>
   );
 }
@@ -256,73 +364,228 @@ export default function WalletScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scrollContent: {
+    paddingBottom: Spacing.xxl,
+  },
+  
+  // Header Styles
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxs,
-    borderBottomWidth: 1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  headerContent: {
+    flex: 1,
   },
-  tabsContainer: {
+  headerTitle: {
+    fontSize: 28,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginTop: 4,
+  },
+  visibilityButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Balance Section
+  balanceSection: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    marginTop: -20,
+    marginBottom: Spacing.lg,
   },
-  balanceContainer: {
-    paddingHorizontal: Spacing.lg,
+  balanceCard: {
+    borderRadius: 24,
+    padding: Spacing.xl,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.xl,
+    gap: Spacing.md,
+  },
+  loadingText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
   },
   errorContainer: {
-    marginHorizontal: Spacing.lg,
-    padding: Spacing.md,
-    borderRadius: 12,
-    marginBottom: Spacing.sm,
+    alignItems: 'center',
+    paddingVertical: Spacing.xl,
   },
   errorText: {
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
+    color: '#EF4444',
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
   },
-  actionContainer: {
-    paddingHorizontal: Spacing.lg,
+  balanceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.xl,
+  },
+  balanceLabel: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 8,
+  },
+  balanceAmount: {
+    fontSize: 36,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  balanceUSD: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  portfolioBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
+    borderRadius: 20,
+    gap: Spacing.xs,
   },
-  withdrawButton: {
-    height: 52,
-    borderRadius: 16,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+  portfolioGrowth: {
+    color: '#10B981',
+    fontSize: 14,
+    fontFamily: 'Inter-Bold',
   },
-  filtersContainer: {
+  balanceDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  balanceItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  balanceItemLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  balanceItemValue: {
+    fontSize: 14,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+  },
+
+  // Quick Actions
+  quickActionsSection: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.lg,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  quickActionItem: {
+    width: (width - Spacing.lg * 2 - Spacing.md) / 2,
+    height: 120,
+  },
+  quickActionGradient: {
+    flex: 1,
+    borderRadius: 20,
+    padding: Spacing.lg,
+  },
+  quickActionContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  quickActionIcon: {
+    alignSelf: 'flex-start',
+  },
+  quickActionTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+  },
+  quickActionSubtitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+
+  // Wallet Type Selector
+  walletTypeSection: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  walletTypeSelector: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  walletTypeButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 16,
+    borderWidth: 2,
+    alignItems: 'center',
+  },
+  walletTypeText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+  },
+
+  // Transactions Section
+  transactionsSection: {
+    marginHorizontal: Spacing.lg,
+    borderRadius: 20,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   transactionsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.sm,
+    marginBottom: Spacing.lg,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  viewAllButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: 12,
   },
-  transactionCount: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  transactionListContainer: {
-    flex: 1,
-    paddingHorizontal: Spacing.lg,
+  viewAllText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Bold',
   },
 });

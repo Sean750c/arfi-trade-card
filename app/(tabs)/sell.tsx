@@ -15,8 +15,9 @@ import {
   PanResponder,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, Camera, X, ArrowLeft, Zap, CircleHelp as HelpCircle, Wallet, CircleCheck as CheckCircle, Tag, Upload, Image as ImageIcon, Clock } from 'lucide-react-native';
+import { Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, Camera, X, ArrowLeft, Zap, CircleHelp as HelpCircle, Wallet, CircleCheck as CheckCircle, Tag, Upload, Image as ImageIcon, Clock, Shield, Star } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import AuthGuard from '@/components/UI/AuthGuard';
 import DiscountCodeModal from '@/components/sell/DiscountCodeModal';
 import VIPModal from '@/components/sell/VIPModal';
@@ -70,11 +71,10 @@ function SellScreenContent() {
 
   // Draggable help button state
   const [helpButtonPosition, setHelpButtonPosition] = useState({
-    x: screenWidth - 60,
-    y: screenHeight - 200,
+    x: screenWidth - 80,
+    y: screenHeight - 250,
   });
 
-  // 优化 PanResponder，减少状态更新频率
   const panResponder = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
@@ -82,18 +82,15 @@ function SellScreenContent() {
       // Store initial position
     },
     onPanResponderMove: (evt, gestureState) => {
-      // 使用节流来减少状态更新频率
       const newX = helpButtonPosition.x + gestureState.dx;
       const newY = helpButtonPosition.y + gestureState.dy;
 
-      // Constrain to screen boundaries
-      const buttonSize = 30;
+      const buttonSize = 60;
       const margin = 20;
 
       const constrainedX = Math.max(margin, Math.min(screenWidth - buttonSize - margin, newX));
       const constrainedY = Math.max(margin, Math.min(screenHeight - buttonSize - margin, newY));
 
-      // 只有当位置真正改变时才更新状态
       if (Math.abs(constrainedX - helpButtonPosition.x) > 2 || Math.abs(constrainedY - helpButtonPosition.y) > 2) {
         setHelpButtonPosition({
           x: constrainedX,
@@ -110,7 +107,6 @@ function SellScreenContent() {
   useFocusEffect(
     useCallback(() => {
       if (user?.token) {
-        // 避免重复加载数据
         if (!orderSellDetail) {
           fetchOrderSellDetail(user.token);
         }
@@ -118,13 +114,10 @@ function SellScreenContent() {
     }, [user?.token, orderSellDetail])
   );
 
-  // VIP数据来源
   const vipList = orderSellDetail?.vip || [];
   const vipDetail = orderSellDetail?.vip_detail;
   const currentVipLevel = vipDetail?.level || user?.vip_level || 1;
   const currentVipRate = vipDetail?.rate || '0';
-  const nextVipLevel = vipDetail?.next_level;
-  const nextVipRate = vipDetail?.next_level_rate;
 
   const handleHelpPress = () => {
     setShowSellTipsModal(true);
@@ -136,13 +129,12 @@ function SellScreenContent() {
       return;
     }
 
-    // Web平台使用不同的选择方式
     if (Platform.OS === 'web') {
       openWebImagePicker();
     } else {
       Alert.alert(
-        'Add Card Image',
-        'Choose how to add your card image',
+        'Add Trading Asset',
+        'Choose how to add your trading asset',
         [
           { text: 'Camera', onPress: () => openCamera() },
           { text: 'Gallery', onPress: () => openGallery() },
@@ -234,7 +226,6 @@ function SellScreenContent() {
     setSelectedCards(prev => [...prev, newCard]);
 
     try {
-      // Get upload URL from server
       const uploadUrls = await UploadService.getUploadUrls({
         token: user.token,
         image_count: 1,
@@ -247,7 +238,6 @@ function SellScreenContent() {
       const uploadUrl = uploadUrls[0];
       const imageUrl = uploadUrl.url.split("?")[0];
 
-      // Update card with upload URL
       setSelectedCards(prev =>
         prev.map(card =>
           card.id === newCard.id
@@ -261,13 +251,11 @@ function SellScreenContent() {
         )
       );
 
-      // Upload image to Google Storage
       await UploadService.uploadImageToGoogleStorage(
         uploadUrl.url,
         imageUri,
         (progress) => {
-          // 使用节流来减少进度更新频率
-          const throttledProgress = Math.round(progress * 10) / 10; // 只保留一位小数
+          const throttledProgress = Math.round(progress * 10) / 10;
           setSelectedCards(prev =>
             prev.map(card =>
               card.id === newCard.id
@@ -278,7 +266,6 @@ function SellScreenContent() {
         }
       );
 
-      // Mark as uploaded
       setSelectedCards(prev =>
         prev.map(card =>
           card.id === newCard.id
@@ -322,11 +309,9 @@ function SellScreenContent() {
     if (!card?.localUri) return;
 
     await processSelectedImage(card.localUri);
-    // Remove the failed card
     setSelectedCards(prev => prev.filter(c => c.id !== cardId));
   };
 
-  // 使用 useMemo 缓存表单验证结果
   const isFormValid = useMemo(() => {
     const hasUploadedImages = selectedCards.some(card => card.isUploaded);
     const hasCardInfo = cardInfo.trim() !== '';
@@ -335,7 +320,6 @@ function SellScreenContent() {
     return (hasUploadedImages || hasCardInfo) && noUploadingImages;
   }, [selectedCards, cardInfo]);
 
-  // 使用 useMemo 缓存上传进度统计
   const uploadStats = useMemo(() => {
     const uploadedCount = selectedCards.filter(c => c.isUploaded).length;
     const totalCount = selectedCards.length;
@@ -353,36 +337,32 @@ function SellScreenContent() {
     setIsSubmitting(true);
 
     try {
-      // Get uploaded image object names
       const uploadedImages = selectedCards
         .filter(card => card.isUploaded && card.uploadUrl)
         .map(card => card.uploadUrl!);
 
-      // Create sell order
       const orderResult = await OrderService.sellOrder({
         token: user.token,
         images: uploadedImages,
         user_memo: cardInfo.trim(),
         wallet_type: selectedWallet === 'USDT' ? 2 : 1,
         coupon_code: selectedCoupon?.code || '',
-        channel_type: '1', // Web platform
+        channel_type: '1',
       });
 
-      // Show success message with order details
       Alert.alert(
-        'Order Created Successfully! 🎉',
+        'Trade Executed Successfully! 🎉',
         `Order #${orderResult.order_no.slice(-14)}\n\n` +
-        `${uploadedImages.length} image(s) uploaded\n` +
+        `${uploadedImages.length} asset(s) uploaded\n` +
         `Wallet: ${selectedWallet}\n` +
-        `${selectedCoupon ? `Discount: ${selectedCoupon.code}\n` : ''}` +
-        'Your order is being processed. You will receive a notification once it\'s reviewed.',
+        `${selectedCoupon ? `Promo: ${selectedCoupon.code}\n` : ''}` +
+        'Your trade is being processed. You will receive a notification once it\'s reviewed.',
         [
-          { text: 'View Orders', onPress: () => router.push('/orders') },
+          { text: 'View Trades', onPress: () => router.push('/orders') },
           { text: 'OK', style: 'default' },
         ]
       );
 
-      // Reset form
       setSelectedCards([]);
       setCardInfo('');
       setSelectedCoupon(null);
@@ -390,8 +370,8 @@ function SellScreenContent() {
     } catch (error) {
       console.error('Submit error:', error);
       Alert.alert(
-        'Submission Failed',
-        error instanceof Error ? error.message : 'Failed to create order. Please try again.'
+        'Trade Failed',
+        error instanceof Error ? error.message : 'Failed to execute trade. Please try again.'
       );
     } finally {
       setIsSubmitting(false);
@@ -417,12 +397,10 @@ function SellScreenContent() {
     return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
   };
 
-  // 优化图片预览组件，使用 React.memo 减少重渲染
   const CardPreviewItem = React.memo(({ card }: { card: SelectedCard }) => (
     <View key={card.id} style={styles.cardPreview}>
       <Image source={{ uri: card.localUri }} style={styles.cardPreviewImage} />
 
-      {/* Upload Status Overlay */}
       {card.isUploading && (
         <View style={styles.uploadOverlay}>
           <ActivityIndicator size="small" color="#FFFFFF" />
@@ -432,14 +410,12 @@ function SellScreenContent() {
         </View>
       )}
 
-      {/* Success Indicator */}
       {card.isUploaded && (
         <View style={[styles.statusBadge, { backgroundColor: colors.success }]}>
           <CheckCircle size={12} color="#FFFFFF" />
         </View>
       )}
 
-      {/* Error Indicator */}
       {card.uploadError && (
         <View style={styles.errorOverlay}>
           <Text style={styles.errorText}>Failed</Text>
@@ -452,7 +428,6 @@ function SellScreenContent() {
         </View>
       )}
 
-      {/* Remove Button */}
       <TouchableOpacity
         style={[styles.removeCardButton, { backgroundColor: colors.error }]}
         onPress={() => removeCard(card.id)}
@@ -462,7 +437,6 @@ function SellScreenContent() {
     </View>
   ));
 
-  // 使用 useMemo 缓存图片预览列表
   const cardPreviewList = useMemo(() => {
     return selectedCards.map(card => (
       <CardPreviewItem key={card.id} card={card} />
@@ -475,85 +449,100 @@ function SellScreenContent() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        {/* Professional Header with Gradient */}
+        <LinearGradient
+          colors={[colors.primary, colors.accent]}
+          style={styles.headerGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <ArrowLeft size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            
+            <View style={styles.headerContent}>
+              <Text style={styles.headerTitle}>Professional Trading</Text>
+              <Text style={styles.headerSubtitle}>Secure • Fast • Reliable</Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => Alert.alert('24/7 Support', 'Get instant help from our trading experts')}
+              style={styles.supportButton}
+            >
+              <Phone size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
           removeClippedSubviews={true}
           scrollEventThrottle={16}
         >
-          {/* Compact Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={[styles.returnButton, { backgroundColor: `${colors.primary}15` }]}
-              onPress={() => router.back()}
-            >
-              <ArrowLeft size={20} color={colors.primary} />
-            </TouchableOpacity>
-
-            <View style={styles.headerSpacer} />
-
-            <TouchableOpacity
-              onPress={() => Alert.alert('Contact Us', 'Get help via WhatsApp, Email, or Live Chat.')}
-              style={[styles.contactButton, { backgroundColor: colors.primary }]}
-            >
-              <Phone size={16} color="#FFFFFF" />
-              <Text style={styles.contactText}>Contact</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Card Upload Section */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Card Information</Text>
+          {/* Trading Assets Section */}
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <View style={styles.sectionHeader}>
+              <Shield size={20} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Trading Assets</Text>
+              <View style={[styles.securityBadge, { backgroundColor: `${colors.success}15` }]}>
+                <Text style={[styles.securityText, { color: colors.success }]}>SECURE</Text>
+              </View>
+            </View>
 
             <TextInput
               style={[
-                styles.cardInfoInput,
+                styles.assetInput,
                 {
                   color: colors.text,
-                  backgroundColor: colors.card,
+                  backgroundColor: colors.background,
                   borderColor: colors.border,
                 },
               ]}
-              placeholder="Enter card details, codes, or any additional information..."
+              placeholder="Enter asset details, codes, or additional information..."
               placeholderTextColor={colors.textSecondary}
               value={cardInfo}
               onChangeText={setCardInfo}
               multiline
-              numberOfLines={2}
+              numberOfLines={3}
               textAlignVertical="top"
             />
 
-            <TouchableOpacity
-              style={[
-                styles.uploadButton,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                },
-              ]}
-              onPress={addCardImage}
+            <LinearGradient
+              colors={[`${colors.primary}10`, `${colors.accent}10`]}
+              style={styles.uploadArea}
             >
-              <Upload size={24} color={colors.primary} />
-              <Text style={[styles.uploadButtonText, { color: colors.primary }]}>
-                {Platform.OS === 'web' ? 'Upload Trading Assets (Max 10)' : 'Add Trading Assets (Max 10)'}
-              </Text>
-              <Text style={[styles.uploadButtonSubtext, { color: colors.textSecondary }]}>
-                {Platform.OS === 'web'
-                  ? (isSubmitting ? 'Processing trade...' : 'Select high-quality images for verification')
-                  : (isSubmitting ? 'Processing trade...' : 'Professional trading platform')}
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={addCardImage}
+              >
+                <View style={[styles.uploadIcon, { backgroundColor: colors.primary }]}>
+                  <Upload size={28} color="#FFFFFF" />
+                </View>
+                <Text style={[styles.uploadTitle, { color: colors.text }]}>
+                  Upload Trading Assets
+                </Text>
+                <Text style={[styles.uploadSubtitle, { color: colors.textSecondary }]}>
+                  {Platform.OS === 'web'
+                    ? 'Select high-quality images for verification'
+                    : 'Professional trading platform - Max 10 assets'}
+                </Text>
+              </TouchableOpacity>
+            </LinearGradient>
 
-            {/* Card Previews */}
             {selectedCards.length > 0 && (
-              <View style={styles.cardPreviewContainer}>
-                <View style={styles.cardPreviewHeader}>
-                  <ImageIcon size={16} color={colors.primary} />
-                  <Text style={[styles.cardPreviewTitle, { color: colors.text }]}>
-                    Uploaded Images ({uploadStats.uploadedCount}/{uploadStats.totalCount})
+              <View style={styles.assetsPreview}>
+                <View style={styles.previewHeader}>
+                  <ImageIcon size={18} color={colors.primary} />
+                  <Text style={[styles.previewTitle, { color: colors.text }]}>
+                    Uploaded Assets ({uploadStats.uploadedCount}/{uploadStats.totalCount})
                   </Text>
                 </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardPreviewScroll}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.previewScroll}>
                   {cardPreviewList}
                 </ScrollView>
               </View>
@@ -561,164 +550,199 @@ function SellScreenContent() {
           </View>
 
           {/* Wallet Selection */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Select Wallet</Text>
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <View style={styles.sectionHeader}>
+              <Wallet size={20} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Payment Method</Text>
+            </View>
 
             <View style={styles.walletGrid}>
               <TouchableOpacity
                 style={[
-                  styles.walletOption,
+                  styles.walletCard,
                   {
-                    backgroundColor: selectedWallet === currencyName ? colors.primary : colors.card,
+                    backgroundColor: selectedWallet === currencyName ? colors.primary : colors.background,
                     borderColor: selectedWallet === currencyName ? colors.primary : colors.border,
                   },
                 ]}
                 onPress={() => setSelectedWallet(currencyName)}
               >
-                <View style={[styles.walletIcon, { backgroundColor: selectedWallet === currencyName ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
-                  <Text style={[styles.walletIconText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.primary }]}>{user?.currency_symbol}</Text>
-                </View>
-                <View style={styles.walletTextContainer}>
-                  <Text style={[styles.walletText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.text }]}>
-                    {user?.currency_name}
+                <LinearGradient
+                  colors={selectedWallet === currencyName ? ['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)'] : [`${colors.primary}15`, `${colors.primary}05`]}
+                  style={styles.walletIconContainer}
+                >
+                  <Text style={[styles.walletSymbol, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.primary }]}>
+                    {user?.currency_symbol}
                   </Text>
-                  <Text style={[styles.walletSubtext, { color: selectedWallet === currencyName ? 'rgba(255,255,255,0.8)' : colors.textSecondary }]}>
-                    Local Currency
-                  </Text>
-                </View>
+                </LinearGradient>
+                <Text style={[styles.walletName, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.text }]}>
+                  {user?.currency_name}
+                </Text>
+                <Text style={[styles.walletType, { color: selectedWallet === currencyName ? 'rgba(255,255,255,0.8)' : colors.textSecondary }]}>
+                  Local Currency
+                </Text>
                 {selectedWallet === currencyName && (
-                  <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
+                  <CheckCircle size={20} color="#FFFFFF" style={styles.selectedBadge} />
                 )}
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
-                  styles.walletOption,
+                  styles.walletCard,
                   {
-                    backgroundColor: selectedWallet === 'USDT' ? colors.primary : colors.card,
+                    backgroundColor: selectedWallet === 'USDT' ? colors.primary : colors.background,
                     borderColor: selectedWallet === 'USDT' ? colors.primary : colors.border,
                   },
                 ]}
                 onPress={() => setSelectedWallet('USDT')}
               >
-                <View style={[styles.walletIcon, { backgroundColor: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
-                  <Text style={[styles.walletIconText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.primary }]}>₮</Text>
-                </View>
-                <View style={styles.walletTextContainer}>
-                  <Text style={[styles.walletText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }]}>
-                    USDT
+                <LinearGradient
+                  colors={selectedWallet === 'USDT' ? ['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)'] : [`${colors.primary}15`, `${colors.primary}05`]}
+                  style={styles.walletIconContainer}
+                >
+                  <Text style={[styles.walletSymbol, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.primary }]}>
+                    ₮
                   </Text>
-                  <Text style={[styles.walletSubtext, { color: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.8)' : colors.textSecondary }]}>
-                    Stablecoin
-                  </Text>
-                </View>
+                </LinearGradient>
+                <Text style={[styles.walletName, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }]}>
+                  USDT
+                </Text>
+                <Text style={[styles.walletType, { color: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.8)' : colors.textSecondary }]}>
+                  Stablecoin
+                </Text>
                 {selectedWallet === 'USDT' && (
-                  <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
+                  <CheckCircle size={20} color="#FFFFFF" style={styles.selectedBadge} />
                 )}
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Discount Code Section */}
+          {/* Promo Code Section */}
           <TouchableOpacity
-            style={[styles.section, styles.discountSection, { backgroundColor: colors.card }]}
+            style={[styles.promoSection, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => setShowCouponModal(true)}
           >
-            <View style={styles.discountContent}>
-              <Tag size={20} color={colors.accent} />
-              <View style={styles.discountTextContainer}>
-                <Text style={[styles.discountText, { color: colors.text }]}>
+            <LinearGradient
+              colors={[`${colors.accent}15`, `${colors.primary}15`]}
+              style={styles.promoGradient}
+            >
+              <Tag size={24} color={colors.accent} />
+              <View style={styles.promoContent}>
+                <Text style={[styles.promoTitle, { color: colors.text }]}>
                   {selectedCoupon ? formatCouponDisplay(selectedCoupon) : 'Apply Promo Code'}
                 </Text>
                 {selectedCoupon && (
-                  <Text style={[styles.discountDescription, { color: colors.textSecondary }]}>
+                  <Text style={[styles.promoExpiry, { color: colors.textSecondary }]}>
                     Expires: {new Date(selectedCoupon.valid_end_time * 1000).toLocaleDateString()}
                   </Text>
                 )}
               </View>
-            </View>
-            <ChevronDown size={20} color={colors.textSecondary} />
+              <ChevronRight size={20} color={colors.textSecondary} />
+            </LinearGradient>
           </TouchableOpacity>
 
-          {/* VIP & Activity Section */}
-          <View style={styles.section}>
-            <TouchableOpacity
-              style={[styles.featureButton, { backgroundColor: colors.primary }]}
-              onPress={() => setShowVIPModal(true)}
-            >
-              <Crown size={20} color="#FFD700" />
-              <View style={styles.featureTextContainer}>
-                <Text style={styles.featureTitle}>VIP{currentVipLevel} Premium Benefits</Text>
-                <Text style={styles.featureSubtitle}>+{currentVipRate}% Trading Bonus</Text>
-              </View>
-              <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
-            </TouchableOpacity>
+          {/* Premium Features */}
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <View style={styles.sectionHeader}>
+              <Star size={20} color={colors.warning} />
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Premium Benefits</Text>
+            </View>
 
-            <TouchableOpacity
-              style={[styles.featureButton, { backgroundColor: '#1E40AF' }]}
-              onPress={() => setShowActivityModal(true)}
+            <LinearGradient
+              colors={[colors.primary, colors.accent]}
+              style={styles.premiumCard}
             >
-              <Trophy size={20} color="#FFFFFF" />
-              <View style={styles.featureTextContainer}>
-                <Text style={styles.featureTitle}>Rewards Program</Text>
-                <Text style={styles.featureSubtitle}>Earn up to 2% rewards</Text>
-              </View>
-              <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
-            </TouchableOpacity>
-
-            {/* Overdue Compensation */}
-            {orderSellDetail?.overdue_max_percent && (
               <TouchableOpacity
-                style={[styles.featureButton, { backgroundColor: '#DC2626' }]}
-                onPress={() => setShowOverdueModal(true)}
+                style={styles.premiumButton}
+                onPress={() => setShowVIPModal(true)}
               >
-                <Clock size={20} color="#FFFFFF" />
-                <View style={styles.featureTextContainer}>
-                  <Text style={styles.featureTitle}>Processing Guarantee</Text>
-                  <Text style={styles.featureSubtitle}>Up to {orderSellDetail.overdue_max_percent}% max payout</Text>
+                <Crown size={24} color="#FFD700" />
+                <View style={styles.premiumContent}>
+                  <Text style={styles.premiumTitle}>VIP{currentVipLevel} Elite Status</Text>
+                  <Text style={styles.premiumSubtitle}>+{currentVipRate}% Premium Bonus</Text>
                 </View>
-                <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
+                <ChevronRight size={20} color="rgba(255, 255, 255, 0.8)" />
               </TouchableOpacity>
+            </LinearGradient>
+
+            <LinearGradient
+              colors={['#059669', '#0891B2']}
+              style={styles.premiumCard}
+            >
+              <TouchableOpacity
+                style={styles.premiumButton}
+                onPress={() => setShowActivityModal(true)}
+              >
+                <Trophy size={24} color="#FFFFFF" />
+                <View style={styles.premiumContent}>
+                  <Text style={styles.premiumTitle}>Rewards Program</Text>
+                  <Text style={styles.premiumSubtitle}>Earn up to 3% cashback</Text>
+                </View>
+                <ChevronRight size={20} color="rgba(255, 255, 255, 0.8)" />
+              </TouchableOpacity>
+            </LinearGradient>
+
+            {orderSellDetail?.overdue_max_percent && (
+              <LinearGradient
+                colors={['#DC2626', '#EF4444']}
+                style={styles.premiumCard}
+              >
+                <TouchableOpacity
+                  style={styles.premiumButton}
+                  onPress={() => setShowOverdueModal(true)}
+                >
+                  <Clock size={24} color="#FFFFFF" />
+                  <View style={styles.premiumContent}>
+                    <Text style={styles.premiumTitle}>Processing Guarantee</Text>
+                    <Text style={styles.premiumSubtitle}>Up to {orderSellDetail.overdue_max_percent}% compensation</Text>
+                  </View>
+                  <ChevronRight size={20} color="rgba(255, 255, 255, 0.8)" />
+                </TouchableOpacity>
+              </LinearGradient>
             )}
           </View>
         </ScrollView>
 
-        {/* Bottom Action Buttons */}
-        <View style={styles.bottomActions}>
-          <TouchableOpacity
-            style={[styles.calculatorButton, { backgroundColor: colors.secondary, borderColor: colors.primary }]}
-            onPress={() => router.push('/calculator' as any)}
-          >
-            <Calculator size={20} color={colors.primary} />
-            <Text style={[styles.calculatorText, { color: colors.primary }]}>Calculator</Text>
-          </TouchableOpacity>
+        {/* Bottom Trading Panel */}
+        <LinearGradient
+          colors={[colors.card, colors.background]}
+          style={styles.bottomPanel}
+        >
+          <View style={styles.tradingActions}>
+            <TouchableOpacity
+              style={[styles.calculatorBtn, { backgroundColor: colors.background, borderColor: colors.primary }]}
+              onPress={() => router.push('/calculator' as any)}
+            >
+              <Calculator size={22} color={colors.primary} />
+              <Text style={[styles.calculatorText, { color: colors.primary }]}>Calculator</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.sellButton,
-              {
-                backgroundColor: isFormValid && !isSubmitting ? colors.primary : colors.border,
-                opacity: isSubmitting ? 0.7 : 1,
-              }
-            ]}
-            onPress={handleSubmit}
-            disabled={!isFormValid || isSubmitting}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator size={20} color="#FFFFFF" />
-            ) : (
-              <Zap size={20} color="#FFFFFF" />
-            )}
-            <Text style={styles.sellText}>
-              {isSubmitting ? 'Processing Trade...' : 'Execute Trade'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+            <LinearGradient
+              colors={isFormValid && !isSubmitting ? [colors.primary, colors.accent] : [colors.border, colors.border]}
+              style={styles.executeGradient}
+            >
+              <TouchableOpacity
+                style={styles.executeButton}
+                onPress={handleSubmit}
+                disabled={!isFormValid || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator size={24} color="#FFFFFF" />
+                ) : (
+                  <Zap size={24} color="#FFFFFF" />
+                )}
+                <Text style={styles.executeText}>
+                  {isSubmitting ? 'Processing Trade...' : 'Execute Trade'}
+                </Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
+        </LinearGradient>
 
-        {/* Floating Help Button */}
+        {/* Floating Help Assistant */}
         <View
           style={[
-            styles.helpButtonContainer,
+            styles.helpFloat,
             {
               left: helpButtonPosition.x,
               top: helpButtonPosition.y,
@@ -726,12 +750,17 @@ function SellScreenContent() {
           ]}
           {...panResponder.panHandlers}
         >
-          <TouchableOpacity
-            style={[styles.helpButton, { backgroundColor: '#25D366' }]}
-            onPress={handleHelpPress}
+          <LinearGradient
+            colors={['#25D366', '#128C7E']}
+            style={styles.helpGradient}
           >
-            <HelpCircle size={20} color="#FFFFFF" />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.helpButton}
+              onPress={handleHelpPress}
+            >
+              <HelpCircle size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </LinearGradient>
         </View>
 
         {/* Modals */}
@@ -780,7 +809,7 @@ function SellScreenContent() {
           <HtmlRenderer
             visible={showSellTipsModal}
             onClose={() => setShowSellTipsModal(false)}
-            title="Card Selling Guide"
+            title="Professional Trading Guide"
             htmlContent={
               isLoadingOrderSellDetail
                 ? '<p>Loading...</p>'
@@ -802,105 +831,145 @@ export default function SellScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  // Header Styles
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  headerContent: {
     flex: 1,
   },
-  scrollContent: {
-    padding: Spacing.lg,
-    paddingBottom: 120,
+  headerTitle: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginTop: 2,
+  },
+  supportButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  // Header
-  header: {
+  // Content Styles
+  scrollContent: {
+    padding: Spacing.lg,
+    paddingBottom: 140,
+  },
+  section: {
+    borderRadius: 20,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.lg,
   },
-  returnButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerSpacer: {
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    marginLeft: Spacing.sm,
     flex: 1,
   },
-  contactButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 18,
-    gap: Spacing.xs,
-  },
-  contactText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-
-  // Sections
-  section: {
-    marginBottom: Spacing.sm,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: Spacing.md,
-  },
-
-  // Card Upload
-  cardInfoInput: {
-    borderWidth: 1,
+  securityBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
     borderRadius: 12,
-    padding: Spacing.md,
+  },
+  securityText: {
+    fontSize: 10,
+    fontFamily: 'Inter-Bold',
+  },
+
+  // Asset Input Styles
+  assetInput: {
+    borderWidth: 2,
+    borderRadius: 16,
+    padding: Spacing.lg,
     fontSize: 16,
-    fontWeight: 'normal',
-    minHeight: 60,
-    marginBottom: Spacing.md,
+    fontFamily: 'Inter-Regular',
+    minHeight: 80,
+    marginBottom: Spacing.lg,
+  },
+  uploadArea: {
+    borderRadius: 16,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   uploadButton: {
-    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 80,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    gap: Spacing.xs,
+    minHeight: 100,
+  },
+  uploadIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: Spacing.md,
   },
-  uploadButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
+  uploadTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.xs,
   },
-  uploadButtonSubtext: {
-    fontSize: 12,
+  uploadSubtitle: {
+    fontSize: 14,
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
   },
-  cardPreviewContainer: {
-    marginTop: Spacing.sm,
+
+  // Assets Preview
+  assetsPreview: {
+    marginTop: Spacing.md,
   },
-  cardPreviewHeader: {
+  previewHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
-  cardPreviewTitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+  previewTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    marginLeft: Spacing.sm,
   },
-  cardPreviewScroll: {
+  previewScroll: {
     marginTop: Spacing.sm,
   },
   cardPreview: {
-    width: 80,
-    height: 60,
-    marginRight: Spacing.sm,
-    borderRadius: 8,
+    width: 90,
+    height: 70,
+    marginRight: Spacing.md,
+    borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -921,16 +990,16 @@ const styles = StyleSheet.create({
   },
   uploadProgressText: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: 'Inter-Bold',
   },
   statusBadge: {
     position: 'absolute',
-    top: 4,
-    left: 4,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    top: 6,
+    left: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -952,22 +1021,22 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   retryText: {
     color: '#FFFFFF',
-    fontSize: 8,
+    fontSize: 10,
     fontFamily: 'Inter-Medium',
   },
   removeCardButton: {
     position: 'absolute',
-    top: -5,
-    right: -5,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    top: -6,
+    right: -6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -977,164 +1046,164 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.md,
   },
-  walletOption: {
+  walletCard: {
     flex: 1,
-    padding: Spacing.md,
-    borderRadius: 12,
+    padding: Spacing.lg,
+    borderRadius: 16,
     borderWidth: 2,
     alignItems: 'center',
     position: 'relative',
-    minHeight: 100,
+    minHeight: 120,
   },
-  walletIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  walletIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
-  walletIconText: {
-    fontSize: 20,
+  walletSymbol: {
+    fontSize: 24,
     fontFamily: 'Inter-Bold',
   },
-  walletText: {
-    fontSize: 14,
+  walletName: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+    marginBottom: 4,
+  },
+  walletType: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
+  selectedBadge: {
+    position: 'absolute',
+    top: Spacing.md,
+    right: Spacing.md,
+  },
+
+  // Promo Section
+  promoSection: {
+    borderRadius: 16,
+    borderWidth: 2,
+    marginBottom: Spacing.lg,
+    overflow: 'hidden',
+  },
+  promoGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  promoContent: {
+    flex: 1,
+    marginLeft: Spacing.md,
+  },
+  promoTitle: {
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },
-  walletTextContainer: {
-    alignItems: 'center',
-  },
-  walletSubtext: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    marginTop: 2,
-  },
-  selectedIcon: {
-    position: 'absolute',
-    top: Spacing.sm,
-    right: Spacing.sm,
-  },
-
-  // Discount Section
-  discountSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    justifyContent: 'space-between',
-    padding: Spacing.md,
-    borderRadius: 12,
-  },
-  discountContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: Spacing.sm,
-  },
-  discountTextContainer: {
-    flex: 1,
-  },
-  discountText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-  },
-  discountDescription: {
+  promoExpiry: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     marginTop: 2,
   },
 
-  // Feature Buttons
-  featureButton: {
+  // Premium Features
+  premiumCard: {
+    borderRadius: 16,
+    marginBottom: Spacing.md,
+    overflow: 'hidden',
+  },
+  premiumButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Spacing.md,
-    borderRadius: 12,
-    marginBottom: Spacing.sm,
+    padding: Spacing.lg,
   },
-  featureTextContainer: {
+  premiumContent: {
     flex: 1,
-    marginLeft: Spacing.sm,
+    marginLeft: Spacing.md,
   },
-  featureTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-  },
-  featureSubtitle: {
+  premiumTitle: {
     color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Inter-Bold',
+  },
+  premiumSubtitle: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
     marginTop: 2,
   },
 
-  // Bottom Actions
-  bottomActions: {
+  // Bottom Panel
+  bottomPanel: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    padding: Spacing.lg,
-    gap: Spacing.md,
-    backgroundColor: 'transparent',
+    paddingTop: Spacing.lg,
+    paddingBottom: Platform.OS === 'ios' ? 34 : Spacing.lg,
+    paddingHorizontal: Spacing.lg,
   },
-  calculatorButton: {
+  tradingActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  calculatorBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.lg,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 2,
     gap: Spacing.sm,
-    flex: 0.4,
+    flex: 0.35,
   },
   calculatorText: {
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: 'Inter-Bold',
   },
-  sellButton: {
+  executeGradient: {
+    flex: 0.65,
+    borderRadius: 16,
+  },
+  executeButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: 12,
+    paddingVertical: Spacing.lg,
     gap: Spacing.sm,
-    flex: 0.6,
+  },
+  executeText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+  },
+
+  // Help Float
+  helpFloat: {
+    position: 'absolute',
+    zIndex: 1000,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  helpGradient: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
-  sellText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-  },
-
-  // Help Button
   helpButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  helpButtonContainer: {
-    position: 'absolute',
-    zIndex: 1000,
-    width: 30,
-    height: 30,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
   },
 });
