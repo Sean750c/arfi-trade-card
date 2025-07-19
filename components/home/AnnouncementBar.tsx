@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
         position: 'relative',
         overflow: 'hidden',
         paddingHorizontal: Spacing.xs,
-        backgroundColor: '#FFFBEA', // 默认亮黄，运行时可被覆盖
+        backgroundColor: '#EFF6FF', // Light blue background
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginRight: Spacing.xs,
         zIndex: 2,
-        backgroundColor: 'rgba(255, 215, 0, 0.18)',
+        backgroundColor: 'rgba(37, 99, 235, 0.15)',
     },
     textContainer: {
         flex: 1,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     },
     text: {
         fontSize: 14,
-        color: '#B8860B',
+        color: '#1E40AF',
         fontWeight: '500',
         letterSpacing: 0.2,
         ...(

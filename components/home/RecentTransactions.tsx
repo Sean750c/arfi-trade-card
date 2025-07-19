@@ -146,7 +146,7 @@ export default function RecentTransactions() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Trades</Text>
         <TouchableOpacity
           style={styles.viewAllButton}
           onPress={() => router.push('/orders')}
@@ -160,7 +160,7 @@ export default function RecentTransactions() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading recent transactions...
+            Loading recent trades...
           </Text>
         </View>
       ) : recentOrders.length > 0 ? (
@@ -171,16 +171,16 @@ export default function RecentTransactions() {
         <View style={[styles.emptyContainer, { backgroundColor: colors.card }]}>
           <Gift size={48} color={colors.textSecondary} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>
-            No Recent Transactions
+            No Recent Trades
           </Text>
           <Text style={[styles.emptyMessage, { color: colors.textSecondary }]}>
-            Start trading gift cards to see your transaction here
+            Start trading gift cards to see your trades here
           </Text>
           <TouchableOpacity
             style={[styles.startTradingButton, { backgroundColor: colors.primary }]}
             onPress={() => router.push('/(tabs)/sell')}
           >
-            <Text style={styles.startTradingText}>Start Trading</Text>
+            <Text style={styles.startTradingText}>Start Trading Now</Text>
           </TouchableOpacity>
         </View>
       )}

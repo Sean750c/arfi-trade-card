@@ -129,7 +129,7 @@ function ReferScreenContent() {
           <ChevronLeft size={28} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.bannerTitle}>Refer & Earn</Text>
-        <Text style={styles.bannerSubtitle}>Invite friends and earn rewards together!</Text>
+        <Text style={styles.bannerSubtitle}>Invite friends to join our secure trading platform!</Text>
       </LinearGradient>
       {/* Stats Card */}
       <View style={styles.statsCardShadow}>

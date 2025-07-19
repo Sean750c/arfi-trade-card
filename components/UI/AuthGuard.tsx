@@ -45,7 +45,7 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
           </Text>
           
           <Text style={[styles.message, { color: colors.textSecondary }]}>
-            You need to be logged in to access this feature. Please login or create an account to continue.
+            Please sign in to access secure trading features. Create an account or login to continue.
           </Text>
           
           <View style={styles.buttonContainer}>

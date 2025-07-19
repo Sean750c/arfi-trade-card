@@ -35,7 +35,7 @@ export default function VIPModal({ visible, onClose, vipList, vipDetail }: VIPMo
           <View style={styles.modalHeader}>
             <View style={styles.titleContainer}>
               <Crown size={24} color={colors.primary} />
-              <Text style={[styles.modalTitle, { color: colors.text }]}>VIP Exchange Rate Benefits</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>VIP Trading Benefits</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={24} color={colors.text} />

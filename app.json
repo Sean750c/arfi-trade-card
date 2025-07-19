@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "AfriTrade",
-    "slug": "afritrade",
+    "name": "CardExchange",
+    "slug": "cardexchange",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bsdb.afritrade"
+      "bundleIdentifier": "com.cardexchange.mobile"
     },
     "web": {
       "bundler": "metro",
@@ -43,7 +43,7 @@
     },
     "android": {
       "proguard": true,
-      "package": "com.bsdb.afritrade",
+      "package": "com.cardexchange.mobile",
       "enableProguardInReleaseBuilds": true,
       "enableShrinkResourcesInReleaseBuilds": true
     },

@@ -83,7 +83,7 @@ export default function PromoBanner() {
       <View style={[styles.container, styles.loadingContainer]}>
         <View style={[styles.loadingBanner, { backgroundColor: colors.border }]}>
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading banners...
+            Loading promotions...
           </Text>
         </View>
       </View>

@@ -21,20 +21,20 @@ const { width } = Dimensions.get('window');
 const slides = [
   {
     id: '1',
-    title: 'Welcome to AfriTrade',
-    description: 'Your trusted platform for trading gift cards at the best rates in Africa',
+    title: 'Welcome to CardExchange',
+    description: 'Your trusted platform for secure gift card trading with competitive rates',
     image: 'https://images.pexels.com/photos/7821487/pexels-photo-7821487.jpeg',
   },
   {
     id: '2',
-    title: 'Best Rates Guaranteed',
-    description: 'Get competitive rates for your gift cards with our real-time rate updates',
+    title: 'Secure Trading',
+    description: 'Trade with confidence using our secure platform and verified transactions',
     image: 'https://images.pexels.com/photos/7821488/pexels-photo-7821488.jpeg',
   },
   {
     id: '3',
-    title: 'Secure Transactions',
-    description: 'Trade with confidence using our secure and reliable platform',
+    title: 'Instant Payments',
+    description: 'Get paid quickly with our fast processing and reliable payment system',
     image: 'https://images.pexels.com/photos/7821490/pexels-photo-7821490.jpeg',
   },
 ];

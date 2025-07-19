@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { router } from 'expo-router';
-import { Gift, TrendingUp, Users, CreditCard, Zap, Star } from 'lucide-react-native';
+import { Gift, TrendingUp, Users, CreditCard, Zap, Star, Shield } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
@@ -51,26 +51,26 @@ export default function QuickActions() {
   const actions: QuickActionItem[] = [
     {
       id: '1',
-      title: 'Sell Cards',
-      subtitle: 'Trade instantly',
+      title: 'Trade Cards',
+      subtitle: 'Sell securely',
       icon: <Gift size={28} color="#FFFFFF" />,
       route: '/(tabs)/sell',
-      color: '#0066CC', // Bright blue for prominence
+      color: '#2563EB', // Professional blue
       isPrimary: true,
-      badge: 'HOT',
+      badge: 'SECURE',
     },
     {
       id: '2',
-      title: 'Live Rates',
-      subtitle: 'Current prices',
+      title: 'Current Rates',
+      subtitle: 'Live pricing',
       icon: <TrendingUp size={24} color="#FFFFFF" />,
       route: '/rates',
       color: '#10B981',
     },
     {
       id: '3',
-      title: 'Refer & Earn',
-      subtitle: 'Get rewards',
+      title: 'Invite Friends',
+      subtitle: 'Earn rewards',
       icon: <Users size={24} color="#FFFFFF" />,
       route: '/refer',
       color: '#8B5CF6',
@@ -78,7 +78,7 @@ export default function QuickActions() {
     {
       id: '4',
       title: 'My Wallet',
-      subtitle: 'Manage funds',
+      subtitle: 'Secure funds',
       icon: <CreditCard size={24} color="#FFFFFF" />,
       route: '/(tabs)/wallet',
       color: '#F59E0B',
@@ -105,11 +105,11 @@ export default function QuickActions() {
         activeOpacity={0.8}
         accessibilityLabel={`${action.title} - ${action.subtitle}`}
         accessibilityRole="button"
-        accessibilityHint="Tap to sell your gift cards instantly"
+        accessibilityHint="Tap to trade your gift cards securely"
       >
         {action.badge && (
-          <View style={[styles.badge, { backgroundColor: '#FF4444' }]}>
-            <Star size={12} color="#FFFFFF" fill="#FFFFFF" />
+          <View style={[styles.badge, { backgroundColor: '#10B981' }]}>
+            <Shield size={12} color="#FFFFFF" fill="#FFFFFF" />
             <Text style={styles.badgeText}>{action.badge}</Text>
           </View>
         )}
@@ -160,14 +160,14 @@ export default function QuickActions() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Trading Hub</Text>
         <TouchableOpacity style={styles.viewAllButton}>
-          <Zap size={16} color={colors.primary} />
-          <Text style={[styles.viewAllText, { color: colors.primary }]}>Fast Trade</Text>
+          <Shield size={16} color={colors.primary} />
+          <Text style={[styles.viewAllText, { color: colors.primary }]}>Secure Trade</Text>
         </TouchableOpacity>
       </View>
       
-      {/* Primary Action - Sell Cards */}
+      {/* Primary Action - Trade Cards */}
       {primaryAction && renderPrimaryAction(primaryAction)}
       
       {/* Divider */}
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
   },
   
-  // Primary Action Styles (Sell Cards)
+  // Primary Action Styles (Trade Cards)
   primaryActionContainer: {
     marginBottom: Spacing.sm, // Reduced spacing
   },

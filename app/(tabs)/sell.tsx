@@ -540,7 +540,7 @@ function SellScreenContent() {
               <Text style={[styles.uploadButtonSubtext, { color: colors.textSecondary }]}>
                 {Platform.OS === 'web' 
                   ? 'Click to select images from your device' 
-                  : 'Images will be uploaded to secure cloud storage'
+                {isSubmitting ? 'Processing...' : 'Trade Cards'}
                 }
               </Text>
             </TouchableOpacity>

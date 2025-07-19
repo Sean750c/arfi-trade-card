@@ -119,7 +119,7 @@ export default function ActivityModal({
             <View style={styles.titleContainer}>
               <Trophy size={24} color={colors.primary} />
               <Text style={[styles.modalTitle, { color: colors.text }]}>
-                Activity Rebate Program
+               Trading Rewards Program
               </Text>
             </View>
             <TouchableOpacity onPress={onClose}>

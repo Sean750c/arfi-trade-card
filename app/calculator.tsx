@@ -137,7 +137,7 @@ export default function CalculatorScreen() {
             <ChevronLeft size={24} color={colors.text} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={[styles.title, { color: colors.text }]}>Rate Calculator</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Trading Calculator</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               Calculate your earnings instantly
             </Text>

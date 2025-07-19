@@ -38,7 +38,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="sell"
         options={{
-          title: 'Sell Card',
+          title: 'Trade',
           tabBarIcon: ({ color, size }) => <Gift size={size} color={color} />,
         }}
       />

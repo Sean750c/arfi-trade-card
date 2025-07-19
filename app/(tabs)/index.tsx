@@ -146,10 +146,10 @@ export default function HomeScreen() {
             {!isAuthenticated && (
               <View style={styles.guestWelcome}>
                 <Text style={[styles.guestTitle, { color: colors.text }]}>
-                  Welcome to AfriTrade
+                  Welcome to CardExchange
                 </Text>
                 <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>
-                  Trade gift cards at the best rates
+                  Secure gift card trading platform
                 </Text>
               </View>
             )}
