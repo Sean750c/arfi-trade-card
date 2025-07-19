@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import {
-  UserCircle,
   View,
   Text,
   StyleSheet,
@@ -13,8 +12,8 @@ import {
   TextInput,
 } from 'react-native';
 import { router } from 'expo-router';
-import { User, Settings, CreditCard, Shield, CircleHelp as HelpCircle, FileText, LogOut, Crown, Gift, Users, ChevronRight, X, MessageSquare } from 'lucide-react-native';
-import { CircleUser as UserCircle, Settings, Bell, CircleHelp as HelpCircle, LogOut, ChevronRight, Shield, CreditCard, Users, MessageSquare, Award, Zap, Star } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { CircleUser as UserCircle, Settings, Camera, Check, X, Edit3, Receipt, CircleHelp as HelpCircle, LogOut, ChevronRight, LogIn, CreditCard, Users, User, Tag, ShieldCheck, Star } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import Button from '@/components/UI/Button';

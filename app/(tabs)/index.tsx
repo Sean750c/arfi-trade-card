@@ -218,7 +218,7 @@ export default function HomeScreen() {
                 onPress={() => router.push(action.route as any)}
               >
                 <LinearGradient
-                  colors={action.gradient}
+                  colors={action.gradient as [string, string]}
                   style={styles.quickActionGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
