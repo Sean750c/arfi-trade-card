@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, TrendingUp, BarChart3, PieChart, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react-native';
+import { ChevronLeft, TrendingUp, ChartBar as BarChart3, ChartPie as PieChart, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useCountryStore } from '@/stores/useCountryStore';

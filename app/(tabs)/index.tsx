@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, TrendingUp, Eye, EyeOff, RefreshCw, Zap, Shield, Award, BarChart3 } from 'lucide-react-native';
+import { Bell, TrendingUp, Eye, EyeOff, RefreshCw, Zap, Shield, Award, ChartBar as BarChart3 } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
