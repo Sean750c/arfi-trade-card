@@ -11,18 +11,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  ArrowLeft, 
-  Wallet, 
-  CreditCard, 
-  Shield, 
-  Clock, 
-  AlertTriangle,
-  CheckCircle,
-  DollarSign,
-  Lock,
-  Zap
-} from 'lucide-react-native';
+import { ArrowLeft, Wallet, CreditCard, Shield, Clock, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, DollarSign, Lock, Zap } from 'lucide-react-native';
 import Header from '@/components/UI/Header';
 import Button from '@/components/UI/Button';
 import Input from '@/components/UI/Input';

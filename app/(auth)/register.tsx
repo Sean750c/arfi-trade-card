@@ -12,20 +12,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  Eye, 
-  EyeOff, 
-  User, 
-  Mail, 
-  Lock, 
-  Phone, 
-  Globe,
-  Zap,
-  Shield,
-  Award,
-  CheckCircle,
-  ArrowLeft
-} from 'lucide-react-native';
+import { Eye, EyeOff, User, Mail, Lock, Phone, Globe, Zap, Shield, Award, CircleCheck as CheckCircle, ArrowLeft } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';

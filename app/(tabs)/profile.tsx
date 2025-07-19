@@ -12,31 +12,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  User,
-  Settings,
-  Shield,
-  CreditCard,
-  Bell,
-  HelpCircle,
-  LogOut,
-  ChevronRight,
-  Edit3,
-  Star,
-  Gift,
-  Crown,
-  MessageSquare,
-  Lock,
-  Eye,
-  Smartphone,
-  Globe,
-  Moon,
-  Sun,
-  UserCircle,
-  Award,
-  TrendingUp,
-  Zap
-} from 'lucide-react-native';
+import { User, Settings, Shield, CreditCard, Bell, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard as Edit3, Star, Gift, Crown, MessageSquare, Lock, Eye, Smartphone, Globe, Moon, Sun, CircleUser as UserCircle, Award, TrendingUp, Zap } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import FeedbackModal from '@/components/feedback/FeedbackModal';
 import { useAuthStore } from '@/stores/useAuthStore';
