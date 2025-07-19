@@ -86,7 +86,7 @@ export default function HomeScreen() {
       subtitle: 'Insights',
       icon: <TrendingUp size={24} color="#FFFFFF" />,
       gradient: [colors.warning, '#EA580C'],
-      route: '/calculator',
+      route: '/rates',
     },
     {
       id: 'security',
