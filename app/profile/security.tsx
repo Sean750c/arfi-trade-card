@@ -6,9 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
 import { 
   Shield, 
   Lock, 
@@ -16,23 +14,17 @@ import {
   Mail, 
   MessageCircle,
   ChevronRight,
-  Eye,
-  EyeOff,
   Apple,
   Facebook,
   Check,
   X
 } from 'lucide-react-native';
 import Header from '@/components/UI/Header';
-import Input from '@/components/UI/Input';
-import Button from '@/components/UI/Button';
 import Card from '@/components/UI/Card';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { UserService } from '@/services/user';
-import { AuthService } from '@/services/auth';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 // Modal Components
@@ -257,21 +249,10 @@ function SecurityScreenContent() {
           <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
             Connect your social accounts for easier login and account recovery
           </Text>
-          {socialItems.map(renderSecurityItem)}
+          <View style={styles.securityList}>
+            {socialItems.map(renderSecurityItem)}
+          </View>
         </View>
-
-        {/* Security Tips */}
-        <Card style={[styles.tipsCard, { backgroundColor: `${colors.warning}10` }]}>
-          <Text style={[styles.tipsTitle, { color: colors.warning }]}>
-            🔒 Security Tips
-          </Text>
-          <Text style={[styles.tipsText, { color: colors.text }]}>
-            • Use a strong, unique password for your account{'\n'}
-            • Set up a withdraw password different from your login password{'\n'}
-            • Bind your phone number and email for account recovery{'\n'}
-            • Enable WhatsApp for important security notifications
-          </Text>
-        </Card>
       </ScrollView>
 
       {/* Modals */}
@@ -399,7 +380,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.lg,
+    padding: Spacing.md,
     borderRadius: 12,
     borderWidth: 1,
   },

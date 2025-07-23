@@ -33,6 +33,17 @@ export default function SettingsScreen() {
   // const systemColorScheme = useColorScheme() ?? 'light';
   // const [currentTheme, setCurrentTheme] = useState<'light' | 'dark' | 'system'>('system');
   const { theme: currentTheme, setTheme, colors } = useTheme();
+  // 主题切换开关
+  const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
+
+  useEffect(() => {
+    setIsDarkMode(currentTheme === 'dark');
+  }, [currentTheme]);
+
+  const handleThemeSwitch = (value: boolean) => {
+    setIsDarkMode(value);
+    setTheme(value ? 'dark' : 'light');
+  };
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
@@ -279,17 +290,25 @@ export default function SettingsScreen() {
       >
         {/* Theme Settings */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Appearance
-          </Text>
-          <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
-            Choose your preferred theme
-          </Text>
-          
-          <View style={styles.themeContainer}>
-            {renderThemeOption('light', 'Light', <Sun size={20} color={currentTheme === 'light' ? '#FFFFFF' : colors.primary} />)}
-            {renderThemeOption('dark', 'Dark', <Moon size={20} color={currentTheme === 'dark' ? '#FFFFFF' : colors.primary} />)}
-            {renderThemeOption('system', 'System', <Globe size={20} color={currentTheme === 'system' ? '#FFFFFF' : colors.primary} />)}
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Appearance</Text>
+          <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>Switch between light and dark mode</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              {isDarkMode ? (
+                <Moon size={20} color={colors.primary} />
+              ) : (
+                <Sun size={20} color={colors.primary} />
+              )}
+              <Text style={{ color: colors.text, marginLeft: 8, fontSize: 16, fontWeight: 'bold' }}>
+                {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+              </Text>
+            </View>
+            <Switch
+              value={isDarkMode}
+              onValueChange={handleThemeSwitch}
+              trackColor={{ false: colors.border, true: `${colors.primary}50` }}
+              thumbColor={isDarkMode ? colors.primary : '#F4F4F5'}
+            />
           </View>
         </View>
 
@@ -439,7 +458,7 @@ export default function SettingsScreen() {
               Version
             </Text>
             <Text style={[styles.infoValue, { color: colors.text }]}>
-              1.0.0
+              1.0.1
             </Text>
           </View>
           <View style={styles.infoRow}>
@@ -447,7 +466,7 @@ export default function SettingsScreen() {
               Build
             </Text>
             <Text style={[styles.infoValue, { color: colors.text }]}>
-              2025.06.01
+              2025.07.31
             </Text>
           </View>
         </View>
