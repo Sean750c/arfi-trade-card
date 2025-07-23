@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import { X, Eye, EyeOff, Lock } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
@@ -112,125 +113,103 @@ export default function ChangePasswordModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
+      <Pressable style={styles.modalOverlay} onPress={handleClose} />
       <KeyboardAvoidingView 
         style={styles.modalOverlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1} 
-          onPress={handleClose}
-        >
-          <TouchableOpacity 
-            style={[styles.modalContent, { backgroundColor: colors.card }]}
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View style={styles.modalHeader}>
-              <View style={styles.titleContainer}>
-                <Lock size={24} color={colors.primary} />
-                <Text style={[styles.modalTitle, { color: colors.text }]}>
-                  Change Password
-                </Text>
-              </View>
-              <TouchableOpacity onPress={handleClose}>
-                <X size={24} color={colors.text} />
-              </TouchableOpacity>
+        <View style={[styles.modalContent, { backgroundColor: colors.card }]}> 
+          <View style={styles.modalHeader}>
+            <View style={styles.titleContainer}>
+              <Lock size={24} color={colors.primary} />
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Change Password</Text>
             </View>
-
-            <ScrollView 
-              style={styles.scrollView}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View style={styles.form}>
-                <Input
-                  label="Current Password"
-                  value={currentPassword}
-                  onChangeText={setCurrentPassword}
-                  secureTextEntry={!showCurrentPassword}
-                  error={errors.currentPassword}
-                  rightElement={
-                    <TouchableOpacity
-                      onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-                    >
-                      {showCurrentPassword ? (
-                        <EyeOff size={20} color={colors.textSecondary} />
-                      ) : (
-                        <Eye size={20} color={colors.textSecondary} />
-                      )}
-                    </TouchableOpacity>
-                  }
-                />
-
-                <Input
-                  label="New Password"
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  secureTextEntry={!showNewPassword}
-                  error={errors.newPassword}
-                  rightElement={
-                    <TouchableOpacity
-                      onPress={() => setShowNewPassword(!showNewPassword)}
-                    >
-                      {showNewPassword ? (
-                        <EyeOff size={20} color={colors.textSecondary} />
-                      ) : (
-                        <Eye size={20} color={colors.textSecondary} />
-                      )}
-                    </TouchableOpacity>
-                  }
-                />
-
-                <Input
-                  label="Confirm New Password"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry={!showConfirmPassword}
-                  error={errors.confirmPassword}
-                  rightElement={
-                    <TouchableOpacity
-                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff size={20} color={colors.textSecondary} />
-                      ) : (
-                        <Eye size={20} color={colors.textSecondary} />
-                      )}
-                    </TouchableOpacity>
-                  }
-                />
-
-                <View style={styles.passwordTips}>
-                  <Text style={[styles.tipsTitle, { color: colors.text }]}>
-                    Password Requirements:
-                  </Text>
-                  <Text style={[styles.tipsText, { color: colors.textSecondary }]}>
-                    • At least 6 characters long{'\n'}
-                    • Different from your current password{'\n'}
-                    • Use a combination of letters and numbers for better security
-                  </Text>
-                </View>
-
-                <View style={styles.buttonContainer}>
-                  <Button
-                    title="Cancel"
-                    variant="outline"
-                    onPress={handleClose}
-                    style={styles.cancelButton}
-                  />
-                  <Button
-                    title={isLoading ? 'Changing...' : 'Change Password'}
-                    onPress={handleSubmit}
-                    disabled={isLoading}
-                    loading={isLoading}
-                    style={styles.submitButton}
-                  />
-                </View>
+            <TouchableOpacity onPress={handleClose}>
+              <X size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView 
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.form}>
+              <Input
+                label="Current Password"
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                secureTextEntry={!showCurrentPassword}
+                error={errors.currentPassword}
+                rightElement={
+                  <TouchableOpacity
+                    onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                  >
+                    {showCurrentPassword ? (
+                      <EyeOff size={20} color={colors.textSecondary} />
+                    ) : (
+                      <Eye size={20} color={colors.textSecondary} />
+                    )}
+                  </TouchableOpacity>
+                }
+              />
+              <Input
+                label="New Password"
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry={!showNewPassword}
+                error={errors.newPassword}
+                rightElement={
+                  <TouchableOpacity
+                    onPress={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? (
+                      <EyeOff size={20} color={colors.textSecondary} />
+                    ) : (
+                      <Eye size={20} color={colors.textSecondary} />
+                    )}
+                  </TouchableOpacity>
+                }
+              />
+              <Input
+                label="Confirm New Password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                error={errors.confirmPassword}
+                rightElement={
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={20} color={colors.textSecondary} />
+                    ) : (
+                      <Eye size={20} color={colors.textSecondary} />
+                    )}
+                  </TouchableOpacity>
+                }
+              />
+              <View style={styles.passwordTips}>
+                <Text style={[styles.tipsTitle, { color: colors.text }]}>Password Requirements:</Text>
+                <Text style={[styles.tipsText, { color: colors.textSecondary }]}>• At least 6 characters long{`\n`}• Different from your current password{`\n`}• Use a combination of letters and numbers for better security</Text>
               </View>
-            </ScrollView>
-          </TouchableOpacity>
-        </TouchableOpacity>
+              <View style={styles.buttonContainer}>
+                <Button
+                  title="Cancel"
+                  variant="outline"
+                  onPress={handleClose}
+                  style={styles.cancelButton}
+                />
+                <Button
+                  title={isLoading ? 'Changing...' : 'Change Password'}
+                  onPress={handleSubmit}
+                  disabled={isLoading}
+                  loading={isLoading}
+                  style={styles.submitButton}
+                />
+              </View>
+            </View>
+          </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -247,7 +226,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: Spacing.lg,
     maxHeight: '85%',
-    minHeight: 400,
+    minHeight: 560,
   },
   modalHeader: {
     flexDirection: 'row',

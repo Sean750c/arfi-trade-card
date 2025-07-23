@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import { X, MessageCircle, Send } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
@@ -145,144 +146,134 @@ export default function BindWhatsAppModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
+      <Pressable style={styles.modalOverlay} onPress={handleClose} />
       <KeyboardAvoidingView 
         style={styles.modalOverlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1} 
-          onPress={handleClose}
-        >
-          <TouchableOpacity 
-            style={[styles.modalContent, { backgroundColor: colors.card }]}
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
+        <View style={[styles.modalContent, { backgroundColor: colors.card }]}> 
+          <View style={styles.modalHeader}>
+            <View style={styles.titleContainer}>
+              <MessageCircle size={24} color={colors.primary} />
+              <Text style={[styles.modalTitle, { color: colors.text }]}> 
+                {user?.whatsapp ? 'Update WhatsApp' : 'Bind WhatsApp'}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={handleClose}>
+              <X size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView 
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.modalHeader}>
-              <View style={styles.titleContainer}>
-                <MessageCircle size={24} color={colors.primary} />
-                <Text style={[styles.modalTitle, { color: colors.text }]}>
-                  {user?.whatsapp ? 'Update WhatsApp' : 'Bind WhatsApp'}
+            <View style={styles.form}>
+              {user?.whatsapp && (
+                <View style={[styles.currentInfo, { backgroundColor: colors.background }]}>
+                  <Text style={[styles.currentLabel, { color: colors.textSecondary }]}>
+                    Current WhatsApp:
+                  </Text>
+                  <Text style={[styles.currentValue, { color: colors.text }]}>
+                    {user.whatsapp}
+                  </Text>
+                  <View style={[
+                    styles.statusBadge,
+                    { backgroundColor: user.whatsapp_bind ? colors.success : colors.warning }
+                  ]}>
+                    <Text style={styles.statusText}>
+                      {user.whatsapp_bind ? 'Verified' : 'Unverified'}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              <View style={styles.whatsappInputContainer}>
+                <Input
+                  label="WhatsApp Number"
+                  value={whatsappNumber}
+                  onChangeText={setWhatsappNumber}
+                  placeholder="e.g., +1234567890"
+                  keyboardType="phone-pad"
+                  error={errors.whatsappNumber}
+                  editable={!codeSent}
+                />
+                {!codeSent && (
+                  <Button
+                    title={isSendingCode ? 'Sending...' : 'Send Code'}
+                    onPress={handleSendCode}
+                    disabled={isSendingCode || !whatsappNumber.trim()}
+                    loading={isSendingCode}
+                    style={styles.sendCodeButton}
+                    rightIcon={<Send size={16} color="#FFFFFF" />}
+                  />
+                )}
+              </View>
+
+              {codeSent && (
+                <>
+                  <Input
+                    label="Verification Code"
+                    value={verificationCode}
+                    onChangeText={setVerificationCode}
+                    placeholder="Enter code from WhatsApp"
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    error={errors.verificationCode}
+                  />
+
+                  <View style={styles.resendContainer}>
+                    <Text style={[styles.resendText, { color: colors.textSecondary }]}>
+                      Didn't receive the code?
+                    </Text>
+                    <TouchableOpacity
+                      onPress={handleSendCode}
+                      disabled={countdown > 0 || isSendingCode}
+                    >
+                      <Text style={[
+                        styles.resendButton,
+                        { 
+                          color: countdown > 0 ? colors.textSecondary : colors.primary,
+                          opacity: countdown > 0 ? 0.5 : 1,
+                        }
+                      ]}>
+                        {countdown > 0 ? `Resend (${countdown}s)` : 'Resend Code'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+
+              <View style={[styles.infoBox, { backgroundColor: `${colors.success}10` }]}>
+                <Text style={[styles.infoTitle, { color: colors.success }]}>
+                  💬 WhatsApp Binding
+                </Text>
+                <Text style={[styles.infoText, { color: colors.text }]}>
+                  • Include your country code (e.g., +234 for Nigeria){'\n'}
+                  • You'll receive security notifications via WhatsApp{'\n'}
+                  • Make sure the number is active and can receive messages{'\n'}
+                  • This helps with account recovery and important updates
                 </Text>
               </View>
-              <TouchableOpacity onPress={handleClose}>
-                <X size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
 
-            <ScrollView 
-              style={styles.scrollView}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View style={styles.form}>
-                {user?.whatsapp && (
-                  <View style={[styles.currentInfo, { backgroundColor: colors.background }]}>
-                    <Text style={[styles.currentLabel, { color: colors.textSecondary }]}>
-                      Current WhatsApp:
-                    </Text>
-                    <Text style={[styles.currentValue, { color: colors.text }]}>
-                      {user.whatsapp}
-                    </Text>
-                    <View style={[
-                      styles.statusBadge,
-                      { backgroundColor: user.whatsapp_bind ? colors.success : colors.warning }
-                    ]}>
-                      <Text style={styles.statusText}>
-                        {user.whatsapp_bind ? 'Verified' : 'Unverified'}
-                      </Text>
-                    </View>
-                  </View>
-                )}
-
-                <View style={styles.whatsappInputContainer}>
-                  <Input
-                    label="WhatsApp Number"
-                    value={whatsappNumber}
-                    onChangeText={setWhatsappNumber}
-                    placeholder="e.g., +1234567890"
-                    keyboardType="phone-pad"
-                    error={errors.whatsappNumber}
-                    editable={!codeSent}
-                  />
-                  {!codeSent && (
-                    <Button
-                      title={isSendingCode ? 'Sending...' : 'Send Code'}
-                      onPress={handleSendCode}
-                      disabled={isSendingCode || !whatsappNumber.trim()}
-                      loading={isSendingCode}
-                      style={styles.sendCodeButton}
-                      rightIcon={<Send size={16} color="#FFFFFF" />}
-                    />
-                  )}
-                </View>
-
-                {codeSent && (
-                  <>
-                    <Input
-                      label="Verification Code"
-                      value={verificationCode}
-                      onChangeText={setVerificationCode}
-                      placeholder="Enter code from WhatsApp"
-                      keyboardType="number-pad"
-                      maxLength={6}
-                      error={errors.verificationCode}
-                    />
-
-                    <View style={styles.resendContainer}>
-                      <Text style={[styles.resendText, { color: colors.textSecondary }]}>
-                        Didn't receive the code?
-                      </Text>
-                      <TouchableOpacity
-                        onPress={handleSendCode}
-                        disabled={countdown > 0 || isSendingCode}
-                      >
-                        <Text style={[
-                          styles.resendButton,
-                          { 
-                            color: countdown > 0 ? colors.textSecondary : colors.primary,
-                            opacity: countdown > 0 ? 0.5 : 1,
-                          }
-                        ]}>
-                          {countdown > 0 ? `Resend (${countdown}s)` : 'Resend Code'}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </>
-                )}
-
-                <View style={[styles.infoBox, { backgroundColor: `${colors.success}10` }]}>
-                  <Text style={[styles.infoTitle, { color: colors.success }]}>
-                    💬 WhatsApp Binding
-                  </Text>
-                  <Text style={[styles.infoText, { color: colors.text }]}>
-                    • Include your country code (e.g., +234 for Nigeria){'\n'}
-                    • You'll receive security notifications via WhatsApp{'\n'}
-                    • Make sure the number is active and can receive messages{'\n'}
-                    • This helps with account recovery and important updates
-                  </Text>
-                </View>
-
-                <View style={styles.buttonContainer}>
-                  <Button
-                    title="Cancel"
-                    variant="outline"
-                    onPress={handleClose}
-                    style={styles.cancelButton}
-                  />
-                  <Button
-                    title={isLoading ? 'Binding...' : (user?.whatsapp ? 'Update' : 'Bind WhatsApp')}
-                    onPress={handleSubmit}
-                    disabled={isLoading || !codeSent}
-                    loading={isLoading}
-                    style={styles.submitButton}
-                  />
-                </View>
+              <View style={styles.buttonContainer}>
+                <Button
+                  title="Cancel"
+                  variant="outline"
+                  onPress={handleClose}
+                  style={styles.cancelButton}
+                />
+                <Button
+                  title={isLoading ? 'Binding...' : (user?.whatsapp ? 'Update' : 'Bind WhatsApp')}
+                  onPress={handleSubmit}
+                  disabled={isLoading || !codeSent}
+                  loading={isLoading}
+                  style={styles.submitButton}
+                />
               </View>
-            </ScrollView>
-          </TouchableOpacity>
-        </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -299,7 +290,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: Spacing.lg,
     maxHeight: '85%',
-    minHeight: 400,
+    minHeight: 450,
   },
   modalHeader: {
     flexDirection: 'row',
