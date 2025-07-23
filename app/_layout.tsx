@@ -9,6 +9,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ThemeProvider } from '@/theme/ThemeContext';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function RootLayout() {
   
   useFrameworkReady();
   useAuthProtection(); // Add auth protection
+  useNotifications(); // Initialize notifications
 
   useEffect(() => {
     const init = async () => {

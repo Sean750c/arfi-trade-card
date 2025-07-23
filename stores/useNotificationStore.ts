@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Notice, NoticeListData } from '@/types';
 import { NotificationService } from '@/services/notification';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface NotificationState {
   notifications: Notice[];
@@ -14,6 +15,7 @@ interface NotificationState {
   pageSize: number;
   
   // Actions
+  initializeNotifications: () => void;
   fetchNotifications: (token: string, type?: 'all' | 'notice' | 'system', refresh?: boolean) => Promise<void>;
   loadMoreNotifications: (token: string) => Promise<void>;
   setActiveType: (type: 'all' | 'notice' | 'system') => void;
@@ -29,6 +31,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   currentPage: 1,
   hasMore: true,
   activeType: 'all',
+  initializeNotifications: () => {
+    // This will be called from the component to initialize notifications
+    // The actual initialization happens in the useNotifications hook
+  },
+
   totalCount: 0,
   pageSize: 20,
 

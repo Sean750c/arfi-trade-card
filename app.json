@@ -30,6 +30,15 @@
       "expo-font",
       "expo-web-browser",
       [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#008751",
+          "sounds": ["./assets/sounds/notification.wav"],
+          "mode": "production"
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "We access your photo library so you can upload pictures of your gift cards for verification and selling.",
@@ -40,6 +49,13 @@
     "experiments": {
       "typedRoutes": true,
       "tsconfigPaths": true
+    },
+    "notification": {
+      "icon": "./assets/images/notification-icon.png",
+      "color": "#008751",
+      "iosDisplayInForeground": true,
+      "androidMode": "default",
+      "androidCollapsedTitle": "#{unread_notifications} new interactions"
     },
     "extra": {
       "router": {
