@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { X, Eye, EyeOff, Shield } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
@@ -73,11 +76,13 @@ export default function ChangeWithdrawPasswordModal({
 
     setIsLoading(true);
     try {
-      await UserService.changeWithdrawPassword(
-        user.token, 
-        isFirstTimeSetup ? '' : currentPassword, 
-        newPassword
-      );
+      if (isFirstTimeSetup) {
+        // First time setup - use addWithdrawPassword
+        await UserService.addWithdrawPassword(user.token, newPassword);
+      } else {
+        // Change existing password
+        await UserService.changeWithdrawPassword(user.token, currentPassword, newPassword);
+      }
       
       Alert.alert(
         'Success',
@@ -117,118 +122,137 @@ export default function ChangeWithdrawPasswordModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-          <View style={styles.modalHeader}>
-            <View style={styles.titleContainer}>
-              <Shield size={24} color={colors.primary} />
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                {isFirstTimeSetup ? 'Set Withdraw Password' : 'Change Withdraw Password'}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={handleClose}>
-              <X size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.form}>
-            {!isFirstTimeSetup && (
-              <Input
-                label="Current Withdraw Password"
-                value={currentPassword}
-                onChangeText={setCurrentPassword}
-                secureTextEntry={!showCurrentPassword}
-                error={errors.currentPassword}
-                rightElement={
-                  <TouchableOpacity
-                    onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-                  >
-                    {showCurrentPassword ? (
-                      <EyeOff size={20} color={colors.textSecondary} />
-                    ) : (
-                      <Eye size={20} color={colors.textSecondary} />
-                    )}
-                  </TouchableOpacity>
-                }
-              />
-            )}
-
-            <Input
-              label="New Withdraw Password"
-              value={newPassword}
-              onChangeText={setNewPassword}
-              secureTextEntry={!showNewPassword}
-              error={errors.newPassword}
-              rightElement={
-                <TouchableOpacity
-                  onPress={() => setShowNewPassword(!showNewPassword)}
-                >
-                  {showNewPassword ? (
-                    <EyeOff size={20} color={colors.textSecondary} />
-                  ) : (
-                    <Eye size={20} color={colors.textSecondary} />
-                  )}
-                </TouchableOpacity>
-              }
-            />
-
-            <Input
-              label="Confirm New Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showConfirmPassword}
-              error={errors.confirmPassword}
-              rightElement={
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff size={20} color={colors.textSecondary} />
-                  ) : (
-                    <Eye size={20} color={colors.textSecondary} />
-                  )}
-                </TouchableOpacity>
-              }
-            />
-
-            <View style={[styles.infoBox, { backgroundColor: `${colors.warning}10` }]}>
-              <Text style={[styles.infoTitle, { color: colors.warning }]}>
-                🔒 Important
-              </Text>
-              <Text style={[styles.infoText, { color: colors.text }]}>
-                Your withdraw password is used to authorize withdrawals and should be different from your login password. Keep it safe and don't share it with anyone.
-              </Text>
+      <KeyboardAvoidingView 
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={handleClose}
+        >
+          <TouchableOpacity 
+            style={[styles.modalContent, { backgroundColor: colors.card }]}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <View style={styles.titleContainer}>
+                <Shield size={24} color={colors.primary} />
+                <Text style={[styles.modalTitle, { color: colors.text }]}>
+                  {isFirstTimeSetup ? 'Set Withdraw Password' : 'Change Withdraw Password'}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={handleClose}>
+                <X size={24} color={colors.text} />
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.passwordTips}>
-              <Text style={[styles.tipsTitle, { color: colors.text }]}>
-                Password Requirements:
-              </Text>
-              <Text style={[styles.tipsText, { color: colors.textSecondary }]}>
-                • At least 6 characters long{'\n'}
-                • Different from your login password{'\n'}
-                • Use numbers and letters for better security
-              </Text>
-            </View>
+            <ScrollView 
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.form}>
+                {!isFirstTimeSetup && (
+                  <Input
+                    label="Current Withdraw Password"
+                    value={currentPassword}
+                    onChangeText={setCurrentPassword}
+                    secureTextEntry={!showCurrentPassword}
+                    error={errors.currentPassword}
+                    rightElement={
+                      <TouchableOpacity
+                        onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                      >
+                        {showCurrentPassword ? (
+                          <EyeOff size={20} color={colors.textSecondary} />
+                        ) : (
+                          <Eye size={20} color={colors.textSecondary} />
+                        )}
+                      </TouchableOpacity>
+                    }
+                  />
+                )}
 
-            <View style={styles.buttonContainer}>
-              <Button
-                title="Cancel"
-                variant="outline"
-                onPress={handleClose}
-                style={styles.cancelButton}
-              />
-              <Button
-                title={isLoading ? (isFirstTimeSetup ? 'Setting...' : 'Changing...') : (isFirstTimeSetup ? 'Set Password' : 'Change Password')}
-                onPress={handleSubmit}
-                disabled={isLoading}
-                loading={isLoading}
-                style={styles.submitButton}
-              />
-            </View>
-          </View>
-        </View>
-      </View>
+                <Input
+                  label="New Withdraw Password"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry={!showNewPassword}
+                  error={errors.newPassword}
+                  rightElement={
+                    <TouchableOpacity
+                      onPress={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff size={20} color={colors.textSecondary} />
+                      ) : (
+                        <Eye size={20} color={colors.textSecondary} />
+                      )}
+                    </TouchableOpacity>
+                  }
+                />
+
+                <Input
+                  label="Confirm New Password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  error={errors.confirmPassword}
+                  rightElement={
+                    <TouchableOpacity
+                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={20} color={colors.textSecondary} />
+                      ) : (
+                        <Eye size={20} color={colors.textSecondary} />
+                      )}
+                    </TouchableOpacity>
+                  }
+                />
+
+                <View style={[styles.infoBox, { backgroundColor: `${colors.warning}10` }]}>
+                  <Text style={[styles.infoTitle, { color: colors.warning }]}>
+                    🔒 Important
+                  </Text>
+                  <Text style={[styles.infoText, { color: colors.text }]}>
+                    Your withdraw password is used to authorize withdrawals and should be different from your login password. Keep it safe and don't share it with anyone.
+                  </Text>
+                </View>
+
+                <View style={styles.passwordTips}>
+                  <Text style={[styles.tipsTitle, { color: colors.text }]}>
+                    Password Requirements:
+                  </Text>
+                  <Text style={[styles.tipsText, { color: colors.textSecondary }]}>
+                    • At least 6 characters long{'\n'}
+                    • Different from your login password{'\n'}
+                    • Use numbers and letters for better security
+                  </Text>
+                </View>
+
+                <View style={styles.buttonContainer}>
+                  <Button
+                    title="Cancel"
+                    variant="outline"
+                    onPress={handleClose}
+                    style={styles.cancelButton}
+                  />
+                  <Button
+                    title={isLoading ? (isFirstTimeSetup ? 'Setting...' : 'Changing...') : (isFirstTimeSetup ? 'Set Password' : 'Change Password')}
+                    onPress={handleSubmit}
+                    disabled={isLoading}
+                    loading={isLoading}
+                    style={styles.submitButton}
+                  />
+                </View>
+              </View>
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -243,13 +267,18 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: Spacing.lg,
-    maxHeight: '90%',
+    maxHeight: '85%',
+    minHeight: 400,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.lg,
+  },
+  scrollView: {
+    flex: 1,
+    maxHeight: 500,
   },
   titleContainer: {
     flexDirection: 'row',
@@ -262,6 +291,7 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: Spacing.md,
+    paddingBottom: Spacing.xl,
   },
   infoBox: {
     padding: Spacing.md,

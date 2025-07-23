@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { X, Phone } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
@@ -88,70 +91,89 @@ export default function BindPhoneModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-          <View style={styles.modalHeader}>
-            <View style={styles.titleContainer}>
-              <Phone size={24} color={colors.primary} />
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                {user?.phone ? 'Update Phone Number' : 'Bind Phone Number'}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={handleClose}>
-              <X size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.form}>
-            {user?.phone && (
-              <View style={[styles.currentInfo, { backgroundColor: colors.background }]}>
-                <Text style={[styles.currentLabel, { color: colors.textSecondary }]}>
-                  Current Phone:
-                </Text>
-                <Text style={[styles.currentValue, { color: colors.text }]}>
-                  {user.phone}
+      <KeyboardAvoidingView 
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={handleClose}
+        >
+          <TouchableOpacity 
+            style={[styles.modalContent, { backgroundColor: colors.card }]}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <View style={styles.titleContainer}>
+                <Phone size={24} color={colors.primary} />
+                <Text style={[styles.modalTitle, { color: colors.text }]}>
+                  {user?.phone ? 'Update Phone Number' : 'Bind Phone Number'}
                 </Text>
               </View>
-            )}
-
-            <Input
-              label="Phone Number"
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              placeholder="Enter your phone number"
-              keyboardType="phone-pad"
-              error={errors.phoneNumber}
-            />
-
-            <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
-              <Text style={[styles.infoTitle, { color: colors.primary }]}>
-                📱 Phone Number Binding
-              </Text>
-              <Text style={[styles.infoText, { color: colors.text }]}>
-                • Your phone number will be used for account security{'\n'}
-                • Include country code for international numbers{'\n'}
-                • This helps with account recovery and security notifications
-              </Text>
+              <TouchableOpacity onPress={handleClose}>
+                <X size={24} color={colors.text} />
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.buttonContainer}>
-              <Button
-                title="Cancel"
-                variant="outline"
-                onPress={handleClose}
-                style={styles.cancelButton}
-              />
-              <Button
-                title={isLoading ? 'Binding...' : (user?.phone ? 'Update' : 'Bind Phone')}
-                onPress={handleSubmit}
-                disabled={isLoading}
-                loading={isLoading}
-                style={styles.submitButton}
-              />
-            </View>
-          </View>
-        </View>
-      </View>
+            <ScrollView 
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.form}>
+                {user?.phone && (
+                  <View style={[styles.currentInfo, { backgroundColor: colors.background }]}>
+                    <Text style={[styles.currentLabel, { color: colors.textSecondary }]}>
+                      Current Phone:
+                    </Text>
+                    <Text style={[styles.currentValue, { color: colors.text }]}>
+                      {user.phone}
+                    </Text>
+                  </View>
+                )}
+
+                <Input
+                  label="Phone Number"
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  placeholder="Enter your phone number"
+                  keyboardType="phone-pad"
+                  error={errors.phoneNumber}
+                />
+
+                <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
+                  <Text style={[styles.infoTitle, { color: colors.primary }]}>
+                    📱 Phone Number Binding
+                  </Text>
+                  <Text style={[styles.infoText, { color: colors.text }]}>
+                    • Your phone number will be used for account security{'\n'}
+                    • Include country code for international numbers{'\n'}
+                    • This helps with account recovery and security notifications
+                  </Text>
+                </View>
+
+                <View style={styles.buttonContainer}>
+                  <Button
+                    title="Cancel"
+                    variant="outline"
+                    onPress={handleClose}
+                    style={styles.cancelButton}
+                  />
+                  <Button
+                    title={isLoading ? 'Binding...' : (user?.phone ? 'Update' : 'Bind Phone')}
+                    onPress={handleSubmit}
+                    disabled={isLoading}
+                    loading={isLoading}
+                    style={styles.submitButton}
+                  />
+                </View>
+              </View>
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -166,13 +188,18 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: Spacing.lg,
-    maxHeight: '80%',
+    maxHeight: '75%',
+    minHeight: 350,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.lg,
+  },
+  scrollView: {
+    flex: 1,
+    maxHeight: 400,
   },
   titleContainer: {
     flexDirection: 'row',
@@ -185,6 +212,7 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: Spacing.md,
+    paddingBottom: Spacing.xl,
   },
   currentInfo: {
     padding: Spacing.md,

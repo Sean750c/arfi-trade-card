@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { X, Mail, Send } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
@@ -141,126 +144,145 @@ export default function BindEmailModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-          <View style={styles.modalHeader}>
-            <View style={styles.titleContainer}>
-              <Mail size={24} color={colors.primary} />
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                {user?.email ? 'Update Email Address' : 'Bind Email Address'}
-              </Text>
+      <KeyboardAvoidingView 
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={handleClose}
+        >
+          <TouchableOpacity 
+            style={[styles.modalContent, { backgroundColor: colors.card }]}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <View style={styles.titleContainer}>
+                <Mail size={24} color={colors.primary} />
+                <Text style={[styles.modalTitle, { color: colors.text }]}>
+                  {user?.email ? 'Update Email Address' : 'Bind Email Address'}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={handleClose}>
+                <X size={24} color={colors.text} />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={handleClose}>
-              <X size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
 
-          <View style={styles.form}>
-            {user?.email && (
-              <View style={[styles.currentInfo, { backgroundColor: colors.background }]}>
-                <Text style={[styles.currentLabel, { color: colors.textSecondary }]}>
-                  Current Email:
-                </Text>
-                <Text style={[styles.currentValue, { color: colors.text }]}>
-                  {user.email}
-                </Text>
-                <View style={[
-                  styles.statusBadge,
-                  { backgroundColor: user.is_email_bind ? colors.success : colors.warning }
-                ]}>
-                  <Text style={styles.statusText}>
-                    {user.is_email_bind ? 'Verified' : 'Unverified'}
+            <ScrollView 
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.form}>
+                {user?.email && (
+                  <View style={[styles.currentInfo, { backgroundColor: colors.background }]}>
+                    <Text style={[styles.currentLabel, { color: colors.textSecondary }]}>
+                      Current Email:
+                    </Text>
+                    <Text style={[styles.currentValue, { color: colors.text }]}>
+                      {user.email}
+                    </Text>
+                    <View style={[
+                      styles.statusBadge,
+                      { backgroundColor: user.is_email_bind ? colors.success : colors.warning }
+                    ]}>
+                      <Text style={styles.statusText}>
+                        {user.is_email_bind ? 'Verified' : 'Unverified'}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
+                <View style={styles.emailInputContainer}>
+                  <Input
+                    label="Email Address"
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter your email address"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    error={errors.email}
+                    editable={!codeSent}
+                  />
+                  {!codeSent && (
+                    <Button
+                      title={isSendingCode ? 'Sending...' : 'Send Code'}
+                      onPress={handleSendCode}
+                      disabled={isSendingCode || !email.trim()}
+                      loading={isSendingCode}
+                      style={styles.sendCodeButton}
+                      rightIcon={<Send size={16} color="#FFFFFF" />}
+                    />
+                  )}
+                </View>
+
+                {codeSent && (
+                  <>
+                    <Input
+                      label="Verification Code"
+                      value={verificationCode}
+                      onChangeText={setVerificationCode}
+                      placeholder="Enter 6-digit code"
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      error={errors.verificationCode}
+                    />
+
+                    <View style={styles.resendContainer}>
+                      <Text style={[styles.resendText, { color: colors.textSecondary }]}>
+                        Didn't receive the code?
+                      </Text>
+                      <TouchableOpacity
+                        onPress={handleSendCode}
+                        disabled={countdown > 0 || isSendingCode}
+                      >
+                        <Text style={[
+                          styles.resendButton,
+                          { 
+                            color: countdown > 0 ? colors.textSecondary : colors.primary,
+                            opacity: countdown > 0 ? 0.5 : 1,
+                          }
+                        ]}>
+                          {countdown > 0 ? `Resend (${countdown}s)` : 'Resend Code'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                )}
+
+                <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
+                  <Text style={[styles.infoTitle, { color: colors.primary }]}>
+                    📧 Email Binding
                   </Text>
+                  <Text style={[styles.infoText, { color: colors.text }]}>
+                    • Your email will be used for account security and recovery{'\n'}
+                    • You'll receive important notifications about your account{'\n'}
+                    • Make sure to use an email you have access to
+                  </Text>
+                </View>
+
+                <View style={styles.buttonContainer}>
+                  <Button
+                    title="Cancel"
+                    variant="outline"
+                    onPress={handleClose}
+                    style={styles.cancelButton}
+                  />
+                  <Button
+                    title={isLoading ? 'Binding...' : (user?.email ? 'Update' : 'Bind Email')}
+                    onPress={handleSubmit}
+                    disabled={isLoading || !codeSent}
+                    loading={isLoading}
+                    style={styles.submitButton}
+                  />
                 </View>
               </View>
-            )}
-
-            <View style={styles.emailInputContainer}>
-              <Input
-                label="Email Address"
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Enter your email address"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                error={errors.email}
-                editable={!codeSent}
-              />
-              {!codeSent && (
-                <Button
-                  title={isSendingCode ? 'Sending...' : 'Send Code'}
-                  onPress={handleSendCode}
-                  disabled={isSendingCode || !email.trim()}
-                  loading={isSendingCode}
-                  style={styles.sendCodeButton}
-                  rightIcon={<Send size={16} color="#FFFFFF" />}
-                />
-              )}
-            </View>
-
-            {codeSent && (
-              <>
-                <Input
-                  label="Verification Code"
-                  value={verificationCode}
-                  onChangeText={setVerificationCode}
-                  placeholder="Enter 6-digit code"
-                  keyboardType="number-pad"
-                  maxLength={6}
-                  error={errors.verificationCode}
-                />
-
-                <View style={styles.resendContainer}>
-                  <Text style={[styles.resendText, { color: colors.textSecondary }]}>
-                    Didn't receive the code?
-                  </Text>
-                  <TouchableOpacity
-                    onPress={handleSendCode}
-                    disabled={countdown > 0 || isSendingCode}
-                  >
-                    <Text style={[
-                      styles.resendButton,
-                      { 
-                        color: countdown > 0 ? colors.textSecondary : colors.primary,
-                        opacity: countdown > 0 ? 0.5 : 1,
-                      }
-                    ]}>
-                      {countdown > 0 ? `Resend (${countdown}s)` : 'Resend Code'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-
-            <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
-              <Text style={[styles.infoTitle, { color: colors.primary }]}>
-                📧 Email Binding
-              </Text>
-              <Text style={[styles.infoText, { color: colors.text }]}>
-                • Your email will be used for account security and recovery{'\n'}
-                • You'll receive important notifications about your account{'\n'}
-                • Make sure to use an email you have access to
-              </Text>
-            </View>
-
-            <View style={styles.buttonContainer}>
-              <Button
-                title="Cancel"
-                variant="outline"
-                onPress={handleClose}
-                style={styles.cancelButton}
-              />
-              <Button
-                title={isLoading ? 'Binding...' : (user?.email ? 'Update' : 'Bind Email')}
-                onPress={handleSubmit}
-                disabled={isLoading || !codeSent}
-                loading={isLoading}
-                style={styles.submitButton}
-              />
-            </View>
-          </View>
-        </View>
-      </View>
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -275,13 +297,18 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: Spacing.lg,
-    maxHeight: '90%',
+    maxHeight: '85%',
+    minHeight: 400,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.lg,
+  },
+  scrollView: {
+    flex: 1,
+    maxHeight: 500,
   },
   titleContainer: {
     flexDirection: 'row',
@@ -294,6 +321,7 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: Spacing.md,
+    paddingBottom: Spacing.xl,
   },
   currentInfo: {
     padding: Spacing.md,
