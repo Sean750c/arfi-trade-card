@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,160 +6,102 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
-  ChevronLeft, 
   Shield, 
   Lock, 
-  Key, 
   Phone, 
   Mail, 
   MessageCircle,
   ChevronRight,
-  CircleCheck as CheckCircle,
-  CircleAlert as AlertCircle,
-  Apple,
-  Facebook,
+  Eye,
+  EyeOff,
+  Check,
+  X
 } from 'lucide-react-native';
+import Header from '@/components/UI/Header';
+import Input from '@/components/UI/Input';
+import Button from '@/components/UI/Button';
+import Card from '@/components/UI/Card';
 import AuthGuard from '@/components/UI/AuthGuard';
-import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
+import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { UserService } from '@/services/user';
+import { AuthService } from '@/services/auth';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+
+// Modal Components
+import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
+import ChangeWithdrawPasswordModal from '@/components/profile/ChangeWithdrawPasswordModal';
+import BindPhoneModal from '@/components/profile/BindPhoneModal';
+import BindEmailModal from '@/components/profile/BindEmailModal';
+import BindWhatsAppModal from '@/components/profile/BindWhatsAppModal';
 
 function SecurityScreenContent() {
   const { colors } = useTheme();
-  const { user } = useAuthStore();
+  const { user, reloadUser } = useAuthStore();
+  
+  // Modal states
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showChangeWithdrawPasswordModal, setShowChangeWithdrawPasswordModal] = useState(false);
+  const [showBindPhoneModal, setShowBindPhoneModal] = useState(false);
+  const [showBindEmailModal, setShowBindEmailModal] = useState(false);
+  const [showBindWhatsAppModal, setShowBindWhatsAppModal] = useState(false);
 
   const securityItems = [
     {
       id: 'password',
-      title: 'Change Password',
-      description: 'Update your account password',
-      icon: <Lock size={20} color={colors.primary} />,
-      status: 'secure',
-      onPress: () => handleChangePassword(),
+      title: 'Login Password',
+      subtitle: user?.password_null ? 'Not set' : 'Set',
+      icon: <Lock size={24} color={colors.primary} />,
+      status: !user?.password_null,
+      onPress: () => setShowChangePasswordModal(true),
     },
     {
-      id: 'withdraw-password',
-      title: 'Change Withdraw Password',
-      description: 'Update your withdraw password',
-      icon: <Key size={20} color={colors.primary} />,
-      status: 'secure',
-      onPress: () => handleChangeWithdrawPassword(),
+      id: 'withdraw_password',
+      title: 'Withdraw Password',
+      subtitle: user?.t_password_null ? 'Not set' : 'Set',
+      icon: <Shield size={24} color={colors.primary} />,
+      status: !user?.t_password_null,
+      onPress: () => setShowChangeWithdrawPasswordModal(true),
     },
     {
       id: 'phone',
       title: 'Phone Number',
-      description: user?.phone ? 'Phone number verified' : 'Add phone number for security',
-      icon: <Phone size={20} color={colors.primary} />,
-      status: user?.whatsapp_bind ? 'verified' : 'not-verified',
-      onPress: () => handlePhoneBinding(),
+      subtitle: user?.phone || 'Not bound',
+      icon: <Phone size={24} color={colors.primary} />,
+      status: !!user?.phone,
+      onPress: () => setShowBindPhoneModal(true),
     },
     {
       id: 'email',
       title: 'Email Address',
-      description: user?.is_email_bind ? 'Email verified' : 'Add email for security',
-      icon: <Mail size={20} color={colors.primary} />,
-      status: user?.is_email_bind ? 'verified' : 'not-verified',
-      onPress: () => handleEmailBinding(),
+      subtitle: user?.email || 'Not bound',
+      icon: <Mail size={24} color={colors.primary} />,
+      status: user?.is_email_bind || false,
+      onPress: () => setShowBindEmailModal(true),
     },
     {
       id: 'whatsapp',
       title: 'WhatsApp',
-      description: user?.whatsapp_bind ? 'WhatsApp connected' : 'Connect WhatsApp for notifications',
-      icon: <MessageCircle size={20} color={colors.primary} />,
-      status: user?.whatsapp_bind ? 'verified' : 'not-verified',
-      onPress: () => handleWhatsAppBinding(),
+      subtitle: user?.whatsapp || 'Not bound',
+      icon: <MessageCircle size={24} color={colors.primary} />,
+      status: user?.whatsapp_bind || false,
+      onPress: () => setShowBindWhatsAppModal(true),
     },
   ];
 
-  const socialItems = [
-    {
-      id: 'google',
-      title: 'Google Account',
-      description: 'Connect your Google account',
-      icon: <Shield size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleGoogleBinding(),
-    },
-    {
-      id: 'facebook',
-      title: 'Facebook Account',
-      description: 'Connect your Facebook account',
-      icon: <Facebook size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleFacebookBinding(),
-    },
-    {
-      id: 'apple',
-      title: 'Apple ID',
-      description: 'Connect your Apple ID',
-      icon: <Apple size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleAppleBinding(),
-    },
-  ];
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'verified':
-      case 'secure':
-        return <CheckCircle size={16} color={colors.success} />;
-      case 'not-verified':
-      case 'not-set':
-      case 'not-connected':
-        return <AlertCircle size={16} color={colors.warning} />;
-      default:
-        return null;
+  const handleModalClose = async (shouldReload = false) => {
+    if (shouldReload) {
+      try {
+        await reloadUser();
+      } catch (error) {
+        console.error('Failed to reload user:', error);
+      }
     }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'verified':
-      case 'secure':
-        return colors.success;
-      case 'not-verified':
-      case 'not-set':
-      case 'not-connected':
-        return colors.warning;
-      default:
-        return colors.textSecondary;
-    }
-  };
-
-  const handleChangePassword = () => {
-    Alert.alert('Change Password', 'Password change functionality would be implemented here');
-  };
-
-  const handleChangeWithdrawPassword = () => {
-    Alert.alert('Security Questions', 'Security questions setup would be implemented here');
-  };
-
-  const handlePhoneBinding = () => {
-    Alert.alert('Phone Binding', 'Phone number binding functionality would be implemented here');
-  };
-
-  const handleEmailBinding = () => {
-    Alert.alert('Email Binding', 'Email binding functionality would be implemented here');
-  };
-
-  const handleWhatsAppBinding = () => {
-    Alert.alert('WhatsApp Binding', 'WhatsApp binding functionality would be implemented here');
-  };
-
-  const handleGoogleBinding = () => {
-    Alert.alert('Google Binding', 'Google account binding functionality would be implemented here');
-  };
-
-  const handleFacebookBinding = () => {
-    Alert.alert('Facebook Binding', 'Facebook account binding functionality would be implemented here');
-  };
-
-  const handleAppleBinding = () => {
-    Alert.alert('Apple Binding', 'Apple ID binding functionality would be implemented here');
   };
 
   const renderSecurityItem = (item: any) => (
@@ -169,127 +111,167 @@ function SecurityScreenContent() {
         styles.securityItem,
         { 
           backgroundColor: colors.card,
-          borderBottomColor: colors.border,
+          borderColor: colors.border,
         }
       ]}
       onPress={item.onPress}
       activeOpacity={0.7}
     >
-      <View style={[styles.itemIcon, { backgroundColor: `${colors.primary}15` }]}>
-        {item.icon}
+      <View style={styles.securityItemLeft}>
+        <View style={[
+          styles.securityItemIcon,
+          { backgroundColor: `${colors.primary}15` }
+        ]}>
+          {item.icon}
+        </View>
+        <View style={styles.securityItemContent}>
+          <Text style={[styles.securityItemTitle, { color: colors.text }]}>
+            {item.title}
+          </Text>
+          <Text style={[
+            styles.securityItemSubtitle, 
+            { color: item.status ? colors.success : colors.textSecondary }
+          ]}>
+            {item.subtitle}
+          </Text>
+        </View>
       </View>
       
-      <View style={styles.itemContent}>
-        <Text style={[styles.itemTitle, { color: colors.text }]}>
-          {item.title}
-        </Text>
-        <Text style={[styles.itemDescription, { color: colors.textSecondary }]}>
-          {item.description}
-        </Text>
-      </View>
-      
-      <View style={styles.itemRight}>
-        {getStatusIcon(item.status)}
-        <ChevronRight size={16} color={colors.textSecondary} />
+      <View style={styles.securityItemRight}>
+        <View style={[
+          styles.statusIndicator,
+          { backgroundColor: item.status ? colors.success : colors.border }
+        ]}>
+          {item.status ? (
+            <Check size={12} color="#FFFFFF" />
+          ) : (
+            <X size={12} color={colors.textSecondary} />
+          )}
+        </View>
+        <ChevronRight size={20} color={colors.textSecondary} />
       </View>
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
-      {/* Header */}
-      <View style={[
-        styles.header, 
-        { 
-          backgroundColor: colors.card,
-          borderBottomColor: colors.border,
-        }
-      ]}>
-        <TouchableOpacity 
-          onPress={() => router.back()} 
-          style={styles.backButton}
-        >
-          <ChevronLeft size={24} color={colors.text} />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={[styles.title, { color: colors.text }]}>Security</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Protect your account
-          </Text>
-        </View>
-      </View>
-
-      <ScrollView 
-        style={styles.scrollView}
+      <Header 
+        title="Security Settings" 
+        subtitle="Manage your account security"
+      />
+      
+      <ScrollView
+        style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Security Overview */}
-        <View style={[
-          styles.overviewCard,
-          { backgroundColor: `${colors.primary}15` }
-        ]}>
-          <Shield size={32} color={colors.primary} />
-          <Text style={[styles.overviewTitle, { color: colors.primary }]}>
-            Account Security
-          </Text>
-          <Text style={[styles.overviewDescription, { color: colors.text }]}>
-            Keep your account secure by enabling two-factor authentication and keeping your contact information up to date.
-          </Text>
-        </View>
+        <Card style={styles.overviewCard}>
+          <View style={styles.overviewHeader}>
+            <Shield size={32} color={colors.primary} />
+            <View style={styles.overviewContent}>
+              <Text style={[styles.overviewTitle, { color: colors.text }]}>
+                Account Security
+              </Text>
+              <Text style={[styles.overviewSubtitle, { color: colors.textSecondary }]}>
+                Keep your account safe and secure
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.securityScore}>
+            <Text style={[styles.scoreLabel, { color: colors.textSecondary }]}>
+              Security Score
+            </Text>
+            <View style={styles.scoreContainer}>
+              <View style={[
+                styles.scoreBar,
+                { backgroundColor: colors.border }
+              ]}>
+                <View style={[
+                  styles.scoreProgress,
+                  { 
+                    backgroundColor: colors.success,
+                    width: `${(securityItems.filter(item => item.status).length / securityItems.length) * 100}%`
+                  }
+                ]} />
+              </View>
+              <Text style={[styles.scoreText, { color: colors.success }]}>
+                {securityItems.filter(item => item.status).length}/{securityItems.length}
+              </Text>
+            </View>
+          </View>
+        </Card>
 
-        {/* Account Security */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Account Security
-          </Text>
+        {/* Security Items */}
+        <View style={styles.securityList}>
           {securityItems.map(renderSecurityItem)}
         </View>
 
-        {/* Social Account Binding */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Social Account Binding
-          </Text>
-          <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
-            Connect your social accounts for easier login and account recovery
-          </Text>
-          {socialItems.map(renderSecurityItem)}
-        </View>
-
         {/* Security Tips */}
-        <View style={[
-          styles.tipsCard,
-          { backgroundColor: `${colors.warning}10` }
-        ]}>
+        <Card style={[styles.tipsCard, { backgroundColor: `${colors.warning}10` }]}>
           <Text style={[styles.tipsTitle, { color: colors.warning }]}>
             🔒 Security Tips
           </Text>
-          <View style={styles.tipsList}>
-            <Text style={[styles.tipItem, { color: colors.text }]}>
-              • Use a strong, unique password
-            </Text>
-            <Text style={[styles.tipItem, { color: colors.text }]}>
-              • Enable two-factor authentication
-            </Text>
-            <Text style={[styles.tipItem, { color: colors.text }]}>
-              • Keep your contact information updated
-            </Text>
-            <Text style={[styles.tipItem, { color: colors.text }]}>
-              • Never share your login credentials
-            </Text>
-            <Text style={[styles.tipItem, { color: colors.text }]}>
-              • Log out from shared devices
-            </Text>
-          </View>
-        </View>
+          <Text style={[styles.tipsText, { color: colors.text }]}>
+            • Use a strong, unique password for your account{'\n'}
+            • Set up a withdraw password different from your login password{'\n'}
+            • Bind your phone number and email for account recovery{'\n'}
+            • Enable WhatsApp for important security notifications
+          </Text>
+        </Card>
       </ScrollView>
+
+      {/* Modals */}
+      <ChangePasswordModal
+        visible={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
+        onSuccess={() => {
+          setShowChangePasswordModal(false);
+          handleModalClose(true);
+        }}
+      />
+
+      <ChangeWithdrawPasswordModal
+        visible={showChangeWithdrawPasswordModal}
+        onClose={() => setShowChangeWithdrawPasswordModal(false)}
+        onSuccess={() => {
+          setShowChangeWithdrawPasswordModal(false);
+          handleModalClose(true);
+        }}
+      />
+
+      <BindPhoneModal
+        visible={showBindPhoneModal}
+        onClose={() => setShowBindPhoneModal(false)}
+        onSuccess={() => {
+          setShowBindPhoneModal(false);
+          handleModalClose(true);
+        }}
+      />
+
+      <BindEmailModal
+        visible={showBindEmailModal}
+        onClose={() => setShowBindEmailModal(false)}
+        onSuccess={() => {
+          setShowBindEmailModal(false);
+          handleModalClose(true);
+        }}
+      />
+
+      <BindWhatsAppModal
+        visible={showBindWhatsAppModal}
+        onClose={() => setShowBindWhatsAppModal(false)}
+        onSuccess={() => {
+          setShowBindWhatsAppModal(false);
+          handleModalClose(true);
+        }}
+      />
     </SafeAreaWrapper>
   );
 }
 
 export default function SecurityScreen() {
-  const { colors } = useTheme();
   return (
     <AuthGuard>
       <SecurityScreenContent />
@@ -301,118 +283,122 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-  },
-  backButton: {
-    marginRight: Spacing.md,
-    padding: Spacing.xs,
-  },
-  headerContent: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginTop: 2,
-  },
-  scrollView: {
-    flex: 1,
-  },
   scrollContent: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
   },
+  
+  // Overview Card
   overviewCard: {
-    alignItems: 'center',
-    padding: Spacing.xl,
-    borderRadius: 16,
     marginBottom: Spacing.lg,
   },
+  overviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  overviewContent: {
+    marginLeft: Spacing.md,
+    flex: 1,
+  },
   overviewTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    marginTop: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  overviewDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  section: {
-    marginBottom: Spacing.xl,
-  },
-  sectionTitle: {
     fontSize: 18,
     fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.sm,
   },
-  sectionDescription: {
+  overviewSubtitle: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    marginBottom: Spacing.md,
-    lineHeight: 20,
+    marginTop: 2,
+  },
+  securityScore: {
+    marginTop: Spacing.md,
+  },
+  scoreLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    marginBottom: Spacing.xs,
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  scoreBar: {
+    flex: 1,
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  scoreProgress: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  scoreText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Bold',
+  },
+
+  // Security List
+  securityList: {
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
   },
   securityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderBottomWidth: 1,
+    justifyContent: 'space-between',
+    padding: Spacing.lg,
     borderRadius: 12,
-    marginBottom: 2,
+    borderWidth: 1,
   },
-  itemIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  securityItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  securityItemIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
   },
-  itemContent: {
+  securityItemContent: {
     flex: 1,
   },
-  itemTitle: {
+  securityItemTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     marginBottom: 2,
   },
-  itemDescription: {
-    fontSize: 12,
+  securityItemSubtitle: {
+    fontSize: 14,
     fontFamily: 'Inter-Regular',
-    lineHeight: 16,
   },
-  itemRight: {
+  securityItemRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
+  statusIndicator: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Tips Card
   tipsCard: {
     padding: Spacing.lg,
-    borderRadius: 16,
-    marginTop: Spacing.lg,
   },
   tipsTitle: {
     fontSize: 16,
     fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
-  tipsList: {
-    gap: Spacing.sm,
-  },
-  tipItem: {
+  tipsText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     lineHeight: 20,
