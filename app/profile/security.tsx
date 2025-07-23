@@ -42,17 +42,17 @@ function SecurityScreenContent() {
       onPress: () => handleChangePassword(),
     },
     {
-      id: 'security-questions',
-      title: 'Security Questions',
-      description: 'Set up security questions for account recovery',
+      id: 'withdraw-password',
+      title: 'Change Withdraw Password',
+      description: 'Update your withdraw password',
       icon: <Key size={20} color={colors.primary} />,
-      status: 'not-set',
-      onPress: () => handleSecurityQuestions(),
+      status: 'secure',
+      onPress: () => handleChangeWithdrawPassword(),
     },
     {
       id: 'phone',
       title: 'Phone Number',
-      description: user?.whatsapp_bind ? 'Phone number verified' : 'Add phone number for security',
+      description: user?.phone ? 'Phone number verified' : 'Add phone number for security',
       icon: <Phone size={20} color={colors.primary} />,
       status: user?.whatsapp_bind ? 'verified' : 'not-verified',
       onPress: () => handlePhoneBinding(),
@@ -134,7 +134,7 @@ function SecurityScreenContent() {
     Alert.alert('Change Password', 'Password change functionality would be implemented here');
   };
 
-  const handleSecurityQuestions = () => {
+  const handleChangeWithdrawPassword = () => {
     Alert.alert('Security Questions', 'Security questions setup would be implemented here');
   };
 

@@ -30,7 +30,7 @@ export default function CalculatorScreen() {
   const { user, isAuthenticated } = useAuthStore();
   const { selectedCountry } = useCountryStore();
   const { initData } = useAppStore();
-  
+
   const [calculatorData, setCalculatorData] = useState<CalculatorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCard, setSelectedCard] = useState<CardItem | null>(null);
@@ -73,12 +73,12 @@ export default function CalculatorScreen() {
 
       const data = await CalculatorService.getCalculatorData(params);
       setCalculatorData(data);
-      
+
       // Set default card if available
       if (data.card_list.length > 0 && data.card_list[0].list.length > 0) {
         setSelectedCard(data.card_list[0].list[0]);
       }
-      
+
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Failed to fetch calculator data:', error);
@@ -94,11 +94,11 @@ export default function CalculatorScreen() {
     if (isNaN(amount)) return;
 
     let baseRate = selectedCurrency === user?.currency_name ? selectedCard.rate : selectedCard.usdt_rate;
-    
+
     // Apply VIP bonus
     const vipBonus = calculatorData.vip_detail.rate ? parseFloat(calculatorData.vip_detail.rate) / 100 : 0;
     const finalRate = baseRate * (1 + vipBonus);
-    
+
     setCalculatedAmount(amount * finalRate);
   };
 
@@ -108,9 +108,13 @@ export default function CalculatorScreen() {
 
   const formatCalculatedAmount = () => {
     if (!amountVisible) return '****';
-    return `${user?.currency_symbol}${calculatedAmount.toLocaleString(undefined, { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
+    let currency_symbol = 'USDT';
+    if (selectedCurrency === user?.currency_name) {
+      currency_symbol = user?.currency_symbol;
+    }
+    return `${currency_symbol}${calculatedAmount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     })}`;
   };
 
@@ -129,14 +133,14 @@ export default function CalculatorScreen() {
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={() => router.back()} 
+          <TouchableOpacity
+            onPress={() => router.back()}
             style={styles.backButton}
           >
             <ChevronLeft size={24} color={colors.text} />
@@ -147,7 +151,7 @@ export default function CalculatorScreen() {
               Calculate your earnings instantly
             </Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={refreshRates}
             style={[styles.refreshButton, { backgroundColor: `${colors.primary}15` }]}
           >
@@ -159,7 +163,7 @@ export default function CalculatorScreen() {
         <Card style={[styles.resultCard, { backgroundColor: colors.primary }]}>
           <View style={styles.resultHeader}>
             <Text style={styles.resultLabel}>You will receive</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => setAmountVisible(!amountVisible)}
               style={styles.visibilityButton}
             >
@@ -171,9 +175,9 @@ export default function CalculatorScreen() {
           <Text style={styles.resultAmount}>
             {formatCalculatedAmount()}
           </Text>
-          <Text style={styles.resultCurrency}>
+          {/* <Text style={styles.resultCurrency}>
             {user?.country_name || '₦'} {user?.currency_name || '₦'}
-          </Text>
+          </Text> */}
         </Card>
 
         {/* Main Content */}
@@ -234,20 +238,20 @@ export default function CalculatorScreen() {
                   {lastUpdated.toLocaleTimeString()}
                 </Text>
               </View>
-              
+
               <View style={styles.rateDetails}>
                 <View style={styles.rateDetailRow}>
                   <Text style={[styles.rateDetailLabel, { color: colors.textSecondary }]}>
                     Base Rate:
                   </Text>
                   <Text style={[styles.rateDetailValue, { color: colors.text }]}>
-                    {selectedCurrency === user?.currency_name 
+                    {selectedCurrency === user?.currency_name
                       ? `${user?.currency_symbol}${selectedCard.rate.toFixed(2)}`
                       : `USDT ${selectedCard.usdt_rate.toFixed(4)}`
                     }
                   </Text>
                 </View>
-                
+
                 {calculatorData && (
                   <View style={styles.rateDetailRow}>
                     <Text style={[styles.rateDetailLabel, { color: colors.textSecondary }]}>
@@ -258,7 +262,7 @@ export default function CalculatorScreen() {
                     </Text>
                   </View>
                 )}
-                
+
                 <View style={styles.rateDetailRow}>
                   <Text style={[styles.rateDetailLabel, { color: colors.textSecondary }]}>
                     Processing:
@@ -280,7 +284,7 @@ export default function CalculatorScreen() {
               rightIcon={<ArrowRight size={20} color="#FFFFFF" />}
               fullWidth
             />
-            
+
             <Button
               title="View All Rates"
               variant="outline"

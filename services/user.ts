@@ -106,4 +106,124 @@ export class UserService {
       throw new Error('Failed to delete account');
     }
   }
+
+  static async changePassword(token: string, password: string, new_password: string): Promise<void> {
+    try {
+      const response = await APIRequest.request<EmptyReponse>(
+        '/gc/user/modipassword',
+        'POST',
+        { token, password, new_password }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to modify password');
+      }
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to modify password: ${error.message}`);
+      }
+      throw new Error('Failed to modify password');
+    }
+  }
+
+  static async changeWithdrawPassword(token: string, password: string, new_password: string): Promise<void> {
+    try {
+      const response = await APIRequest.request<EmptyReponse>(
+        '/gc/withdraw/upTPassword',
+        'POST',
+        { token, password, new_password }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to modify withdraw password');
+      }
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to modify withdraw password: ${error.message}`);
+      }
+      throw new Error('Failed to modify withdraw password');
+    }
+  }
+
+  static async bindPhone(token: string, phone: string): Promise<void> {
+    try {
+      const response = await APIRequest.request<EmptyReponse>(
+        '/gc/user/bindPhone',
+        'POST',
+        { token, phone }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to bind phone');
+      }
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to bind phone: ${error.message}`);
+      }
+      throw new Error('Failed to bind phone');
+    }
+  }
+
+  static async bindWhatsapp(token: string, whatsapp: string, code: string): Promise<void> {
+    try {
+      const response = await APIRequest.request<EmptyReponse>(
+        '/gc/user/bindWhatsapp',
+        'POST',
+        { token, whatsapp, code }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to bind whatsapp');
+      }
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to bind whatsapp: ${error.message}`);
+      }
+      throw new Error('Failed to bind whatsapp');
+    }
+  }
+
+  static async bindEmail(token: string, email: string, verify_code: string): Promise<void> {
+    try {
+      const response = await APIRequest.request<EmptyReponse>(
+        '/gc/user/bindEmail',
+        'POST',
+        { token, email, verify_code }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to bind email');
+      }
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to bind email: ${error.message}`);
+      }
+      throw new Error('Failed to bind email');
+    }
+  }
 }

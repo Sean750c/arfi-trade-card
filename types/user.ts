@@ -19,6 +19,7 @@ export interface User {
     withdrawal_method: number;
     money_detail: number;
     country_logo_image: string;
+    phone: string;
     email: string;
     is_email_bind: boolean;
     whatsapp: string;

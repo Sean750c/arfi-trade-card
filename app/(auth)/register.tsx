@@ -31,7 +31,7 @@ export default function RegisterScreen() {
   // const colorScheme = useColorScheme() ?? 'light';
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
-  const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
+  const { countries, selectedCountry, setSelectedCountry, fetchCountries } = useCountryStore();
   const { register, isLoading } = useAuthStore();
   const { initData } = useAppStore();
 
@@ -218,6 +218,12 @@ export default function RegisterScreen() {
       }));
     }
   };
+
+  React.useEffect(() => {
+    if (!countries.length) {
+      fetchCountries(); // 你需要实现这个方法，调用接口并 setCountries
+    }
+  }, []);
 
   return (
     <KeyboardAvoidingView
