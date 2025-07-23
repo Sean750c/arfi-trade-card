@@ -131,6 +131,30 @@ export class UserService {
     }
   }
 
+  static async addWithdrawPassword(token: string, password: string): Promise<void> {
+    try {
+      const response = await APIRequest.request<EmptyReponse>(
+        '/gc/withdraw/transactionPassword',
+        'POST',
+        { token, password }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to add withdraw password');
+      }
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to add withdraw password: ${error.message}`);
+      }
+      throw new Error('Failed to add withdraw password');
+    }
+  }
+
   static async changeWithdrawPassword(token: string, password: string, new_password: string): Promise<void> {
     try {
       const response = await APIRequest.request<EmptyReponse>(

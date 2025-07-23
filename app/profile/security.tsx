@@ -18,6 +18,8 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
+  Apple,
+  Facebook,
   Check,
   X
 } from 'lucide-react-native';
@@ -93,6 +95,45 @@ function SecurityScreenContent() {
       onPress: () => setShowBindWhatsAppModal(true),
     },
   ];
+
+  const socialItems = [
+    {
+      id: 'google',
+      title: 'Google Account',
+      description: 'Connect your Google account',
+      icon: <Shield size={20} color={colors.primary} />,
+      status: 'not-connected',
+      onPress: () => handleGoogleBinding(),
+    },
+    {
+      id: 'facebook',
+      title: 'Facebook Account',
+      description: 'Connect your Facebook account',
+      icon: <Facebook size={20} color={colors.primary} />,
+      status: 'not-connected',
+      onPress: () => handleFacebookBinding(),
+    },
+    {
+      id: 'apple',
+      title: 'Apple ID',
+      description: 'Connect your Apple ID',
+      icon: <Apple size={20} color={colors.primary} />,
+      status: 'not-connected',
+      onPress: () => handleAppleBinding(),
+    },
+  ];
+
+  const handleGoogleBinding = () => {
+    Alert.alert('Google Binding', 'Google account binding functionality would be implemented here');
+  };
+
+  const handleFacebookBinding = () => {
+    Alert.alert('Facebook Binding', 'Facebook account binding functionality would be implemented here');
+  };
+
+  const handleAppleBinding = () => {
+    Alert.alert('Apple Binding', 'Apple ID binding functionality would be implemented here');
+  };
 
   const handleModalClose = async (shouldReload = false) => {
     if (shouldReload) {
@@ -206,6 +247,17 @@ function SecurityScreenContent() {
         {/* Security Items */}
         <View style={styles.securityList}>
           {securityItems.map(renderSecurityItem)}
+        </View>
+
+        {/* Social Account Binding */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Social Account Binding
+          </Text>
+          <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
+            Connect your social accounts for easier login and account recovery
+          </Text>
+          {socialItems.map(renderSecurityItem)}
         </View>
 
         {/* Security Tips */}
@@ -401,6 +453,20 @@ const styles = StyleSheet.create({
   tipsText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
+    lineHeight: 20,
+  },
+  section: {
+    marginBottom: Spacing.xl,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.sm,
+  },
+  sectionDescription: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    marginBottom: Spacing.md,
     lineHeight: 20,
   },
 });
