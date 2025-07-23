@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { Bell, BellOff, Settings, CheckCircle } from 'lucide-react-native';
+import { Bell, BellOff, Settings, CircleCheck as CheckCircle } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
 import Spacing from '@/constants/Spacing';
