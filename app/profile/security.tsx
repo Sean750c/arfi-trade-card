@@ -33,6 +33,7 @@ import ChangeWithdrawPasswordModal from '@/components/profile/ChangeWithdrawPass
 import BindPhoneModal from '@/components/profile/BindPhoneModal';
 import BindEmailModal from '@/components/profile/BindEmailModal';
 import BindWhatsAppModal from '@/components/profile/BindWhatsAppModal';
+import NotificationPermissionCard from '@/components/notifications/NotificationPermissionCard';
 
 function SecurityScreenContent() {
   const { colors } = useTheme();
@@ -191,6 +192,7 @@ function SecurityScreenContent() {
       <Header 
         title="Security Settings" 
         subtitle="Manage your account security"
+        backgroundColor={colors.background}
       />
       
       <ScrollView
@@ -198,6 +200,9 @@ function SecurityScreenContent() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Notification Permissions */}
+        <NotificationPermissionCard />
+
         {/* Security Overview */}
         <Card style={styles.overviewCard}>
           <View style={styles.overviewHeader}>
@@ -324,6 +329,11 @@ const styles = StyleSheet.create({
   // Overview Card
   overviewCard: {
     marginBottom: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   overviewHeader: {
     flexDirection: 'row',

@@ -19,6 +19,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { Notice } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import { formatDate } from '@/utils/date';
+import NotificationPermissionCard from '@/components/notifications/NotificationPermissionCard';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
   
 const NOTIFICATION_TYPES = [
@@ -237,7 +238,7 @@ function NotificationsScreenContent() {
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
-      <View style={[styles.header, Platform.OS === 'android' && styles.androidHeader]}>
+      <View style={[styles.header, Platform.OS === 'android' && styles.androidHeader, { backgroundColor: colors.background }]}>
         <TouchableOpacity 
           onPress={() => router.back()} 
           style={styles.backButton}
@@ -253,8 +254,13 @@ function NotificationsScreenContent() {
         </View>
       </View>
 
+      {/* Notification Permission Card */}
+      <View style={styles.content}>
+        <NotificationPermissionCard />
+      </View>
+
       {/* Type Filter */}
-      <View style={styles.filterContainer}>
+      <View style={[styles.filterContainer, { backgroundColor: colors.background }]}>
         {NOTIFICATION_TYPES.map((type) => (
           <TouchableOpacity
             key={type.key}
@@ -363,6 +369,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     marginTop: Spacing.xs,
+  },
+  content: {
+    paddingHorizontal: Spacing.lg,
   },
   filterContainer: {
     flexDirection: 'row',

@@ -7,3 +7,4 @@ export * from './rebate';
 export * from './user';
 export * from './vip';
 export * from './wallet';
+export * from './notification';
