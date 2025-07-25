@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "791594810994",
+    "project_id": "cardking-bbdbe",
+    "storage_bucket": "cardking-bbdbe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791594810994:android:cb00f89815dc14be7c4ceb",
+        "android_client_info": {
+          "package_name": "com.bsdb.cardking"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRYDNJ2dZVz1YSSaJYM-wqEz7L6UgN-2M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

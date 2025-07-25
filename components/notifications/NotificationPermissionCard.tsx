@@ -7,6 +7,7 @@ import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import * as Notifications from 'expo-notifications';
+import * as Linking from 'expo-linking';
 
 export default function NotificationPermissionCard() {
   const { colors } = useTheme();
@@ -46,7 +47,7 @@ export default function NotificationPermissionCard() {
             { text: 'Cancel', style: 'cancel' },
             { 
               text: 'Open Settings', 
-              onPress: () => Notifications.openSettingsAsync() 
+              onPress: () => Linking.openSettings()
             }
           ]
         );
@@ -59,7 +60,7 @@ export default function NotificationPermissionCard() {
   };
 
   const openNotificationSettings = () => {
-    Notifications.openSettingsAsync();
+    Linking.openSettings();
   };
 
   const getStatusInfo = () => {

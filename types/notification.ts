@@ -2,9 +2,11 @@ import type { APIResponse } from './api';
 
 // FCM Token Types
 export interface FCMTokenRequest {
-  token: string;
-  device_token: string;
-  device_type: 'ios' | 'android' | 'web';
+  token?: string;
+  push_device_token: string;
+  device_type: string;
+  device_no: string;
+  os_type: 'ios' | 'android' | 'web';
 }
 
 export interface FCMTokenResponse extends APIResponse<{}> {}

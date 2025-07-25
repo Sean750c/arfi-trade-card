@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { NotificationService } from '@/services/notification';
 import type { NotificationActionType } from '@/types/notification';
+import { generateDeviceId, getDeviceType } from '@/utils/device';
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -14,6 +15,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -21,8 +24,8 @@ export function useNotifications() {
   const { user, isAuthenticated } = useAuthStore();
   const [expoPushToken, setExpoPushToken] = useState<string>('');
   const [notification, setNotification] = useState<Notifications.Notification | null>(null);
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
 
   // Register for push notifications
   const registerForPushNotificationsAsync = async (): Promise<string | null> => {
@@ -113,16 +116,21 @@ export function useNotifications() {
 
   // Register FCM token with backend
   const registerTokenWithBackend = async (token: string) => {
-    if (!isAuthenticated || !user?.token) {
-      console.log('User not authenticated, skipping token registration');
-      return;
-    }
+    // if (!isAuthenticated || !user?.token) {
+    //   console.log('User not authenticated, skipping token registration');
+    //   return;
+    // }
 
     try {
+      console.log('device_token:', token);
+      const deviceNo = await generateDeviceId();
+      const deviceType = await getDeviceType();
       await NotificationService.registerFCMToken({
-        token: user.token,
-        device_token: token,
-        device_type: Platform.OS as 'ios' | 'android' | 'web',
+        token: user?.token,
+        push_device_token: token,
+        device_type: deviceType,
+        device_no: deviceNo,
+        os_type: Platform.OS as 'ios' | 'android' | 'web',
       });
       console.log('FCM token registered with backend successfully');
     } catch (error) {
@@ -188,7 +196,7 @@ export function useNotifications() {
         data,
         sound: 'default',
       },
-      trigger: { seconds },
+      trigger: { seconds, repeats: false, type: 'timeInterval' } as any,
     });
   };
 

@@ -17,7 +17,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.bsdb.cardking",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "NSUserTrackingUsageDescription": "This data helps us provide relevant content and notifications. We respect your privacy and do not share your information without your permission.",
+        "UNUserNotificationCenterDelegate": true
       }
     },
     "web": {
@@ -34,7 +37,7 @@
         {
           "icon": "./assets/images/notification-icon.png",
           "color": "#008751",
-          "sounds": ["./assets/sounds/notification.wav"],
+          "sounds": ["./assets/sounds/notification.mp3"],
           "mode": "production"
         }
       ],
@@ -70,7 +73,9 @@
       "proguard": true,
       "package": "com.bsdb.cardking",
       "enableProguardInReleaseBuilds": true,
-      "enableShrinkResourcesInReleaseBuilds": true
+      "enableShrinkResourcesInReleaseBuilds": true,
+      "googleServicesFile": "./google-services.json", 
+      "useNextNotificationsApi": true
     },
     "jsEngine": "hermes",
     "owner": "chaoqunz"
