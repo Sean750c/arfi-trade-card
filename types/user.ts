@@ -101,7 +101,7 @@ export interface SocialBindRequest {
     version: string;
 }
 
-export interface BindResult {
+export interface SocialBindResult {
     is_social_bind: boolean;
 }
 
@@ -160,4 +160,4 @@ export type UpdatePasswordResponse = APIResponse<{}>;
 
 // Social Login Response Types
 export type SocialLoginResponse = APIResponse<SocialLoginResult>;
-export type SocialBindResponse = APIResponse<BindResult>;
+export type SocialBindResponse = APIResponse<SocialBindResult>;

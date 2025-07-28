@@ -15,7 +15,6 @@ import { router } from 'expo-router';
 import { ChevronLeft, Mail, Phone, ChevronDown, Eye, EyeOff } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
-import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import Spacing from '@/constants/Spacing';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';

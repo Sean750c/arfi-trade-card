@@ -17,7 +17,8 @@ import type {
   AppleLoginRequest,
   SocialLoginResponse,
   SocialBindResponse,
-  SocialBindRequest
+  SocialBindRequest,
+  SocialBindResult
 } from '@/types';
 
 export class AuthService {
@@ -351,7 +352,7 @@ export class AuthService {
     }
   }
 
-  static async socialBind(params: SocialBindRequest): Promise<SocialBindResponse> {
+  static async socialBind(params: SocialBindRequest): Promise<SocialBindResult> {
     try {
       const response = await APIRequest.request<SocialBindResponse>(
         '/gc/social/socialBind',
