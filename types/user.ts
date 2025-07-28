@@ -23,6 +23,9 @@ export interface User {
     email: string;
     is_email_bind: boolean;
     whatsapp: string;
+    google_bind?: boolean; // Added for social bind status
+    facebook_bind?: boolean; // Added for social bind status
+    apple_bind?: boolean; // Added for social bind status
     whatsapp_bind: boolean;
     password_null: boolean;
     t_password_null: boolean;

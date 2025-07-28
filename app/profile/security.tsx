@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Platform,
 } from 'react-native';
 import { 
   Shield, 
@@ -17,7 +18,12 @@ import {
   Apple,
   Facebook,
   Check,
-  X
+  X,
+  Google,
+  CheckCircle,
+  XCircle,
+  Bell,
+  Settings
 } from 'lucide-react-native';
 import Header from '@/components/UI/Header';
 import Card from '@/components/UI/Card';
@@ -26,6 +32,7 @@ import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { AuthService } from '@/services/AuthService';
 
 // Modal Components
 import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
@@ -34,6 +41,10 @@ import BindPhoneModal from '@/components/profile/BindPhoneModal';
 import BindEmailModal from '@/components/profile/BindEmailModal';
 import BindWhatsAppModal from '@/components/profile/BindWhatsAppModal';
 import NotificationPermissionCard from '@/components/notifications/NotificationPermissionCard';
+import * as WebBrowser from 'expo-web-browser';
+import * as GoogleAuth from 'expo-auth-session/providers/google';
+import * as FacebookAuth from 'expo-auth-session/providers/facebook';
+import * as AppleAuthentication from 'expo-apple-authentication';
 
 function SecurityScreenContent() {
   const { colors } = useTheme();
@@ -45,6 +56,26 @@ function SecurityScreenContent() {
   const [showBindPhoneModal, setShowBindPhoneModal] = useState(false);
   const [showBindEmailModal, setShowBindEmailModal] = useState(false);
   const [showBindWhatsAppModal, setShowBindWhatsAppModal] = useState(false);
+
+  // Google Auth Hook for binding
+  const [requestGoogleBind, responseGoogleBind, promptAsyncGoogleBind] = GoogleAuth.useAuthRequest({
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  });
+
+  // Facebook Auth Hook for binding
+  const [requestFacebookBind, responseFacebookBind, promptAsyncFacebookBind] = FacebookAuth.useAuthRequest({
+    clientId: 'YOUR_FACEBOOK_APP_ID', // Replace with your Facebook App ID
+  });
+
+  WebBrowser.maybeCompleteAuthSession();
+
+  const refreshUserData = useCallback(() => {
+    if (user?.token) {
+      reloadUser();
+    }
+  }, [user?.token, reloadUser]);
 
   const securityItems = [
     {
@@ -89,43 +120,103 @@ function SecurityScreenContent() {
     },
   ];
 
-  const socialItems = [
-    {
-      id: 'google',
-      title: 'Google Account',
-      description: 'Connect your Google account',
-      icon: <Shield size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleGoogleBinding(),
-    },
-    {
-      id: 'facebook',
-      title: 'Facebook Account',
-      description: 'Connect your Facebook account',
-      icon: <Facebook size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleFacebookBinding(),
-    },
-    {
-      id: 'apple',
-      title: 'Apple ID',
-      description: 'Connect your Apple ID',
-      icon: <Apple size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleAppleBinding(),
-    },
-  ];
-
-  const handleGoogleBinding = () => {
-    Alert.alert('Google Binding', 'Google account binding functionality would be implemented here');
+  // Handle Social Binding
+  const handleSocialBind = async (socialType: 'google' | 'facebook' | 'apple', accessToken: string, socialId: string, socialEmail: string, socialName?: string) => {
+    if (!user?.token) {
+      Alert.alert('Error', 'User not authenticated. Please log in first.');
+      return;
+    }
+    try {
+      const bindResult = await AuthService.socialBind({
+        token: user.token,
+        social_type: socialType,
+        apple_code: socialType === 'apple' ? accessToken : '', // Apple uses identityToken as code
+        facebook_token: socialType === 'facebook' ? accessToken : '',
+        social_id: socialId,
+        social_email: socialEmail,
+        social_picture: '', // Assuming no picture from this flow
+        social_name: socialName,
+        version: '1.0', // Or dynamically get app version
+      });
+      if (bindResult.is_social_bind) {
+        Alert.alert('Success', `${socialType} account bound successfully!`);
+        refreshUserData(); // Reload user info to reflect binding
+      } else {
+        Alert.alert('Binding Failed', `Failed to bind ${socialType} account.`);
+      }
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : `Failed to bind ${socialType} account.`);
+    }
   };
 
-  const handleFacebookBinding = () => {
-    Alert.alert('Facebook Binding', 'Facebook account binding functionality would be implemented here');
+  // Google Bind Handler
+  const handleGoogleBind = async () => {
+    try {
+      const result = await promptAsyncGoogleBind();
+      if (result.type === 'success' && result.authentication?.accessToken) {
+        const accessToken = result.authentication.accessToken;
+        // You might need to fetch user info from Google using this token to get social_id and social_email
+        // For simplicity, let's assume you get it from the backend response or a separate API call
+        // For now, we'll use placeholder social_id and social_email
+        Alert.alert('Google Bind', 'Simulating Google bind. In a real app, you\'d fetch user info from Google API.', [
+          { text: 'Continue', onPress: () => handleSocialBind('google', accessToken, 'mock_google_id', 'mock_google_email@example.com', 'Mock Google User') }
+        ]);
+      } else if (result.type === 'cancel') {
+        Alert.alert('Bind Cancelled', 'Google bind was cancelled.');
+      } else if (result.type === 'error') {
+        Alert.alert('Bind Error', result.error?.message || 'An unknown error occurred during Google bind.');
+      }
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Google bind failed');
+    }
   };
 
-  const handleAppleBinding = () => {
-    Alert.alert('Apple Binding', 'Apple ID binding functionality would be implemented here');
+  // Facebook Bind Handler
+  const handleFacebookBind = async () => {
+    try {
+      const result = await promptAsyncFacebookBind();
+      if (result.type === 'success' && result.authentication?.accessToken) {
+        const accessToken = result.authentication.accessToken;
+        Alert.alert('Facebook Bind', 'Simulating Facebook bind. In a real app, you\'d fetch user info from Facebook API.', [
+          { text: 'Continue', onPress: () => handleSocialBind('facebook', accessToken, 'mock_facebook_id', 'mock_facebook_email@example.com', 'Mock Facebook User') }
+        ]);
+      } else if (result.type === 'cancel') {
+        Alert.alert('Bind Cancelled', 'Facebook bind was cancelled.');
+      } else if (result.type === 'error') {
+        Alert.alert('Bind Error', result.error?.message || 'An unknown error occurred during Facebook bind.');
+      }
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Facebook bind failed');
+    }
+  };
+
+  // Apple Bind Handler
+  const handleAppleBind = async () => {
+    if (Platform.OS !== 'ios') {
+      Alert.alert('Not Available', 'Apple Sign-In is only available on iOS devices');
+      return;
+    }
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      if (credential.identityToken) {
+        Alert.alert('Apple Bind', 'Simulating Apple bind. In a real app, you\'d fetch user info from Apple API.', [
+          { text: 'Continue', onPress: () => handleSocialBind('apple', credential.identityToken!, credential.user!, credential.email || 'mock_apple_email@example.com', credential.fullName?.givenName || 'Mock Apple User') }
+        ]);
+      } else {
+        Alert.alert('Bind Error', 'Apple identity token not found.');
+      }
+    } catch (e: any) {
+      if (e.code === 'ERR_CANCELED') {
+        Alert.alert('Bind Cancelled', 'Apple bind was cancelled.');
+      } else {
+        Alert.alert('Bind Error', e.message || 'An unknown error occurred during Apple bind.');
+      }
+    }
   };
 
   const handleModalClose = async (shouldReload = false) => {
@@ -247,17 +338,61 @@ function SecurityScreenContent() {
         </View>
 
         {/* Social Account Binding */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Social Account Binding
-          </Text>
-          <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
-            Connect your social accounts for easier login and account recovery
-          </Text>
-          <View style={styles.securityList}>
-            {socialItems.map(renderSecurityItem)}
-          </View>
-        </View>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Social Accounts</Text>
+        <Card style={styles.card}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleGoogleBind}>
+            <View style={styles.menuItemLeft}>
+              <Google size={20} color={colors.primary} />
+              <Text style={[styles.menuItemText, { color: colors.text }]}>Bind Google</Text>
+            </View>
+            <View style={styles.menuItemRight}>
+              {user?.google_bind ? ( // Assuming user.google_bind exists
+                <CheckCircle size={20} color={colors.success} />
+              ) : (
+                <XCircle size={20} color={colors.error} />
+              )}
+            </View>
+          </TouchableOpacity>
+
+          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+
+          <TouchableOpacity style={styles.menuItem} onPress={handleFacebookBind}>
+            <View style={styles.menuItemLeft}>
+              <Facebook size={20} color={colors.primary} />
+              <Text style={[styles.menuItemText, { color: colors.text }]}>Bind Facebook</Text>
+            </View>
+            <View style={styles.menuItemRight}>
+              {user?.facebook_bind ? ( // Assuming user.facebook_bind exists
+                <CheckCircle size={20} color={colors.success} />
+              ) : (
+                <XCircle size={20} color={colors.error} />
+              )}
+            </View>
+          </TouchableOpacity>
+
+          {Platform.OS === 'ios' && (
+            <>
+              <View style={[styles.separator, { backgroundColor: colors.border }]} />
+              <TouchableOpacity style={styles.menuItem} onPress={handleAppleBind}>
+                <View style={styles.menuItemLeft}>
+                  <Apple size={20} color={colors.primary} />
+                  <Text style={[styles.menuItemText, { color: colors.text }]}>Bind Apple</Text>
+                </View>
+                <View style={styles.menuItemRight}>
+                  {user?.apple_bind ? ( // Assuming user.apple_bind exists
+                    <CheckCircle size={20} color={colors.success} />
+                  ) : (
+                    <XCircle size={20} color={colors.error} />
+                  )}
+                </View>
+              </TouchableOpacity>
+            </>
+          )}
+        </Card>
+
+        {/* Notification Permissions */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Notifications</Text>
+        <NotificationPermissionCard />
       </ScrollView>
 
       {/* Modals */}
@@ -459,5 +594,32 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     marginBottom: Spacing.md,
     lineHeight: 20,
+  },
+  card: {
+    marginBottom: Spacing.lg,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.md,
+  },
+  menuItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  menuItemText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    marginLeft: Spacing.md,
+  },
+  menuItemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  separator: {
+    height: 1,
+    marginVertical: Spacing.xs,
   },
 });
