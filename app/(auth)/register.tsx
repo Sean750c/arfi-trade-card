@@ -21,6 +21,7 @@ import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { Country } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
+import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { useAppStore } from '@/stores/useAppStore';
 import { AuthService } from '@/services/auth';
@@ -579,6 +580,12 @@ export default function RegisterScreen() {
             </View>
           </View>
         </SafeAreaWrapper>
+        <View style={styles.socialLoginContainer}>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <Text style={[styles.dividerText, { color: colors.textSecondary }]}>OR</Text>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        </View>
+        <SocialLoginButtons />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -761,5 +768,17 @@ const styles = StyleSheet.create({
   loginLink: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
+  },
+  socialLoginContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: Spacing.lg,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    marginHorizontal: Spacing.md,
   },
 });

@@ -18,6 +18,7 @@ import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useTheme } from '@/theme/ThemeContext';
+import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 export default function LoginScreen() {
@@ -174,6 +175,12 @@ export default function LoginScreen() {
             </View>
           </View>
         </SafeAreaWrapper>
+        <View style={styles.socialLoginContainer}>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <Text style={[styles.dividerText, { color: colors.textSecondary }]}>OR</Text>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        </View>
+        <SocialLoginButtons />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -226,6 +233,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
+  },
+  socialLoginContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: Spacing.lg,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    marginHorizontal: Spacing.md,
   },
   formContainer: {
     width: '100%',

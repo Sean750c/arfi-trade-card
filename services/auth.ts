@@ -351,7 +351,7 @@ export class AuthService {
     }
   }
 
-  static async socialBind(params: SocialBindRequest) {
+  static async socialBind(params: SocialBindRequest): Promise<SocialBindResponse> {
     try {
       const response = await APIRequest.request<SocialBindResponse>(
         '/gc/social/socialBind',

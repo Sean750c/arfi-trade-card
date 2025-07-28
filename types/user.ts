@@ -94,6 +94,7 @@ export interface SocialBindRequest {
     social_id: string;
     social_email: string;
     social_picture: string;
+    social_name?: string; // Added for consistency
     version: string;
 }
 

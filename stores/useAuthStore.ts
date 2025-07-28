@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { User } from '@/types';
-import { AuthService } from '@/services/auth';
+import { AuthService, SocialLoginResult } from '@/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserService } from '@/services/user';
 
@@ -16,9 +16,9 @@ interface AuthState {
   register: (params: {
     username: string;
     password: string;
-    country_id: string;
+    country_id: number; // Changed to number based on API
     register_type: '1' | '2' | '3';
-    email?: string;
+    email?: string; // Optional for social register
     whatsapp?: string;
     recommend_code?: string;
     code?: string;
@@ -26,6 +26,7 @@ interface AuthState {
   reloadUser: () => Promise<void>;
   setUser: (user: User) => void; // Add method to set user directly (for social login)
   googleLogin: (accessToken: string) => Promise<void>;
+  googleLoginCallback: (result: SocialLoginResult) => Promise<void>; // New callback for social login
   facebookLogin: (accessToken: string) => Promise<void>;
   appleLogin: (accessToken: string) => Promise<void>;
   initialize: () => Promise<void>;
@@ -181,10 +182,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await AuthService.googleLogin(accessToken);
+      await get().googleLoginCallback(response); // Use the new callback
+    } catch (error) {
       set({
-        isAuthenticated: true,
-        // user: response,
         isLoading: false,
+        error: error instanceof Error ? error.message : 'Google login failed',
+      });
+      throw error;
+    }
+  },
+  googleLoginCallback: async (result: SocialLoginResult) => {
+    set({ isLoading: true, error: null });
+    try {
+      if (result.is_social_bind) {
+        // If already bound, fetch user info and log in
+        const userInfo = await UserService.getUserInfo(result.token);
+        const freshUser = { ...userInfo, token: result.token };
+        set({
+          isAuthenticated: true,
+          user: freshUser,
+          isLoading: false,
+          error: null,
+        });
+        await AsyncStorage.setItem('user', JSON.stringify(freshUser));
+        router.replace('/(tabs)');
+      } else {
+        // Not bound, navigate to social register screen
+        // Pass social login data to the new screen
+        router.replace({ pathname: '/(auth)/social-register', params: result });
         error: null,
       });
     } catch (error) {

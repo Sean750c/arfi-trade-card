@@ -26,6 +26,7 @@ export default function AuthLayout() {
           gestureEnabled: true,
           gestureDirection: 'horizontal',
         }}
+        <Stack.Screen name="social-register" options={{ headerShown: false }} />
       />
     </Stack>
   );
