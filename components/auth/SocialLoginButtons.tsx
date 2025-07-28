@@ -61,7 +61,7 @@ export default function SocialLoginButtons() {
               try {
                 const mockAccessToken = 'mock_facebook_access_token';
                 const userData = await AuthService.facebookLogin(mockAccessToken);
-                setUser(userData);
+                // setUser(userData);
                 router.replace('/(tabs)');
               } catch (error) {
                 Alert.alert('Error', error instanceof Error ? error.message : 'Facebook login failed');
@@ -94,7 +94,7 @@ export default function SocialLoginButtons() {
               try {
                 const mockAccessToken = 'mock_apple_access_token';
                 const userData = await AuthService.appleLogin(mockAccessToken);
-                setUser(userData);
+                // setUser(userData);
                 router.replace('/(tabs)');
               } catch (error) {
                 Alert.alert('Error', error instanceof Error ? error.message : 'Apple login failed');
