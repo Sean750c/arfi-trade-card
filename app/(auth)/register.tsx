@@ -773,10 +773,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: Spacing.lg,
   },
-  divider: {
-    flex: 1,
-    height: 1,
-  },
   dividerText: {
     marginHorizontal: Spacing.md,
   },

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { User } from '@/types';
-import { AuthService, SocialLoginResult } from '@/services/auth';
+import { User, SocialLoginResult } from '@/types';
+import { AuthService } from '@/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserService } from '@/services/user';
 
@@ -16,7 +16,7 @@ interface AuthState {
   register: (params: {
     username: string;
     password: string;
-    country_id: number; // Changed to number based on API
+    country_id: string; // Changed to number based on API
     register_type: '1' | '2' | '3';
     email?: string; // Optional for social register
     whatsapp?: string;
@@ -205,11 +205,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           error: null,
         });
         await AsyncStorage.setItem('user', JSON.stringify(freshUser));
-        router.replace('/(tabs)');
+        // router.replace('/(tabs)');
       } else {
         // Not bound, navigate to social register screen
         // Pass social login data to the new screen
-        router.replace({ pathname: '/(auth)/social-register', params: result });
+        // router.replace({ pathname: '/(auth)/social-register', params: result });
         set({
           isLoading: false,
           error: null,
