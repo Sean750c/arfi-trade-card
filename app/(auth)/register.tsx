@@ -560,13 +560,13 @@ export default function RegisterScreen() {
               />
             </View>
 
-            {/* <View style={styles.orContainer}>
+            <View style={styles.orContainer}>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
               <Text style={[styles.orText, { color: colors.textSecondary }]}>OR</Text>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
             </View>
             
-            <SocialLoginButtons /> */}
+            <SocialLoginButtons />
 
             {/* Login Link */}
             <View style={styles.loginContainer}>

@@ -263,7 +263,7 @@ export class AuthService {
 
     try {
       const response = await APIRequest.request<SocialLoginResponse>(
-        '/gc/social/googleLogin',
+        '/gc/social/gin',
         'POST',
         {
           access_token: accessToken,
