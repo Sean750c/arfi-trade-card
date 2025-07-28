@@ -86,7 +86,7 @@ export interface SocialLoginRequest {
     channel_type: '1' | '7' | '8';
 }
 
-export interface BindRequest {
+export interface SocialBindRequest {
     token: string;
     social_type: 'google' | 'facebook' | 'apple';
     apple_code: string;
