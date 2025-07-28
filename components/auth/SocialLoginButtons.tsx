@@ -33,7 +33,7 @@ export default function SocialLoginButtons() {
                 // Simulate getting an access token
                 const mockAccessToken = 'mock_google_access_token';
                 const userData = await AuthService.googleLogin(mockAccessToken);
-                setUser(userData);
+                // setUser(userData);
                 router.replace('/(tabs)');
               } catch (error) {
                 Alert.alert('Error', error instanceof Error ? error.message : 'Google login failed');

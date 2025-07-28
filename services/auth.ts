@@ -15,7 +15,9 @@ import type {
   GoogleLoginRequest,
   FacebookLoginRequest,
   AppleLoginRequest,
-  SocialLoginResponse
+  SocialLoginResponse,
+  SocialBindResponse,
+  SocialBindRequest
 } from '@/types';
 
 export class AuthService {
@@ -263,7 +265,7 @@ export class AuthService {
 
     try {
       const response = await APIRequest.request<SocialLoginResponse>(
-        '/gc/social/gin',
+        '/gc/social/googleLogin',
         'POST',
         {
           access_token: accessToken,
@@ -334,6 +336,27 @@ export class AuthService {
           device_no: deviceNo,
           channel_type: '1',
         }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Apple login failed');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Apple login failed: ${error.message}`);
+      }
+      throw new Error('Apple login failed');
+    }
+  }
+
+  static async socialBind(params: SocialBindRequest) {
+    try {
+      const response = await APIRequest.request<SocialBindResponse>(
+        '/gc/social/socialBind',
+        'POST',
+        params
       );
 
       if (!response.success) {

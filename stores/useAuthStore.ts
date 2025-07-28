@@ -183,7 +183,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await AuthService.googleLogin(accessToken);
       set({
         isAuthenticated: true,
-        user: response,
+        // user: response,
         isLoading: false,
         error: null,
       });
@@ -201,7 +201,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await AuthService.facebookLogin(accessToken);
       set({
         isAuthenticated: true,
-        user: response,
+        // user: response,
         isLoading: false,
         error: null,
       });
@@ -219,7 +219,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await AuthService.appleLogin(accessToken);
       set({
         isAuthenticated: true,
-        user: response,
+        // user: response,
         isLoading: false,
         error: null,
       });

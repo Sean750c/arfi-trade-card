@@ -86,16 +86,63 @@ export interface SocialLoginRequest {
     channel_type: '1' | '7' | '8';
 }
 
+export interface BindRequest {
+    token: string;
+    social_type: 'google' | 'facebook' | 'apple';
+    apple_code: string;
+    facebook_token: string;
+    social_id: string;
+    social_email: string;
+    social_picture: string;
+    version: string;
+}
+
+export interface BindResult {
+    is_social_bind: boolean;
+}
+
+export interface SocialLoginResult {
+    username: string;
+    is_social_bind: true | false;
+    social_id: string;
+    validate_email: string;
+    user_id: number;
+    vip_level: string;
+    token: string;
+}
+
 export interface GoogleLoginRequest extends SocialLoginRequest {
     // Google specific fields if needed
+    is_validate_email: 0 | 1;
+    social_id: string;
+    social_name: string;
+    social_email: string;
+    device_no: string;
+    push_device_token: string;
+    os_type: string;
+    device_type: string;
 }
 
 export interface FacebookLoginRequest extends SocialLoginRequest {
-    // Facebook specific fields if needed
+    facebook_token: string;
+    is_validate_email: 0 | 1;
+    version: number;
+    device_no: string;
+    push_device_token: string;
+    os_type: string;
+    device_type: string;
 }
 
 export interface AppleLoginRequest extends SocialLoginRequest {
-    // Apple specific fields if needed
+    social_id: string;
+    social_name: string;
+    social_email: string;
+    social_code: string;
+    version: number;
+    device_no: string;
+    push_device_token: string;
+    os_type: string;
+    device_type: string;
 }
 
 export type UserRegisterResponse = APIResponse<User>;
@@ -108,4 +155,5 @@ export type SendWhatsAppCodeResponse = APIResponse<{}>;
 export type UpdatePasswordResponse = APIResponse<{}>;
 
 // Social Login Response Types
-export type SocialLoginResponse = APIResponse<User>;
+export type SocialLoginResponse = APIResponse<SocialLoginResult>;
+export type SocialBindResponse = APIResponse<BindResult>;
