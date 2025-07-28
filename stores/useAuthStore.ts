@@ -210,8 +210,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Not bound, navigate to social register screen
         // Pass social login data to the new screen
         router.replace({ pathname: '/(auth)/social-register', params: result });
-        error: null,
-      });
+        set({
+          isLoading: false,
+          error: null,
+        });
+      }
     } catch (error) {
       set({
         isLoading: false,
