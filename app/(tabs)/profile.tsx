@@ -12,7 +12,7 @@ import {
   TextInput,
 } from 'react-native';
 import { router } from 'expo-router';
-import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt, CircleUser as UserCircle, Camera, Check, X, Edit3, } from 'lucide-react-native';
+import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt, CircleUser as UserCircle, Camera, Check, X, Edit3, MessageCircle, } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -20,6 +20,7 @@ import Button from '@/components/UI/Button';
 import { UserService } from '@/services/user';
 import { UploadService } from '@/services/upload';
 import { useTheme } from '@/theme/ThemeContext';
+import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { PerformanceMonitor } from '@/utils/performance';
 import { useFocusEffect } from '@react-navigation/native';
@@ -305,20 +306,30 @@ export default function ProfileScreen() {
     },
     {
       id: '2',
+      icon: <MessageCircle size={20} color={colors.primary} />,
+      title: 'Customer Service',
+      subtitle: 'Get help with using CardKing',
+      onPress: () => {
+        // This will be handled by the floating button
+        return;
+      },
+    },
+    {
+      id: '3',
       icon: <ShieldCheck size={20} color={colors.primary} />,
       title: 'Security',
       subtitle: 'Protect your account',
       route: '/profile/security',
     },
     {
-      id: '3',
+      id: '4',
       icon: <HelpCircle size={20} color={colors.primary} />,
       title: 'Help & Support',
       subtitle: 'Get help with using CardKing',
       route: '/profile/support',
     },
     {
-      id: '4',
+      id: '5',
       icon: <Settings size={20} color={colors.primary} />,
       title: 'Settings',
       subtitle: 'App preferences',
@@ -512,6 +523,11 @@ export default function ProfileScreen() {
           </Text>
         </View>
       </ScrollView>
+      
+      {/* Floating Customer Service Button */}
+      <CustomerServiceButton
+        style={styles.customerServiceButton}
+      />
     </SafeAreaWrapper>
   );
 }
@@ -723,5 +739,11 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
+  },
+  customerServiceButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    zIndex: 1000,
   },
 });
