@@ -26,7 +26,7 @@ interface AuthState {
   reloadUser: () => Promise<void>;
   setUser: (user: User) => void; // Add method to set user directly (for social login)
   googleLogin: (accessToken: string) => Promise<void>;
-  googleLoginCallback: (result: SocialLoginResult) => Promise<void>; // New callback for social login
+  socialLoginCallback: (result: SocialLoginResult) => Promise<void>; // New callback for social login
   facebookLogin: (accessToken: string) => Promise<void>;
   appleLogin: (accessToken: string) => Promise<void>;
   initialize: () => Promise<void>;
@@ -182,7 +182,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await AuthService.googleLogin(accessToken);
-      await get().googleLoginCallback(response); // Use the new callback
+      await get().socialLoginCallback(response); // Use the new callback
     } catch (error) {
       set({
         isLoading: false,
@@ -191,7 +191,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       throw error;
     }
   },
-  googleLoginCallback: async (result: SocialLoginResult) => {
+  socialLoginCallback: async (result: SocialLoginResult) => {
     set({ isLoading: true, error: null });
     try {
       if (result.is_social_bind) {

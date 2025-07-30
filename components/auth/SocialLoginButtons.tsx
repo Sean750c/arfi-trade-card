@@ -17,8 +17,6 @@ import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as AppleAuthentication from 'expo-apple-authentication';
 
 export default function SocialLoginButtons() {
-  // const colorScheme = useColorScheme() ?? 'light';
-  // const colors = Colors[colorScheme];
   const { colors } = useTheme();
   const { setUser } = useAuthStore();
 
@@ -41,7 +39,7 @@ export default function SocialLoginButtons() {
       if (result.type === 'success' && result.authentication?.accessToken) {
         const accessToken = result.authentication.accessToken;
         const socialLoginResult = await AuthService.googleLogin(accessToken);
-        await useAuthStore.getState().googleLoginCallback(socialLoginResult);
+        await useAuthStore.getState().socialLoginCallback(socialLoginResult);
       } else if (result.type === 'cancel') {
         Alert.alert('Login Cancelled', 'Google login was cancelled.');
       } else if (result.type === 'error') {
@@ -59,7 +57,7 @@ export default function SocialLoginButtons() {
       if (result.type === 'success' && result.authentication?.accessToken) {
         const accessToken = result.authentication.accessToken;
         const socialLoginResult = await AuthService.facebookLogin(accessToken);
-        await useAuthStore.getState().googleLoginCallback(socialLoginResult); // Re-using googleLoginCallback for now
+        await useAuthStore.getState().socialLoginCallback(socialLoginResult); // Re-using googleLoginCallback for now
       } else if (result.type === 'cancel') {
         Alert.alert('Login Cancelled', 'Facebook login was cancelled.');
       } else if (result.type === 'error') {
@@ -87,7 +85,7 @@ export default function SocialLoginButtons() {
 
       if (credential.identityToken) {
         const socialLoginResult = await AuthService.appleLogin(credential.identityToken);
-        await useAuthStore.getState().googleLoginCallback(socialLoginResult); // Re-using googleLoginCallback for now
+        await useAuthStore.getState().socialLoginCallback(socialLoginResult); // Re-using googleLoginCallback for now
       } else {
         Alert.alert('Login Error', 'Apple identity token not found.');
       }

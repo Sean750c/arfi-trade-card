@@ -14,7 +14,6 @@ import { router } from 'expo-router';
 import { ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
-import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useTheme } from '@/theme/ThemeContext';
@@ -175,12 +174,6 @@ export default function LoginScreen() {
             </View>
           </View>
         </SafeAreaWrapper>
-        <View style={styles.socialLoginContainer}>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <Text style={[styles.dividerText, { color: colors.textSecondary }]}>OR</Text>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        </View>
-        <SocialLoginButtons />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -280,10 +273,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
   },
   orText: {
     marginHorizontal: Spacing.md,

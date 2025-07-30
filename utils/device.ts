@@ -146,7 +146,7 @@ export const isNotchDevice = (): boolean => {
 };
 
 // 获取设备信息
-export const getDeviceInfo = () => {
+export const getDeviceInfo2 = () => {
   return {
     platform: Platform.OS,
     statusBarHeight: getStatusBarHeight(),
@@ -155,3 +155,31 @@ export const getDeviceInfo = () => {
     isNotch: isNotchDevice(),
   };
 };
+
+export async function getDeviceInfo() {
+  let device_no = `temp_${Date.now()}`;
+  let device_type = 'unknown';
+
+  try {
+    device_no = await generateDeviceId();
+    device_type = await getDeviceType();
+  } catch (_) {}
+
+  const os_type = Platform.OS as 'ios' | 'android' | 'windows' | 'macos' | 'web';
+
+  let channel_type: '1' | '7' | '8' | '3' = '1'; // 默认值
+  if (os_type === 'ios') {
+    channel_type = '7';
+  } else if (os_type === 'android') {
+    channel_type = '8';
+  } else if (os_type === 'web') {
+    channel_type = '3';
+  }
+
+  return {
+    device_no,
+    device_type,
+    os_type,
+    channel_type,
+  };
+}

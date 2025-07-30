@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.bsdb.cardking",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": ["fetch", "remote-notification"],
@@ -47,12 +48,6 @@
           "photosPermission": "We access your photo library so you can upload pictures of your gift cards for verification and selling.",
           "cameraPermission": "We use your camera to let you take photos of your gift cards when submitting them for sale or verification.",
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID for authentication."
-        }
-      ],
-      [
-        "expo-auth-session",
-        {
-          "redirectUrl": "myapp://redirect"
         }
       ],
       [
@@ -97,12 +92,8 @@
       }
     },
     "android": {
-      "proguard": true,
       "package": "com.bsdb.cardking",
-      "enableProguardInReleaseBuilds": true,
-      "enableShrinkResourcesInReleaseBuilds": true,
-      "googleServicesFile": "./google-services.json", 
-      "useNextNotificationsApi": true
+      "googleServicesFile": "./google-services.json"
     },
     "jsEngine": "hermes",
     "owner": "chaoqunz"

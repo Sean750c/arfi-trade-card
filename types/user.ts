@@ -52,8 +52,6 @@ export interface RegisterRequest {
     country_id: string;
     username: string;
     password: string;
-    device_no: string;
-    channel_type: '1' | '7' | '8';
     email?: string;
     whatsapp?: string;
     recommend_code?: string;
@@ -106,47 +104,33 @@ export interface SocialBindResult {
 }
 
 export interface SocialLoginResult {
-    username: string;
     is_social_bind: true | false;
+    username: string;
     social_id: string;
     validate_email: string;
-    user_id: number;
-    vip_level: string;
     token: string;
 }
 
-export interface GoogleLoginRequest extends SocialLoginRequest {
+export interface GoogleLoginRequest {
     // Google specific fields if needed
     is_validate_email: 0 | 1;
     social_id: string;
     social_name: string;
     social_email: string;
-    device_no: string;
-    push_device_token: string;
-    os_type: string;
-    device_type: string;
 }
 
-export interface FacebookLoginRequest extends SocialLoginRequest {
+export interface FacebookLoginRequest {
     facebook_token: string;
     is_validate_email: 0 | 1;
-    version: number;
-    device_no: string;
-    push_device_token: string;
-    os_type: string;
-    device_type: string;
+    version?: number;
 }
 
-export interface AppleLoginRequest extends SocialLoginRequest {
+export interface AppleLoginRequest {
     social_id: string;
-    social_name: string;
-    social_email: string;
+    social_name?: string;
+    social_email?: string;
     social_code: string;
-    version: number;
-    device_no: string;
-    push_device_token: string;
-    os_type: string;
-    device_type: string;
+    version?: number;
 }
 
 export type UserRegisterResponse = APIResponse<User>;

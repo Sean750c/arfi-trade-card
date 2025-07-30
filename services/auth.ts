@@ -1,5 +1,5 @@
 import { APIRequest } from '@/utils/api';
-import { generateDeviceId } from '@/utils/device';
+import { getDeviceInfo } from '@/utils/device';
 import type { 
   RegisterRequest, 
   UserRegisterResponse, 
@@ -20,21 +20,15 @@ import type {
   SocialBindRequest,
   SocialBindResult
 } from '@/types';
+import { Platform } from 'react-native';
 
 export class AuthService {
-  static async register(params: Omit<RegisterRequest, 'device_no' | 'channel_type'>) {
-    let deviceNo: string;
-    try {
-      deviceNo = await generateDeviceId();
-    } catch (error) {
-      // 设备ID生成失败时使用备用方案
-      deviceNo = `temp_${Date.now()}`;
-    }
+  static async register(params: RegisterRequest) {
+    const deviceInfo = await getDeviceInfo();
 
     const requestData: RegisterRequest = {
       ...params,
-      device_no: deviceNo,
-      channel_type: '1', // Web platform
+      ...deviceInfo // Web platform
     };
 
     try {
@@ -63,13 +57,7 @@ export class AuthService {
   }
 
   static async login(username: string, password: string) {
-    let deviceNo: string;
-    try {
-      deviceNo = await generateDeviceId();
-    } catch (error) {
-      // 设备ID生成失败时使用备用方案
-      deviceNo = `temp_${Date.now()}`;
-    }
+    const deviceInfo = await getDeviceInfo();
 
     try {
       const response = await APIRequest.request<UserLoginResponse>(
@@ -78,7 +66,7 @@ export class AuthService {
         {
           username,
           password,
-          device_no: deviceNo,
+          ...deviceInfo,
         }
       );
 
@@ -256,22 +244,16 @@ export class AuthService {
   }
 
   // Social Login Methods
-  static async googleLogin(accessToken: string) {
-    let deviceNo: string;
-    try {
-      deviceNo = await generateDeviceId();
-    } catch (error) {
-      deviceNo = `temp_${Date.now()}`;
-    }
+  static async googleLogin(params: GoogleLoginRequest) {
+    const deviceInfo = await getDeviceInfo();
 
     try {
       const response = await APIRequest.request<SocialLoginResponse>(
         '/gc/social/googleLogin',
         'POST',
         {
-          access_token: accessToken,
-          device_no: deviceNo,
-          channel_type: '1',
+          ...params,
+          ...deviceInfo
         }
       );
 
@@ -288,22 +270,16 @@ export class AuthService {
     }
   }
 
-  static async facebookLogin(accessToken: string) {
-    let deviceNo: string;
-    try {
-      deviceNo = await generateDeviceId();
-    } catch (error) {
-      deviceNo = `temp_${Date.now()}`;
-    }
+  static async facebookLogin(params: FacebookLoginRequest) {
+    const deviceInfo = await getDeviceInfo();
 
     try {
       const response = await APIRequest.request<SocialLoginResponse>(
         '/gc/social/facebookLogin',
         'POST',
         {
-          access_token: accessToken,
-          device_no: deviceNo,
-          channel_type: '1',
+          ...params,
+          ...deviceInfo
         }
       );
 
@@ -320,22 +296,16 @@ export class AuthService {
     }
   }
 
-  static async appleLogin(accessToken: string) {
-    let deviceNo: string;
-    try {
-      deviceNo = await generateDeviceId();
-    } catch (error) {
-      deviceNo = `temp_${Date.now()}`;
-    }
+  static async appleLogin(params: AppleLoginRequest) {
+    const deviceInfo = await getDeviceInfo();
 
     try {
       const response = await APIRequest.request<SocialLoginResponse>(
         '/gc/social/appleLogin',
         'POST',
         {
-          access_token: accessToken,
-          device_no: deviceNo,
-          channel_type: '1',
+          ...params,
+          ...deviceInfo
         }
       );
 

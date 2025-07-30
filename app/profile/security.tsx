@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { 
-  Shield, 
-  Lock, 
-  Phonimport { Shield, Lock, Phone, Mail, MessageCircle, ChevronRight, Apple, Facebook, Check, X, ToggleLeft as Google, CircleCheck as CheckCircle, Circle as XCircle, Bell, Settings } from 'lucide-react-native'rt AuthGuard from '@/components/UI/AuthGuard';
+import { Lock, Shield, Phone, Mail, MessageCircle, ChevronRight, Apple, Facebook, Check, X, ToggleLeft as Google, CircleCheck as CheckCircle, Circle as XCircle, Bell, Settings } from 'lucide-react-native';
+import AuthGuard from '@/components/UI/AuthGuard';
+import Header from '@/components/UI/Header';
+import Card from '@/components/UI/Card';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
