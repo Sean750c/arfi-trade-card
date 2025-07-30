@@ -15,6 +15,7 @@ import Spacing from '@/constants/Spacing';
 import PromoBanner from '@/components/home/PromoBanner';
 import QuickActions from '@/components/home/QuickActions';
 import PromoTimer from '@/components/home/PromoTimer';
+import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useAppStore } from '@/stores/useAppStore';
@@ -240,6 +241,11 @@ export default function HomeScreen() {
         {/* <PromoTimer /> */}
         {/* <RecentTransactions /> */}
       </ScrollView>
+      
+      {/* Floating Customer Service Button */}
+      <CustomerServiceButton
+        style={styles.customerServiceButton}
+      />
     </SafeAreaWrapper>
   );
 }
@@ -459,5 +465,11 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
     fontFamily: 'Inter-Medium',
+  },
+  customerServiceButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    zIndex: 1000,
   },
 });
