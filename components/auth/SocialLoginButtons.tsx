@@ -15,10 +15,11 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import { AppleLoginRequest, FacebookLoginRequest, GoogleLoginRequest } from '@/types';
 
 export default function SocialLoginButtons() {
   const { colors } = useTheme();
-  const { setUser } = useAuthStore();
+  const { setUser, appleLogin, facebookLogin, googleLogin } = useAuthStore();
 
   // Google Auth Hook
   const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
@@ -38,8 +39,18 @@ export default function SocialLoginButtons() {
       const result = await promptAsyncGoogle();
       if (result.type === 'success' && result.authentication?.accessToken) {
         const accessToken = result.authentication.accessToken;
-        const socialLoginResult = await AuthService.googleLogin(accessToken);
-        await useAuthStore.getState().socialLoginCallback(socialLoginResult);
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const userInfo = await userInfoResponse.json();
+        const requestData: GoogleLoginRequest = {
+          social_id: userInfo.id,
+          social_email: userInfo.email || '',
+          social_name: userInfo.name || '',
+        }
+        await googleLogin(requestData);
+        // const socialLoginResult = await AuthService.googleLogin(accessToken);
+        // await useAuthStore.getState().socialLoginCallback(socialLoginResult);
       } else if (result.type === 'cancel') {
         Alert.alert('Login Cancelled', 'Google login was cancelled.');
       } else if (result.type === 'error') {
@@ -56,8 +67,19 @@ export default function SocialLoginButtons() {
       const result = await promptAsyncFacebook();
       if (result.type === 'success' && result.authentication?.accessToken) {
         const accessToken = result.authentication.accessToken;
-        const socialLoginResult = await AuthService.facebookLogin(accessToken);
-        await useAuthStore.getState().socialLoginCallback(socialLoginResult); // Re-using googleLoginCallback for now
+        const userInfoResponse = await fetch(
+          `https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`
+        );
+        const userInfo = await userInfoResponse.json();
+        const requestData: FacebookLoginRequest = {
+          facebook_token: accessToken,
+          social_id: userInfo.id,
+          social_email: userInfo.email || '', // 有些用户可能没有公开 email
+          social_name: userInfo.name || '',
+        };
+        await facebookLogin(requestData);
+        // const socialLoginResult = await AuthService.facebookLogin(accessToken);
+        // await useAuthStore.getState().socialLoginCallback(socialLoginResult); // Re-using googleLoginCallback for now
       } else if (result.type === 'cancel') {
         Alert.alert('Login Cancelled', 'Facebook login was cancelled.');
       } else if (result.type === 'error') {
@@ -83,9 +105,14 @@ export default function SocialLoginButtons() {
         ],
       });
 
-      if (credential.identityToken) {
-        const socialLoginResult = await AuthService.appleLogin(credential.identityToken);
-        await useAuthStore.getState().socialLoginCallback(socialLoginResult); // Re-using googleLoginCallback for now
+      if (credential.authorizationCode) {
+        const requestData: AppleLoginRequest = {
+          social_id: credential.user,
+          social_email: credential.email || '',
+          social_name: credential.fullName?.givenName || '',
+          social_code: credential.authorizationCode,
+        }
+        await appleLogin(requestData);
       } else {
         Alert.alert('Login Error', 'Apple identity token not found.');
       }

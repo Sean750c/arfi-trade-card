@@ -8,9 +8,10 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { User, RegisterRequest } from '@/types';
+import { User, RegisterRequest, Country } from '@/types';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import Spacing from '@/constants/Spacing';
@@ -18,29 +19,28 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
-import { Eye, EyeOff, User as UserIcon, Mail, MessageCircle } from 'lucide-react-native';
+import { Eye, EyeOff, User as UserIcon, Mail, MessageCircle, ChevronDown } from 'lucide-react-native';
 
 interface SocialRegisterParams {
   username?: string;
   social_id: string;
-  validate_email?: string;
   social_email?: string;
-  social_name?: string;
   token: string; // Temporary token for social session
 }
 
 export default function SocialRegisterScreen() {
   const { colors } = useTheme();
   const { register, isLoading, error, setUser } = useAuthStore();
-  const { selectedCountry } = useCountryStore();
+  const { countries, setSelectedCountry, selectedCountry } = useCountryStore();
   const params = useLocalSearchParams() as unknown as SocialRegisterParams;
 
-  const [username, setUsername] = useState(params.username || params.social_name || '');
+  const [username, setUsername] = useState(params.username || '');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -81,7 +81,7 @@ export default function SocialRegisterScreen() {
       password: password,
       country_id: selectedCountry.id.toString(),
       register_type: '1', // Assuming '3' for social registration
-      email: params.social_email || params.validate_email,
+      email: params.social_email,
       // whatsapp: params.whatsapp, // If WhatsApp is part of social data
       // recommend_code: params.recommend_code, // If applicable
       // code: params.code, // If verification code is needed
@@ -96,6 +96,11 @@ export default function SocialRegisterScreen() {
     } catch (e) {
       // Error handled by useAuthStore and displayed via useEffect
     }
+  };
+
+  const handleCountrySelect = (country: Country) => {
+    setSelectedCountry(country);
+    setShowCountryPicker(false);
   };
 
   return (
@@ -116,6 +121,80 @@ export default function SocialRegisterScreen() {
           </View>
 
           <View style={styles.form}>
+            <Text style={[styles.label, { color: colors.text }]}>Country</Text>
+            <TouchableOpacity
+              style={[
+                styles.countrySelector,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: errors.country ? colors.error : colors.border,
+                },
+              ]}
+              onPress={() => setShowCountryPicker(!showCountryPicker)}
+            >
+              {selectedCountry ? (
+                <View style={styles.selectedCountry}>
+                  <Image
+                    source={{ uri: selectedCountry.image }}
+                    style={styles.countryFlag}
+                    resizeMode="cover"
+                  />
+                  <Text style={[styles.countryName, { color: colors.text }]}>
+                    {selectedCountry.name}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
+                  Select your country
+                </Text>
+              )}
+              <ChevronDown size={20} color={colors.text} />
+            </TouchableOpacity>
+
+            {showCountryPicker && (
+              <View
+                style={[
+                  styles.countryDropdown,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <ScrollView
+                  style={styles.countryScrollView}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled={true}
+                >
+                  {countries.map((country) => (
+                    <TouchableOpacity
+                      key={country.id}
+                      style={[
+                        styles.countryOption,
+                        { borderBottomColor: colors.border },
+                      ]}
+                      onPress={() => handleCountrySelect(country)}
+                    >
+                      <Image
+                        source={{ uri: country.image }}
+                        style={styles.countryFlag}
+                        resizeMode="cover"
+                      />
+                      <Text style={[styles.countryName, { color: colors.text }]}>
+                        {country.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {errors.country && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.country}
+              </Text>
+            )}
+
             <Input
               label="Username"
               value={username}
@@ -134,15 +213,6 @@ export default function SocialRegisterScreen() {
                 inputStyle={{ opacity: 0.7 }}
               />
             )}
-            {params.validate_email && !params.social_email && (
-              <Input
-                label="Email (from social login)"
-                value={params.validate_email}
-                editable={false}
-                inputStyle={{ opacity: 0.7 }}
-              />
-            )}
-            {/* Add similar fields for other social data like phone/whatsapp if available */}
 
             <Input
               label="Password"
@@ -237,5 +307,66 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     fontFamily: 'Inter-SemiBold',
+  },
+  label: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    marginBottom: Spacing.xs,
+  },
+  countrySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 56,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: Spacing.md,
+  },
+  selectedCountry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  countryFlag: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    marginRight: Spacing.sm,
+  },
+  countryName: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+  },
+  placeholderText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+  },
+  countryDropdown: {
+    position: 'absolute',
+    top: 80,
+    left: Spacing.lg,
+    right: Spacing.lg,
+    maxHeight: 250,
+    borderRadius: 12,
+    borderWidth: 1,
+    zIndex: 1001,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  countryScrollView: {
+    maxHeight: 250,
+  },
+  countryOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  errorText: {
+    fontSize: 13,
+    fontFamily: 'Inter-Regular',
+    marginTop: Spacing.xs,
   },
 });

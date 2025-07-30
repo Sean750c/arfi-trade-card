@@ -107,13 +107,12 @@ export interface SocialLoginResult {
     is_social_bind: true | false;
     username: string;
     social_id: string;
-    validate_email: string;
+    social_email: string;
     token: string;
 }
 
 export interface GoogleLoginRequest {
     // Google specific fields if needed
-    is_validate_email: 0 | 1;
     social_id: string;
     social_name: string;
     social_email: string;
@@ -121,8 +120,11 @@ export interface GoogleLoginRequest {
 
 export interface FacebookLoginRequest {
     facebook_token: string;
-    is_validate_email: 0 | 1;
     version?: number;
+    social_id: string;
+    social_name?: string;
+    social_email?: string;
+    social_picture?: string;
 }
 
 export interface AppleLoginRequest {

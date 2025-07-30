@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { User, SocialLoginResult } from '@/types';
+import { User, SocialLoginResult, GoogleLoginRequest, FacebookLoginRequest, AppleLoginRequest } from '@/types';
 import { AuthService } from '@/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserService } from '@/services/user';
+import { router } from 'expo-router';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -25,10 +26,10 @@ interface AuthState {
   }) => Promise<void>;
   reloadUser: () => Promise<void>;
   setUser: (user: User) => void; // Add method to set user directly (for social login)
-  googleLogin: (accessToken: string) => Promise<void>;
+  googleLogin: (params: GoogleLoginRequest) => Promise<void>;
+  facebookLogin: (params: FacebookLoginRequest) => Promise<void>;
+  appleLogin: (params: AppleLoginRequest) => Promise<void>;
   socialLoginCallback: (result: SocialLoginResult) => Promise<void>; // New callback for social login
-  facebookLogin: (accessToken: string) => Promise<void>;
-  appleLogin: (accessToken: string) => Promise<void>;
   initialize: () => Promise<void>;
 }
 
@@ -62,29 +63,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     const { user } = get();
     set({ isLoading: true, error: null });
-    
+
     try {
       // Call logout API if user has a token
       if (user?.token) {
         await AuthService.logout(user.token);
       }
-      
+
       // Clear local state regardless of API call result
-      set({ 
-        isAuthenticated: false, 
-        user: null, 
+      set({
+        isAuthenticated: false,
+        user: null,
         isLoading: false,
-        error: null 
+        error: null
       });
       await AsyncStorage.removeItem('user');
       console.log('User logged out successfully');
     } catch (error) {
       // Even if API call fails, clear local state
-      set({ 
-        isAuthenticated: false, 
-        user: null, 
+      set({
+        isAuthenticated: false,
+        user: null,
         isLoading: false,
-        error: null 
+        error: null
       });
       await AsyncStorage.removeItem('user');
       console.warn('Logout API call failed, but local state cleared:', error);
@@ -93,11 +94,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   clearAuth: () => {
     // Method to clear auth state when token expires
-    set({ 
-      isAuthenticated: false, 
-      user: null, 
+    set({
+      isAuthenticated: false,
+      user: null,
       isLoading: false,
-      error: null 
+      error: null
     });
     AsyncStorage.removeItem('user');
   },
@@ -178,15 +179,54 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
     AsyncStorage.setItem('user', JSON.stringify(user));
   },
-  googleLogin: async (accessToken) => {
+  googleLogin: async (params) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await AuthService.googleLogin(accessToken);
+      const response = await AuthService.googleLogin(params);
+      response.social_email = params.social_email ?? '';
       await get().socialLoginCallback(response); // Use the new callback
     } catch (error) {
       set({
         isLoading: false,
         error: error instanceof Error ? error.message : 'Google login failed',
+      });
+      throw error;
+    }
+  },
+  facebookLogin: async (params) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await AuthService.facebookLogin(params);
+      response.social_email = params.social_email ?? '';
+      await get().socialLoginCallback(response); // Use the new callback
+      set({
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Facebook login failed',
+      });
+      throw error;
+    }
+  },
+  appleLogin: async (params) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await AuthService.appleLogin(params);
+      response.social_email = params.social_email ?? '';
+      await get().socialLoginCallback(response); // Use the new callback
+      set({
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Apple login failed',
       });
       throw error;
     }
@@ -205,11 +245,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           error: null,
         });
         await AsyncStorage.setItem('user', JSON.stringify(freshUser));
-        // router.replace('/(tabs)');
+        router.replace('/(tabs)');
       } else {
         // Not bound, navigate to social register screen
         // Pass social login data to the new screen
-        // router.replace({ pathname: '/(auth)/social-register', params: result });
+        router.replace({
+          pathname: '/(auth)/social-register', params: {
+            username: result.username,
+            social_id: result.social_id,
+            social_email: result.social_email,
+            token: result.token,
+          }
+        });
         set({
           isLoading: false,
           error: null,
@@ -219,42 +266,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         isLoading: false,
         error: error instanceof Error ? error.message : 'Google login failed',
-      });
-      throw error;
-    }
-  },
-  facebookLogin: async (accessToken) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await AuthService.facebookLogin(accessToken);
-      set({
-        isAuthenticated: true,
-        // user: response,
-        isLoading: false,
-        error: null,
-      });
-    } catch (error) {
-      set({
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Facebook login failed',
-      });
-      throw error;
-    }
-  },
-  appleLogin: async (accessToken) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await AuthService.appleLogin(accessToken);
-      set({
-        isAuthenticated: true,
-        // user: response,
-        isLoading: false,
-        error: null,
-      });
-    } catch (error) {
-      set({
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Apple login failed',
       });
       throw error;
     }
