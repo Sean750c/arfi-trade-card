@@ -12,7 +12,8 @@ import {
   TextInput,
 } from 'react-native';
 import { router } from 'expo-router';
-import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt, CircleUser as UserCircle, Camera, Check, X, CreditCard as Edit3, MessageCircle } from 'lucide-react-native'magePicker from 'expo-image-picker';
+import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt, CircleUser as UserCircle, Camera, Check, X, CreditCard as Edit3, MessageCircle } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import Button from '@/components/UI/Button';
