@@ -7,7 +7,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { Link2, Unlink, CheckCircle, AlertCircle } from 'lucide-react-native';
+import { Link2, Unlink, CircleCheck as CheckCircle, CircleAlert as AlertCircle } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
 import Spacing from '@/constants/Spacing';

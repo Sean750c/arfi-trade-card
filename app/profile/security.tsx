@@ -8,17 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { 
-  Lock, 
-  Shield, 
-  ChevronRight, 
-  Key, 
-  Smartphone,
-  Bell,
-  Trash2,
-  AlertTriangle,
-  MessageCircle
-} from 'lucide-react-native';
+import { Lock, Shield, ChevronRight, Key, Smartphone, Bell, Trash2, TriangleAlert as AlertTriangle, MessageCircle } from 'lucide-react-native';
 import Header from '@/components/UI/Header';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
