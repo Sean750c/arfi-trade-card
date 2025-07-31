@@ -115,7 +115,7 @@ export default function PromoBanner() {
       <View style={styles.container}>
         <View style={styles.slide}>
           <Image
-            source={require('@/assets/images/banner.jpg')}
+            source={require('@/assets/images/banner2.png')}
             style={styles.fullImage}
             resizeMode="cover"
           />
