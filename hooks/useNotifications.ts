@@ -12,7 +12,6 @@ import { generateDeviceId, getDeviceType } from '@/utils/device';
 // Configure notification behavior
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
     shouldShowBanner: true,
@@ -122,7 +121,7 @@ export function useNotifications() {
     // }
 
     try {
-      console.log('device_token:', token);
+      // console.log('device_token:', token);
       const deviceNo = await generateDeviceId();
       const deviceType = await getDeviceType();
       await NotificationService.registerFCMToken({
@@ -160,8 +159,8 @@ export function useNotifications() {
       const { notification } = response;
       const data = notification.request.content.data;
       
-      if (data?.action_type) {
-        handleNotificationAction(data.action_type as NotificationActionType, data);
+      if (data?.action) {
+        handleNotificationAction(data.action as NotificationActionType, data);
       }
     });
 
