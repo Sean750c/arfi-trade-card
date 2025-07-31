@@ -527,9 +527,7 @@ export default function ProfileScreen() {
       {/* 浮动客服按钮 */}
       <CustomerServiceButton
         style={styles.customerServiceButton}
-        size={56}
         draggable={true}
-        opacity={0.9}
       />
     </SafeAreaWrapper>
   );

@@ -4,6 +4,7 @@ import {
   StyleSheet, 
   Dimensions, 
   PanResponder, 
+  PanResponderInstance,
   Animated,
   View 
 } from 'react-native';
@@ -21,10 +22,10 @@ interface CustomerServiceButtonProps {
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function CustomerServiceButton({ 
-  size = 56, 
+  size = 50, 
   style,
   draggable = true,
-  opacity = 0.9
+  opacity = 0.8
 }: CustomerServiceButtonProps) {
   const { colors } = useTheme();
   const [showWidget, setShowWidget] = useState(false);
@@ -41,16 +42,16 @@ export default function CustomerServiceButton({
   })).current;
 
   // 创建PanResponder用于拖动
-  const panResponder = useMemo(() => {
-    if (!draggable) return {};
+  const panResponder: PanResponderInstance | undefined = useMemo(() => {
+    if (!draggable) return undefined;
     
     return PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
         pan.setOffset({
-          x: pan.x._value,
-          y: pan.y._value,
+          x: (pan.x as any)._value,
+          y: (pan.y as any)._value,
         });
       },
       onPanResponderMove: Animated.event(
@@ -61,13 +62,14 @@ export default function CustomerServiceButton({
         pan.flattenOffset();
         
         // 获取当前位置
-        const currentX = pan.x._value;
-        const currentY = pan.y._value;
+        const currentX = (pan.x as any)._value;
+        const currentY = (pan.y as any)._value;
         
         // 边界约束
         const margin = 20;
+        const bottomSafeMargin = 100; // 👈 限制底部最小距离
         const constrainedX = Math.max(margin, Math.min(screenWidth - size - margin, currentX));
-        const constrainedY = Math.max(margin, Math.min(screenHeight - size - margin, currentY));
+        const constrainedY = Math.max(margin, Math.min(screenHeight - size - bottomSafeMargin, currentY));
         
         // 更新位置状态
         setButtonPosition({
@@ -98,7 +100,7 @@ export default function CustomerServiceButton({
           buttonStyle,
           !draggable && style,
         ]}
-        {...(draggable ? panResponder.panHandlers : {})}
+        {...(draggable && panResponder ? panResponder.panHandlers : {})}
       >
         <TouchableOpacity
           style={[

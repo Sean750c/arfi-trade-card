@@ -70,7 +70,7 @@ export function useNotifications() {
         }
         
         token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
-        console.log('Expo Push Token:', token);
+        // console.log('Expo Push Token:', token);
       } catch (error) {
         console.error('Error getting push token:', error);
         return null;
@@ -131,7 +131,7 @@ export function useNotifications() {
         device_no: deviceNo,
         os_type: Platform.OS as 'ios' | 'android' | 'web',
       });
-      console.log('FCM token registered with backend successfully');
+      // console.log('FCM token registered with backend successfully');
     } catch (error) {
       console.error('Failed to register FCM token with backend:', error);
     }
@@ -166,10 +166,12 @@ export function useNotifications() {
 
     return () => {
       if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
+        // Notifications.removeNotificationSubscription(notificationListener.current);
+        notificationListener.current?.remove();
       }
       if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+        // Notifications.removeNotificationSubscription(responseListener.current);
+        notificationListener.current?.remove();
       }
     };
   }, []);

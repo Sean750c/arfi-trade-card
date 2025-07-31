@@ -19,7 +19,6 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { Notice } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import { formatDate } from '@/utils/date';
-import NotificationPermissionCard from '@/components/notifications/NotificationPermissionCard';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
   
 const NOTIFICATION_TYPES = [
@@ -252,11 +251,6 @@ function NotificationsScreenContent() {
             {totalCount > 0 ? `${totalCount} notifications loaded` : 'No notifications'}
           </Text>
         </View>
-      </View>
-
-      {/* Notification Permission Card */}
-      <View style={styles.content}>
-        <NotificationPermissionCard />
       </View>
 
       {/* Type Filter */}

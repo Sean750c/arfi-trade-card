@@ -214,7 +214,7 @@ export default function HomeScreen() {
             <View style={styles.balanceInfo}>
               <Text style={styles.balanceLabel}>Total Balance</Text>
               <Text style={styles.balanceAmount}>
-                {(user?.currency_symbol || '₦')}{balanceVisible && user ? user.money : '0'}
+                {(user?.currency_symbol || '₦')}{formatBalance(balanceVisible && user ? user.money ?? '0' : '0')}
               </Text>
             </View>
             <TouchableOpacity 
@@ -230,7 +230,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
           <Text style={styles.rebateBalance}>
-            Rebate: {(user?.currency_symbol || '₦')}{balanceVisible && user ? user.rebate_money : '0'}
+            Rebate: {(user?.currency_symbol || '₦')}{formatBalance(balanceVisible && user ? user.rebate_money ?? '0' : '0')}
           </Text>
         </View>
 
