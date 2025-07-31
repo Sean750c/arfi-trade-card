@@ -21,6 +21,7 @@ import { UserService } from '@/services/user';
 import { UploadService } from '@/services/upload';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 import { PerformanceMonitor } from '@/utils/performance';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -305,20 +306,30 @@ export default function ProfileScreen() {
     },
     {
       id: '2',
+      icon: <MessageCircle size={20} color={colors.primary} />,
+      title: 'Customer Service',
+      subtitle: 'Get help and support',
+      onPress: () => {
+        // 这里可以触发客服功能，但由于我们有浮动按钮，暂时不需要额外处理
+        return;
+      },
+    },
+    {
+      id: '3',
       icon: <ShieldCheck size={20} color={colors.primary} />,
       title: 'Security',
       subtitle: 'Protect your account',
       route: '/profile/security',
     },
     {
-      id: '3',
+      id: '4',
       icon: <HelpCircle size={20} color={colors.primary} />,
       title: 'Help & Support',
       subtitle: 'Get help with using CardKing',
       route: '/profile/support',
     },
     {
-      id: '4',
+      id: '5',
       icon: <Settings size={20} color={colors.primary} />,
       title: 'Settings',
       subtitle: 'App preferences',
@@ -512,6 +523,14 @@ export default function ProfileScreen() {
           </Text>
         </View>
       </ScrollView>
+      
+      {/* 浮动客服按钮 */}
+      <CustomerServiceButton
+        style={styles.customerServiceButton}
+        size={56}
+        draggable={true}
+        opacity={0.9}
+      />
     </SafeAreaWrapper>
   );
 }
@@ -723,5 +742,11 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
+  },
+  customerServiceButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    zIndex: 1000,
   },
 });
