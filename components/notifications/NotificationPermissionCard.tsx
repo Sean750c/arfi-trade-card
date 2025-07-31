@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { Bell, BellOff, Settings, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { Bell, BellOff, Settings, CircleCheck as CheckCircle, AlertTriangle } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
-import * as Notifications from 'expo-notifications';
 import * as Linking from 'expo-linking';
 
 export default function NotificationPermissionCard() {
@@ -63,89 +62,101 @@ export default function NotificationPermissionCard() {
     Linking.openSettings();
   };
 
-  const getStatusInfo = () => {
+  const getStatusConfig = () => {
     switch (permissionStatus) {
       case 'granted':
         return {
           icon: <CheckCircle size={24} color={colors.success} />,
-          title: 'Notifications Enabled',
+          title: 'Push Notifications Enabled',
           description: 'You\'ll receive important updates about your orders and account.',
-          buttonTitle: 'Manage Settings',
+          buttonTitle: 'Manage in Settings',
           buttonAction: openNotificationSettings,
           buttonVariant: 'outline' as const,
-          cardColor: `${colors.success}10`,
+          statusColor: colors.success,
+          backgroundColor: `${colors.success}08`,
         };
       case 'denied':
         return {
           icon: <BellOff size={24} color={colors.error} />,
-          title: 'Notifications Disabled',
+          title: 'Push Notifications Disabled',
           description: 'Enable notifications to receive important updates about your orders.',
           buttonTitle: 'Open Settings',
           buttonAction: openNotificationSettings,
           buttonVariant: 'primary' as const,
-          cardColor: `${colors.error}10`,
+          statusColor: colors.error,
+          backgroundColor: `${colors.error}08`,
         };
       default:
         return {
-          icon: <Bell size={24} color={colors.warning} />,
-          title: 'Enable Notifications',
+          icon: <AlertTriangle size={24} color={colors.warning} />,
+          title: 'Enable Push Notifications',
           description: 'Get notified about order updates, payments, and important announcements.',
           buttonTitle: 'Enable Notifications',
           buttonAction: handleRequestPermissions,
           buttonVariant: 'primary' as const,
-          cardColor: `${colors.warning}10`,
+          statusColor: colors.warning,
+          backgroundColor: `${colors.warning}08`,
         };
     }
   };
 
-  const statusInfo = getStatusInfo();
+  const config = getStatusConfig();
 
   return (
-    <Card style={[styles.container, { backgroundColor: statusInfo.cardColor }]}>
+    <Card style={[styles.container, { backgroundColor: config.backgroundColor }]}>
       <View style={styles.header}>
-        <View style={styles.iconContainer}>
-          {statusInfo.icon}
+        <View style={[styles.iconContainer, { backgroundColor: `${config.statusColor}15` }]}>
+          {config.icon}
         </View>
         <View style={styles.content}>
           <Text style={[styles.title, { color: colors.text }]}>
-            {statusInfo.title}
+            {config.title}
           </Text>
           <Text style={[styles.description, { color: colors.textSecondary }]}>
-            {statusInfo.description}
+            {config.description}
           </Text>
         </View>
       </View>
       
       <Button
-        title={statusInfo.buttonTitle}
-        variant={statusInfo.buttonVariant}
-        onPress={statusInfo.buttonAction}
+        title={config.buttonTitle}
+        variant={config.buttonVariant}
+        onPress={config.buttonAction}
         loading={isLoading}
         style={styles.button}
         fullWidth
       />
       
       {permissionStatus === 'granted' && (
-        <View style={styles.featuresContainer}>
+        <View style={[styles.featuresContainer, { backgroundColor: colors.background }]}>
           <Text style={[styles.featuresTitle, { color: colors.text }]}>
-            You'll be notified about:
+            Notification Types:
           </Text>
           <View style={styles.featuresList}>
-            <Text style={[styles.featureItem, { color: colors.textSecondary }]}>
-              • Order status updates and completions
-            </Text>
-            <Text style={[styles.featureItem, { color: colors.textSecondary }]}>
-              • Payment confirmations and withdrawals
-            </Text>
-            <Text style={[styles.featureItem, { color: colors.textSecondary }]}>
-              • VIP level upgrades and bonuses
-            </Text>
-            <Text style={[styles.featureItem, { color: colors.textSecondary }]}>
-              • Security alerts and account changes
-            </Text>
-            <Text style={[styles.featureItem, { color: colors.textSecondary }]}>
-              • Special promotions and offers
-            </Text>
+            <View style={styles.featureItem}>
+              <View style={[styles.featureDot, { backgroundColor: colors.primary }]} />
+              <Text style={[styles.featureText, { color: colors.textSecondary }]}>
+                Order status updates
+              </Text>
+            </View>
+            <View style={styles.featureItem}>
+              <View style={[styles.featureDot, { backgroundColor: colors.success }]} />
+              <Text style={[styles.featureText, { color: colors.textSecondary }]}>
+                Payment confirmations
+              </Text>
+            </View>
+            <View style={styles.featureItem}>
+              <View style={[styles.featureDot, { backgroundColor: colors.warning }]} />
+              <Text style={[styles.featureText, { color: colors.textSecondary }]}>
+                Security alerts
+              </Text>
+            </View>
+            <View style={styles.featureItem}>
+              <View style={[styles.featureDot, { backgroundColor: '#8B5CF6' }]} />
+              <Text style={[styles.featureText, { color: colors.textSecondary }]}>
+                Promotions & offers
+              </Text>
+            </View>
           </View>
         </View>
       )}
@@ -156,22 +167,28 @@ export default function NotificationPermissionCard() {
 const styles = StyleSheet.create({
   container: {
     marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: Spacing.md,
-    marginTop: 2,
   },
   content: {
     flex: 1,
   },
   title: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
     marginBottom: Spacing.xs,
   },
   description: {
@@ -181,8 +198,11 @@ const styles = StyleSheet.create({
   },
   button: {
     marginBottom: Spacing.md,
+    height: 48,
   },
   featuresContainer: {
+    padding: Spacing.md,
+    borderRadius: 12,
     marginTop: Spacing.sm,
   },
   featuresTitle: {
@@ -191,9 +211,19 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   featuresList: {
-    gap: Spacing.xs,
+    gap: Spacing.sm,
   },
   featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  featureDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  featureText: {
     fontSize: 13,
     fontFamily: 'Inter-Regular',
     lineHeight: 18,
