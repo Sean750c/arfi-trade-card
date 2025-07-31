@@ -14,7 +14,6 @@ import {
 import { router } from 'expo-router';
 import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt, CircleUser as UserCircle, Camera, Check, X, CreditCard as Edit3, MessageCircle, Bell } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as ImagePicker from 'expo-image-picker';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import Button from '@/components/UI/Button';
@@ -25,6 +24,7 @@ import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 import { PerformanceMonitor } from '@/utils/performance';
 import { useFocusEffect } from '@react-navigation/native';
+import Constant from '@/constants/Constant';
 
 type MenuItemType = {
   id: string;
@@ -307,27 +307,17 @@ export default function ProfileScreen() {
     },
     {
       id: '2',
-      icon: <MessageCircle size={20} color={colors.primary} />,
-      title: 'Customer Service',
-      subtitle: 'Get help and support',
-      onPress: () => {
-        // 这里可以触发客服功能，但由于我们有浮动按钮，暂时不需要额外处理
-        return;
-      },
-    },
-    {
-      id: '3',
       icon: <ShieldCheck size={20} color={colors.primary} />,
       title: 'Security',
       subtitle: 'Protect your account',
+      route: '/profile/security',
+    },
     {
-      id: 'notifications',
+      id: '3',
       title: 'Notification Settings',
       subtitle: 'Manage notifications and alerts',
       icon: <Bell size={20} color={colors.primary} />,
       onPress: () => router.push('/profile/notification-settings'),
-    },
-      route: '/profile/security',
     },
     {
       id: '4',
@@ -527,7 +517,7 @@ export default function ProfileScreen() {
 
         <View style={styles.versionContainer}>
           <Text style={versionTextStyle}>
-            Version 1.0.0
+            Version {Constant.version}
           </Text>
         </View>
       </ScrollView>

@@ -27,7 +27,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UserService } from '@/services/user';
-import * as Linking from 'expo-linking';
+import Constant from '@/constants/Constant';
 
 export default function SettingsScreen() {
   // const systemColorScheme = useColorScheme() ?? 'light';
@@ -458,7 +458,7 @@ export default function SettingsScreen() {
               Version
             </Text>
             <Text style={[styles.infoValue, { color: colors.text }]}>
-              1.0.1
+              {Constant.version}
             </Text>
           </View>
           <View style={styles.infoRow}>
@@ -466,7 +466,7 @@ export default function SettingsScreen() {
               Build
             </Text>
             <Text style={[styles.infoValue, { color: colors.text }]}>
-              2025.07.31
+              {Constant.updateDate}
             </Text>
           </View>
         </View>

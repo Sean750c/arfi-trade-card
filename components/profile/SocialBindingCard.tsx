@@ -7,7 +7,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { Link2, Unlink, CircleCheck as CheckCircle, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { Link2, Unlink, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Shield, Facebook as FacebookIcon, Apple } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
 import Spacing from '@/constants/Spacing';
@@ -18,15 +18,6 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as AppleAuthentication from 'expo-apple-authentication';
-
-interface SocialAccount {
-  id: 'google' | 'facebook' | 'apple';
-  name: string;
-  icon: string;
-  color: string;
-  isConnected: boolean;
-  isAvailable: boolean;
-}
 
 export default function SocialBindingCard() {
   const { colors } = useTheme();
@@ -44,11 +35,11 @@ export default function SocialBindingCard() {
     clientId: 'YOUR_FACEBOOK_APP_ID',
   });
 
-  const socialAccounts: SocialAccount[] = [
+  const socialAccounts = [
     {
       id: 'google',
       name: 'Google',
-      icon: '🔍',
+      icon: <Shield size={20} color={colors.primary} />,
       color: '#4285F4',
       isConnected: user?.google_bind || false,
       isAvailable: !!requestGoogle,
@@ -56,7 +47,7 @@ export default function SocialBindingCard() {
     {
       id: 'facebook',
       name: 'Facebook',
-      icon: '📘',
+      icon: <FacebookIcon size={20} color={colors.primary} />,
       color: '#1877F2',
       isConnected: user?.facebook_bind || false,
       isAvailable: !!requestFacebook,
@@ -64,7 +55,7 @@ export default function SocialBindingCard() {
     {
       id: 'apple',
       name: 'Apple',
-      icon: '🍎',
+      icon: <Apple size={20} color={colors.primary} />,
       color: '#000000',
       isConnected: user?.apple_bind || false,
       isAvailable: Platform.OS === 'ios',
@@ -178,7 +169,7 @@ export default function SocialBindingCard() {
     }
   };
 
-  const handleSocialAction = (account: SocialAccount) => {
+  const handleSocialAction = (account: any) => {
     if (!account.isAvailable) {
       Alert.alert('Not Available', `${account.name} binding is not available on this platform`);
       return;
@@ -215,7 +206,7 @@ export default function SocialBindingCard() {
     }
   };
 
-  const renderSocialAccount = (account: SocialAccount) => (
+  const renderSocialAccount = (account: any) => (
     <View
       key={account.id}
       style={[
@@ -307,7 +298,7 @@ export default function SocialBindingCard() {
         {socialAccounts.map(renderSocialAccount)}
       </View>
 
-      <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
+      {/* <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
         <Text style={[styles.infoTitle, { color: colors.primary }]}>
           🔒 Security Benefits
         </Text>
@@ -316,7 +307,7 @@ export default function SocialBindingCard() {
           • Enhanced account security with two-factor authentication{'\n'}
           • Faster login process with social authentication
         </Text>
-      </View>
+      </View> */}
     </Card>
   );
 }
