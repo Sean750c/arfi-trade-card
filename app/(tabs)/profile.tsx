@@ -12,7 +12,8 @@ import {
   TextInput,
 } from 'react-native';
 import { router } from 'expo-router';
-import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt, CircleUser as UserCircle, Camera, Check, X, CreditCard as Edit3, MessageCircle } from 'lucide-react-native';
+import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt, CircleUser as UserCircle, Camera, Check, X, CreditCard as Edit3, MessageCircle, Bell } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import * as ImagePicker from 'expo-image-picker';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -319,6 +320,13 @@ export default function ProfileScreen() {
       icon: <ShieldCheck size={20} color={colors.primary} />,
       title: 'Security',
       subtitle: 'Protect your account',
+    {
+      id: 'notifications',
+      title: 'Notification Settings',
+      subtitle: 'Manage notifications and alerts',
+      icon: <Bell size={20} color={colors.primary} />,
+      onPress: () => router.push('/profile/notification-settings'),
+    },
       route: '/profile/security',
     },
     {

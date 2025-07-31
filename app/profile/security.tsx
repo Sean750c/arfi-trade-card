@@ -7,292 +7,279 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { Lock, Shield, Phone, Mail, MessageCircle, ChevronRight, Apple, Facebook, Check, X, ToggleLeft as Google, CircleCheck as CheckCircle, Circle as XCircle, Bell, Settings } from 'lucide-react-native';
-import AuthGuard from '@/components/UI/AuthGuard';
+import { router } from 'expo-router';
+import { 
+  Lock, 
+  Shield, 
+  ChevronRight, 
+  Key, 
+  Smartphone,
+  Bell,
+  Trash2,
+  AlertTriangle,
+  MessageCircle
+} from 'lucide-react-native';
 import Header from '@/components/UI/Header';
 import Card from '@/components/UI/Card';
+import Button from '@/components/UI/Button';
+import AuthGuard from '@/components/UI/AuthGuard';
+import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
+import SocialBindingCard from '@/components/profile/SocialBindingCard';
+import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
+import ChangeWithdrawPasswordModal from '@/components/profile/ChangeWithdrawPasswordModal';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { UserService } from '@/services/user';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
-// Modal Components
-import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
-import ChangeWithdrawPasswordModal from '@/components/profile/ChangeWithdrawPasswordModal';
-import BindPhoneModal from '@/components/profile/BindPhoneModal';
-import BindEmailModal from '@/components/profile/BindEmailModal';
-import BindWhatsAppModal from '@/components/profile/BindWhatsAppModal';
-import NotificationPermissionCard from '@/components/notifications/NotificationPermissionCard';
+interface SecurityOption {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  action: () => void;
+  status?: string;
+  statusColor?: string;
+  showChevron?: boolean;
+}
 
 function SecurityScreenContent() {
   const { colors } = useTheme();
-  const { user, reloadUser } = useAuthStore();
-  
-  // Modal states
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-  const [showChangeWithdrawPasswordModal, setShowChangeWithdrawPasswordModal] = useState(false);
-  const [showBindPhoneModal, setShowBindPhoneModal] = useState(false);
-  const [showBindEmailModal, setShowBindEmailModal] = useState(false);
-  const [showBindWhatsAppModal, setShowBindWhatsAppModal] = useState(false);
+  const { user, logout } = useAuthStore();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showWithdrawPasswordModal, setShowWithdrawPasswordModal] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
-  const securityItems = [
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This action cannot be undone. All your data will be permanently deleted.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            Alert.prompt(
+              'Confirm Deletion',
+              'Please enter your password to confirm account deletion:',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete Account',
+                  style: 'destructive',
+                  onPress: async (password) => {
+                    if (!password || !user?.token) return;
+                    
+                    setIsDeletingAccount(true);
+                    try {
+                      await UserService.deleteAccount(user.token, password);
+                      Alert.alert(
+                        'Account Deleted',
+                        'Your account has been successfully deleted.',
+                        [{ text: 'OK', onPress: () => logout() }]
+                      );
+                    } catch (error) {
+                      Alert.alert(
+                        'Error',
+                        error instanceof Error ? error.message : 'Failed to delete account'
+                      );
+                    } finally {
+                      setIsDeletingAccount(false);
+                    }
+                  },
+                },
+              ],
+              'secure-text'
+            );
+          },
+        },
+      ]
+    );
+  };
+
+  const securityOptions: SecurityOption[] = [
     {
-      id: 'password',
-      title: 'Login Password',
-      subtitle: user?.password_null ? 'Not set' : 'Set',
-      icon: <Lock size={24} color={colors.primary} />,
-      status: !user?.password_null,
-      onPress: () => setShowChangePasswordModal(true),
+      id: 'change_password',
+      title: 'Change Login Password',
+      description: 'Update your account login password',
+      icon: <Lock size={20} color={colors.primary} />,
+      action: () => setShowPasswordModal(true),
+      status: user?.password_null ? 'Not Set' : 'Set',
+      statusColor: user?.password_null ? colors.warning : colors.success,
+      showChevron: true,
     },
     {
       id: 'withdraw_password',
       title: 'Withdraw Password',
-      subtitle: user?.t_password_null ? 'Not set' : 'Set',
-      icon: <Shield size={24} color={colors.primary} />,
-      status: !user?.t_password_null,
-      onPress: () => setShowChangeWithdrawPasswordModal(true),
+      description: 'Set or change your withdrawal security password',
+      icon: <Key size={20} color={colors.primary} />,
+      action: () => setShowWithdrawPasswordModal(true),
+      status: user?.t_password_null ? 'Not Set' : 'Set',
+      statusColor: user?.t_password_null ? colors.warning : colors.success,
+      showChevron: true,
     },
     {
-      id: 'phone',
-      title: 'Phone Number',
-      subtitle: user?.phone || 'Not bound',
-      icon: <Phone size={24} color={colors.primary} />,
-      status: !!user?.phone,
-      onPress: () => setShowBindPhoneModal(true),
+      id: 'two_factor',
+      title: 'Two-Factor Authentication',
+      description: 'Add an extra layer of security to your account',
+      icon: <Smartphone size={20} color={colors.primary} />,
+      action: () => {
+        Alert.alert('Coming Soon', 'Two-factor authentication will be available in a future update');
+      },
+      status: 'Coming Soon',
+      statusColor: colors.textSecondary,
+      showChevron: true,
     },
     {
-      id: 'email',
-      title: 'Email Address',
-      subtitle: user?.email || 'Not bound',
-      icon: <Mail size={24} color={colors.primary} />,
-      status: user?.is_email_bind || false,
-      onPress: () => setShowBindEmailModal(true),
-    },
-    {
-      id: 'whatsapp',
-      title: 'WhatsApp',
-      subtitle: user?.whatsapp || 'Not bound',
-      icon: <MessageCircle size={24} color={colors.primary} />,
-      status: user?.whatsapp_bind || false,
-      onPress: () => setShowBindWhatsAppModal(true),
+      id: 'notification_settings',
+      title: 'Notification Settings',
+      description: 'Manage push notifications, email alerts, and rate subscriptions',
+      icon: <Bell size={20} color={colors.primary} />,
+      action: () => router.push('/profile/notification-settings'),
+      showChevron: true,
     },
   ];
 
-  const socialItems = [
-    {
-      id: 'google',
-      title: 'Google Account',
-      description: 'Connect your Google account',
-      icon: <Shield size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleGoogleBinding(),
-    },
-    {
-      id: 'facebook',
-      title: 'Facebook Account',
-      description: 'Connect your Facebook account',
-      icon: <Facebook size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleFacebookBinding(),
-    },
-    {
-      id: 'apple',
-      title: 'Apple ID',
-      description: 'Connect your Apple ID',
-      icon: <Apple size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleAppleBinding(),
-    },
-  ];
-
-  const handleGoogleBinding = () => {
-    Alert.alert('Google Binding', 'Google account binding functionality would be implemented here');
-  };
-
-  const handleFacebookBinding = () => {
-    Alert.alert('Facebook Binding', 'Facebook account binding functionality would be implemented here');
-  };
-
-  const handleAppleBinding = () => {
-    Alert.alert('Apple Binding', 'Apple ID binding functionality would be implemented here');
-  };
-
-  const handleModalClose = async (shouldReload = false) => {
-    if (shouldReload) {
-      try {
-        await reloadUser();
-      } catch (error) {
-        console.error('Failed to reload user:', error);
-      }
-    }
-  };
-
-  const renderSecurityItem = (item: any) => (
+  const renderSecurityOption = (option: SecurityOption) => (
     <TouchableOpacity
-      key={item.id}
+      key={option.id}
       style={[
-        styles.securityItem,
+        styles.optionItem,
         { 
           backgroundColor: colors.card,
           borderColor: colors.border,
         }
       ]}
-      onPress={item.onPress}
+      onPress={option.action}
       activeOpacity={0.7}
     >
-      <View style={styles.securityItemLeft}>
-        <View style={[
-          styles.securityItemIcon,
-          { backgroundColor: `${colors.primary}15` }
-        ]}>
-          {item.icon}
-        </View>
-        <View style={styles.securityItemContent}>
-          <Text style={[styles.securityItemTitle, { color: colors.text }]}>
-            {item.title}
-          </Text>
-          <Text style={[
-            styles.securityItemSubtitle, 
-            { color: item.status ? colors.success : colors.textSecondary }
-          ]}>
-            {item.subtitle}
-          </Text>
-        </View>
+      <View style={styles.optionIcon}>
+        {option.icon}
       </View>
       
-      <View style={styles.securityItemRight}>
-        <View style={[
-          styles.statusIndicator,
-          { backgroundColor: item.status ? colors.success : colors.border }
-        ]}>
-          {item.status ? (
-            <Check size={12} color="#FFFFFF" />
-          ) : (
-            <X size={12} color={colors.textSecondary} />
-          )}
-        </View>
-        <ChevronRight size={20} color={colors.textSecondary} />
+      <View style={styles.optionContent}>
+        <Text style={[styles.optionTitle, { color: colors.text }]}>
+          {option.title}
+        </Text>
+        <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
+          {option.description}
+        </Text>
+        {option.status && (
+          <Text style={[styles.optionStatus, { color: option.statusColor }]}>
+            Status: {option.status}
+          </Text>
+        )}
       </View>
+      
+      {option.showChevron && (
+        <ChevronRight size={20} color={colors.textSecondary} />
+      )}
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
       <Header 
-        title="Security Settings" 
-        subtitle="Manage your account security"
-        backgroundColor={colors.background}
+        title="Security & Privacy"
+        subtitle="Manage your account security settings"
       />
       
-      <ScrollView
+      <ScrollView 
         style={styles.container}
-        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
-        {/* Notification Permissions */}
-        <NotificationPermissionCard />
-
-        {/* Security Overview */}
-        <Card style={styles.overviewCard}>
-          <View style={styles.overviewHeader}>
-            <Shield size={32} color={colors.primary} />
-            <View style={styles.overviewContent}>
-              <Text style={[styles.overviewTitle, { color: colors.text }]}>
-                Account Security
-              </Text>
-              <Text style={[styles.overviewSubtitle, { color: colors.textSecondary }]}>
-                Keep your account safe and secure
-              </Text>
-            </View>
+        {/* Account Security Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Account Security
+          </Text>
+          <View style={styles.optionsGroup}>
+            {securityOptions.map(renderSecurityOption)}
           </View>
-          
-          <View style={styles.securityScore}>
-            <Text style={[styles.scoreLabel, { color: colors.textSecondary }]}>
-              Security Score
-            </Text>
-            <View style={styles.scoreContainer}>
-              <View style={[
-                styles.scoreBar,
-                { backgroundColor: colors.border }
-              ]}>
-                <View style={[
-                  styles.scoreProgress,
-                  { 
-                    backgroundColor: colors.success,
-                    width: `${(securityItems.filter(item => item.status).length / securityItems.length) * 100}%`
-                  }
-                ]} />
-              </View>
-              <Text style={[styles.scoreText, { color: colors.success }]}>
-                {securityItems.filter(item => item.status).length}/{securityItems.length}
-              </Text>
-            </View>
-          </View>
-        </Card>
-
-        {/* Security Items */}
-        <View style={styles.securityList}>
-          {securityItems.map(renderSecurityItem)}
         </View>
 
-        {/* Social Account Binding */}
+        {/* Social Account Binding Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Social Account Binding
           </Text>
-          <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
-            Connect your social accounts for easier login and account recovery
-          </Text>
-          <View style={styles.securityList}>
-            {socialItems.map(renderSecurityItem)}
-          </View>
+          <SocialBindingCard />
         </View>
+
+        {/* Danger Zone */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.error }]}>
+            Danger Zone
+          </Text>
+          <Card style={[styles.dangerCard, { backgroundColor: `${colors.error}10` }]}>
+            <View style={styles.dangerHeader}>
+              <AlertTriangle size={24} color={colors.error} />
+              <View style={styles.dangerContent}>
+                <Text style={[styles.dangerTitle, { color: colors.error }]}>
+                  Delete Account
+                </Text>
+                <Text style={[styles.dangerDescription, { color: colors.text }]}>
+                  Permanently delete your account and all associated data. This action cannot be undone.
+                </Text>
+              </View>
+            </View>
+            
+            <Button
+              title={isDeletingAccount ? 'Deleting...' : 'Delete Account'}
+              variant="outline"
+              onPress={handleDeleteAccount}
+              loading={isDeletingAccount}
+              style={[styles.deleteButton, { borderColor: colors.error }]}
+              textStyle={{ color: colors.error }}
+            />
+          </Card>
+        </View>
+
+        {/* Security Tips */}
+        <Card style={[styles.tipsCard, { backgroundColor: `${colors.primary}10` }]}>
+          <Text style={[styles.tipsTitle, { color: colors.primary }]}>
+            🛡️ Security Tips
+          </Text>
+          <Text style={[styles.tipsText, { color: colors.text }]}>
+            • Use a strong, unique password for your account{'\n'}
+            • Enable two-factor authentication when available{'\n'}
+            • Bind multiple social accounts for easier recovery{'\n'}
+            • Set a secure withdraw password different from your login password{'\n'}
+            • Regularly review your account activity and settings
+          </Text>
+        </Card>
       </ScrollView>
 
       {/* Modals */}
       <ChangePasswordModal
-        visible={showChangePasswordModal}
-        onClose={() => setShowChangePasswordModal(false)}
+        visible={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
         onSuccess={() => {
-          setShowChangePasswordModal(false);
-          handleModalClose(true);
+          setShowPasswordModal(false);
+          // Reload user data to reflect changes
+          // reloadUser();
         }}
       />
 
       <ChangeWithdrawPasswordModal
-        visible={showChangeWithdrawPasswordModal}
-        onClose={() => setShowChangeWithdrawPasswordModal(false)}
+        visible={showWithdrawPasswordModal}
+        onClose={() => setShowWithdrawPasswordModal(false)}
         onSuccess={() => {
-          setShowChangeWithdrawPasswordModal(false);
-          handleModalClose(true);
+          setShowWithdrawPasswordModal(false);
+          // Reload user data to reflect changes
+          // reloadUser();
         }}
       />
 
-      <BindPhoneModal
-        visible={showBindPhoneModal}
-        onClose={() => setShowBindPhoneModal(false)}
-        onSuccess={() => {
-          setShowBindPhoneModal(false);
-          handleModalClose(true);
-        }}
-      />
-
-      <BindEmailModal
-        visible={showBindEmailModal}
-        onClose={() => setShowBindEmailModal(false)}
-        onSuccess={() => {
-          setShowBindEmailModal(false);
-          handleModalClose(true);
-        }}
-      />
-
-      <BindWhatsAppModal
-        visible={showBindWhatsAppModal}
-        onClose={() => setShowBindWhatsAppModal(false)}
-        onSuccess={() => {
-          setShowBindWhatsAppModal(false);
-          handleModalClose(true);
-        }}
+      {/* Customer Service Button */}
+      <CustomerServiceButton
+        style={styles.customerServiceButton}
+        size={48}
+        draggable={true}
+        opacity={0.9}
       />
     </SafeAreaWrapper>
   );
@@ -314,116 +301,72 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
   },
-  
-  // Overview Card
-  overviewCard: {
-    marginBottom: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+  section: {
+    marginBottom: Spacing.xl,
   },
-  overviewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  overviewContent: {
-    marginLeft: Spacing.md,
-    flex: 1,
-  },
-  overviewTitle: {
+  sectionTitle: {
     fontSize: 18,
     fontFamily: 'Inter-Bold',
-  },
-  overviewSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginTop: 2,
-  },
-  securityScore: {
-    marginTop: Spacing.md,
-  },
-  scoreLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    marginBottom: Spacing.xs,
-  },
-  scoreContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  scoreBar: {
-    flex: 1,
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  scoreProgress: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  scoreText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Bold',
-  },
-
-  // Security List
-  securityList: {
-    gap: Spacing.sm,
     marginBottom: Spacing.lg,
   },
-  securityItem: {
+  optionsGroup: {
+    gap: Spacing.sm,
+  },
+  optionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Spacing.md,
+    padding: Spacing.lg,
     borderRadius: 12,
     borderWidth: 1,
   },
-  securityItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  securityItemIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+  optionIcon: {
     marginRight: Spacing.md,
   },
-  securityItemContent: {
+  optionContent: {
     flex: 1,
   },
-  securityItemTitle: {
+  optionTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    marginBottom: 2,
+    marginBottom: Spacing.xs,
   },
-  securityItemSubtitle: {
+  optionDescription: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
+    lineHeight: 18,
   },
-  securityItemRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
+  optionStatus: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    marginTop: 4,
   },
-  statusIndicator: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  // Tips Card
-  tipsCard: {
+  dangerCard: {
     padding: Spacing.lg,
+  },
+  dangerHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.lg,
+  },
+  dangerContent: {
+    flex: 1,
+    marginLeft: Spacing.md,
+  },
+  dangerTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.xs,
+  },
+  dangerDescription: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 20,
+  },
+  deleteButton: {
+    alignSelf: 'flex-start',
+  },
+  tipsCard: {
+    marginBottom: Spacing.lg,
   },
   tipsTitle: {
     fontSize: 16,
@@ -435,18 +378,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     lineHeight: 20,
   },
-  section: {
-    marginBottom: Spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.sm,
-  },
-  sectionDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginBottom: Spacing.md,
-    lineHeight: 20,
+  customerServiceButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    zIndex: 1000,
   },
 });
