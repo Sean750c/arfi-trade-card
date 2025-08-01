@@ -14,6 +14,7 @@ import Card from '@/components/UI/Card';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 // Modal Components
@@ -23,11 +24,18 @@ import BindPhoneModal from '@/components/profile/BindPhoneModal';
 import BindEmailModal from '@/components/profile/BindEmailModal';
 import BindWhatsAppModal from '@/components/profile/BindWhatsAppModal';
 import SocialBindingCard from '@/components/profile/SocialBindingCard';
-import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 
 function SecurityScreenContent() {
   const { colors } = useTheme();
   const { user, reloadUser } = useAuthStore();
+  const {
+    isSupported: biometricSupported,
+    isEnrolled: biometricEnrolled,
+    isEnabled: biometricEnabled,
+    getBiometricTypeName,
+    enableBiometric,
+    disableBiometric,
+  } = useBiometricAuth();
   
   // Modal states
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
@@ -43,6 +51,38 @@ function SecurityScreenContent() {
   } = useBiometricAuth();
   const [showBindEmailModal, setShowBindEmailModal] = useState(false);
   const [showBindWhatsAppModal, setShowBindWhatsAppModal] = useState(false);
+
+  const handleBiometricToggle = async () => {
+    if (biometricEnabled) {
+      Alert.alert(
+        'Disable Biometric Login',
+        `Are you sure you want to disable ${getBiometricTypeName()} login?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Disable',
+            style: 'destructive',
+            onPress: async () => {
+              await disableBiometric();
+              Alert.alert('Success', 'Biometric login disabled');
+            },
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Enable Biometric Login',
+        'To enable biometric login, you need to login with your password first.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Go to Login',
+            onPress: () => router.push('/(auth)/login'),
+          },
+        ]
+      );
+    }
+  };
 
   const securityItems = [
     {
@@ -61,6 +101,22 @@ function SecurityScreenContent() {
       status: !user?.t_password_null,
       onPress: () => setShowChangeWithdrawPasswordModal(true),
     },
+    ...(biometricSupported && biometricEnrolled ? [{
+      id: 'biometric-login',
+      title: `${getBiometricTypeName()} Login`,
+      subtitle: biometricEnabled ? 'Enabled' : 'Disabled',
+      icon: <Fingerprint size={24} color={colors.primary} />,
+      onPress: handleBiometricToggle,
+      showArrow: false,
+      rightElement: (
+        <Switch
+          value={biometricEnabled}
+          onValueChange={handleBiometricToggle}
+          trackColor={{ false: colors.border, true: `${colors.primary}40` }}
+          thumbColor={biometricEnabled ? colors.primary : colors.textSecondary}
+        />
+      ),
+    }] : []),
     {
     ...(biometricAvailable && biometricEnrolled ? [{
       id: 'biometric',
