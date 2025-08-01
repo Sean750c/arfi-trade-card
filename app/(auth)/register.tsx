@@ -23,6 +23,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { useAppStore } from '@/stores/useAppStore';
 import { AuthService } from '@/services/auth';
+import { CommonService } from '@/services/common';
 
 type RegistrationType = 'email' | 'whatsapp';
 
@@ -136,6 +137,7 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = async () => {
+    CommonService.analysis('register_before', '1');
     if (validateForm()) {
       try {
         await register({
@@ -148,7 +150,7 @@ export default function RegisterScreen() {
           recommend_code: formData.referralCode || '',
           code: initData?.is_need_verify === '1' ? verifyCode : '',
         });
-
+        CommonService.analysis('register_success', '1');
         router.replace('/(tabs)');
       } catch (error) {
         Alert.alert('Registration Failed', error instanceof Error ? error.message : 'Please try again');

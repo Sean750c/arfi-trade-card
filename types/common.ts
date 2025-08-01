@@ -163,9 +163,23 @@ export type FAQListResponse = APIResponse<FAQItem[]>;
 
 // /gc/public/lead 返回数据结构
 export interface LeadData {
-  status: number;
-  value: string;
-  title: string;
+    status: number;
+    value: string;
+    title: string;
 }
 
 export type LeadResponse = APIResponse<LeadData>;
+
+export interface PopDataDetail {
+    image: string; // 弹窗图片
+    url: string; // 点击弹窗后跳转地址，可能是外部链接，也可能是内部跳转
+    jump_type: 1 | 2; // 1 APP内链 2 外部链接
+    condition: string; // 弹窗条件：0 重启程序触发，1 注册成功触发，2 订单创建成功触发，3提现发起成功触发
+}
+
+export interface PopData {
+    pop: true | false;
+    data: PopDataDetail;
+}
+
+export type PopResponse = APIResponse<PopData>;

@@ -35,6 +35,7 @@ import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { PerformanceMonitor } from '@/utils/performance';
 import { useAppStore } from '@/stores/useAppStore';
 import * as Linking from 'expo-linking';
+import { CommonService } from '@/services/common';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -251,6 +252,7 @@ function SellScreenContent() {
     setSelectedCards(prev => [...prev, newCard]);
 
     try {
+      CommonService.analysis('upload_img_before', '1');
       // Get upload URL from server
       const uploadUrls = await UploadService.getUploadUrls({
         token: user.token,
@@ -260,7 +262,7 @@ function SellScreenContent() {
       if (uploadUrls.length === 0) {
         throw new Error('No upload URL received');
       }
-
+      CommonService.analysis('upload_img_success', '1');
       const uploadUrl = uploadUrls[0];
       const imageUrl = uploadUrl.url.split("?")[0];
 
