@@ -27,7 +27,7 @@ export default function LoginScreen() {
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
   const { login, isLoading } = useAuthStore();
-  const { enableBiometric, isAvailable, isEnrolled } = useBiometricAuth();
+  const { enableBiometric, isAvailable, isEnrolled, promptEnableBiometric } = useBiometricAuth();
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -57,26 +57,8 @@ export default function LoginScreen() {
       try {
         await login(username, password);
         
-        // Prompt for biometric setup after successful login
-        if (isAvailable && isEnrolled && !showBiometricPrompt) {
-          setShowBiometricPrompt(true);
-          Alert.alert(
-            'Enable Biometric Login',
-            'Would you like to enable biometric login for faster access?',
-            [
-              { text: 'Not Now', style: 'cancel' },
-              {
-                text: 'Enable',
-                onPress: async () => {
-                  const success = await enableBiometric({ username, password });
-                  if (success) {
-                    Alert.alert('Success', 'Biometric login enabled successfully!');
-                  }
-                },
-              },
-            ]
-          );
-        }
+        // Prompt to enable biometric after successful login
+        promptEnableBiometric(username, password);
         
         router.replace('/(tabs)');
       } catch (error) {
@@ -182,10 +164,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             {/* Biometric Login Button */}
-            <BiometricLoginButton
-              onSuccess={handleBiometricLogin}
-              disabled={isLoading}
-            />
+            <BiometricLoginButton onSuccess={() => router.replace('/(tabs)')} />
             
             <View style={styles.buttonContainer}>
               <Button
