@@ -102,41 +102,41 @@ function NotificationsScreenContent() {
       console.warn('Failed to handle notification click:', notification);
     }
 
-    try {
-      switch (notification.notice_action) {
-        case 'app_order':
-          if (notification.notice_params) {
-            router.push(`/orders/${notification.notice_params}` as any);
-          }
-          break;
-        case 'app_vip':
-          // Navigate to VIP section
-          router.push('/profile/vip' as any);
-          break;
-        case 'app_withdrawdetail':
-          // Navigate to wallet
-          router.push(`/wallet/${notification.notice_params}`);
-          break;
-        case 'app_profile':
-          // Navigate to profile
-          router.push('/(tabs)/profile');
-          break;
-        case 'app_reward':
-          // Navigate to profile
-          router.push('/wallet/rebate');
-          break;
-        default:
-          // Handle custom URLs or other actions
-          if (notification.notice_jump) {
-            // For now, just show an alert with the action
-            // Alert.alert('Navigation', `Action: ${notification.notice_action}`);
-          }
-          break;
-      }
-    } catch (error) {
-      console.error('Navigation error:', error);
-      Alert.alert('Error', 'Failed to navigate to the requested page');
-    }
+    // try {
+    //   switch (notification.notice_action) {
+    //     case 'app_order':
+    //       if (notification.notice_params) {
+    //         router.push(`/orders/${notification.notice_params}` as any);
+    //       }
+    //       break;
+    //     case 'app_vip':
+    //       // Navigate to VIP section
+    //       router.push('/profile/vip' as any);
+    //       break;
+    //     case 'app_withdrawdetail':
+    //       // Navigate to wallet
+    //       router.push(`/wallet/${notification.notice_params}`);
+    //       break;
+    //     case 'app_profile':
+    //       // Navigate to profile
+    //       router.push('/(tabs)/profile');
+    //       break;
+    //     case 'app_reward':
+    //       // Navigate to profile
+    //       router.push('/wallet/rebate');
+    //       break;
+    //     default:
+    //       // Handle custom URLs or other actions
+    //       if (notification.notice_jump) {
+    //         // For now, just show an alert with the action
+    //         // Alert.alert('Navigation', `Action: ${notification.notice_action}`);
+    //       }
+    //       break;
+    //   }
+    // } catch (error) {
+    //   console.error('Navigation error:', error);
+    //   Alert.alert('Error', 'Failed to navigate to the requested page');
+    // }
   }, [user?.token, markAsRead]);
 
   // Get status icon

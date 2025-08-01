@@ -84,30 +84,12 @@ export function useNotifications() {
   };
 
   // Handle notification actions based on type
-  const handleNotificationAction = (actionType: NotificationActionType, data: any) => {
+  const handleNotificationAction = (actionType: string, data: any) => {
     // 使用NavigationUtils处理通知动作
     let success = false;
     
     // 尝试使用内链代码跳转
-    if (data.internal_code) {
-      success = NavigationUtils.navigateToInternalRoute(data.internal_code, data);
-    } else {
-      // 根据actionType映射到内链代码
-      const actionToCodeMap: Record<NotificationActionType, string> = {
-        'order_update': 'app_orderlist',
-        'payment_received': 'app_wallet',
-        'vip_upgrade': 'app_vip',
-        'system_announcement': 'app_message',
-        'security_alert': 'app_mine', // 安全相关跳转到个人中心
-        'promotion': 'app_sellcard',
-        'general': 'app_home',
-      };
-      
-      const internalCode = actionToCodeMap[actionType];
-      if (internalCode) {
-        success = NavigationUtils.navigateToInternalRoute(internalCode, data);
-      }
-    }
+    success = NavigationUtils.navigateToInternalRoute(actionType, data);
     
     // 如果跳转失败，默认跳转到首页
     if (!success) {
@@ -162,7 +144,7 @@ export function useNotifications() {
       const data = notification.request.content.data;
       
       if (data?.action) {
-        handleNotificationAction(data.action as NotificationActionType, data);
+        handleNotificationAction(data.action as string, data);
       }
     });
 
