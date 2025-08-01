@@ -143,6 +143,12 @@ export default function RegisterScreen() {
     if (validateForm()) {
       try {
         await register({
+      // 检查是否来自弹窗，如果是则添加额外参数
+      const extraParams = global.isFromPopup ? { sign_to_coupon: '1' } : {};
+      
+      // 清除全局标记
+      global.isFromPopup = undefined;
+      
           register_type: registrationType === 'email' ? '1' : '2',
           country_id: selectedCountry?.id.toString() || '',
           username: registrationType === 'email' ? formData.email : countryCode + formData.whatsapp,
@@ -187,6 +193,7 @@ export default function RegisterScreen() {
         return;
       }
     } else {
+        ...extraParams,
       if (!formData.whatsapp) {
         setErrors((prev) => ({ ...prev, whatsapp: 'WhatsApp number is required' }));
         return;

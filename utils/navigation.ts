@@ -6,6 +6,7 @@ import * as Linking from 'expo-linking';
 const INTERNAL_ROUTE_MAP: Record<string, string> = {
   // 主要页面
   'app_home': '/(tabs)',
+  'app_register': '/(auth)/register',
   'app_mine': '/(tabs)/profile',
   'app_wallet': '/(tabs)/wallet',
   'app_sellcard': '/(tabs)/sell',
@@ -59,6 +60,12 @@ export class NavigationUtils {
       let finalRoute = route;
       
       switch (internalCode) {
+        case 'app_register':
+          // 如果是注册页面，设置弹窗来源标记
+          global.isFromPopup = true;
+          finalRoute = '/(auth)/register';
+          break;
+          
         case 'app_orderdetail':
           if (params?.order_no) {
             finalRoute = `/orders/${params.order_no}`;
@@ -181,6 +188,11 @@ export class NavigationUtils {
           return this.navigateToInternalRoute(url);
         } else if (url.startsWith('/')) {
           // 如果是路由路径
+          // 检查是否是注册页面，如果是则设置弹窗来源标记
+          if (url.includes('register') || url.includes('(auth)/register')) {
+            // 设置全局标记，表示来自弹窗
+            global.isFromPopup = true;
+          }
           router.push(url as any);
           return true;
         } else {

@@ -57,6 +57,7 @@ export interface RegisterRequest {
     recommend_code?: string;
     push_device_token?: string;
     code?: string;
+  sign_to_coupon?: string;
 }
 
 // Password Recovery API Types
