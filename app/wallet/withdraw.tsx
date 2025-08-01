@@ -21,6 +21,7 @@ import Button from '@/components/UI/Button';
 import WithdrawCompensationModal from '@/components/wallet/WithdrawCompensationModal';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
+import { usePopupManager } from '@/hooks/usePopupManager';
 import { WithdrawService } from '@/services/withdraw';
 import Spacing from '@/constants/Spacing';
 import type { WithdrawInformation } from '@/types/withdraw';
@@ -30,6 +31,7 @@ function WithdrawScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
   const { activeWalletType, selectedWithdrawAccount, setSelectedWithdrawAccount } = useWalletStore();
+  const { checkWithdrawInitiatedPopup } = usePopupManager();
 
   const [withdrawInfo, setWithdrawInfo] = useState<WithdrawInformation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -162,6 +164,9 @@ function WithdrawScreenContent() {
       setIsLoading(false);
     }
   };
+      // Check for withdraw initiated popup
+      checkWithdrawInitiatedPopup(result.withdraw_no);
+
 
   const formatAmount = (value: number) => {
     return value.toLocaleString(undefined, {

@@ -36,6 +36,7 @@ import { PerformanceMonitor } from '@/utils/performance';
 import { useAppStore } from '@/stores/useAppStore';
 import * as Linking from 'expo-linking';
 import { CommonService } from '@/services/common';
+import { usePopupManager } from '@/hooks/usePopupManager';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -60,6 +61,8 @@ function SellScreenContent() {
     isLoadingOrderSellDetail, 
     orderSellDetailError 
   } = useOrderStore();
+  
+  const { checkOrderCreatedPopup } = usePopupManager();
   
   const currencyName = user?.currency_name || '';
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>([]);
@@ -400,6 +403,9 @@ function SellScreenContent() {
           { text: 'OK', style: 'default' },
         ]
       );
+      
+      // Check for order created popup
+      checkOrderCreatedPopup(orderResult.order_no);
       
       // Reset form
       setSelectedCards([]);

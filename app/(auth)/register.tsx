@@ -18,6 +18,7 @@ import Button from '@/components/UI/Button';
 import Spacing from '@/constants/Spacing';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { usePopupManager } from '@/hooks/usePopupManager';
 import { Country } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
@@ -33,6 +34,7 @@ export default function RegisterScreen() {
   const { colors } = useTheme();
   const { countries, selectedCountry, setSelectedCountry, fetchCountries } = useCountryStore();
   const { register, isLoading } = useAuthStore();
+  const { checkRegisterSuccessPopup } = usePopupManager();
   const { initData } = useAppStore();
 
   const [registrationType, setRegistrationType] = useState<RegistrationType>('email');
@@ -151,6 +153,10 @@ export default function RegisterScreen() {
           code: initData?.is_need_verify === '1' ? verifyCode : '',
         });
         CommonService.analysis('register_success', '1');
+        
+        // Check for register success popup
+        checkRegisterSuccessPopup();
+        
         router.replace('/(tabs)');
       } catch (error) {
         Alert.alert('Registration Failed', error instanceof Error ? error.message : 'Please try again');
