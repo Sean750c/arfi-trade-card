@@ -23,6 +23,7 @@ import BindPhoneModal from '@/components/profile/BindPhoneModal';
 import BindEmailModal from '@/components/profile/BindEmailModal';
 import BindWhatsAppModal from '@/components/profile/BindWhatsAppModal';
 import SocialBindingCard from '@/components/profile/SocialBindingCard';
+import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 
 function SecurityScreenContent() {
   const { colors } = useTheme();
@@ -32,6 +33,14 @@ function SecurityScreenContent() {
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showChangeWithdrawPasswordModal, setShowChangeWithdrawPasswordModal] = useState(false);
   const [showBindPhoneModal, setShowBindPhoneModal] = useState(false);
+  const {
+    isAvailable: biometricAvailable,
+    isEnrolled: biometricEnrolled,
+    isEnabled: biometricEnabled,
+    enableBiometric,
+    disableBiometric,
+    getBiometricTypeText,
+  } = useBiometricAuth();
   const [showBindEmailModal, setShowBindEmailModal] = useState(false);
   const [showBindWhatsAppModal, setShowBindWhatsAppModal] = useState(false);
 
@@ -53,6 +62,24 @@ function SecurityScreenContent() {
       onPress: () => setShowChangeWithdrawPasswordModal(true),
     },
     {
+    ...(biometricAvailable && biometricEnrolled ? [{
+      id: 'biometric',
+      title: `${getBiometricTypeText()} Login`,
+      subtitle: biometricEnabled ? 'Enabled' : 'Disabled',
+      icon: <Fingerprint size={24} color={colors.primary} />,
+      onPress: handleToggleBiometric,
+      showChevron: true,
+      rightElement: (
+        <View style={[
+          styles.statusBadge,
+          { backgroundColor: biometricEnabled ? colors.success : colors.textSecondary }
+        ]}>
+          <Text style={styles.statusText}>
+            {biometricEnabled ? 'ON' : 'OFF'}
+          </Text>
+        </View>
+      ),
+    }] : []),
       id: 'phone',
       title: 'Phone Number',
       subtitle: user?.phone || 'Not bound',
@@ -124,6 +151,36 @@ function SecurityScreenContent() {
       } catch (error) {
         console.error('Failed to reload user:', error);
       }
+    }
+  };
+
+  const handleToggleBiometric = async () => {
+    if (biometricEnabled) {
+      Alert.alert(
+        'Disable Biometric Login',
+        `Are you sure you want to disable ${getBiometricTypeText()} login?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Disable',
+            style: 'destructive',
+            onPress: async () => {
+              const success = await disableBiometric();
+              if (success) {
+                Alert.alert('Success', 'Biometric login disabled');
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Enable Biometric Login',
+        'Please login again to enable biometric authentication',
+        [
+          { text: 'OK', style: 'default' },
+        ]
+      );
     }
   };
 
@@ -449,5 +506,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     marginBottom: Spacing.md,
     lineHeight: 20,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
 });

@@ -18,6 +18,8 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useTheme } from '@/theme/ThemeContext';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
+import BiometricLoginButton from '@/components/auth/BiometricLoginButton';
+import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 export default function LoginScreen() {
@@ -25,11 +27,13 @@ export default function LoginScreen() {
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
   const { login, isLoading } = useAuthStore();
+  const { enableBiometric, isAvailable, isEnrolled } = useBiometricAuth();
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
 
   const validateForm = () => {
     const newErrors: { username?: string; password?: string } = {};
@@ -52,10 +56,41 @@ export default function LoginScreen() {
     if (validateForm()) {
       try {
         await login(username, password);
+        
+        // Prompt for biometric setup after successful login
+        if (isAvailable && isEnrolled && !showBiometricPrompt) {
+          setShowBiometricPrompt(true);
+          Alert.alert(
+            'Enable Biometric Login',
+            'Would you like to enable biometric login for faster access?',
+            [
+              { text: 'Not Now', style: 'cancel' },
+              {
+                text: 'Enable',
+                onPress: async () => {
+                  const success = await enableBiometric({ username, password });
+                  if (success) {
+                    Alert.alert('Success', 'Biometric login enabled successfully!');
+                  }
+                },
+              },
+            ]
+          );
+        }
+        
         router.replace('/(tabs)');
       } catch (error) {
         Alert.alert('Login Failed', error instanceof Error ? error.message : 'Please try again');
       }
+    }
+  };
+
+  const handleBiometricLogin = async (credentials: { username: string; password: string }) => {
+    try {
+      await login(credentials.username, credentials.password);
+      router.replace('/(tabs)');
+    } catch (error) {
+      // Error is already handled in the store
     }
   };
 
@@ -145,6 +180,12 @@ export default function LoginScreen() {
                 Forgot Password?
               </Text>
             </TouchableOpacity>
+
+            {/* Biometric Login Button */}
+            <BiometricLoginButton
+              onSuccess={handleBiometricLogin}
+              disabled={isLoading}
+            />
             
             <View style={styles.buttonContainer}>
               <Button
