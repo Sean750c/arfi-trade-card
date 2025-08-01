@@ -101,6 +101,11 @@ function NotificationsScreenContent() {
     if (!success) {
       console.warn('Failed to handle notification click:', notification);
     }
+
+    try {
+      switch (notification.notice_action) {
+        case 'app_order':
+          if (notification.notice_params) {
             router.push(`/orders/${notification.notice_params}` as any);
           }
           break;
