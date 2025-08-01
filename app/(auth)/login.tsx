@@ -88,6 +88,10 @@ export default function LoginScreen() {
     router.push('/(auth)/forgot-password');
   };
 
+  const handleBiometricSuccess = () => {
+    router.replace('/(tabs)');
+  };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -164,7 +168,14 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             {/* Biometric Login Button */}
-            <BiometricLoginButton onSuccess={() => router.replace('/(tabs)')} />
+            <BiometricLoginButton onSuccess={handleBiometricSuccess} />
+            
+            {/* Debug info - remove in production */}
+            {__DEV__ && (
+              <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center', marginTop: 8 }}>
+                Debug: Platform={Platform.OS}
+              </Text>
+            )}
             
             <View style={styles.buttonContainer}>
               <Button
