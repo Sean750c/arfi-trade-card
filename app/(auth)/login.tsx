@@ -19,6 +19,8 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useTheme } from '@/theme/ThemeContext';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import BiometricLoginButton from '@/components/auth/BiometricLoginButton';
+import BiometricLoginButton from '@/components/auth/BiometricLoginButton';
+import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 

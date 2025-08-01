@@ -43,7 +43,7 @@ function SecurityScreenContent() {
   const [showBindPhoneModal, setShowBindPhoneModal] = useState(false);
   const {
     isAvailable: biometricAvailable,
-    isEnrolled: biometricEnrolled,
+    isEnrolled: isBiometricEnrolled,
     isEnabled: biometricEnabled,
     enableBiometric,
     disableBiometric,
