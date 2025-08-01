@@ -1,5 +1,5 @@
 import { APIRequest } from '@/utils/api';
-import type { LeadData, LeadResponse } from '@/types/common';
+import type { LeadData, LeadResponse, PopData, PopResponse } from '@/types/common';
 import { getDeviceInfo } from '@/utils/device';
 import { EmptyReponse } from '@/types';
 
@@ -35,10 +35,10 @@ export class CommonService {
     }
   }
 
-  static async popConfig(name: string, value: string): Promise<LeadData> {
+  static async popConfig(name: string, value: string): Promise<PopData> {
     try {
       const deviceInfo = await getDeviceInfo();
-      const response = await APIRequest.request<LeadResponse>(
+      const response = await APIRequest.request<PopResponse>(
         '/gc/public/popConfig',
         'POST',
         {
