@@ -6,8 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Switch,
 } from 'react-native';
-import { Lock, Shield, Phone, Mail, MessageCircle, ChevronRight, Apple, Facebook, Check, X, ToggleLeft as Google, CircleCheck as CheckCircle, Circle as XCircle, Bell, Settings } from 'lucide-react-native';
+import { Lock, Shield, Phone, Mail, MessageCircle, ChevronRight, Apple, Facebook, Check, X, ToggleLeft as Google, CircleCheck as CheckCircle, Circle as XCircle, Bell, Settings, Fingerprint, } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Header from '@/components/UI/Header';
 import Card from '@/components/UI/Card';
@@ -16,7 +17,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
-
+import { router } from 'expo-router';
 // Modal Components
 import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
 import ChangeWithdrawPasswordModal from '@/components/profile/ChangeWithdrawPasswordModal';
@@ -28,26 +29,18 @@ import SocialBindingCard from '@/components/profile/SocialBindingCard';
 function SecurityScreenContent() {
   const { colors } = useTheme();
   const { user, reloadUser } = useAuthStore();
-  const {
-    isSupported: biometricSupported,
-    isEnrolled: biometricEnrolled,
-    isEnabled: biometricEnabled,
-    getBiometricTypeName,
-    enableBiometric,
-    disableBiometric,
-  } = useBiometricAuth();
   
   // Modal states
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showChangeWithdrawPasswordModal, setShowChangeWithdrawPasswordModal] = useState(false);
   const [showBindPhoneModal, setShowBindPhoneModal] = useState(false);
   const {
-    isAvailable: biometricAvailable,
     isEnrolled: isBiometricEnrolled,
     isEnabled: biometricEnabled,
     enableBiometric,
     disableBiometric,
-    getBiometricTypeText,
+    promptEnableBiometric,
+    getBiometricTypeName,
   } = useBiometricAuth();
   const [showBindEmailModal, setShowBindEmailModal] = useState(false);
   const [showBindWhatsAppModal, setShowBindWhatsAppModal] = useState(false);
@@ -84,6 +77,34 @@ function SecurityScreenContent() {
     }
   };
 
+  const handleToggleBiometric = async () => {
+    if (biometricEnabled) {
+      Alert.alert(
+        'Disable Biometric Login',
+        `Are you sure you want to disable ${getBiometricTypeName()} login?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Disable',
+            style: 'destructive',
+            onPress: async () => {
+              await disableBiometric();
+              Alert.alert('Success', 'Biometric login disabled');
+            },
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Enable Biometric Login',
+        'Please login again to enable biometric authentication',
+        [
+          { text: 'OK', style: 'default' },
+        ]
+      );
+    }
+  };
+
   const securityItems = [
     {
       id: 'password',
@@ -101,7 +122,7 @@ function SecurityScreenContent() {
       status: !user?.t_password_null,
       onPress: () => setShowChangeWithdrawPasswordModal(true),
     },
-    ...(biometricSupported && biometricEnrolled ? [{
+    ...(biometricEnabled && isBiometricEnrolled ? [{
       id: 'biometric-login',
       title: `${getBiometricTypeName()} Login`,
       subtitle: biometricEnabled ? 'Enabled' : 'Disabled',
@@ -118,9 +139,9 @@ function SecurityScreenContent() {
       ),
     }] : []),
     {
-    ...(biometricAvailable && biometricEnrolled ? [{
+    ...(biometricEnabled && isBiometricEnrolled ? [{
       id: 'biometric',
-      title: `${getBiometricTypeText()} Login`,
+      title: `${getBiometricTypeName()} Login`,
       subtitle: biometricEnabled ? 'Enabled' : 'Disabled',
       icon: <Fingerprint size={24} color={colors.primary} />,
       onPress: handleToggleBiometric,
@@ -210,35 +231,6 @@ function SecurityScreenContent() {
     }
   };
 
-  const handleToggleBiometric = async () => {
-    if (biometricEnabled) {
-      Alert.alert(
-        'Disable Biometric Login',
-        `Are you sure you want to disable ${getBiometricTypeText()} login?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Disable',
-            style: 'destructive',
-            onPress: async () => {
-              const success = await disableBiometric();
-              if (success) {
-                Alert.alert('Success', 'Biometric login disabled');
-              }
-            },
-          },
-        ]
-      );
-    } else {
-      Alert.alert(
-        'Enable Biometric Login',
-        'Please login again to enable biometric authentication',
-        [
-          { text: 'OK', style: 'default' },
-        ]
-      );
-    }
-  };
 
   const renderSecurityItem = (item: any) => (
     <TouchableOpacity
@@ -568,4 +560,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
   },
+  statusText: {
+
+  }
 });

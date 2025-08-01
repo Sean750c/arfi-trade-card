@@ -31,7 +31,9 @@ export function useBiometricAuth() {
       const isSupported = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
       const availableTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
-      
+    console.log('isSupported:', isSupported);  
+    console.log('isEnrolled:', isEnrolled);  
+    console.log('availableTypes:', availableTypes);  
       const isEnabledStr = await AsyncStorage.getItem(BIOMETRIC_ENABLED_KEY);
       const isEnabled = isEnabledStr === 'true';
 

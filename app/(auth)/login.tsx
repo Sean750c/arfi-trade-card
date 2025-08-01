@@ -19,8 +19,6 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useTheme } from '@/theme/ThemeContext';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import BiometricLoginButton from '@/components/auth/BiometricLoginButton';
-import BiometricLoginButton from '@/components/auth/BiometricLoginButton';
-import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
@@ -29,7 +27,7 @@ export default function LoginScreen() {
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
   const { login, isLoading } = useAuthStore();
-  const { enableBiometric, isAvailable, isEnrolled, promptEnableBiometric } = useBiometricAuth();
+  const { enableBiometric, isEnrolled, promptEnableBiometric } = useBiometricAuth();
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
