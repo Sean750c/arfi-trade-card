@@ -15,7 +15,7 @@ import {
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
-import { ChevronLeft, Plus, CreditCard, Clock, ArrowRight, AlertCircle } from 'lucide-react-native';
+import { ChevronLeft, Plus, CreditCard, Clock, ArrowRight, CircleAlert as AlertCircle } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Button from '@/components/UI/Button';
 import WithdrawCompensationModal from '@/components/wallet/WithdrawCompensationModal';
