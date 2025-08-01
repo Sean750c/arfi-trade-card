@@ -77,34 +77,6 @@ function SecurityScreenContent() {
     }
   };
 
-  const handleToggleBiometric = async () => {
-    if (biometricEnabled) {
-      Alert.alert(
-        'Disable Biometric Login',
-        `Are you sure you want to disable ${getBiometricTypeName()} login?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Disable',
-            style: 'destructive',
-            onPress: async () => {
-              await disableBiometric();
-              Alert.alert('Success', 'Biometric login disabled');
-            },
-          },
-        ]
-      );
-    } else {
-      Alert.alert(
-        'Enable Biometric Login',
-        'Please login again to enable biometric authentication',
-        [
-          { text: 'OK', style: 'default' },
-        ]
-      );
-    }
-  };
-
   const securityItems = [
     {
       id: 'password',
@@ -122,7 +94,7 @@ function SecurityScreenContent() {
       status: !user?.t_password_null,
       onPress: () => setShowChangeWithdrawPasswordModal(true),
     },
-    ...(biometricEnabled && isBiometricEnrolled ? [{
+    ...([{
       id: 'biometric-login',
       title: `${getBiometricTypeName()} Login`,
       subtitle: biometricEnabled ? 'Enabled' : 'Disabled',
@@ -137,26 +109,8 @@ function SecurityScreenContent() {
           thumbColor={biometricEnabled ? colors.primary : colors.textSecondary}
         />
       ),
-    }] : []),
+    }]),
     {
-    ...(biometricEnabled && isBiometricEnrolled ? [{
-      id: 'biometric',
-      title: `${getBiometricTypeName()} Login`,
-      subtitle: biometricEnabled ? 'Enabled' : 'Disabled',
-      icon: <Fingerprint size={24} color={colors.primary} />,
-      onPress: handleToggleBiometric,
-      showChevron: true,
-      rightElement: (
-        <View style={[
-          styles.statusBadge,
-          { backgroundColor: biometricEnabled ? colors.success : colors.textSecondary }
-        ]}>
-          <Text style={styles.statusText}>
-            {biometricEnabled ? 'ON' : 'OFF'}
-          </Text>
-        </View>
-      ),
-    }] : []),
       id: 'phone',
       title: 'Phone Number',
       subtitle: user?.phone || 'Not bound',

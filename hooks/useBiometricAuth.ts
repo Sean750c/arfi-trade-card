@@ -31,9 +31,6 @@ export function useBiometricAuth() {
       const isSupported = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
       const availableTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
-    console.log('isSupported:', isSupported);  
-    console.log('isEnrolled:', isEnrolled);  
-    console.log('availableTypes:', availableTypes);  
       const isEnabledStr = await AsyncStorage.getItem(BIOMETRIC_ENABLED_KEY);
       const isEnabled = isEnabledStr === 'true';
 
@@ -65,11 +62,11 @@ export function useBiometricAuth() {
 
   // Get biometric type name for display
   const getBiometricTypeName = (): string => {
-    if (state.availableTypes.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
-      return 'Face ID';
-    }
     if (state.availableTypes.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
       return 'Fingerprint';
+    }
+    if (state.availableTypes.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+      return 'Face ID';
     }
     if (state.availableTypes.includes(LocalAuthentication.AuthenticationType.IRIS)) {
       return 'Iris';
@@ -180,7 +177,7 @@ export function useBiometricAuth() {
 
   // Prompt user to enable biometric after successful login
   const promptEnableBiometric = async (username: string, password: string) => {
-    if (state.isSupported && state.isEnrolled && !state.isEnabled) {
+    if (state.isSupported && !state.isEnrolled && !state.isEnabled) {
       Alert.alert(
         'Enable Biometric Login',
         `Would you like to enable ${getBiometricTypeName()} login for faster access?`,

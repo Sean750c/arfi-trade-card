@@ -5,6 +5,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import Spacing from '@/constants/Spacing';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { Platform, Alert } from 'react-native';
 
 interface BiometricLoginButtonProps {
   onSuccess?: () => void;
@@ -23,10 +24,10 @@ export default function BiometricLoginButton({ onSuccess }: BiometricLoginButton
   } = useBiometricAuth();
 
   // Debug logging to see what's happening
-  console.log('BiometricLoginButton - isSupported:', isSupported);
-  console.log('BiometricLoginButton - isEnrolled:', isEnrolled);
-  console.log('BiometricLoginButton - isEnabled:', isEnabled);
-  console.log('BiometricLoginButton - Platform:', Platform.OS);
+  // console.log('BiometricLoginButton - isSupported:', isSupported);
+  // console.log('BiometricLoginButton - isEnrolled:', isEnrolled);
+  // console.log('BiometricLoginButton - isEnabled:', isEnabled);
+  // console.log('BiometricLoginButton - Platform:', Platform.OS);
 
   // Don't show on web
   if (Platform.OS === 'web') {

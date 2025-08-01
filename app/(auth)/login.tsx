@@ -67,15 +67,6 @@ export default function LoginScreen() {
     }
   };
 
-  const handleBiometricLogin = async (credentials: { username: string; password: string }) => {
-    try {
-      await login(credentials.username, credentials.password);
-      router.replace('/(tabs)');
-    } catch (error) {
-      // Error is already handled in the store
-    }
-  };
-
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
@@ -169,13 +160,6 @@ export default function LoginScreen() {
 
             {/* Biometric Login Button */}
             <BiometricLoginButton onSuccess={handleBiometricSuccess} />
-            
-            {/* Debug info - remove in production */}
-            {__DEV__ && (
-              <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center', marginTop: 8 }}>
-                Debug: Platform={Platform.OS}
-              </Text>
-            )}
             
             <View style={styles.buttonContainer}>
               <Button
