@@ -10,12 +10,21 @@ import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ThemeProvider } from '@/theme/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
+import { usePopupManager } from '@/hooks/usePopupManager';
+import PopupModal from '@/components/UI/PopupModal';
 
 export default function RootLayout() {
   const router = useRouter();
   const { initialize } = useAppStore();
   const { fetchCountries } = useCountryStore();
   const { isAuthenticated, user, initialize: initializeAuth } = useAuthStore();
+  
+  const {
+    isVisible: popupVisible,
+    popData,
+    closePopup,
+    checkAppStartPopup,
+  } = usePopupManager();
   
   useFrameworkReady();
   useAuthProtection(); // Add auth protection
@@ -35,6 +44,9 @@ export default function RootLayout() {
         // Initialize app data with user token if authenticated
         const userToken = isAuthenticated && user?.token ? user.token : undefined;
         await initialize(userToken);
+        
+        // Check for app start popup after initialization
+        checkAppStartPopup();
         
         // Check onboarding status
         const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
@@ -66,6 +78,15 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
+      
+      {/* Global Popup Modal */}
+      {popupVisible && popData && (
+        <PopupModal
+          visible={popupVisible}
+          onClose={closePopup}
+          popData={popData}
+        />
+      )}
     </ThemeProvider>
   );
 }
