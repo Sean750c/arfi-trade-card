@@ -52,20 +52,11 @@
         }
       ],
       [
-        "expo-facebook",
-        {
-          "appId": "YOUR_FACEBOOK_APP_ID",
-          "displayName": "CardKing",
-          "scheme": "fbYOUR_FACEBOOK_APP_ID",
-          "iosUserTrackingPermission": "This identifier will be used to deliver personalized ads to you."
-        }
-      ],
-      [
         "expo-apple-authentication",
         {
           "appleAuthUrl": "https://appleid.apple.com/auth/authorize",
           "appleAuthRedirectUrl": "https://appleid.apple.com/auth/callback",
-          "appleAuthClientId": "YOUR_APPLE_CLIENT_ID"
+          "appleAuthClientId": "com.bsdb.cardking.auth"
         }
       ]
     ],
@@ -85,9 +76,9 @@
         "unstable_allowRequireContext": true
       },
       "EXPO_PUBLIC_API_URL": "https://test-giftcard8-api.gcard8.com", 
-      "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "YOUR_GOOGLE_WEB_CLIENT_ID",
-      "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "YOUR_GOOGLE_IOS_CLIENT_ID",
-      "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "YOUR_GOOGLE_ANDROID_CLIENT_ID",
+      "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "791594810994-0n8lvdm11k3hse26khpp5dmhq51d57c3.apps.googleusercontent.com",
+      "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "791594810994-bqhvquvepta7ca4de13d782blnec7p6u.apps.googleusercontent.com",
+      "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "791594810994-nuplk4snq0mp4tgnd98hijupn17hm9c0.apps.googleusercontent.com",
       "eas": {
         "projectId": "6e88a397-970f-4337-b705-b85048eb66b6"
       }

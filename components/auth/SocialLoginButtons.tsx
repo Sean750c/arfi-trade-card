@@ -30,7 +30,7 @@ export default function SocialLoginButtons() {
 
   // Facebook Auth Hook
   const [requestFacebook, responseFacebook, promptAsyncFacebook] = Facebook.useAuthRequest({
-    clientId: 'YOUR_FACEBOOK_APP_ID', // Replace with your Facebook App ID
+    clientId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID, // Replace with your Facebook App ID
   });
 
   // Handle Google Login

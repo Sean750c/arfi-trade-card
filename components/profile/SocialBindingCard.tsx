@@ -32,7 +32,7 @@ export default function SocialBindingCard() {
   });
 
   const [requestFacebook, responseFacebook, promptAsyncFacebook] = Facebook.useAuthRequest({
-    clientId: 'YOUR_FACEBOOK_APP_ID',
+    clientId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
   });
 
   const socialAccounts = [
