@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
+import * as Linking from 'expo-linking';
 
 // 内链代码到路由的映射
 const INTERNAL_ROUTE_MAP: Record<string, string> = {
@@ -32,14 +33,9 @@ const INTERNAL_ROUTE_MAP: Record<string, string> = {
   'app_rankreward': '/profile/ranking-history',
   'app_prizedraw': '/profile/lottery',
   'app_share': '/refer',
-  'app_pointsmall': '/profile/points-mall',
   
   // 消息和发现
   'app_message': '/notifications',
-  'app_finder': '/profile/finder',
-  
-  // Web页面
-  'app_web': '/profile/web', // 需要URL参数
 };
 
 export class NavigationUtils {
@@ -208,7 +204,6 @@ export class NavigationUtils {
    */
   private static async handleExternalUrl(url: string): Promise<boolean> {
     try {
-      const { Linking } = await import('expo-linking');
       const supported = await Linking.canOpenURL(url);
       
       if (supported) {

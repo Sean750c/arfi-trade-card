@@ -12,7 +12,6 @@ interface PopupState {
 }
 
 export function usePopupManager() {
-  const { user, isAuthenticated } = useAuthStore();
   const [popupState, setPopupState] = useState<PopupState>({
     isVisible: false,
     popData: null,
