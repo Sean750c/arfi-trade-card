@@ -26,7 +26,7 @@ export function usePopupManager() {
     setPopupState(prev => ({ ...prev, isLoading: true, error: null }));
     
     try {
-      const popConfig = await CommonService.popConfig(condition, value);
+      const popConfig = await CommonService.popConfig(condition);
       
       if (popConfig.pop && popConfig.data) {
         setPopupState({

@@ -35,15 +35,14 @@ export class CommonService {
     }
   }
 
-  static async popConfig(name: string, value: string): Promise<PopData> {
+  static async popConfig(condition: string): Promise<PopData> {
     try {
       const deviceInfo = await getDeviceInfo();
       const response = await APIRequest.request<PopResponse>(
         '/gc/public/popConfig',
         'POST',
         {
-          name,
-          value,
+          condition,
           ...deviceInfo,
         }
       );
