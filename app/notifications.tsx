@@ -16,6 +16,7 @@ import AuthGuard from '@/components/UI/AuthGuard';
 import Spacing from '@/constants/Spacing';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { NotificationService } from '@/services/notification';
 import { Notice } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import { formatDate } from '@/utils/date';
@@ -95,12 +96,11 @@ function NotificationsScreenContent() {
       await markAsRead(notification.id, user.token);
     }
 
-    // Handle navigation based on notice_action
-    try {
-      switch (notification.notice_action) {
-        case 'app_orderdetail':
-          // Navigate to order details
-          if (notification.notice_params) {
+    // 使用NotificationService处理通知点击
+    const success = NotificationService.handleNotificationClick(notification);
+    if (!success) {
+      console.warn('Failed to handle notification click:', notification);
+    }
             router.push(`/orders/${notification.notice_params}` as any);
           }
           break;

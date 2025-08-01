@@ -50,8 +50,9 @@ export class NavigationUtils {
       
       if (!route) {
         console.warn(`Unknown internal route code: ${internalCode}`);
-        Alert.alert('Navigation Error', 'Unknown page route');
-        return false;
+        // 跳转到首页
+        router.push('/(tabs)');
+        return true;
       }
 
       // 处理需要参数的特殊路由

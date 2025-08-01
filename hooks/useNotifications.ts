@@ -6,6 +6,7 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { NotificationService } from '@/services/notification';
+import NavigationUtils from '@/utils/navigation';
 import type { NotificationActionType } from '@/types/notification';
 import { generateDeviceId, getDeviceType } from '@/utils/device';
 
@@ -84,32 +85,33 @@ export function useNotifications() {
 
   // Handle notification actions based on type
   const handleNotificationAction = (actionType: NotificationActionType, data: any) => {
-    switch (actionType) {
-      case 'order_update':
-        if (data.order_no) {
-          router.push(`/orders/${data.order_no}` as any);
-        } else {
-          router.push('/orders');
-        }
-        break;
-      case 'payment_received':
-        router.push('/(tabs)/wallet');
-        break;
-      case 'vip_upgrade':
-        router.push('/profile/vip');
-        break;
-      case 'system_announcement':
-        router.push('/notifications');
-        break;
-      case 'security_alert':
-        router.push('/profile/security');
-        break;
-      case 'promotion':
-        router.push('/(tabs)/sell');
-        break;
-      default:
-        router.push('/(tabs)');
-        break;
+    // 使用NavigationUtils处理通知动作
+    let success = false;
+    
+    // 尝试使用内链代码跳转
+    if (data.internal_code) {
+      success = NavigationUtils.navigateToInternalRoute(data.internal_code, data);
+    } else {
+      // 根据actionType映射到内链代码
+      const actionToCodeMap: Record<NotificationActionType, string> = {
+        'order_update': 'app_orderlist',
+        'payment_received': 'app_wallet',
+        'vip_upgrade': 'app_vip',
+        'system_announcement': 'app_message',
+        'security_alert': 'app_mine', // 安全相关跳转到个人中心
+        'promotion': 'app_sellcard',
+        'general': 'app_home',
+      };
+      
+      const internalCode = actionToCodeMap[actionType];
+      if (internalCode) {
+        success = NavigationUtils.navigateToInternalRoute(internalCode, data);
+      }
+    }
+    
+    // 如果跳转失败，默认跳转到首页
+    if (!success) {
+      router.push('/(tabs)');
     }
   };
 
