@@ -56,6 +56,13 @@ export function useBiometricAuth() {
     }
   }, []);
 
+  // Re-check when component mounts or user changes
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      checkBiometricSupport();
+    }
+  }, []);
+
   // Get biometric type name for display
   const getBiometricTypeName = (): string => {
     if (state.availableTypes.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {

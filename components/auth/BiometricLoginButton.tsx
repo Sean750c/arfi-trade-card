@@ -22,8 +22,20 @@ export default function BiometricLoginButton({ onSuccess }: BiometricLoginButton
     authenticateWithBiometric,
   } = useBiometricAuth();
 
-  // Don't show on web or if not supported/enabled
-  if (!isSupported || !isEnrolled || !isEnabled) {
+  // Debug logging to see what's happening
+  console.log('BiometricLoginButton - isSupported:', isSupported);
+  console.log('BiometricLoginButton - isEnrolled:', isEnrolled);
+  console.log('BiometricLoginButton - isEnabled:', isEnabled);
+  console.log('BiometricLoginButton - Platform:', Platform.OS);
+
+  // Don't show on web
+  if (Platform.OS === 'web') {
+    return null;
+  }
+
+  // Show button if supported and enrolled, regardless of enabled status
+  // This allows users to enable biometric login from the login screen
+  if (!isSupported || !isEnrolled) {
     return null;
   }
 
