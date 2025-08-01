@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import type { PopDataDetail } from '@/types/common';
+import NavigationUtils from '@/utils/navigation';
 
 interface PopupModalProps {
   visible: boolean;
@@ -29,24 +30,10 @@ export default function PopupModal({ visible, onClose, popData }: PopupModalProp
 
   const handlePopupPress = async () => {
     try {
-      if (popData.jump_type === 1) {
-        // APP内链 - 使用router导航
-        if (popData.url.startsWith('/')) {
-          router.push(popData.url as any);
-        } else {
-          // 如果不是以/开头，尝试解析为内部路由
-          router.push(`/${popData.url}` as any);
-        }
-      } else if (popData.jump_type === 2) {
-        // 外部链接 - 使用Linking打开
-        const supported = await Linking.canOpenURL(popData.url);
-        if (supported) {
-          await Linking.openURL(popData.url);
-        } else {
-          Alert.alert('Error', 'Cannot open this link');
-        }
+      const success = NavigationUtils.handlePopupNavigation(popData.jump_type, popData.url);
+      if (success) {
+        onClose();
       }
-      onClose();
     } catch (error) {
       console.error('Error handling popup press:', error);
       Alert.alert('Error', 'Failed to open link');

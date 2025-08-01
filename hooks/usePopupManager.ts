@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CommonService } from '@/services/common';
 import type { PopData, PopDataDetail } from '@/types/common';
-import { useAuthStore } from '@/stores/useAuthStore';
 
 type PopupCondition = '0' | '1' | '2' | '3';
 
