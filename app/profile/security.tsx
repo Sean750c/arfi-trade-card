@@ -217,7 +217,6 @@ function SecurityScreenContent() {
     );
   };
   
-
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
       <Header
