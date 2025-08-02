@@ -21,6 +21,7 @@ import { router } from 'expo-router';
 // Modal Components
 import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
 import ChangeWithdrawPasswordModal from '@/components/profile/ChangeWithdrawPasswordModal';
+import SixDigitPasswordInput from '@/components/UI/SixDigitPasswordInput';
 import BindPhoneModal from '@/components/profile/BindPhoneModal';
 import BindEmailModal from '@/components/profile/BindEmailModal';
 import BindWhatsAppModal from '@/components/profile/BindWhatsAppModal';
@@ -88,7 +89,7 @@ function SecurityScreenContent() {
     },
     {
       id: 'withdraw_password',
-      title: 'Withdraw Password',
+      title: 'Withdraw Password (6-digit)',
       subtitle: 'Set your withdraw password',
       icon: <Shield size={24} color={colors.primary} />,
       status: !user?.t_password_null,
