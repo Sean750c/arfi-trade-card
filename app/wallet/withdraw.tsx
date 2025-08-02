@@ -31,7 +31,7 @@ import Input from '@/components/UI/Input';
 
 function WithdrawScreenContent() {
   const { colors } = useTheme();
-  const { user } = useAuthStore();
+  const { user, reloadUser } = useAuthStore();
   const { activeWalletType, selectedWithdrawAccount, setSelectedWithdrawAccount } = useWalletStore();
   const { checkWithdrawInitiatedPopup } = usePopupManager();
 
@@ -130,13 +130,13 @@ function WithdrawScreenContent() {
         'You need to set a 6-digit withdraw password before making withdrawals.',
         [
           { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Set Password', 
+          {
+            text: 'Set Password',
             onPress: () => setShowSetPasswordModal(true)
           }
         ]
       );
-      setShowSetPasswordModal(true);
+      //setShowSetPasswordModal(true);
       return false;
     }
     return true;
@@ -145,7 +145,10 @@ function WithdrawScreenContent() {
   const handleSetPasswordSuccess = async () => {
     setShowSetPasswordModal(false);
     // Reload user info to get updated password status
-    await reloadUser();
+    // await reloadUser(); 
+    if (user) {
+      user.t_password_null = false;
+    }
     Alert.alert(
       'Success',
       'Withdraw password set successfully! You can now proceed with your withdrawal.',
@@ -154,6 +157,10 @@ function WithdrawScreenContent() {
   };
 
   const handleSubmit = async () => {
+    const checkPassword = checkWithdrawPassword();
+    if (!checkPassword) {
+      return;
+    }
     const amountError = validateAmount();
     if (amountError) {
       Alert.alert('Invalid Amount', amountError);
@@ -164,6 +171,7 @@ function WithdrawScreenContent() {
       return;
     }
     if (!user?.token) return;
+    setWithdrawPassword('');
     setPasswordModalVisible(true);
   };
 
