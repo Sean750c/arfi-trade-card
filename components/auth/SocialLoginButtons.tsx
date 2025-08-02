@@ -229,11 +229,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.md,
-    borderWidth: 1,
     borderRadius: 8,
-    gap: Spacing.sm,
+    borderWidth: 1,
   },
   socialButtonText: {
+    marginLeft: Spacing.sm,
     fontSize: 16,
     fontWeight: '500',
   },
