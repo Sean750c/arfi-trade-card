@@ -3,6 +3,7 @@ import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-nat
 import { Fingerprint, Scan } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
+import { useAppStore } from '@/stores/useAppStore';
 import Spacing from '@/constants/Spacing';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Platform, Alert } from 'react-native';
@@ -13,6 +14,7 @@ interface BiometricLoginButtonProps {
 
 export default function BiometricLoginButton({ onSuccess }: BiometricLoginButtonProps) {
   const { colors } = useTheme();
+  const { initData } = useAppStore();
   const {
     isSupported,
     isEnrolled,
@@ -31,6 +33,11 @@ export default function BiometricLoginButton({ onSuccess }: BiometricLoginButton
 
   // Don't show on web
   if (Platform.OS === 'web') {
+    return null;
+  }
+
+  // Check if biometric is enabled in initData
+  if (initData?.biometric_enable === false) {
     return null;
   }
 

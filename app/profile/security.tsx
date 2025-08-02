@@ -15,6 +15,7 @@ import Card from '@/components/UI/Card';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useAppStore } from '@/stores/useAppStore';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { router } from 'expo-router';
@@ -30,6 +31,7 @@ import SocialBindingCard from '@/components/profile/SocialBindingCard';
 function SecurityScreenContent() {
   const { colors } = useTheme();
   const { user, reloadUser } = useAuthStore();
+  const { initData } = useAppStore();
   
   // Modal states
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
@@ -232,8 +234,8 @@ function SecurityScreenContent() {
           )}
         </View>
         <ChevronRight size={20} color={colors.textSecondary} />
-      </View>
-    </TouchableOpacity>
+        {/* Biometric Authentication - Only show if enabled in initData */}
+        {Platform.OS !== 'web' && biometricSupported && initData?.biometric_enable !== false && (
   );
 
   return (

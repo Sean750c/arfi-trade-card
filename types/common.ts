@@ -70,6 +70,7 @@ export interface InitData {
     google_login_enable?: boolean;
     facebook_login_enable?: boolean;
     apple_login_enable?: boolean;
+    biometric_enable?: boolean;
 }
 
 export interface SocialMediaLink {
