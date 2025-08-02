@@ -37,22 +37,26 @@ export default function WithdrawDetailModal({
   const { user } = useAuthStore();
 
   useEffect(() => {
-    if (visible && logId && user?.token) {
+    if (visible && logId !== null && user?.token) {
       fetchWithdrawDetail();
     }
   }, [visible, logId, user?.token]);
 
   const fetchWithdrawDetail = async () => {
+    if (!user?.token || logId === null) return;
+    
     setIsLoading(true);
     setError(null);
+    
     try {
       const detail = await WalletService.moneyLogDetail({
-        token: user?.token || '',
+        token: user.token,
         log_id: logId,
       });
       setWithdrawDetail(detail);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to fetch withdraw details');
+      console.error('Failed to fetch withdraw detail:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch withdraw detail');
     } finally {
       setIsLoading(false);
     }
