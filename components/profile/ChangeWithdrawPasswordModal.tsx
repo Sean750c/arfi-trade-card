@@ -50,18 +50,28 @@ export default function ChangeWithdrawPasswordModal({
 
     if (!isFirstTimeSetup && !currentPassword.trim()) {
       newErrors.currentPassword = 'Current withdraw password is required';
+    } else if (!isFirstTimeSetup && currentPassword.length !== 6) {
+      newErrors.currentPassword = 'Password must be exactly 6 digits';
+    } else if (!isFirstTimeSetup && !/^\d{6}$/.test(currentPassword)) {
+      newErrors.currentPassword = 'Password must contain only numbers';
     }
 
     if (!newPassword.trim()) {
       newErrors.newPassword = 'New withdraw password is required';
-    } else if (newPassword.length < 6) {
-      newErrors.newPassword = 'Password must be at least 6 characters';
+    } else if (newPassword.length !== 6) {
+      newErrors.newPassword = 'Password must be exactly 6 digits';
+    } else if (!/^\d{6}$/.test(newPassword)) {
+      newErrors.newPassword = 'Password must contain only numbers';
     }
 
     if (!confirmPassword.trim()) {
       newErrors.confirmPassword = 'Please confirm your new password';
     } else if (newPassword !== confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+    } else if (confirmPassword.length !== 6) {
+      newErrors.confirmPassword = 'Password must be exactly 6 digits';
+    } else if (!/^\d{6}$/.test(confirmPassword)) {
+      newErrors.confirmPassword = 'Password must contain only numbers';
     }
 
     if (!isFirstTimeSetup && currentPassword === newPassword) {
@@ -152,6 +162,8 @@ export default function ChangeWithdrawPasswordModal({
                   value={currentPassword}
                   onChangeText={setCurrentPassword}
                   secureTextEntry={!showCurrentPassword}
+                  keyboardType="numeric"
+                  maxLength={6}
                   error={errors.currentPassword}
                   rightElement={
                     <TouchableOpacity
@@ -171,6 +183,8 @@ export default function ChangeWithdrawPasswordModal({
                 value={newPassword}
                 onChangeText={setNewPassword}
                 secureTextEntry={!showNewPassword}
+                keyboardType="numeric"
+                maxLength={6}
                 error={errors.newPassword}
                 rightElement={
                   <TouchableOpacity
@@ -189,6 +203,8 @@ export default function ChangeWithdrawPasswordModal({
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
+                keyboardType="numeric"
+                maxLength={6}
                 error={errors.confirmPassword}
                 rightElement={
                   <TouchableOpacity
@@ -204,7 +220,7 @@ export default function ChangeWithdrawPasswordModal({
               />
               <View style={styles.passwordTips}>
                 <Text style={[styles.tipsTitle, { color: colors.text }]}>Password Requirements:</Text>
-                <Text style={[styles.tipsText, { color: colors.textSecondary }]}>• At least 6 characters long{`\n`}• Use numbers and letters for better security</Text>
+                <Text style={[styles.tipsText, { color: colors.textSecondary }]}>• Must be exactly 6 digits{`\n`}• Only numbers are allowed{`\n`}• Easy to remember but secure</Text>
               </View>
               <View style={styles.buttonContainer}>
                 <Button

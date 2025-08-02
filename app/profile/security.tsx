@@ -279,7 +279,7 @@ function SecurityScreenContent() {
                   { 
                     backgroundColor: colors.success,
                     width: `${(securityItems.filter(item => item.status).length / securityItems.length) * 100}%`
-                  }
+                  {user?.t_password_null ? 'Set up a secure 6-digit password for withdrawals' : 'Change your current 6-digit withdraw password'}
                 ]} />
               </View>
               <Text style={[styles.scoreText, { color: colors.success }]}>
