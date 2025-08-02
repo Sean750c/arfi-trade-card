@@ -16,21 +16,27 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { AppleLoginRequest, FacebookLoginRequest, GoogleLoginRequest } from '@/types';
+import Constants from 'expo-constants';
 
 export default function SocialLoginButtons() {
   const { colors } = useTheme();
   const { setUser, appleLogin, facebookLogin, googleLogin } = useAuthStore();
 
   // Google Auth Hook
+  const expoConfig = Constants.expoConfig;
+  const androidClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
+  const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
+  const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
   const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    androidClientId,
+    iosClientId,
+    webClientId,
   });
 
   // Facebook Auth Hook
+  const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
   const [requestFacebook, responseFacebook, promptAsyncFacebook] = Facebook.useAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID, // Replace with your Facebook App ID
+    clientId, // Replace with your Facebook App ID
   });
 
   // Handle Google Login
@@ -96,7 +102,7 @@ export default function SocialLoginButtons() {
       Alert.alert('Not Available', 'Apple Sign-In is only available on iOS devices');
       return;
     }
-    
+
     try {
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
@@ -175,7 +181,7 @@ export default function SocialLoginButtons() {
         style={[styles.socialButton, { borderColor: colors.border }]}
         fullWidth
       />
-      
+
       <Button
         title="Continue with Facebook"
         variant="outline"
@@ -184,7 +190,7 @@ export default function SocialLoginButtons() {
         style={[styles.socialButton, { borderColor: colors.border }]}
         fullWidth
       />
-      
+
       {isAppleLoginAvailable && (
         <Button
           title="Continue with Apple"

@@ -24,7 +24,11 @@
       },
       "env": {
         "EXPO_DEBUG": "1",
-        "EXPO_PUBLIC_API_URL": "https://api.cardking.ng"
+        "EXPO_PUBLIC_API_URL": "https://api.cardking.ng",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "791594810994-nuplk4snq0mp4tgnd98hijupn17hm9c0.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "791594810994-bqhvquvepta7ca4de13d782blnec7p6u.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "791594810994-0n8lvdm11k3hse26khpp5dmhq51d57c3.apps.googleusercontent.com",
+        "EXPO_PUBLIC_FACEBOOK_APP_ID": "1525365371783998"
       }
     }
   },

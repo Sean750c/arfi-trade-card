@@ -20,6 +20,13 @@ Notifications.setNotificationHandler({
   }),
 });
 
+interface NotificationData {
+  action?: string;
+  // 你自定义的字段可以继续补充，比如：
+  params?: string;
+  inapp_notice?: string;
+}
+
 export function useNotifications() {
   const { user, isAuthenticated } = useAuthStore();
   const [expoPushToken, setExpoPushToken] = useState<string>('');
@@ -105,7 +112,7 @@ export function useNotifications() {
     // }
 
     try {
-      // console.log('device_token:', token);
+      console.log('device_token:', token);
       const deviceNo = await generateDeviceId();
       const deviceType = await getDeviceType();
       await NotificationService.registerFCMToken({
@@ -133,6 +140,10 @@ export function useNotifications() {
     // Listen for incoming notifications
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       console.log('Notification received:', notification);
+
+      const data = notification.request.content.data as NotificationData;
+      console.log('Received data:', data);
+
       setNotification(notification);
     });
 
@@ -141,8 +152,10 @@ export function useNotifications() {
       console.log('Notification response:', response);
       
       const { notification } = response;
-      const data = notification.request.content.data;
-      
+      const data = notification.request.content.data as NotificationData;
+
+      console.log('Click data:', data);
+
       if (data?.action) {
         handleNotificationAction(data.action as string, data);
       }
