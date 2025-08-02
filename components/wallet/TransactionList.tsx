@@ -12,12 +12,8 @@ import {
 import { ArrowDownLeft, ArrowUpRight, Gift, Users, Crown, CreditCard, TrendingUp, CircleAlert as AlertCircle } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import type { WalletTransaction } from '@/types';
-import WithdrawDetailModal from '@/components/wallet/WithdrawDetailModal';
 import { formatDate } from '@/utils/date';
 import { useTheme } from '@/theme/ThemeContext';
-import { useAuthStore } from '@/stores/useAuthStore';
-
-const { user } = useAuthStore();
 
 interface TransactionListProps {
   transactions: WalletTransaction[];
@@ -157,8 +153,6 @@ export default function TransactionList({
   walletType,
 }: TransactionListProps) {
   const { colors } = useTheme();
-  const [selectedWithdrawId, setSelectedWithdrawId] = React.useState<number | null>(null);
-  const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
 
   // 使用 useMemo 缓存函数，避免重复创建
   const getTransactionIcon = useMemo(() => (type: string) => {
@@ -261,33 +255,6 @@ export default function TransactionList({
     [colors, onTransactionPress]
   );
 
-  const renderFooter = () => {
-    if (!isLoadingMore) return null;
-
-    return (
-      <View style={styles.loadingFooter}>
-        <ActivityIndicator size="small" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-          Loading more transactions...
-        </Text>
-      </View>
-    );
-  };
-
-  const handleCloseWithdrawModal = () => {
-    setShowWithdrawModal(false);
-    setSelectedWithdrawId(null);
-  };
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <TrendingUp size={64} color={colors.textSecondary} />
-      <Text style={[styles.emptyTitle, { color: colors.text }]}>
-        No Transactions
-      </Text>
-    </View>
-  );
-
   const renderErrorState = () => (
     <View style={styles.errorContainer}>
       <AlertCircle size={48} color={colors.error} />
@@ -350,16 +317,6 @@ export default function TransactionList({
         windowSize={10}
         removeClippedSubviews={true}
       />
-
-      {/* Withdraw Detail Modal */}
-      {showWithdrawModal && selectedWithdrawId && (
-        <WithdrawDetailModal
-          visible={showWithdrawModal}
-          onClose={handleCloseWithdrawModal}
-          logId={selectedWithdrawId}
-          token={user?.token || ''}
-        />
-      )}
     </>
   );
 }

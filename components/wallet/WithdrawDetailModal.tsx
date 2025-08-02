@@ -17,37 +17,37 @@ import { useTheme } from '@/theme/ThemeContext';
 import { WalletService } from '@/services/wallet';
 import { formatDate } from '@/utils/date';
 import type { MoneyLogDetail } from '@/types';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 interface WithdrawDetailModalProps {
   visible: boolean;
   onClose: () => void;
   logId: number;
-  token: string;
 }
 
 export default function WithdrawDetailModal({
   visible,
   onClose,
   logId,
-  token,
 }: WithdrawDetailModalProps) {
   const { colors } = useTheme();
   const [withdrawDetail, setWithdrawDetail] = useState<MoneyLogDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuthStore();
 
   useEffect(() => {
-    if (visible && logId && token) {
+    if (visible && logId && user?.token) {
       fetchWithdrawDetail();
     }
-  }, [visible, logId, token]);
+  }, [visible, logId, user?.token]);
 
   const fetchWithdrawDetail = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const detail = await WalletService.moneyLogDetail({
-        token,
+        token: user?.token || '',
         log_id: logId,
       });
       setWithdrawDetail(detail);

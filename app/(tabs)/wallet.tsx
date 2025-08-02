@@ -21,6 +21,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { PerformanceMonitor } from '@/utils/performance';
 import { useAppStore } from '@/stores/useAppStore';
+import WithdrawDetailModal from '@/components/wallet/WithdrawDetailModal';
 
 function WalletScreenContent() {
   const { colors } = useTheme();
@@ -49,7 +50,8 @@ function WalletScreenContent() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(0);
 
-
+  const [selectedWithdrawId, setSelectedWithdrawId] = React.useState<number | null>(null);
+  const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
 
   // 使用 useMemo 缓存交易统计
   const transactionStats = useMemo(() => ({
@@ -176,6 +178,9 @@ function WalletScreenContent() {
   const handleTransactionPress = useCallback((transaction: WalletTransaction) => {
     if (transaction.type === 'order') {
       router.push(`/orders/${transaction.order_no}`);
+    } else if (transaction.type === 'withdraw') {
+      setSelectedWithdrawId(transaction.log_id);
+      setShowWithdrawModal(true);
     }
   }, []);
 
@@ -189,6 +194,11 @@ function WalletScreenContent() {
   const handleToggleBalanceVisibility = useCallback(() => {
     setBalanceVisible(prev => !prev);
   }, []);
+
+  const handleCloseWithdrawModal = () => {
+    setShowWithdrawModal(false);
+    setSelectedWithdrawId(null);
+  };
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
@@ -273,6 +283,15 @@ function WalletScreenContent() {
       <CustomerServiceButton
         style={styles.customerServiceButton}
       />
+
+      {/* Withdraw Detail Modal */}
+      {showWithdrawModal && selectedWithdrawId && (
+        <WithdrawDetailModal
+          visible={showWithdrawModal}
+          onClose={handleCloseWithdrawModal}
+          logId={selectedWithdrawId}
+        />
+      )}
     </SafeAreaWrapper>
   );
 }
