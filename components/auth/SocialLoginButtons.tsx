@@ -4,11 +4,15 @@ import {
   Alert,
   Platform,
   StyleSheet,
+  TouchableOpacity,
+  Text,
 } from 'react-native';
+import { Chrome, Facebook, Apple } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
 import Spacing from '@/constants/Spacing';
 import { AuthService } from '@/services/auth';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useAppStore } from '@/stores/useAppStore';
 import { router } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
 import * as WebBrowser from 'expo-web-browser';
@@ -21,6 +25,7 @@ import Constants from 'expo-constants';
 export default function SocialLoginButtons() {
   const { colors } = useTheme();
   const { setUser, appleLogin, facebookLogin, googleLogin } = useAuthStore();
+  const { initData } = useAppStore();
 
   // Google Auth Hook
   const expoConfig = Constants.expoConfig;
@@ -134,12 +139,10 @@ export default function SocialLoginButtons() {
   // Close the web browser opened by AuthSession
   WebBrowser.maybeCompleteAuthSession();
 
-  // Check if Google login is available
-  const isGoogleLoginAvailable = requestGoogle;
-  // Check if Facebook login is available
-  const isFacebookLoginAvailable = requestFacebook;
-  // Apple login is only available on iOS
-  const isAppleLoginAvailable = Platform.OS === 'ios';
+  // Check if social logins are available and enabled
+  const isGoogleLoginAvailable = requestGoogle && (initData?.google_login_enable !== false);
+  const isFacebookLoginAvailable = requestFacebook && (initData?.facebook_login_enable !== false);
+  const isAppleLoginAvailable = Platform.OS === 'ios' && (initData?.apple_login_enable !== false);
 
   // Function to handle social binding
   const handleSocialBind = async (socialType: 'google' | 'facebook' | 'apple', accessToken: string, socialId: string, socialEmail: string, socialName?: string) => {
@@ -173,25 +176,47 @@ export default function SocialLoginButtons() {
 
   return (
     <View style={styles.container}>
-      <Button
-        title="Continue with Google"
-        variant="outline"
-        onPress={handleGoogleLogin}
-        disabled={!isGoogleLoginAvailable}
-        style={[styles.socialButton, { borderColor: colors.border }]}
-        fullWidth
-      />
+      {isGoogleLoginAvailable && (
+        <TouchableOpacity
+          style={[styles.socialButton, { borderColor: colors.border, backgroundColor: colors.card }]}
+          onPress={handleGoogleLogin}
+          activeOpacity={0.8}
+        >
+          <Chrome size={20} color="#4285F4" />
+          <Text style={[styles.socialButtonText, { color: colors.text }]}>
+            Continue with Google
+          </Text>
+        </TouchableOpacity>
+      )}
 
-      <Button
-        title="Continue with Facebook"
-        variant="outline"
-        onPress={handleFacebookLogin}
-        disabled={!isFacebookLoginAvailable}
-        style={[styles.socialButton, { borderColor: colors.border }]}
-        fullWidth
-      />
+      {isFacebookLoginAvailable && (
+        <TouchableOpacity
+          style={[styles.socialButton, { borderColor: colors.border, backgroundColor: colors.card }]}
+          onPress={handleFacebookLogin}
+          activeOpacity={0.8}
+        >
+          <Facebook size={20} color="#1877F2" />
+          <Text style={[styles.socialButtonText, { color: colors.text }]}>
+            Continue with Facebook
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {isAppleLoginAvailable && (
+        <TouchableOpacity
+          style={[styles.socialButton, { borderColor: colors.border, backgroundColor: colors.card }]}
+          onPress={handleAppleLogin}
+          activeOpacity={0.8}
+        >
+          <Apple size={20} color={colors.text} />
+          <Text style={[styles.socialButtonText, { color: colors.text }]}>
+            Continue with Apple
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
         <Button
           title="Continue with Apple"
           variant="outline"
@@ -211,5 +236,16 @@ const styles = StyleSheet.create({
   },
   socialButton: {
     height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: Spacing.sm,
+  },
+  socialButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
   },
 });

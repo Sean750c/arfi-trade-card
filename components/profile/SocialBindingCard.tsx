@@ -13,6 +13,7 @@ import Button from '@/components/UI/Button';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useAppStore } from '@/stores/useAppStore';
 import { AuthService } from '@/services/auth';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
@@ -23,6 +24,7 @@ import Constants from 'expo-constants';
 export default function SocialBindingCard() {
   const { colors } = useTheme();
   const { user, reloadUser } = useAuthStore();
+  const { initData } = useAppStore();
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
   // Auth hooks
@@ -48,7 +50,7 @@ export default function SocialBindingCard() {
       icon: <Shield size={20} color={colors.primary} />,
       color: '#4285F4',
       isConnected: user?.google_bind || false,
-      isAvailable: !!requestGoogle,
+      isAvailable: !!requestGoogle && (initData?.google_login_enable !== false),
     },
     {
       id: 'facebook',
@@ -56,7 +58,7 @@ export default function SocialBindingCard() {
       icon: <FacebookIcon size={20} color={colors.primary} />,
       color: '#1877F2',
       isConnected: user?.facebook_bind || false,
-      isAvailable: !!requestFacebook,
+      isAvailable: !!requestFacebook && (initData?.facebook_login_enable !== false),
     },
     {
       id: 'apple',
@@ -64,7 +66,7 @@ export default function SocialBindingCard() {
       icon: <Apple size={20} color={colors.primary} />,
       color: '#000000',
       isConnected: user?.apple_bind || false,
-      isAvailable: Platform.OS === 'ios',
+      isAvailable: Platform.OS === 'ios' && (initData?.apple_login_enable !== false),
     },
   ];
 
@@ -301,7 +303,7 @@ export default function SocialBindingCard() {
       </View>
 
       <View style={styles.socialList}>
-        {socialAccounts.map(renderSocialAccount)}
+        {socialAccounts.filter(account => account.isAvailable).map(renderSocialAccount)}
       </View>
 
       {/* <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>

@@ -67,6 +67,9 @@ export interface InitData {
     whatsapp_chuanying: boolean;
     platform_fee: string;
     recommend_fee: string;
+    google_login_enable?: boolean;
+    facebook_login_enable?: boolean;
+    apple_login_enable?: boolean;
 }
 
 export interface SocialMediaLink {
