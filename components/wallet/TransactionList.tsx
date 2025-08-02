@@ -34,9 +34,6 @@ const TransactionItem = React.memo(({
   onTransactionPress, 
   colors, 
   styles,
-  const [selectedWithdrawId, setSelectedWithdrawId] = React.useState<number | null>(null);
-  const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
-
   getTransactionIcon,
   getTransactionColor,
   getTransactionTitle,
@@ -80,11 +77,7 @@ const TransactionItem = React.memo(({
       <TouchableOpacity
         style={[
           styles.transactionItem,
-    if (transaction.type === 'withdraw') {
-      // Show withdraw detail modal
-      setSelectedWithdrawId(transaction.log_id);
-      setShowWithdrawModal(true);
-    } else if (transaction.order_no) {
+          {
             backgroundColor: colors.card,
             borderColor: colors.border,
           },
@@ -161,6 +154,8 @@ export default function TransactionList({
   walletType,
 }: TransactionListProps) {
   const { colors } = useTheme();
+  const [selectedWithdrawId, setSelectedWithdrawId] = React.useState<number | null>(null);
+  const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
 
   // 使用 useMemo 缓存函数，避免重复创建
   const getTransactionIcon = useMemo(() => (type: string) => {
@@ -277,10 +272,10 @@ export default function TransactionList({
   };
 
   const handleCloseWithdrawModal = () => {
-          {(transaction.order_no || transaction.type === 'withdraw') && (
+    setShowWithdrawModal(false);
     setSelectedWithdrawId(null);
   };
-                {transaction.type === 'withdraw' ? 'View Details' : 'View Order'}
+
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <TrendingUp size={64} color={colors.textSecondary} />
@@ -318,12 +313,12 @@ export default function TransactionList({
         data={transactions}
         keyExtractor={(item) => item.log_id.toString()}
         renderItem={renderTransaction}
-        onEndReached={handleLoadMore}
+        onEndReached={onLoadMore}
         onEndReachedThreshold={0.1}
         refreshControl={
           <RefreshControl
-            refreshing={isLoadingTransactions}
-            onRefresh={handleRefresh}
+            refreshing={isLoading}
+            onRefresh={onRefresh}
             colors={[colors.primary]}
             tintColor={colors.primary}
           />
@@ -336,7 +331,7 @@ export default function TransactionList({
           ) : null
         }
         ListEmptyComponent={
-          !isLoadingTransactions ? (
+          !isLoading ? (
             <View style={styles.emptyContainer}>
               <TrendingUp size={48} color={colors.textSecondary} />
               <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
@@ -354,15 +349,18 @@ export default function TransactionList({
       />
 
       {/* Withdraw Detail Modal */}
-      {showWithdrawModal && selectedWithdrawId && user?.token && (
+      {showWithdrawModal && selectedWithdrawId && (
         <WithdrawDetailModal
           visible={showWithdrawModal}
           onClose={handleCloseWithdrawModal}
           logId={selectedWithdrawId}
-          token={user.token}
         />
       )}
     </>
+  );
+}
+
+const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -473,6 +471,12 @@ export default function TransactionList({
     marginBottom: Spacing.sm,
   },
   emptyMessage: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  emptyText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
