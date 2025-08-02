@@ -15,6 +15,7 @@ import {
 import { X, Eye, EyeOff, Shield } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
+import SixDigitPasswordInput from '@/components/UI/SixDigitPasswordInput';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -157,71 +158,35 @@ export default function ChangeWithdrawPasswordModal({
           >
             <View style={styles.form}>
               {!isFirstTimeSetup && (
-                <Input
+                <SixDigitPasswordInput
                   label="Current Withdraw Password"
                   value={currentPassword}
                   onChangeText={setCurrentPassword}
-                  secureTextEntry={!showCurrentPassword}
-                  keyboardType="numeric"
-                  maxLength={6}
                   error={errors.currentPassword}
-                  rightElement={
-                    <TouchableOpacity
-                      onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-                    >
-                      {showCurrentPassword ? (
-                        <EyeOff size={20} color={colors.textSecondary} />
-                      ) : (
-                        <Eye size={20} color={colors.textSecondary} />
-                      )}
-                    </TouchableOpacity>
-                  }
+                  autoFocus={!isFirstTimeSetup}
                 />
               )}
-              <Input
+              
+              <SixDigitPasswordInput
                 label="New Withdraw Password"
                 value={newPassword}
                 onChangeText={setNewPassword}
-                secureTextEntry={!showNewPassword}
-                keyboardType="numeric"
-                maxLength={6}
                 error={errors.newPassword}
-                rightElement={
-                  <TouchableOpacity
-                    onPress={() => setShowNewPassword(!showNewPassword)}
-                  >
-                    {showNewPassword ? (
-                      <EyeOff size={20} color={colors.textSecondary} />
-                    ) : (
-                      <Eye size={20} color={colors.textSecondary} />
-                    )}
-                  </TouchableOpacity>
-                }
+                autoFocus={isFirstTimeSetup}
               />
-              <Input
+              
+              <SixDigitPasswordInput
                 label="Confirm New Password"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirmPassword}
-                keyboardType="numeric"
-                maxLength={6}
                 error={errors.confirmPassword}
-                rightElement={
-                  <TouchableOpacity
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff size={20} color={colors.textSecondary} />
-                    ) : (
-                      <Eye size={20} color={colors.textSecondary} />
-                    )}
-                  </TouchableOpacity>
-                }
               />
+              
               <View style={styles.passwordTips}>
                 <Text style={[styles.tipsTitle, { color: colors.text }]}>Password Requirements:</Text>
                 <Text style={[styles.tipsText, { color: colors.textSecondary }]}>• Must be exactly 6 digits{`\n`}• Only numbers are allowed{`\n`}• Easy to remember but secure</Text>
               </View>
+              
               <View style={styles.buttonContainer}>
                 <Button
                   title="Cancel"
@@ -236,6 +201,12 @@ export default function ChangeWithdrawPasswordModal({
                   loading={isLoading}
                   style={styles.submitButton}
                 />
+              </View>
+              
+              <View style={[styles.securityNote, { backgroundColor: `${colors.primary}10` }]}>
+                <Text style={[styles.securityNoteText, { color: colors.text }]}>
+                  🔒 Your withdraw password is used to authorize all withdrawal requests and ensure account security.
+                </Text>
               </View>
             </View>
           </ScrollView>
@@ -321,5 +292,16 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flex: 1,
+  },
+  securityNote: {
+    padding: Spacing.md,
+    borderRadius: 12,
+    marginTop: Spacing.md,
+  },
+  securityNoteText: {
+    fontSize: 13,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 18,
+    textAlign: 'center',
   },
 });

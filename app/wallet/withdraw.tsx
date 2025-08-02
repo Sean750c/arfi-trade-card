@@ -21,6 +21,8 @@ import Button from '@/components/UI/Button';
 import WithdrawCompensationModal from '@/components/wallet/WithdrawCompensationModal';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWalletStore } from '@/stores/useWalletStore';
+import { ChangeWithdrawPasswordModal } from '@/components/profile/ChangeWithdrawPasswordModal';
+import SixDigitPasswordInput from '@/components/UI/SixDigitPasswordInput';
 import { usePopupManager } from '@/hooks/usePopupManager';
 import { WithdrawService } from '@/services/withdraw';
 import Spacing from '@/constants/Spacing';
@@ -42,6 +44,7 @@ function WithdrawScreenContent() {
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [withdrawPassword, setWithdrawPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
 
   const router = useRouter();
 
@@ -83,6 +86,21 @@ function WithdrawScreenContent() {
     }
   };
 
+  // Check if user needs to set withdraw password
+  const checkWithdrawPassword = () => {
+    if (user?.t_password_null) {
+      setShowSetPasswordModal(true);
+      return false;
+    }
+    return true;
+  };
+
+  const handleSetPasswordSuccess = async () => {
+    setShowSetPasswordModal(false);
+    // Reload user info to get updated password status
+    await reloadUser();
+  };
+
   const getAvailableBalance = () => {
     if (!withdrawInfo) return 0.00;
 
@@ -120,6 +138,11 @@ function WithdrawScreenContent() {
   };
 
   const handleSubmit = async () => {
+    // First check if user has set withdraw password
+    if (!checkWithdrawPassword()) {
+      return;
+    }
+
     const amountError = validateAmount();
     if (amountError) {
       Alert.alert('Invalid Amount', amountError);
@@ -136,6 +159,14 @@ function WithdrawScreenContent() {
   const handlePasswordConfirm = async () => {
     if (!withdrawPassword.trim()) {
       setPasswordError('Please enter your withdrawal password');
+      return;
+    }
+    if (withdrawPassword.length !== 6) {
+      setPasswordError('Password must be exactly 6 digits');
+      return;
+    }
+    if (!/^\d{6}$/.test(withdrawPassword)) {
+      setPasswordError('Password must contain only numbers');
       return;
     }
     setPasswordError('');
@@ -435,13 +466,13 @@ function WithdrawScreenContent() {
           <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}>
             <View style={{ width: '85%', backgroundColor: colors.card, borderRadius: 16, padding: 24 }}>
               <Text style={{ fontSize: 18, fontFamily: 'Inter-Bold', color: colors.text, marginBottom: 16 }}>Enter Withdrawal Password</Text>
-              <Input
-                placeholder="Enter your withdrawal password"
-                secureTextEntry
+              
+              <SixDigitPasswordInput
+                label="Withdraw Password"
                 value={withdrawPassword}
                 onChangeText={setWithdrawPassword}
                 error={passwordError}
-                autoFocus
+                placeholder="••••••"
               />
               <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 }}>
                 <Button title="Cancel" onPress={() => { setPasswordModalVisible(false); setWithdrawPassword(''); setPasswordError(''); }} style={{ marginRight: 12, minWidth: 80 }} />
@@ -451,6 +482,13 @@ function WithdrawScreenContent() {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+      
+      {/* Set Withdraw Password Modal */}
+      <ChangeWithdrawPasswordModal
+        visible={showSetPasswordModal}
+        onClose={() => setShowSetPasswordModal(false)}
+        onSuccess={handleSetPasswordSuccess}
+      />
     </SafeAreaWrapper>
   );
 }
