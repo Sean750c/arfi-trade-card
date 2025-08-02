@@ -76,6 +76,10 @@ function SellScreenContent() {
   const [showSellTipsModal, setShowSellTipsModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  if (!user?.token) {
+    return <View><Text>Loading...</Text></View>;
+  }
+
   // Draggable help button state
   const [helpButtonPosition, setHelpButtonPosition] = useState({
     x: screenWidth - 60,

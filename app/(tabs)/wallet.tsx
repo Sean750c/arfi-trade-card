@@ -53,6 +53,10 @@ function WalletScreenContent() {
   const [selectedWithdrawId, setSelectedWithdrawId] = React.useState<number | null>(null);
   const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
 
+  if (!user?.token) {
+    return <View><Text>Loading...</Text></View>;
+  }
+
   // 使用 useMemo 缓存交易统计
   const transactionStats = useMemo(() => ({
     totalCount: transactions.length,
