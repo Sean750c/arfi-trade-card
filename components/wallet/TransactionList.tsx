@@ -47,14 +47,14 @@ const TransactionItem = React.memo(({
   colors: any;
   styles: any;
   getTransactionIcon: (type: string) => React.ReactNode;
-  getTransactionColor: (type: string) => string;
-  getTransactionTitle: (transaction: WalletTransaction) => string;
-  formatAmount: (amount: number, isPositive: boolean, currencySymbol: string) => string;
   formatBalanceAmount: (amount: number, currencySymbol: string) => string;
   formatDate: (timestamp: number) => string;
 }) => {
   const isPositive = transaction.amount > 0;
   const transactionColor = getTransactionColor(transaction.type);
+  const [selectedWithdrawId, setSelectedWithdrawId] = React.useState<number | null>(null);
+  const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
+
   
   // 优化动画：减少延迟和复杂度
   const animatedValue = useRef(new Animated.Value(0)).current;
