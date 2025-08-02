@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   Switch,
+  Platform,
 } from 'react-native';
 import { Lock, Shield, Phone, Mail, MessageCircle, ChevronRight, Apple, Facebook, Check, X, ToggleLeft as Google, CircleCheck as CheckCircle, Circle as XCircle, Bell, Settings, Fingerprint, } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
@@ -44,6 +45,7 @@ function SecurityScreenContent() {
     disableBiometric,
     promptEnableBiometric,
     getBiometricTypeName,
+    biometricSupported,
   } = useBiometricAuth();
   const [showBindEmailModal, setShowBindEmailModal] = useState(false);
   const [showBindWhatsAppModal, setShowBindWhatsAppModal] = useState(false);
@@ -97,7 +99,7 @@ function SecurityScreenContent() {
       status: !user?.t_password_null,
       onPress: () => setShowChangeWithdrawPasswordModal(true),
     },
-    ...([{
+    ...(Platform.OS !== 'web' && biometricSupported && initData?.biometric_enable !== false ? [{
       id: 'biometric-login',
       title: `${getBiometricTypeName()} Login`,
       subtitle: biometricEnabled ? 'Enabled' : 'Disabled',
@@ -112,7 +114,7 @@ function SecurityScreenContent() {
           thumbColor={biometricEnabled ? colors.primary : colors.textSecondary}
         />
       ),
-    }]),
+    }] : []),
     {
       id: 'phone',
       title: 'Phone Number',
@@ -223,19 +225,23 @@ function SecurityScreenContent() {
       </View>
       
       <View style={styles.securityItemRight}>
-        <View style={[
-          styles.statusIndicator,
-          { backgroundColor: item.status ? colors.success : colors.border }
-        ]}>
-          {item.status ? (
-            <Check size={12} color="#FFFFFF" />
-          ) : (
-            <X size={12} color={colors.textSecondary} />
-          )}
-        </View>
-        <ChevronRight size={20} color={colors.textSecondary} />
-        {/* Biometric Authentication - Only show if enabled in initData */}
-        {Platform.OS !== 'web' && biometricSupported && initData?.biometric_enable !== false && (
+        {item.rightElement || (
+          <>
+            <View style={[
+              styles.statusIndicator,
+              { backgroundColor: item.status ? colors.success : colors.border }
+            ]}>
+              {item.status ? (
+                <Check size={12} color="#FFFFFF" />
+              ) : (
+                <X size={12} color={colors.textSecondary} />
+              )}
+            </View>
+            <ChevronRight size={20} color={colors.textSecondary} />
+          </>
+        )}
+      </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -518,6 +524,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   statusText: {
-
-  }
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
 });
