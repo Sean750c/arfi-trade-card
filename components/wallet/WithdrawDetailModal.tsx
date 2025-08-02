@@ -10,7 +10,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { X, Calendar, CreditCard, User, Building, Hash, Clock, CheckCircle, AlertCircle, Copy } from 'lucide-react-native';
+import { X, Calendar, CreditCard, User, Building, Hash, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Copy } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
