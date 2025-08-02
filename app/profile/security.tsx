@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Platform,
   Switch,
 } from 'react-native';
 import { Lock, Shield, Phone, Mail, MessageCircle, ChevronRight, Apple, Facebook, Check, X, ToggleLeft as Google, CircleCheck as CheckCircle, Circle as XCircle, Bell, Settings, Fingerprint, } from 'lucide-react-native';
@@ -22,7 +23,6 @@ import { router } from 'expo-router';
 // Modal Components
 import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
 import ChangeWithdrawPasswordModal from '@/components/profile/ChangeWithdrawPasswordModal';
-import SixDigitPasswordInput from '@/components/UI/SixDigitPasswordInput';
 import BindPhoneModal from '@/components/profile/BindPhoneModal';
 import BindEmailModal from '@/components/profile/BindEmailModal';
 import BindWhatsAppModal from '@/components/profile/BindWhatsAppModal';
@@ -32,7 +32,7 @@ function SecurityScreenContent() {
   const { colors } = useTheme();
   const { user, reloadUser } = useAuthStore();
   const { initData } = useAppStore();
-  
+
   // Modal states
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showChangeWithdrawPasswordModal, setShowChangeWithdrawPasswordModal] = useState(false);
@@ -139,33 +139,6 @@ function SecurityScreenContent() {
     },
   ];
 
-  const socialItems = [
-    {
-      id: 'google',
-      title: 'Google Account',
-      description: 'Connect your Google account',
-      icon: <Shield size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleGoogleBinding(),
-    },
-    {
-      id: 'facebook',
-      title: 'Facebook Account',
-      description: 'Connect your Facebook account',
-      icon: <Facebook size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleFacebookBinding(),
-    },
-    {
-      id: 'apple',
-      title: 'Apple ID',
-      description: 'Connect your Apple ID',
-      icon: <Apple size={20} color={colors.primary} />,
-      status: 'not-connected',
-      onPress: () => handleAppleBinding(),
-    },
-  ];
-
   const handleGoogleBinding = () => {
     Alert.alert('Google Binding', 'Google account binding functionality would be implemented here');
   };
@@ -189,63 +162,70 @@ function SecurityScreenContent() {
   };
 
 
-  const renderSecurityItem = (item: any) => (
-    <TouchableOpacity
-      key={item.id}
-      style={[
-        styles.securityItem,
-        { 
-          backgroundColor: colors.card,
-          borderColor: colors.border,
-        }
-      ]}
-      onPress={item.onPress}
-      activeOpacity={0.7}
-    >
-      <View style={styles.securityItemLeft}>
-        <View style={[
-          styles.securityItemIcon,
-          { backgroundColor: `${colors.primary}15` }
-        ]}>
-          {item.icon}
-        </View>
-        <View style={styles.securityItemContent}>
-          <Text style={[styles.securityItemTitle, { color: colors.text }]}>
-            {item.title}
-          </Text>
-          <Text style={[
-            styles.securityItemSubtitle, 
-            { color: colors.textSecondary }
+  const renderSecurityItem = (item: any) => {
+    if (item.id === 'biometric-login' && (initData?.biometric_enable === false || Platform.OS === 'web')) {
+      return null;
+    }
+  
+    return (
+      <TouchableOpacity
+        key={item.id}
+        style={[
+          styles.securityItem,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          }
+        ]}
+        onPress={item.onPress}
+        activeOpacity={0.7}
+      >
+        <View style={styles.securityItemLeft}>
+          <View style={[
+            styles.securityItemIcon,
+            { backgroundColor: `${colors.primary}15` }
           ]}>
-            {item.subtitle}
-          </Text>
+            {item.icon}
+          </View>
+          <View style={styles.securityItemContent}>
+            <Text style={[styles.securityItemTitle, { color: colors.text }]}>
+              {item.title}
+            </Text>
+            <Text style={[
+              styles.securityItemSubtitle,
+              { color: colors.textSecondary }
+            ]}>
+              {item.subtitle}
+            </Text>
+          </View>
         </View>
-      </View>
-      
-      <View style={styles.securityItemRight}>
-        <View style={[
-          styles.statusIndicator,
-          { backgroundColor: item.status ? colors.success : colors.border }
-        ]}>
-          {item.status ? (
-            <Check size={12} color="#FFFFFF" />
-          ) : (
-            <X size={12} color={colors.textSecondary} />
-          )}
+  
+        <View style={styles.securityItemRight}>
+          <View style={[
+            styles.statusIndicator,
+            { backgroundColor: item.status ? colors.success : colors.border }
+          ]}>
+            {item.status ? (
+              <Check size={12} color="#FFFFFF" />
+            ) : (
+              <X size={12} color={colors.textSecondary} />
+            )}
+          </View>
+          <ChevronRight size={20} color={colors.textSecondary} />
         </View>
-        <ChevronRight size={20} color={colors.textSecondary} />
-        {/* Biometric Authentication - Only show if enabled in initData */}
-        {Platform.OS !== 'web' && biometricSupported && initData?.biometric_enable !== false && (
-  );
+      </TouchableOpacity>
+    );
+  };
+  
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
-      <Header 
-        title="Security Settings" 
+      <Header
+        title="Security Settings"
         subtitle="Manage your account security"
         backgroundColor={colors.background}
       />
-      
+
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
@@ -267,7 +247,7 @@ function SecurityScreenContent() {
               </Text>
             </View>
           </View>
-          
+
           <View style={styles.securityScore}>
             <Text style={[styles.scoreLabel, { color: colors.textSecondary }]}>
               Security Score
@@ -279,7 +259,7 @@ function SecurityScreenContent() {
               ]}>
                 <View style={[
                   styles.scoreProgress,
-                  { 
+                  {
                     backgroundColor: colors.success,
                     width: `${(securityItems.filter(item => item.status).length / securityItems.length) * 100}%`
                   }
@@ -298,18 +278,7 @@ function SecurityScreenContent() {
         </View>
 
         {/* Social Account Binding */}
-        {/* <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Social Account Binding
-          </Text>
-          <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
-            Connect your social accounts for easier login and account recovery
-          </Text>
-          <View style={styles.securityList}>
-            {socialItems.map(renderSecurityItem)}
-          </View>
-        </View> */}
-        <SocialBindingCard/>
+        <SocialBindingCard />
       </ScrollView>
 
       {/* Modals */}
@@ -377,7 +346,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
   },
-  
+
   // Overview Card
   overviewCard: {
     marginBottom: Spacing.lg,
