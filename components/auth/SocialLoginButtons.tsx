@@ -58,7 +58,7 @@ export default function SocialLoginButtons() {
           social_id: userInfo.id,
           social_email: userInfo.email || '',
           social_name: userInfo.name || '',
-        }
+        };
         await googleLogin(requestData);
         // const socialLoginResult = await AuthService.googleLogin(accessToken);
         // await useAuthStore.getState().socialLoginCallback(socialLoginResult);
@@ -122,7 +122,7 @@ export default function SocialLoginButtons() {
           social_email: credential.email || '',
           social_name: credential.fullName?.givenName || '',
           social_code: credential.authorizationCode,
-        }
+        };
         await appleLogin(requestData);
       } else {
         Alert.alert('Login Error', 'Apple identity token not found.');
@@ -217,17 +217,6 @@ export default function SocialLoginButtons() {
     </View>
   );
 }
-        <Button
-          title="Continue with Apple"
-          variant="outline"
-          onPress={handleAppleLogin}
-          style={[styles.socialButton, { borderColor: colors.border }]}
-          fullWidth
-        />
-      )}
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {
@@ -239,13 +228,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.lg,
-    borderRadius: 12,
+    paddingHorizontal: Spacing.md,
     borderWidth: 1,
+    borderRadius: 8,
     gap: Spacing.sm,
   },
   socialButtonText: {
     fontSize: 16,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
   },
 });
