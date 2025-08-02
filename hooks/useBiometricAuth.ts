@@ -98,7 +98,7 @@ export function useBiometricAuth() {
   // Enable biometric authentication
   const enableBiometric = async (username: string, password: string): Promise<boolean> => {
     try {
-      if (!state.isSupported || !state.isEnrolled) {
+      if (!state.isSupported) {
         Alert.alert(
           'Biometric Not Available',
           'Biometric authentication is not available on this device or not set up.'

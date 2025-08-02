@@ -5,10 +5,9 @@ import {
   Platform,
   StyleSheet,
   TouchableOpacity,
+  Image,
   Text,
 } from 'react-native';
-import { Chrome, Facebook, Apple } from 'lucide-react-native';
-import Button from '@/components/UI/Button';
 import Spacing from '@/constants/Spacing';
 import { AuthService } from '@/services/auth';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -182,7 +181,11 @@ export default function SocialLoginButtons() {
           onPress={handleGoogleLogin}
           activeOpacity={0.8}
         >
-          <Chrome size={20} color="#4285F4" />
+          <Image
+            source={require('@/assets/images/google.png')} // 请替换为你本地图片的实际路径
+            style={{ width: 24, height: 24, marginRight: 8 }}
+            resizeMode="contain"
+          />
           <Text style={[styles.socialButtonText, { color: colors.text }]}>
             Continue with Google
           </Text>
@@ -195,7 +198,11 @@ export default function SocialLoginButtons() {
           onPress={handleFacebookLogin}
           activeOpacity={0.8}
         >
-          <Facebook size={20} color="#1877F2" />
+          <Image
+            source={require('@/assets/images/facebook.png')} // 请替换为你本地图片的实际路径
+            style={{ width: 24, height: 24, marginRight: 8 }}
+            resizeMode="contain"
+          />
           <Text style={[styles.socialButtonText, { color: colors.text }]}>
             Continue with Facebook
           </Text>
@@ -208,7 +215,11 @@ export default function SocialLoginButtons() {
           onPress={handleAppleLogin}
           activeOpacity={0.8}
         >
-          <Apple size={20} color={colors.text} />
+          <Image
+            source={require('@/assets/images/apple.png')} // 请替换为你本地图片的实际路径
+            style={{ width: 24, height: 24, marginRight: 8 }}
+            resizeMode="contain"
+          />
           <Text style={[styles.socialButtonText, { color: colors.text }]}>
             Continue with Apple
           </Text>

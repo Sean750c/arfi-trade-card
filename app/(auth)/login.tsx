@@ -223,12 +223,12 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: 50,
+    height: 50,
     borderRadius: 50,
     marginBottom: Spacing.md,
   },
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   inputContainer: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.xs,
     paddingHorizontal: Spacing.lg,
   },
   forgotPassword: {
