@@ -142,13 +142,12 @@ export default function RegisterScreen() {
     CommonService.analysis('register_before', '1');
     if (validateForm()) {
       try {
+        // 检查是否来自弹窗，如果是则添加额外参数
+        const extraParams = global.isFromPopup ? { sign_to_coupon: '1' } : {};
+        // 清除全局标记
+        global.isFromPopup = undefined;
+
         await register({
-      // 检查是否来自弹窗，如果是则添加额外参数
-      const extraParams = global.isFromPopup ? { sign_to_coupon: '1' } : {};
-      
-      // 清除全局标记
-      global.isFromPopup = undefined;
-      
           register_type: registrationType === 'email' ? '1' : '2',
           country_id: selectedCountry?.id.toString() || '',
           username: registrationType === 'email' ? formData.email : countryCode + formData.whatsapp,
@@ -157,12 +156,13 @@ export default function RegisterScreen() {
           whatsapp: registrationType === 'whatsapp' ? countryCode + formData.whatsapp : '',
           recommend_code: formData.referralCode || '',
           code: initData?.is_need_verify === '1' ? verifyCode : '',
+          ...extraParams
         });
         CommonService.analysis('register_success', '1');
-        
+
         // Check for register success popup
         checkRegisterSuccessPopup();
-        
+
         router.replace('/(tabs)');
       } catch (error) {
         Alert.alert('Registration Failed', error instanceof Error ? error.message : 'Please try again');
@@ -193,7 +193,6 @@ export default function RegisterScreen() {
         return;
       }
     } else {
-        ...extraParams,
       if (!formData.whatsapp) {
         setErrors((prev) => ({ ...prev, whatsapp: 'WhatsApp number is required' }));
         return;
@@ -453,7 +452,7 @@ export default function RegisterScreen() {
                       onChangeText={(value) => updateField('whatsapp', value)}
                       error={errors.whatsapp}
                       onBlur={() => checkUsername(countryCode + formData.whatsapp, 'whatsapp')}
-                      // 不要label，label已在外层
+                    // 不要label，label已在外层
                     />
                   </View>
                 </View>

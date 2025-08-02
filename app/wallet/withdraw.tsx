@@ -143,7 +143,7 @@ function WithdrawScreenContent() {
     Keyboard.dismiss();
     setIsLoading(true);
     try {
-      await WithdrawService.applyWithdraw({
+      let result = await WithdrawService.applyWithdraw({
         token: user!.token,
         bank_id: selectedWithdrawAccount!.bank_id,
         amount: amount,
@@ -156,6 +156,10 @@ function WithdrawScreenContent() {
         `Your withdrawal of ${getCurrencySymbol()}${formatAmount(parseFloat(amount))} has been submitted successfully. You will receive the funds within ${(selectedWithdrawAccount && selectedWithdrawAccount.timeout_desc ? selectedWithdrawAccount.timeout_desc.toLowerCase() : '')}.`,
         [{ text: 'OK' }]
       );
+
+      // Check for withdraw initiated popup
+      checkWithdrawInitiatedPopup(result.withdraw_no);
+
       setAmount('');
       setWithdrawPassword('');
     } catch (error) {
@@ -164,9 +168,6 @@ function WithdrawScreenContent() {
       setIsLoading(false);
     }
   };
-      // Check for withdraw initiated popup
-      checkWithdrawInitiatedPopup(result.withdraw_no);
-
 
   const formatAmount = (value: number) => {
     return value.toLocaleString(undefined, {
