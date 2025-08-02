@@ -12,6 +12,7 @@ import {
 import { ArrowDownLeft, ArrowUpRight, Gift, Users, Crown, CreditCard, TrendingUp, CircleAlert as AlertCircle } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import type { WalletTransaction } from '@/types';
+import WithdrawDetailModal from './WithdrawDetailModal';
 import { formatDate } from '@/utils/date';
 import { useTheme } from '@/theme/ThemeContext';
 
@@ -33,6 +34,9 @@ const TransactionItem = React.memo(({
   onTransactionPress, 
   colors, 
   styles,
+  const [selectedWithdrawId, setSelectedWithdrawId] = React.useState<number | null>(null);
+  const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
+
   getTransactionIcon,
   getTransactionColor,
   getTransactionTitle,
@@ -76,7 +80,11 @@ const TransactionItem = React.memo(({
       <TouchableOpacity
         style={[
           styles.transactionItem,
-          {
+    if (transaction.type === 'withdraw') {
+      // Show withdraw detail modal
+      setSelectedWithdrawId(transaction.log_id);
+      setShowWithdrawModal(true);
+    } else if (transaction.order_no) {
             backgroundColor: colors.card,
             borderColor: colors.border,
           },
@@ -268,6 +276,11 @@ export default function TransactionList({
     );
   };
 
+  const handleCloseWithdrawModal = () => {
+          {(transaction.order_no || transaction.type === 'withdraw') && (
+    setSelectedWithdrawId(null);
+  };
+                {transaction.type === 'withdraw' ? 'View Details' : 'View Order'}
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <TrendingUp size={64} color={colors.textSecondary} />
@@ -300,44 +313,56 @@ export default function TransactionList({
   }
 
   return (
-    <View style={styles.container}>
+    <>
       <FlatList
         data={transactions}
-        renderItem={renderTransaction}
         keyExtractor={(item) => item.log_id.toString()}
-        onEndReached={onLoadMore}
+        renderItem={renderTransaction}
+        onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         refreshControl={
           <RefreshControl
-            refreshing={isLoading}
-            onRefresh={onRefresh}
+            refreshing={isLoadingTransactions}
+            onRefresh={handleRefresh}
             colors={[colors.primary]}
             tintColor={colors.primary}
           />
         }
-        ListEmptyComponent={renderEmptyState}
-        ListFooterComponent={renderFooter}
-        // 性能优化配置
-        removeClippedSubviews={true}
+        ListFooterComponent={
+          isLoadingMore ? (
+            <View style={styles.loadingFooter}>
+              <ActivityIndicator size="small" color={colors.primary} />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          !isLoadingTransactions ? (
+            <View style={styles.emptyContainer}>
+              <TrendingUp size={48} color={colors.textSecondary} />
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                No transactions found
+              </Text>
+            </View>
+          ) : null
+        }
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContainer}
+        initialNumToRender={10}
         maxToRenderPerBatch={10}
         windowSize={10}
-        initialNumToRender={10}
-        updateCellsBatchingPeriod={50}
-        scrollEventThrottle={16}
-        getItemLayout={(data, index) => ({
-          length: 100, // 预估的 item 高度
-          offset: 100 * index,
-          index,
-        })}
-        // 优化滚动性能
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={transactions.length === 0 ? styles.emptyContainer : undefined}
+        removeClippedSubviews={true}
       />
-    </View>
-  );
-}
 
-const styles = StyleSheet.create({
+      {/* Withdraw Detail Modal */}
+      {showWithdrawModal && selectedWithdrawId && user?.token && (
+        <WithdrawDetailModal
+          visible={showWithdrawModal}
+          onClose={handleCloseWithdrawModal}
+          logId={selectedWithdrawId}
+          token={user.token}
+        />
+      )}
+    </>
   container: {
     flex: 1,
   },
