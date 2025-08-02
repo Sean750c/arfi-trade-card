@@ -207,7 +207,7 @@ export default function WithdrawDetailModal({
                 </Text>
               </View>
               <Text style={[styles.amountText, { color: colors.text }]}>
-                {withdrawDetail.wallet_type === '2' ? 'USDT' : '₦'} {formatAmount(withdrawDetail.amount)}
+                  {formatAmount(withdrawDetail.amount)}
               </Text>
             </View>
 
@@ -229,23 +229,7 @@ export default function WithdrawDetailModal({
                   <Text style={[styles.infoValue, { color: colors.text }]}>
                     {withdrawDetail.withdraw_no}
                   </Text>
-                  <Copy size={14} color={colors.primary} />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.infoRow}>
-                <Hash size={16} color={colors.textSecondary} />
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-                  Serial Number:
-                </Text>
-                <TouchableOpacity
-                  style={styles.copyableValue}
-                  onPress={() => copyToClipboard(withdrawDetail.serial_number, 'Serial number')}
-                >
-                  <Text style={[styles.infoValue, { color: colors.text }]}>
-                    {withdrawDetail.serial_number}
-                  </Text>
-                  <Copy size={14} color={colors.primary} />
+                  <Copy size={12} color={colors.primary} />
                 </TouchableOpacity>
               </View>
 
@@ -288,16 +272,6 @@ export default function WithdrawDetailModal({
                 Payment Information
               </Text>
 
-              {withdrawDetail.bank_logo && (
-                <View style={styles.bankLogoContainer}>
-                  <Image
-                    source={{ uri: withdrawDetail.bank_logo }}
-                    style={styles.bankLogo}
-                    resizeMode="contain"
-                  />
-                </View>
-              )}
-
               <View style={styles.infoRow}>
                 <Building size={16} color={colors.textSecondary} />
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
@@ -311,7 +285,7 @@ export default function WithdrawDetailModal({
               <View style={styles.infoRow}>
                 <CreditCard size={16} color={colors.textSecondary} />
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-                  Account:
+                  Account No:
                 </Text>
                 <TouchableOpacity
                   style={styles.copyableValue}
@@ -346,7 +320,7 @@ export default function WithdrawDetailModal({
                   Withdraw Amount:
                 </Text>
                 <Text style={[styles.amountValue, { color: colors.success }]}>
-                  +{withdrawDetail.wallet_type === '2' ? 'USDT' : '₦'} {formatAmount(withdrawDetail.amount)}
+                  {formatAmount(withdrawDetail.amount)}
                 </Text>
               </View>
 
@@ -355,7 +329,7 @@ export default function WithdrawDetailModal({
                   Balance After:
                 </Text>
                 <Text style={[styles.amountValue, { color: colors.text }]}>
-                  {withdrawDetail.wallet_type === '2' ? 'USDT' : '₦'} {formatAmount(withdrawDetail.balance_amount)}
+                  {formatAmount(withdrawDetail.balance_amount)}
                 </Text>
               </View>
             </View>
@@ -409,15 +383,14 @@ const styles = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: Spacing.lg,
+    padding: Spacing.md,
     maxHeight: '90%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingBottom: Spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0, 0, 0, 0.1)',
   },
@@ -461,7 +434,7 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
     borderRadius: 16,
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -511,9 +484,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   infoCard: {
-    padding: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm,
     borderRadius: 12,
-    marginBottom: Spacing.md,
   },
   sectionTitle: {
     fontSize: 18,
