@@ -27,11 +27,11 @@ interface TransactionListProps {
 }
 
 // TransactionItem 组件，使用 React.memo 优化
-const TransactionItem = React.memo(({ 
-  transaction, 
-  index, 
-  onTransactionPress, 
-  colors, 
+const TransactionItem = React.memo(({
+  transaction,
+  index,
+  onTransactionPress,
+  colors,
   styles,
   getTransactionIcon,
   getTransactionColor,
@@ -58,7 +58,7 @@ const TransactionItem = React.memo(({
 }) => {
   const isPositive = transaction.amount > 0;
   const transactionColor = getTransactionColor(transaction.type);
-  
+
   // 优化动画：减少延迟和复杂度
   const animatedValue = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -97,7 +97,7 @@ const TransactionItem = React.memo(({
 
         <View style={styles.transactionDetails}>
           <View style={styles.transactionHeader}>
-            <Text style={[styles.transactionTitle, { color: colors.text }]}> 
+            <Text style={[styles.transactionTitle, { color: colors.text }]}>
               {getTransactionTitle(transaction)}
             </Text>
             <Text style={[
@@ -109,45 +109,48 @@ const TransactionItem = React.memo(({
           </View>
 
           <View style={styles.transactionMeta}>
-            <Text style={[styles.transactionMemo, { color: colors.textSecondary }]}> 
+            <Text style={[styles.transactionMemo, { color: colors.textSecondary }]}>
               {transaction.memo || 'No description'}
             </Text>
-            <Text style={[styles.transactionDate, { color: colors.textSecondary }]}> 
+            <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>
               {formatBalanceAmount(transaction.balance_amount, transaction.currency_symbol)}
-            </Text>
-          </View>
-
-          <View style={styles.statusContainer}>
-            {getStatusIcon(transaction.order_status)}
-            <Text style={[styles.statusText, { color: getStatusColor(transaction.order_status) }]}>
-              {transaction.order_status}
             </Text>
           </View>
 
           <View style={styles.transactionOrder}>
             {/* Order number for order transactions */}
             {transaction.order_no ? (
-              <Text style={[styles.orderNumber, { color: colors.textSecondary }]}> 
+              <Text style={[styles.orderNumber, { color: colors.textSecondary }]}>
                 Order: #{transaction.order_no.slice(-14)}
               </Text>
             ) : (
-              <Text style={[styles.orderNumber, { color: colors.textSecondary }]}> 
+              <Text style={[styles.orderNumber, { color: colors.textSecondary }]}>
                 {' '}
               </Text>
             )}
-            <Text style={[styles.transactionDate, { color: colors.textSecondary }]}> 
+
+          </View>
+
+          <View style={styles.statusContainer}>
+            <View style={styles.status}>
+              {getStatusIcon(transaction.order_status)}
+              <Text style={[styles.statusText, { color: getStatusColor(transaction.order_status) }]}>
+                {transaction.order_status}
+              </Text>
+            </View>
+            <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>
               {formatDate(transaction.create_time)}
             </Text>
           </View>
 
           {/* Bank details for withdrawal transactions */}
-          {transaction.type === 'withdraw' && transaction.bank_name && (
+          {/* {transaction.type === 'withdraw' && transaction.bank_name && (
             <View style={styles.bankDetails}>
               <Text style={[styles.bankName, { color: colors.textSecondary }]}> 
                 {transaction.bank_name} • {transaction.account_no?.slice(-4)}
               </Text>
             </View>
-          )}
+          )} */}
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -438,9 +441,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Medium',
   },
+  status: {
+    flexDirection: 'row',
+  },
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 4,
     marginBottom: 4,
   },

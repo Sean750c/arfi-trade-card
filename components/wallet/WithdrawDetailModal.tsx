@@ -44,10 +44,10 @@ export default function WithdrawDetailModal({
 
   const fetchWithdrawDetail = async () => {
     if (!user?.token || logId === null) return;
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const detail = await WalletService.moneyLogDetail({
         token: user.token,
@@ -66,9 +66,14 @@ export default function WithdrawDetailModal({
     switch (status.toLowerCase()) {
       case 'success':
       case 'completed':
+      case 'successful':
       case 'approved':
+      case 'transferred':
         return colors.success;
       case 'pending':
+      case 'system processing':
+      case 'bank processing':
+      case 'bank maintaining':
       case 'processing':
         return colors.warning;
       case 'failed':
@@ -84,10 +89,15 @@ export default function WithdrawDetailModal({
     switch (status.toLowerCase()) {
       case 'success':
       case 'completed':
+      case 'successful':
       case 'approved':
+      case 'transferred':
         return <CheckCircle size={20} color={colors.success} />;
       case 'pending':
       case 'processing':
+      case 'system processing':
+      case 'bank processing':
+      case 'bank maintaining':
         return <Clock size={20} color={colors.warning} />;
       case 'failed':
       case 'rejected':
@@ -207,7 +217,7 @@ export default function WithdrawDetailModal({
                 </Text>
               </View>
               <Text style={[styles.amountText, { color: colors.text }]}>
-                  {formatAmount(withdrawDetail.amount)}
+                {formatAmount(withdrawDetail.amount)}
               </Text>
             </View>
 
@@ -216,7 +226,7 @@ export default function WithdrawDetailModal({
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 Withdraw Information
               </Text>
-              
+
               <View style={styles.infoRow}>
                 <Hash size={16} color={colors.textSecondary} />
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
@@ -342,10 +352,6 @@ export default function WithdrawDetailModal({
                 </Text>
                 <TouchableOpacity
                   style={styles.imageContainer}
-                  onPress={() => {
-                    // TODO: Implement image preview modal
-                    Alert.alert('Image Preview', 'Image preview functionality will be implemented');
-                  }}
                 >
                   <Image
                     source={{ uri: withdrawDetail.image }}
@@ -623,11 +629,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Inter-Regular',
     lineHeight: 20,
-    color: '#4B5563',
-    backgroundColor: '#F9FAFB',
     padding: Spacing.md,
-    borderRadius: 8,
-    borderLeftWidth: 4,
+    borderRadius: 12,
     borderLeftColor: '#3B82F6',
   },
 });

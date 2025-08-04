@@ -38,7 +38,7 @@ export function useAuthProtection() {
 
     // Get the current route path
     const currentPath = segments.join('/');
-    console.log('Auth protection checking path:', currentPath, 'isAuthenticated:', isAuthenticated);
+    //console.log('Auth protection checking path:', currentPath, 'isAuthenticated:', isAuthenticated);
 
     // Check if current route is protected
     const isProtectedRoute = PROTECTED_ROUTES.some(route =>
