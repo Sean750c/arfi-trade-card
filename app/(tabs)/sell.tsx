@@ -747,7 +747,7 @@ function SellScreenContent() {
                 top: helpButtonPosition.y,
               }
             ]}
-            {...panResponder.panHandlers}
+            {...panResponder?.panHandlers}
           >
             <TouchableOpacity
               style={[styles.helpButton, { backgroundColor: '#25D366' }]}
@@ -825,9 +825,7 @@ function SellScreenContent() {
 
 export default function SellScreen() {
   return (
-    <AuthGuard>
-      <SellScreenContent />
-    </AuthGuard>
+    <SellScreenContent />
   );
 }
 

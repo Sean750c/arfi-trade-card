@@ -84,7 +84,6 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
             variant="ghost"
             onPress={() => {
               try {
-                router.replace('/(auth)/login');
                 router.back();
               } catch (error) {
                 console.error('Navigation error:', error);
