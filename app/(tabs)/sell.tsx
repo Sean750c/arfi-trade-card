@@ -18,6 +18,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, Camera, X, ArrowLeft, Zap, CircleHelp as HelpCircle, Wallet, CircleCheck as CheckCircle, Tag, Upload, Image as ImageIcon, Clock } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AuthGuard from '@/components/UI/AuthGuard';
+import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 import DiscountCodeModal from '@/components/sell/DiscountCodeModal';
 import VIPModal from '@/components/sell/VIPModal';
 import ActivityModal from '@/components/sell/ActivityModal';
@@ -806,6 +807,11 @@ function SellScreenContent() {
           />
         )}
         
+        {/* Customer Service Button */}
+        <CustomerServiceButton
+          style={styles.customerServiceButton}
+          size={48}
+        />
       </KeyboardAvoidingView>
     </SafeAreaWrapper>
   );
@@ -1133,6 +1139,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  customerServiceButton: {
+    position: 'absolute',
+    bottom: 140,
+    right: 20,
+    zIndex: 999,
   },
   helpButtonContainer: {
     position: 'absolute',
