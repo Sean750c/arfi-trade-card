@@ -103,7 +103,7 @@ export default function NotificationPermissionCard() {
   const config = getStatusConfig();
 
   return (
-    <Card style={[styles.container, { backgroundColor: config.backgroundColor }]}>
+    <Card style={styles.container}>
       <View style={styles.header}>
         <View style={[styles.iconContainer, { backgroundColor: `${config.statusColor}15` }]}>
           {config.icon}
@@ -128,7 +128,7 @@ export default function NotificationPermissionCard() {
       />
       
       {permissionStatus === 'granted' && (
-        <View style={[styles.featuresContainer, { backgroundColor: colors.background }]}>
+        <View style={[styles.featuresContainer]}>
           <Text style={[styles.featuresTitle, { color: colors.text }]}>
             Notification Types:
           </Text>
@@ -167,8 +167,6 @@ export default function NotificationPermissionCard() {
 const styles = StyleSheet.create({
   container: {
     marginBottom: Spacing.lg,
-    borderWidth: 1,
-    borderColor: 'transparent',
   },
   header: {
     flexDirection: 'row',

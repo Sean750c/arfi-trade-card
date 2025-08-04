@@ -179,7 +179,14 @@ function WithdrawScreenContent() {
     if (!withdrawPassword.trim()) {
       setPasswordError('Please enter your withdrawal password');
       return;
+    } else if (withdrawPassword.length !== 6) {
+      setPasswordError('Password must be exactly 6 digits');
+      return;
+    } else if (!/^\d{6}$/.test(withdrawPassword)) {
+      setPasswordError('Password must contain only numbers');
+      return;
     }
+
     setPasswordError('');
     setPasswordModalVisible(false);
     Keyboard.dismiss();

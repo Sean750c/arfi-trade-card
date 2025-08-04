@@ -21,7 +21,7 @@ import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 export default function NotificationSettingsScreen() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
-  
+
   const [emailNotifications, setEmailNotifications] = useState(false);
 
   const handleEmailNotificationToggle = (value: boolean) => {
@@ -39,12 +39,12 @@ export default function NotificationSettingsScreen() {
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
-      <Header 
-        title="Notification Settings" 
+      <Header
+        title="Notification Settings"
         subtitle="Manage your notification preferences"
       />
-      
-      <ScrollView 
+
+      <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -68,12 +68,15 @@ export default function NotificationSettingsScreen() {
                 </Text>
               </View>
             </View>
-            <Switch
+            {/* <Switch
               value={emailNotifications}
               onValueChange={handleEmailNotificationToggle}
               trackColor={{ false: colors.border, true: `${colors.primary}40` }}
               thumbColor={emailNotifications ? colors.primary : colors.textSecondary}
-            />
+            /> */}
+            <View style={[styles.comingSoonBadge, { backgroundColor: colors.warning }]}>
+              <Text style={styles.comingSoonText}>Coming Soon</Text>
+            </View>
           </View>
         </Card>
 
