@@ -9,7 +9,7 @@ import {
   RefreshControl,
   Animated,
 } from 'react-native';
-import { ArrowDownLeft, ArrowUpRight, Gift, Users, Crown, CreditCard, TrendingUp, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { ArrowDownLeft, ArrowUpRight, Gift, Users, Crown, CreditCard, TrendingUp, CircleAlert as AlertCircle, CircleCheck, CircleX, Clock, Cog, Building, Wrench, ArrowRightLeft } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import type { WalletTransaction } from '@/types';
 import { formatDate } from '@/utils/date';
@@ -38,7 +38,9 @@ const TransactionItem = React.memo(({
   getTransactionTitle,
   formatAmount,
   formatBalanceAmount,
-  formatDate
+  formatDate,
+  getStatusIcon,
+  getStatusColor
 }: {
   transaction: WalletTransaction;
   index: number;
@@ -51,6 +53,8 @@ const TransactionItem = React.memo(({
   formatAmount: (amount: number, isPositive: boolean, currencySymbol: string) => string;
   formatBalanceAmount: (amount: number, currencySymbol: string) => string;
   formatDate: (timestamp: number) => string;
+  getStatusIcon: (status: string) => React.ReactNode;
+  getStatusColor: (status: string) => string;
 }) => {
   const isPositive = transaction.amount > 0;
   const transactionColor = getTransactionColor(transaction.type);
@@ -112,6 +116,14 @@ const TransactionItem = React.memo(({
               {formatBalanceAmount(transaction.balance_amount, transaction.currency_symbol)}
             </Text>
           </View>
+
+          <View style={styles.statusContainer}>
+            {getStatusIcon(transaction.order_status)}
+            <Text style={[styles.statusText, { color: getStatusColor(transaction.order_status) }]}>
+              {transaction.order_status}
+            </Text>
+          </View>
+
           <View style={styles.transactionOrder}>
             {/* Order number for order transactions */}
             {transaction.order_no ? (
@@ -191,6 +203,45 @@ export default function TransactionList({
     }
   }, [colors]);
 
+  const getStatusIcon = useMemo(() => (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'successful':
+        return <CircleCheck size={16} color={colors.success} />;
+      case 'failed':
+        return <CircleX size={16} color={colors.error} />;
+      case 'pending':
+        return <Clock size={16} color={colors.warning} />;
+      case 'system processing':
+        return <Cog size={16} color={colors.primary} />;
+      case 'bank processing':
+        return <Building size={16} color={colors.primary} />;
+      case 'bank maintaining':
+        return <Wrench size={16} color={colors.warning} />;
+      case 'transferred':
+        return <ArrowRightLeft size={16} color={colors.success} />;
+      default:
+        return <Clock size={16} color={colors.textSecondary} />;
+    }
+  }, [colors]);
+
+  const getStatusColor = useMemo(() => (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'successful':
+      case 'transferred':
+        return colors.success;
+      case 'failed':
+        return colors.error;
+      case 'pending':
+      case 'bank maintaining':
+        return colors.warning;
+      case 'system processing':
+      case 'bank processing':
+        return colors.primary;
+      default:
+        return colors.textSecondary;
+    }
+  }, [colors]);
+
   const formatAmount = useMemo(() => (amount: number, isPositive: boolean = true, currencySymbol: string = '₦') => {
     const prefix = isPositive ? '+' : '-';
     const symbol = walletType === '2' ? 'USDT' : currencySymbol;
@@ -250,6 +301,8 @@ export default function TransactionList({
         formatAmount={formatAmount}
         formatBalanceAmount={formatBalanceAmount}
         formatDate={formatDate}
+        getStatusIcon={getStatusIcon}
+        getStatusColor={getStatusColor}
       />
     ),
     [colors, onTransactionPress]
@@ -384,6 +437,17 @@ const styles = StyleSheet.create({
   transactionAfterAmount: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  statusText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    textTransform: 'capitalize',
   },
   transactionOrder: {
     flexDirection: 'row',
