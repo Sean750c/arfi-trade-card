@@ -83,7 +83,7 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
             title="Continue as Guest"
             variant="ghost"
             onPress={() => {
-              try {
+                router.replace('/(auth)/login');
                 router.back();
               } catch (error) {
                 console.error('Navigation error:', error);
@@ -99,7 +99,7 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
   }
 
   return <>{children}</>;
-}
+                router.replace('/(auth)/register');
 
 const styles = StyleSheet.create({
   container: {

@@ -30,10 +30,15 @@ export function useAuthProtection() {
   const segments = useSegments();
 
   useEffect(() => {
-    if (!isInitialized) return; // 未初始化时不做跳转
+    // Wait for initialization to complete before any navigation
+    if (!isInitialized) {
+      console.log('Auth protection waiting for initialization...');
+      return;
+    }
 
     // Get the current route path
     const currentPath = segments.join('/');
+    console.log('Auth protection checking path:', currentPath, 'isAuthenticated:', isAuthenticated);
 
     // Check if current route is protected
     const isProtectedRoute = PROTECTED_ROUTES.some(route =>
@@ -48,14 +53,20 @@ export function useAuthProtection() {
     // If user is not authenticated and trying to access a protected route
     if (!isAuthenticated && isProtectedRoute) {
       console.log(`Redirecting to login from protected route: ${currentPath}`);
-      router.replace('/(auth)/login');
+      // Use setTimeout to ensure navigation happens after current render cycle
+      setTimeout(() => {
+        router.replace('/(auth)/login');
+      }, 0);
       return;
     }
 
     // If user is authenticated and on auth pages, redirect to home
     if (isAuthenticated && currentPath.includes('(auth)')) {
       console.log(`Redirecting authenticated user to home from: ${currentPath}`);
-      router.replace('/(tabs)');
+      // Use setTimeout to ensure navigation happens after current render cycle
+      setTimeout(() => {
+        router.replace('/(tabs)');
+      }, 0);
       return;
     }
   }, [isAuthenticated, isInitialized, segments]);

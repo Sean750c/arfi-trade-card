@@ -115,13 +115,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({ user: freshUser, isAuthenticated: true, isInitialized: true });
           await AsyncStorage.setItem('user', JSON.stringify(freshUser));
         } catch (e) {
+          // If token is invalid, clear user data and mark as initialized
           set({ user: null, isAuthenticated: false, isInitialized: true });
           await AsyncStorage.removeItem('user');
         }
       } else {
+        // No stored user, mark as initialized with no user
         set({ user: null, isAuthenticated: false, isInitialized: true });
       }
     } catch (error) {
+      // On any error, ensure we mark as initialized to prevent infinite loading
+      console.error('Auth initialization error:', error);
       set({ user: null, isAuthenticated: false, isInitialized: true });
     }
   },

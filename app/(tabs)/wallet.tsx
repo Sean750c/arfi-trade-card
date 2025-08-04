@@ -46,6 +46,10 @@ function WalletScreenContent() {
     setSelectedWithdrawAccount,
   } = useWalletStore();
 
+  // Early return if no user token (will be handled by AuthGuard)
+  if (!user?.token) {
+    return null;
+  }
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(0);
