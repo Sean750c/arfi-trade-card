@@ -21,6 +21,7 @@ import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import BiometricLoginButton from '@/components/auth/BiometricLoginButton';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { useAppStore } from '@/stores/useAppStore';
 
 export default function LoginScreen() {
   // const colorScheme = useColorScheme() ?? 'light';
@@ -28,26 +29,27 @@ export default function LoginScreen() {
   const { colors } = useTheme();
   const { login, isLoading } = useAuthStore();
   const { enableBiometric, isEnrolled, promptEnableBiometric } = useBiometricAuth();
-  
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
+  const { initData } = useAppStore();
 
   const validateForm = () => {
     const newErrors: { username?: string; password?: string } = {};
-    
+
     if (!username) {
       newErrors.username = 'Username is required';
     }
-    
+
     if (!password) {
       newErrors.password = 'Password is required';
     } else if (password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -56,10 +58,12 @@ export default function LoginScreen() {
     if (validateForm()) {
       try {
         await login(username, password);
-        
+
         // Prompt to enable biometric after successful login
-        promptEnableBiometric(username, password);
-        
+        if (initData?.biometric_enable !== false) {
+          promptEnableBiometric(username, password);
+        }
+
         router.replace('/(tabs)');
       } catch (error) {
         Alert.alert('Login Failed', error instanceof Error ? error.message : 'Please try again');
@@ -95,15 +99,15 @@ export default function LoginScreen() {
       >
         <SafeAreaWrapper style={styles.safeArea}>
           <View style={styles.header}>
-            <TouchableOpacity 
-              onPress={handleBack} 
+            <TouchableOpacity
+              onPress={handleBack}
               style={styles.backButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <ChevronLeft size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.logoContainer}>
             <Image
               source={{ uri: 'https://images.pexels.com/photos/6969809/pexels-photo-6969809.jpeg' }}
@@ -114,10 +118,10 @@ export default function LoginScreen() {
               Trade gift cards at the best rates
             </Text>
           </View>
-          
+
           <View style={styles.formContainer}>
             <Text style={[styles.formTitle, { color: colors.text }]}>Log In</Text>
-            
+
             <View style={styles.inputContainer}>
               <Input
                 label="Username"
@@ -128,7 +132,7 @@ export default function LoginScreen() {
                 error={errors.username}
               />
             </View>
-            
+
             <View style={styles.inputContainer}>
               <Input
                 label="Password"
@@ -148,8 +152,8 @@ export default function LoginScreen() {
                 }
               />
             </View>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.forgotPassword}
               onPress={handleForgotPassword}
             >
@@ -160,7 +164,7 @@ export default function LoginScreen() {
 
             {/* Biometric Login Button */}
             <BiometricLoginButton onSuccess={handleBiometricSuccess} />
-            
+
             <View style={styles.buttonContainer}>
               <Button
                 title="Log In"
@@ -170,15 +174,15 @@ export default function LoginScreen() {
                 fullWidth
               />
             </View>
-            
+
             <View style={styles.orContainer}>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
               <Text style={[styles.orText, { color: colors.textSecondary }]}>OR</Text>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
             </View>
-            
+
             <SocialLoginButtons />
-            
+
             <View style={styles.signupContainer}>
               <Text style={[styles.signupText, { color: colors.textSecondary }]}>
                 Don't have an account?
