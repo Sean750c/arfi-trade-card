@@ -7,7 +7,6 @@ import {
 import { router } from 'expo-router';
 import Button from '@/components/UI/Button';
 import AuthGuard from '@/components/UI/AuthGuard';
-import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 import WalletBalanceCard from '@/components/wallet/WalletBalanceCard';
 import WalletTabs from '@/components/wallet/WalletTabs';
 import TransactionFilters from '@/components/wallet/TransactionFilters';
@@ -282,11 +281,6 @@ function WalletScreenContent() {
           walletType={activeWalletType}
         />
       </View>
-      
-      {/* Floating Customer Service Button */}
-      <CustomerServiceButton
-        style={styles.customerServiceButton}
-      />
 
       {/* Withdraw Detail Modal */}
       {showWithdrawModal && selectedWithdrawId && (
@@ -378,11 +372,5 @@ const styles = StyleSheet.create({
   transactionListContainer: {
     flex: 1,
     paddingHorizontal: Spacing.lg,
-  },
-  customerServiceButton: {
-    position: 'absolute',
-    bottom: 100,
-    right: 20,
-    zIndex: 1000,
   },
 });
