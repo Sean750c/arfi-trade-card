@@ -76,9 +76,6 @@ function SellScreenContent() {
   const [showSellTipsModal, setShowSellTipsModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!user?.token) {
-    return <View><Text>Loading...</Text></View>;
-  }
 
   // Draggable help button state
   const [helpButtonPosition, setHelpButtonPosition] = useState({
@@ -87,7 +84,11 @@ function SellScreenContent() {
   });
 
   // 优化 PanResponder，减少状态更新频率
-  const panResponder = useMemo(() => PanResponder.create({
+  const panResponder = useMemo(() => {
+    // Only create PanResponder if user is authenticated
+    if (!user?.token) return null;
+    
+    return PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
     onPanResponderGrant: (evt, gestureState) => {
@@ -116,7 +117,8 @@ function SellScreenContent() {
     onPanResponderRelease: () => {
       // Position is already constrained in onPanResponderMove
     },
-  }), [helpButtonPosition.x, helpButtonPosition.y, screenWidth, screenHeight]);
+    });
+  }, [helpButtonPosition.x, helpButtonPosition.y, screenWidth, screenHeight, user?.token]);
 
   // Load data when page comes into focus
   useFocusEffect(
@@ -127,6 +129,10 @@ function SellScreenContent() {
     }, [user?.token])
   );
 
+  // Early return if no user token (will be handled by AuthGuard)
+  if (!user?.token) {
+    return null;
+  }
   // VIP数据来源
   const vipList = orderSellDetail?.vip || [];
   const vipDetail = orderSellDetail?.vip_detail;
@@ -741,7 +747,7 @@ function SellScreenContent() {
                 top: helpButtonPosition.y,
               }
             ]}
-            {...panResponder.panHandlers}
+            {...panResponder?.panHandlers}
           >
             <TouchableOpacity
               style={[styles.helpButton, { backgroundColor: '#25D366' }]}
@@ -819,9 +825,7 @@ function SellScreenContent() {
 
 export default function SellScreen() {
   return (
-    <AuthGuard>
-      <SellScreenContent />
-    </AuthGuard>
+    <SellScreenContent />
   );
 }
 

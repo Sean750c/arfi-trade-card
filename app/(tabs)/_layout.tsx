@@ -3,9 +3,16 @@ import { Tabs } from 'expo-router';
 import { useColorScheme, Platform } from 'react-native';
 import { Chrome as Home, Gift, Wallet, User } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function TabLayout() {
   const { colors } = useTheme();
+  const { isInitialized } = useAuthStore();
+
+  // Don't render tabs until auth is initialized
+  if (!isInitialized) {
+    return null;
+  }
 
   return (
     <Tabs

@@ -12,12 +12,39 @@ import { ThemeProvider } from '@/theme/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { usePopupManager } from '@/hooks/usePopupManager';
 import PopupModal from '@/components/UI/PopupModal';
+import { View, ActivityIndicator, Text } from 'react-native';
+import { useTheme } from '@/theme/ThemeContext';
+import Spacing from '@/constants/Spacing';
+
+// Loading component for initialization
+function InitializationLoader() {
+  const { colors } = useTheme();
+  
+  return (
+    <View style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      gap: Spacing.md,
+    }}>
+      <ActivityIndicator size="large" color={colors.primary} />
+      <Text style={{
+        fontSize: 16,
+        fontFamily: 'Inter-Medium',
+        color: colors.textSecondary,
+      }}>
+        Initializing...
+      </Text>
+    </View>
+  );
+}
 
 export default function RootLayout() {
   const router = useRouter();
   const { initialize } = useAppStore();
   const { fetchCountries } = useCountryStore();
-  const { isAuthenticated, user, initialize: initializeAuth } = useAuthStore();
+  const { isAuthenticated, user, initialize: initializeAuth, isInitialized } = useAuthStore();
   
   const {
     isVisible: popupVisible,
@@ -70,13 +97,19 @@ export default function RootLayout() {
       >
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {isInitialized ? (
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        ) : null}
         <Stack.Screen name="notifications" options={{ headerShown: false }} />
         <Stack.Screen name="rates" options={{ headerShown: false }} />
         <Stack.Screen name="refer" options={{ headerShown: false }} />
         <Stack.Screen name="calculator" />
         <Stack.Screen name="+not-found" />
       </Stack>
+      
+      {/* Show loading screen during initialization */}
+      {!isInitialized && <InitializationLoader />}
+      
       <StatusBar style="auto" />
       
       {/* Global Popup Modal */}

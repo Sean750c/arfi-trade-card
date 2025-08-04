@@ -46,16 +46,16 @@ function WalletScreenContent() {
     setSelectedWithdrawAccount,
   } = useWalletStore();
 
+  // Early return if no user token (will be handled by AuthGuard)
+  if (!user?.token) {
+    return null;
+  }
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(0);
 
   const [selectedWithdrawId, setSelectedWithdrawId] = React.useState<number | null>(null);
   const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
-
-  if (!user?.token) {
-    return <View><Text>Loading...</Text></View>;
-  }
 
   // 使用 useMemo 缓存交易统计
   const transactionStats = useMemo(() => ({
@@ -302,9 +302,7 @@ function WalletScreenContent() {
 
 export default function WalletScreen() {
   return (
-    <AuthGuard>
-      <WalletScreenContent />
-    </AuthGuard>
+    <WalletScreenContent />
   );
 }
 

@@ -402,8 +402,10 @@ export default function SettingsScreen() {
             paddingVertical: 16,
             alignItems: 'center',
             justifyContent: 'center',
+            opacity: user?.token ? 1 : 0.6, // 视觉上弱化禁用状态
           }}
           onPress={handleDeleteAccount}
+          disabled={!user?.token}
         >
           <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Delete Account</Text>
         </TouchableOpacity>
