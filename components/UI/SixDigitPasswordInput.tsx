@@ -65,15 +65,15 @@ export default function SixDigitPasswordInput({
         style={[
           styles.digitBox,
           {
-            borderColor: error 
-              ? colors.error 
-              : isActive 
-                ? colors.primary 
-                : isFilled 
-                  ? colors.success 
+            borderColor: error
+              ? colors.error
+              : isActive
+                ? colors.primary
+                : isFilled
+                  ? colors.success
                   : colors.border,
-            backgroundColor: isFilled 
-              ? `${colors.primary}08` 
+            backgroundColor: isFilled
+              ? `${colors.primary}08`
               : colors.card,
             shadowColor: isActive ? colors.primary : 'transparent',
           },
@@ -98,7 +98,7 @@ export default function SixDigitPasswordInput({
       {label && (
         <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
       )}
-      
+
       <TouchableOpacity
         style={styles.inputContainer}
         onPress={handlePress}
@@ -107,7 +107,7 @@ export default function SixDigitPasswordInput({
         <View style={styles.digitContainer}>
           {Array.from({ length: 6 }, (_, index) => renderDigitBox(index))}
         </View>
-        
+
         {/* Hidden TextInput for actual input handling */}
         <TextInput
           ref={inputRef}
@@ -116,13 +116,15 @@ export default function SixDigitPasswordInput({
           onChangeText={handleChangeText}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          keyboardType="numeric"
+          keyboardType="number-pad"
           maxLength={6}
-          secureTextEntry={false} // We handle masking with dots
+          secureTextEntry={false}
           editable={editable}
           autoFocus={autoFocus}
           selectTextOnFocus={true}
           caretHidden={true}
+          blurOnSubmit={false}
+          importantForAccessibility="no"
         />
       </TouchableOpacity>
 
@@ -131,7 +133,7 @@ export default function SixDigitPasswordInput({
           <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
         </View>
       )}
-      
+
       <View style={styles.hintContainer}>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
           Enter 6-digit numeric password
@@ -155,6 +157,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     alignItems: 'center',
+    position: 'relative',
   },
   digitContainer: {
     flexDirection: 'row',
@@ -193,9 +196,11 @@ const styles = StyleSheet.create({
   },
   hiddenInput: {
     position: 'absolute',
+    width: '100%',
+    height: '100%',
+    top: 0,
+    left: 0,
     opacity: 0,
-    width: 1,
-    height: 1,
   },
   errorContainer: {
     marginTop: Spacing.sm,

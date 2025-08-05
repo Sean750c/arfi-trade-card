@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { Notice, NoticeListData } from '@/types';
 import { NotificationService } from '@/services/notification';
-import { useNotifications } from '@/hooks/useNotifications';
 
 interface NotificationState {
   notifications: Notice[];

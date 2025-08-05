@@ -20,6 +20,7 @@ import { useOrderStore } from '@/stores/useOrderStore';
 import type { OrderDetail } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { OrderService } from '@/services/order';
 
 const { width } = Dimensions.get('window');
 
@@ -28,7 +29,7 @@ function OrderDetailScreenContent() {
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
   const { user } = useAuthStore();
-  const { fetchOrderDetail, isLoadingDetail, detailError } = useOrderStore();
+  const { isLoadingDetail, detailError } = useOrderStore();
   const { orderNo } = useLocalSearchParams<{ orderNo: string }>();
 
   const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
@@ -44,8 +45,14 @@ function OrderDetailScreenContent() {
     if (!user?.token || !orderNo) return;
 
     try {
-      const detail = await fetchOrderDetail(user.token, orderNo);
-      setOrderDetail(detail);
+      if (user?.token && orderNo) {
+        const detail = await OrderService.getOrderDetail({
+          token: user.token,
+          order_no: orderNo,
+        });
+        //const detail = await fetchOrderDetail(user.token, orderNo);
+        setOrderDetail(detail);
+      }
     } catch (error) {
       console.error('Failed to load order detail:', error);
     }
@@ -144,14 +151,14 @@ function OrderDetailScreenContent() {
     <SafeAreaWrapper backgroundColor={colors.background}>
       {/* Header */}
       <View style={[
-        styles.header, 
-        { 
+        styles.header,
+        {
           backgroundColor: colors.card,
           borderBottomColor: colors.border,
         }
       ]}>
-        <TouchableOpacity 
-          onPress={() => router.back()} 
+        <TouchableOpacity
+          onPress={() => router.back()}
           style={styles.backButton}
         >
           <ChevronLeft size={24} color={colors.text} />
@@ -159,7 +166,7 @@ function OrderDetailScreenContent() {
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Order Details</Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.shareButton, { backgroundColor: `${colors.primary}15` }]}
           onPress={handleShareOrder}
         >
@@ -167,7 +174,7 @@ function OrderDetailScreenContent() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -175,7 +182,7 @@ function OrderDetailScreenContent() {
         {/* Status Card */}
         <View style={[
           styles.statusCard,
-          { 
+          {
             backgroundColor: colors.card,
             borderColor: getStatusColor(orderDetail.status),
           }
@@ -191,7 +198,7 @@ function OrderDetailScreenContent() {
               </Text>
             </View>
           </View>
-          
+
           {orderDetail.finish_time > 0 && (
             <View style={styles.finishTimeContainer}>
               <Text style={[styles.finishTimeLabel, { color: colors.textSecondary }]}>
@@ -261,56 +268,56 @@ function OrderDetailScreenContent() {
         </View>
 
         {/* Bonuses Card */}
-        {(orderDetail.first_order_bonus > 0 || 
-          orderDetail.reach_amount_bonus > 0 || 
-          orderDetail.full_amount_bonus > 0 || 
+        {(orderDetail.first_order_bonus > 0 ||
+          orderDetail.reach_amount_bonus > 0 ||
+          orderDetail.full_amount_bonus > 0 ||
           orderDetail.vip_bonus > 0) && (
-          <View style={[
-            styles.bonusCard,
-            { backgroundColor: `${colors.success}10` }
-          ]}>
-            <View style={styles.bonusHeader}>
-              <Sparkles size={20} color={colors.success} />
-              <Text style={[styles.bonusTitle, { color: colors.success }]}>
-                Bonuses & Rewards
-              </Text>
+            <View style={[
+              styles.bonusCard,
+              { backgroundColor: `${colors.success}10` }
+            ]}>
+              <View style={styles.bonusHeader}>
+                <Sparkles size={20} color={colors.success} />
+                <Text style={[styles.bonusTitle, { color: colors.success }]}>
+                  Bonuses & Rewards
+                </Text>
+              </View>
+
+              {orderDetail.first_order_bonus > 0 && (
+                <View style={styles.bonusRow}>
+                  <Text style={[styles.bonusLabel, { color: colors.textSecondary }]}>
+                    First Order Bonus
+                  </Text>
+                  <Text style={[styles.bonusValue, { color: colors.success }]}>
+                    +{formatAmount(orderDetail.first_order_bonus.toString(), orderDetail.wallet_type)}
+                  </Text>
+                </View>
+              )}
+
+              {orderDetail.reach_amount_bonus > 0 && (
+                <View style={styles.bonusRow}>
+                  <Text style={[styles.bonusLabel, { color: colors.textSecondary }]}>
+                    Amount Bonus
+                  </Text>
+                  <Text style={[styles.bonusValue, { color: colors.success }]}>
+                    +{formatAmount(orderDetail.reach_amount_bonus.toString(), orderDetail.wallet_type)}
+                  </Text>
+                </View>
+              )}
+
+              {orderDetail.vip_bonus > 0 && (
+                <View style={styles.bonusRow}>
+                  <Crown size={16} color={colors.warning} />
+                  <Text style={[styles.bonusLabel, { color: colors.textSecondary }]}>
+                    VIP Bonus
+                  </Text>
+                  <Text style={[styles.bonusValue, { color: colors.success }]}>
+                    +{formatAmount(orderDetail.vip_bonus.toString(), orderDetail.wallet_type)}
+                  </Text>
+                </View>
+              )}
             </View>
-
-            {orderDetail.first_order_bonus > 0 && (
-              <View style={styles.bonusRow}>
-                <Text style={[styles.bonusLabel, { color: colors.textSecondary }]}>
-                  First Order Bonus
-                </Text>
-                <Text style={[styles.bonusValue, { color: colors.success }]}>
-                  +{formatAmount(orderDetail.first_order_bonus.toString(), orderDetail.wallet_type)}
-                </Text>
-              </View>
-            )}
-
-            {orderDetail.reach_amount_bonus > 0 && (
-              <View style={styles.bonusRow}>
-                <Text style={[styles.bonusLabel, { color: colors.textSecondary }]}>
-                  Amount Bonus
-                </Text>
-                <Text style={[styles.bonusValue, { color: colors.success }]}>
-                  +{formatAmount(orderDetail.reach_amount_bonus.toString(), orderDetail.wallet_type)}
-                </Text>
-              </View>
-            )}
-
-            {orderDetail.vip_bonus > 0 && (
-              <View style={styles.bonusRow}>
-                <Crown size={16} color={colors.warning} />
-                <Text style={[styles.bonusLabel, { color: colors.textSecondary }]}>
-                  VIP Bonus
-                </Text>
-                <Text style={[styles.bonusValue, { color: colors.success }]}>
-                  +{formatAmount(orderDetail.vip_bonus.toString(), orderDetail.wallet_type)}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
+          )}
 
         {/* Coupon Card */}
         {orderDetail.coupon_code && (
@@ -406,7 +413,7 @@ function OrderDetailScreenContent() {
       {/* Image Viewer Modal */}
       {selectedImageIndex !== null && (
         <View style={styles.imageViewerOverlay}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.imageViewerClose}
             onPress={() => setSelectedImageIndex(null)}
           >

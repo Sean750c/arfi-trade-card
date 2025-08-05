@@ -15,11 +15,13 @@ import PopupModal from '@/components/UI/PopupModal';
 import { View, ActivityIndicator, Text } from 'react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
+import { Platform } from 'react-native';
+import * as Device from 'expo-device';
 
 // Loading component for initialization
 function InitializationLoader() {
   const { colors } = useTheme();
-  
+
   return (
     <View style={{
       flex: 1,
@@ -45,36 +47,40 @@ export default function RootLayout() {
   const { initialize } = useAppStore();
   const { fetchCountries } = useCountryStore();
   const { isAuthenticated, user, initialize: initializeAuth, isInitialized } = useAuthStore();
-  
+
   const {
     isVisible: popupVisible,
     popData,
     closePopup,
     checkAppStartPopup,
   } = usePopupManager();
-  
+
   useFrameworkReady();
   useAuthProtection(); // Add auth protection
-  useNotifications(); // Initialize notifications
+
+  const isHuawei = Platform.OS === 'android' && Device.brand?.toLowerCase() === 'huawei';
+  if (!isHuawei) {
+    useNotifications(); // Initialize notifications
+  }
 
   useEffect(() => {
     const init = async () => {
       try {
         // 首先初始化认证状态
         await initializeAuth();
-        
+
         // Fetch countries and banners in parallel (these don't require auth)
         await Promise.all([
           fetchCountries(),
         ]);
-        
+
         // Initialize app data with user token if authenticated
         const userToken = isAuthenticated && user?.token ? user.token : undefined;
         await initialize(userToken);
-        
+
         // Check for app start popup after initialization
         checkAppStartPopup();
-        
+
         // Check onboarding status
         const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
         if (!hasCompletedOnboarding) {
@@ -106,12 +112,12 @@ export default function RootLayout() {
         <Stack.Screen name="calculator" />
         <Stack.Screen name="+not-found" />
       </Stack>
-      
+
       {/* Show loading screen during initialization */}
       {!isInitialized && <InitializationLoader />}
-      
+
       <StatusBar style="auto" />
-      
+
       {/* Global Popup Modal */}
       {popupVisible && popData && (
         <PopupModal

@@ -7,7 +7,6 @@ import { router } from 'expo-router';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { NotificationService } from '@/services/notification';
 import NavigationUtils from '@/utils/navigation';
-import type { NotificationActionType } from '@/types/notification';
 import { generateDeviceId, getDeviceType } from '@/utils/device';
 
 // Configure notification behavior
@@ -33,6 +32,8 @@ export function useNotifications() {
   const [notification, setNotification] = useState<Notifications.Notification | null>(null);
   const notificationListener = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
+
+  const isHuawei = Platform.OS === 'android' && Device.brand?.toLowerCase() === 'huawei';
 
   // Register for push notifications
   const registerForPushNotificationsAsync = async (): Promise<string | null> => {
@@ -130,6 +131,11 @@ export function useNotifications() {
 
   // Initialize notifications
   useEffect(() => {
+    if (isHuawei) {
+      console.log('Skipping push notification setup for huawei');
+      return;
+    }
+
     registerForPushNotificationsAsync().then(token => {
       if (token) {
         setExpoPushToken(token);
@@ -175,6 +181,10 @@ export function useNotifications() {
 
   // Re-register token when user logs in
   useEffect(() => {
+    if (isHuawei) {
+      console.log('Skipping push notification setup for huawei');
+      return;
+    }
     if (isAuthenticated && user?.token && expoPushToken) {
       registerTokenWithBackend(expoPushToken);
     }

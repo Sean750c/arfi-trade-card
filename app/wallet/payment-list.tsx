@@ -12,6 +12,8 @@ import PaymentMethodCard from '@/components/wallet/PaymentMethodCard';
 import Button from '@/components/UI/Button';
 import { router, useRouter } from 'expo-router';
 import AddPaymentMethodModal from '@/components/wallet/AddPaymentMethodModal';
+import { useFocusEffect } from '@react-navigation/native';
+import { BackHandler } from 'react-native';
 
 export default function PaymentListScreen() {
   const { colors } = useTheme();
@@ -31,6 +33,19 @@ export default function PaymentListScreen() {
       fetchAvailableMethods();
     }
   }, [user?.token, activeWalletType]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        handleBack(); // 统一执行你的自定义逻辑
+        return true; // 阻止默认返回行为
+      };
+  
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  
+      return () => subscription.remove();
+    }, [paymentMethods])
+  );
 
   const fetchData = async () => {
     if (!user?.token) return;

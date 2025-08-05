@@ -56,6 +56,11 @@ export default function CustomerServiceWidget({ visible, onClose }: CustomerServ
           domStorageEnabled={true}
           originWhitelist={['*']}
           startInLoadingState={true}
+          renderError={(errorName) => (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ color: 'red', fontSize: 16 }}>Loading error, please check network.</Text>
+            </View>
+          )}
         />
       </View>
     </Modal>
