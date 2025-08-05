@@ -204,7 +204,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       response.social_email = params.social_email ?? '';
       await get().socialLoginCallback(response); // Use the new callback
       set({
-        isAuthenticated: true,
         isLoading: false,
         error: null,
       });
@@ -223,7 +222,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       response.social_email = params.social_email ?? '';
       await get().socialLoginCallback(response); // Use the new callback
       set({
-        isAuthenticated: true,
         isLoading: false,
         error: null,
       });
@@ -239,9 +237,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       if (result.is_social_bind === true && result.token) {
+        console.log('Already bound. Fetching user info...');
         // If already bound, fetch user info and log in
         const userInfo = await UserService.getUserInfo(result.token);
         const freshUser = { ...userInfo, token: result.token };
+        console.log('Fetched user info:', freshUser);
         set({
           isAuthenticated: true,
           user: freshUser,
@@ -251,6 +251,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         await AsyncStorage.setItem('user', JSON.stringify(freshUser));
         router.replace('/(tabs)');
       } else {
+        console.log('User not bound. Navigating to social-register screen...');
         // Not bound, navigate to social register screen
         // Pass social login data to the new screen
         router.replace({
@@ -266,9 +267,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         });
       }
     } catch (error) {
+      console.error('Social login error:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Google login failed',
+        error: error instanceof Error ? error.message : 'Social login failed',
       });
       throw error;
     }

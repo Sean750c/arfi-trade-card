@@ -11,6 +11,7 @@ const PUBLIC_ROUTES = [
   '(auth)', // Auth routes
   '(auth)/login',
   '(auth)/register',
+  '(auth)/social-register',
   '+not-found',
 ];
 
@@ -38,7 +39,7 @@ export function useAuthProtection() {
 
     // Get the current route path
     const currentPath = segments.join('/');
-    //console.log('Auth protection checking path:', currentPath, 'isAuthenticated:', isAuthenticated);
+    //0console.log('Auth protection checking path:', currentPath, 'isAuthenticated:', isAuthenticated);
 
     // Check if current route is protected
     const isProtectedRoute = PROTECTED_ROUTES.some(route =>

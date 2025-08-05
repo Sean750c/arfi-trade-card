@@ -26,7 +26,7 @@ export default ({ config }) => ({
       NSUserTrackingUsageDescription:
         "This data helps us provide relevant content and notifications. We respect your privacy and do not share your information without your permission.",
       UNUserNotificationCenterDelegate: true,
-      FacebookAppID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || 1525365371783998,
+      FacebookAppID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "1525365371783998",
       FacebookDisplayName: "CardKing",
       CFBundleURLTypes: [
         {
@@ -39,7 +39,7 @@ export default ({ config }) => ({
     package: "com.bsdb.cardking",
     googleServicesFile: "./google-services.json",
     config: {
-      facebookAppId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || 1525365371783998,
+      facebookAppId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "1525365371783998",
       facebookDisplayName: "CardKing"
     }
   },
@@ -100,10 +100,10 @@ export default ({ config }) => ({
     EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || "791594810994-0n8lvdm11k3hse26khpp5dmhq51d57c3.apps.googleusercontent.com",
     EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || "791594810994-bqhvquvepta7ca4de13d782blnec7p6u.apps.googleusercontent.com",
     EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || "791594810994-nuplk4snq0mp4tgnd98hijupn17hm9c0.apps.googleusercontent.com",
-    EXPO_PUBLIC_FACEBOOK_APP_ID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || 1525365371783998,
+    EXPO_PUBLIC_FACEBOOK_APP_ID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "1525365371783998",
     eas: {
       projectId: "6e88a397-970f-4337-b705-b85048eb66b6"
-    }
+    },
   },
   jsEngine: "hermes",
   owner: "chaoqunz"
