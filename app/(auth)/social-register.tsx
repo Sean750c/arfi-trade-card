@@ -25,7 +25,6 @@ interface SocialRegisterParams {
   username?: string;
   social_id: string;
   social_email?: string;
-  token: string; // Temporary token for social session
 }
 
 export default function SocialRegisterScreen() {

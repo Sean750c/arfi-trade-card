@@ -105,7 +105,7 @@ export interface SocialBindResult {
 }
 
 export interface SocialLoginResult {
-    is_social_bind: true | false;
+    is_social_bind: boolean;
     username: string;
     social_id: string;
     social_email: string;

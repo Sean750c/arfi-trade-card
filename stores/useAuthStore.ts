@@ -238,7 +238,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   socialLoginCallback: async (result: SocialLoginResult) => {
     set({ isLoading: true, error: null });
     try {
-      if (result.is_social_bind) {
+      if (result.is_social_bind === true && result.token) {
         // If already bound, fetch user info and log in
         const userInfo = await UserService.getUserInfo(result.token);
         const freshUser = { ...userInfo, token: result.token };
@@ -258,7 +258,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             username: result.username,
             social_id: result.social_id,
             social_email: result.social_email,
-            token: result.token,
           }
         });
         set({
