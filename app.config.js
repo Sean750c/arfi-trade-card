@@ -23,8 +23,6 @@ export default ({ config }) => ({
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       UIBackgroundModes: ["fetch", "remote-notification"],
-      NSUserTrackingUsageDescription:
-        "This data helps us provide relevant content and notifications. We respect your privacy and do not share your information without your permission.",
       UNUserNotificationCenterDelegate: true,
       FacebookAppID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "1525365371783998",
       FacebookDisplayName: "CardKing",
