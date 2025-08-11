@@ -7,8 +7,8 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
-import { 
-  Star, 
+import {
+  Star,
   TrendingUp,
   Clock,
   Crown,
@@ -27,16 +27,16 @@ interface CategoryCardProps {
   onCardPress: (cardId: number, categoryId: number) => void;
 }
 
-export default function CategoryCard({ 
-  category, 
-  onCardPress 
+export default function CategoryCard({
+  category,
+  onCardPress
 }: CategoryCardProps) {
   // const colorScheme = useColorScheme() ?? 'light';
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
 
   const { user } = useAuthStore();
-  
+
   // State for managing expanded cards
   const [expandedCards, setExpandedCards] = useState(false);
   // State for selected currency (single selection for all cards)
@@ -70,7 +70,7 @@ export default function CategoryCard({
   const calculateBonuses = (rateDetails: RateDetail[]) => {
     const vipBonus = rateDetails.find(detail => detail.type === 'vip');
     const couponBonus = rateDetails.find(detail => detail.type === 'coupon');
-    
+
     return {
       vipBonus: vipBonus ? parseFloat(vipBonus.per || '0') : 0,
       couponBonus: couponBonus ? parseFloat(couponBonus.per || '0') : 0,
@@ -79,12 +79,22 @@ export default function CategoryCard({
     };
   };
 
+  const getTopRate = (rate: string) => {
+    let value = rate;
+    if (rate.includes("~")) {
+      value = rate.split("~")[1];
+    }
+
+    const num = parseFloat(value);
+    return isNaN(num) ? null : num.toFixed(2);
+  };
+
   const renderCardItem = (cardId: number, isLast: boolean) => {
     const cardData = getCardData(cardId);
     if (!cardData) return null;
 
     const bonuses = calculateBonuses(cardData.rate_detail);
-    
+
     return (
       <View
         key={cardId}
@@ -103,7 +113,7 @@ export default function CategoryCard({
             <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
               {cardData.name}
             </Text>
-            
+
             {/* Rate Breakdown */}
             <View style={styles.rateBreakdown}>
               <View style={styles.baseRateContainer}>
@@ -118,7 +128,7 @@ export default function CategoryCard({
                   per {cardData.currency}
                 </Text>
               </View>
-              
+
               {/* VIP Bonus */}
               {bonuses.vipBonus > 0 && (
                 <View style={styles.bonusContainer}>
@@ -131,7 +141,7 @@ export default function CategoryCard({
                   </Text>
                 </View>
               )}
-              
+
               {/* Coupon Bonus */}
               {bonuses.couponBonus > 0 && (
                 <View style={styles.bonusContainer}>
@@ -146,7 +156,7 @@ export default function CategoryCard({
               )}
             </View>
           </TouchableOpacity>
-          
+
           <View style={styles.optimalRateContainer}>
             <Text style={[styles.optimalRate, { color: colors.primary }]}>
               {user?.currency_symbol || '₦'}{cardData.optimal_rate}
@@ -157,7 +167,7 @@ export default function CategoryCard({
                 Final Rate
               </Text>
             </View>
-            
+
             {/* Total Bonus Percentage */}
             {parseFloat(cardData.all_per) > 0 && (
               <View style={[styles.totalBonusBadge, { backgroundColor: `${colors.primary}15` }]}>
@@ -178,8 +188,8 @@ export default function CategoryCard({
       {/* Category Header */}
       <View style={styles.categoryHeader}>
         <View style={styles.categoryInfo}>
-          <Image 
-            source={{ uri: category.category_logo_img }} 
+          <Image
+            source={{ uri: category.category_logo_img }}
             style={styles.categoryImage}
             resizeMode="contain"
           />
@@ -200,7 +210,7 @@ export default function CategoryCard({
             )}
           </View>
         </View>
-        
+
         {/* Top Rate Display */}
         <View style={styles.topRateContainer}>
           <View style={[styles.topRateBadge, { backgroundColor: colors.primary }]}>
@@ -208,11 +218,11 @@ export default function CategoryCard({
             <Text style={styles.topRateLabel}>Best Rate</Text>
           </View>
           <Text style={[styles.topRate, { color: colors.primary }]}>
-            {user?.currency_symbol || '₦'}{category.top_optimal_rate}
+            {user?.currency_symbol || '₦'}{getTopRate(category.top_rate_range)}
           </Text>
-          <Text style={[styles.topCurrency, { color: colors.textSecondary }]}>
+          {/* <Text style={[styles.topCurrency, { color: colors.textSecondary }]}>
             per {category.top_currency}
-          </Text>
+          </Text> */}
         </View>
       </View>
 
@@ -221,8 +231,8 @@ export default function CategoryCard({
         <Text style={[styles.currencySelectionLabel, { color: colors.textSecondary }]}>
           Display in:
         </Text>
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.currencyTagsContainer}
         >
@@ -232,11 +242,11 @@ export default function CategoryCard({
               style={[
                 styles.currencyTag,
                 {
-                  backgroundColor: selectedCurrency === currency 
-                    ? colors.primary 
+                  backgroundColor: selectedCurrency === currency
+                    ? colors.primary
                     : `${colors.primary}15`,
-                  borderColor: selectedCurrency === currency 
-                    ? colors.primary 
+                  borderColor: selectedCurrency === currency
+                    ? colors.primary
                     : 'transparent',
                 }
               ]}
@@ -263,9 +273,9 @@ export default function CategoryCard({
             {allUniqueCardIds.length} cards
           </Text>
         </View>
-        
+
         {allUniqueCardIds
-          .map((cardId, index, array) => 
+          .map((cardId, index, array) =>
             renderCardItem(cardId, index === array.length - 1)
           )
         }
@@ -346,7 +356,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Regular',
   },
-  
+
   // Currency Selection
   currencySelectionContainer: {
     marginBottom: Spacing.md,
@@ -369,7 +379,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'Inter-SemiBold',
   },
-  
+
   // Cards Container
   cardsContainer: {
     borderRadius: 8,
@@ -389,7 +399,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Regular',
   },
-  
+
   // Card Items
   cardItem: {
     paddingVertical: Spacing.md,
@@ -414,7 +424,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     lineHeight: 18,
   },
-  
+
   // Rate Breakdown
   rateBreakdown: {
     gap: Spacing.xs,
@@ -450,7 +460,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'Inter-SemiBold',
   },
-  
+
   // Optimal Rate
   optimalRateContainer: {
     alignItems: 'flex-end',
@@ -481,7 +491,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: 'Inter-Bold',
   },
-  
+
   showMoreButton: {
     flexDirection: 'row',
     alignItems: 'center',

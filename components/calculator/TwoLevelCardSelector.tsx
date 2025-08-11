@@ -27,6 +27,7 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CardCategory | null>(null);
+  const [currentCategory, setCurrentCategory] = useState<CardCategory | null>(null);
   const { initData } = useAppStore();
 
   // 判断是否隐藏钱包类型tab
@@ -34,6 +35,7 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
 
   const handleCategorySelect = (category: CardCategory) => {
     setSelectedCategory(category);
+    setCurrentCategory(category);
   };
 
   const handleCardSelect = (card: CardItem) => {
@@ -128,7 +130,7 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
           {selectedCard ? (
             <View style={styles.selectedCardInfo}>
               <Text style={[styles.selectedCardName, { color: colors.text }]} numberOfLines={1}>
-                {selectedCard.name}
+                {currentCategory == null ? categories[0].category_name : currentCategory.category_name} / {selectedCard.name}
               </Text>
               <Text style={[styles.selectedCardRate, { color: colors.textSecondary }]}>
                 {currencySymbol}{selectedCard.rate.toFixed(2)}
