@@ -230,10 +230,6 @@ function ReferScreenContent() {
                 queryParams: { recommend_code: inviteInfo.invite_code },
               }) : ''
             }
-              Linking.createURL('register', {
-                queryParams: { recommend_code: inviteInfo.invite_code },
-              }) : ''
-            }
             editable={false}
             selectTextOnFocus
           />
