@@ -12,6 +12,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Share, Copy, ChevronLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
+import * as Linking from 'expo-linking';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
 import AuthGuard from '@/components/UI/AuthGuard';
@@ -86,20 +87,40 @@ function ReferScreenContent() {
 
   // 复制链接
   const handleCopyLink = async () => {
-    if (inviteInfo?.act_url) {
-      await Clipboard.setStringAsync(inviteInfo.act_url);
+    if (inviteInfo?.invite_code) {
+      // 生成通用链接，指向 https://www.cardking.ng/register?recommend_code=XXX
+      const universalLink = Linking.createURL('register', {
+        queryParams: { recommend_code: inviteInfo.invite_code },
+      });
+      await Clipboard.setStringAsync(universalLink);
       Alert.alert('Copied', 'Referral link copied!');
+    } else {
+      Alert.alert('Error', 'Invitation code not available.');
     }
   };
 
   // 分享链接
   const handleShare = async () => {
     try {
-      if (inviteInfo?.act_url) {
-        await RNShare.share({ message: inviteInfo.act_url });
+      if (inviteInfo?.invite_code) {
+        // 生成通用链接，指向 https://www.cardking.ng/register?recommend_code=XXX
+        const universalLink = Linking.createURL('register', {
+          queryParams: { recommend_code: inviteInfo.invite_code },
+        });
+        
+        // 创建友好的分享消息
+        const shareMessage = `🎁 Join CardKing and get instant rewards!\n\n` +
+          `Use my invitation code: ${inviteInfo.invite_code}\n` +
+          `Register now: ${universalLink}\n\n` +
+          `💰 You'll get ${user?.currency_symbol}${inviteInfo.friend_amount} bonus when you complete your first order!\n` +
+          `📱 Download CardKing - The best gift card trading platform in Africa`;
+        
+        await RNShare.share({ message: shareMessage });
+      } else {
+        Alert.alert('Error', 'Invitation code not available.');
       }
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong');
+      Alert.alert('Error', 'Something went wrong during sharing.');
     }
   };
 
@@ -204,7 +225,11 @@ function ReferScreenContent() {
           </TouchableOpacity>
           <TextInput
             style={[styles.linkInput, { color: colors.text }]}
-            value={inviteInfo?.act_url ?? ''}
+            value={inviteInfo?.invite_code ? 
+              Linking.createURL('register', {
+                queryParams: { recommend_code: inviteInfo.invite_code },
+              }) : ''
+            }
             editable={false}
             selectTextOnFocus
           />

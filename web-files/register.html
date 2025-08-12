@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join CardKing - Get Instant Rewards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #008751 0%, #00A65A 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #008751;
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        h1 {
+            color: #1F2937;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #6B7280;
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .invite-code {
+            background: #F0FDF4;
+            border: 2px solid #22C55E;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .invite-label {
+            color: #16A34A;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .invite-value {
+            color: #15803D;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        
+        .benefits {
+            background: #FFFBEB;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .benefits h3 {
+            color: #D97706;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #92400E;
+            font-size: 14px;
+        }
+        
+        .benefit-item::before {
+            content: "🎁";
+            margin-right: 10px;
+        }
+        
+        .download-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .download-btn {
+            flex: 1;
+            background: #008751;
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .download-btn:hover {
+            background: #006B3F;
+            transform: translateY(-2px);
+        }
+        
+        .footer {
+            color: #9CA3AF;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .footer a {
+            color: #008751;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .download-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">CK</div>
+        <h1>Join CardKing</h1>
+        <p class="subtitle">You've been invited to join Africa's best gift card trading platform!</p>
+        
+        <div class="invite-code" id="inviteCodeSection" style="display: none;">
+            <div class="invite-label">Your Invitation Code</div>
+            <div class="invite-value" id="inviteCode"></div>
+        </div>
+        
+        <div class="benefits">
+            <h3>🎉 Special Welcome Bonus</h3>
+            <div class="benefit-item">Instant signup bonus</div>
+            <div class="benefit-item">Extra rewards on first trade</div>
+            <div class="benefit-item">VIP rate bonuses</div>
+            <div class="benefit-item">24/7 customer support</div>
+        </div>
+        
+        <div class="download-buttons">
+            <a href="https://apps.apple.com/app/id6748598916" class="download-btn">
+                📱 Download for iOS
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.bsdb.cardking" class="download-btn">
+                🤖 Download for Android
+            </a>
+        </div>
+        
+        <div class="footer">
+            Already have the app? <a href="#" onclick="tryOpenApp()">Open CardKing</a><br>
+            <a href="https://www.cardking.ng">Visit our website</a>
+        </div>
+    </div>
+
+    <script>
+        // Extract invite code from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const recommendCode = urlParams.get('recommend_code');
+        
+        if (recommendCode) {
+            document.getElementById('inviteCodeSection').style.display = 'block';
+            document.getElementById('inviteCode').textContent = recommendCode;
+        }
+        
+        // Try to open the app with custom scheme as fallback
+        function tryOpenApp() {
+            const customSchemeUrl = `myapp://register?recommend_code=${recommendCode || ''}`;
+            window.location.href = customSchemeUrl;
+            
+            // Fallback to app store if app doesn't open within 2 seconds
+            setTimeout(() => {
+                if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
+                    window.location.href = 'https://apps.apple.com/app/id6748598916';
+                } else {
+                    window.location.href = 'https://play.google.com/store/apps/details?id=com.bsdb.cardking';
+                }
+            }, 2000);
+        }
+        
+        // Auto-redirect logic for mobile devices
+        if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            // On mobile, try to open the app after a short delay
+            setTimeout(() => {
+                tryOpenApp();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
