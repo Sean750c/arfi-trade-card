@@ -1,0 +1,26 @@
+# Netlify configuration for Universal Links support
+
+# Headers for apple-app-site-association
+[[headers]]
+  for = "/apple-app-site-association"
+  [headers.values]
+    Content-Type = "application/json"
+    Cache-Control = "public, max-age=3600"
+
+# Headers for assetlinks.json
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json"
+    Cache-Control = "public, max-age=3600"
+
+# Redirect rules for register page
+[[redirects]]
+  from = "/register"
+  to = "/register.html"
+  status = 200
+
+[[redirects]]
+  from = "/register/*"
+  to = "/register.html"
+  status = 200
