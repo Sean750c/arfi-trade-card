@@ -39,6 +39,11 @@ export function useNotifications() {
   const registerForPushNotificationsAsync = async (): Promise<string | null> => {
     let token = null;
 
+    if (isHuawei) {
+      console.log('Skipping push notification setup for huawei');
+      return null;
+    }
+
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {
         name: 'default',
@@ -131,10 +136,6 @@ export function useNotifications() {
 
   // Initialize notifications
   useEffect(() => {
-    if (isHuawei) {
-      console.log('Skipping push notification setup for huawei');
-      return;
-    }
 
     registerForPushNotificationsAsync().then(token => {
       if (token) {
@@ -142,6 +143,11 @@ export function useNotifications() {
         registerTokenWithBackend(token);
       }
     });
+
+    if (isHuawei) {
+      console.log('Skipping push notification setup for huawei');
+      return;
+    }
 
     // Listen for incoming notifications
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
@@ -181,10 +187,6 @@ export function useNotifications() {
 
   // Re-register token when user logs in
   useEffect(() => {
-    if (isHuawei) {
-      console.log('Skipping push notification setup for huawei');
-      return;
-    }
     if (isAuthenticated && user?.token && expoPushToken) {
       registerTokenWithBackend(expoPushToken);
     }
@@ -197,6 +199,10 @@ export function useNotifications() {
     data?: any,
     seconds: number = 1
   ) => {
+    if (isHuawei) {
+      console.log('Skipping push notification setup for huawei');
+      return;
+    }
     await Notifications.scheduleNotificationAsync({
       content: {
         title,

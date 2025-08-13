@@ -72,6 +72,11 @@ export default function SocialBindingCard() {
 
   const handleGoogleBind = async () => {
     if (!user?.token) return;
+
+    if(!requestGoogle){
+      Alert.alert('Info', 'Google services are not available on this device!');
+      return;
+    }
     
     setIsLoading('google');
     try {

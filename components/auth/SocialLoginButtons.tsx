@@ -46,6 +46,10 @@ export default function SocialLoginButtons() {
   // Handle Google Login
   const handleGoogleLogin = async () => {
     try {
+      if(!requestGoogle){
+        Alert.alert('Info', 'Google services are not available on this device!');
+        return;
+      }
       const result = await promptAsyncGoogle();
       if (result.type === 'success' && result.authentication?.accessToken) {
         const accessToken = result.authentication.accessToken;
