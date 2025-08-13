@@ -223,6 +223,9 @@ export default function SocialLoginButtons() {
       }
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Apple login failed');
+    }
+  };
+
   return (
     <View style={styles.container}>
       {isGoogleLoginAvailable && (
