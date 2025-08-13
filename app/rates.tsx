@@ -93,12 +93,12 @@ export default function RatesScreen() {
   const renderCategoryCard = ({ item }: { item: CategoryData }) => (
     <CategoryCard 
       category={item} 
-      onCardPress={(cardId, categoryId) => {
+      onCardPress={(cardId, categoryName) => {
         router.push({
           pathname: '/calculator',
           params: { 
-            cardId: cardId,
-            categoryId: categoryId 
+            cardId: cardId.toString(),
+            categoryName: categoryName
           }
         } as any);
       }}

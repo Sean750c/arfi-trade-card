@@ -55,15 +55,15 @@ function SellScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
   const { initData } = useAppStore();
-  const { 
-    fetchOrderSellDetail, 
-    orderSellDetail, 
-    isLoadingOrderSellDetail, 
-    orderSellDetailError 
+  const {
+    fetchOrderSellDetail,
+    orderSellDetail,
+    isLoadingOrderSellDetail,
+    orderSellDetailError
   } = useOrderStore();
-  
+
   const { checkOrderCreatedPopup } = usePopupManager();
-  
+
   const currencyName = user?.currency_name || '';
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>([]);
   const [cardInfo, setCardInfo] = useState('');
@@ -87,36 +87,36 @@ function SellScreenContent() {
   const panResponder = useMemo(() => {
     // Only create PanResponder if user is authenticated
     if (!user?.token) return null;
-    
+
     return PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (evt, gestureState) => {
-      // Store initial position
-    },
-    onPanResponderMove: (evt, gestureState) => {
-      // 使用节流来减少状态更新频率
-      const newX = helpButtonPosition.x + gestureState.dx;
-      const newY = helpButtonPosition.y + gestureState.dy;
-      
-      // Constrain to screen boundaries
-      const buttonSize = 30;
-      const margin = 20;
-      
-      const constrainedX = Math.max(margin, Math.min(screenWidth - buttonSize - margin, newX));
-      const constrainedY = Math.max(margin, Math.min(screenHeight - buttonSize - margin, newY));
-      
-      // 只有当位置真正改变时才更新状态
-      if (Math.abs(constrainedX - helpButtonPosition.x) > 2 || Math.abs(constrainedY - helpButtonPosition.y) > 2) {
-        setHelpButtonPosition({
-          x: constrainedX,
-          y: constrainedY,
-        });
-      }
-    },
-    onPanResponderRelease: () => {
-      // Position is already constrained in onPanResponderMove
-    },
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt, gestureState) => {
+        // Store initial position
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        // 使用节流来减少状态更新频率
+        const newX = helpButtonPosition.x + gestureState.dx;
+        const newY = helpButtonPosition.y + gestureState.dy;
+
+        // Constrain to screen boundaries
+        const buttonSize = 30;
+        const margin = 20;
+
+        const constrainedX = Math.max(margin, Math.min(screenWidth - buttonSize - margin, newX));
+        const constrainedY = Math.max(margin, Math.min(screenHeight - buttonSize - margin, newY));
+
+        // 只有当位置真正改变时才更新状态
+        if (Math.abs(constrainedX - helpButtonPosition.x) > 2 || Math.abs(constrainedY - helpButtonPosition.y) > 2) {
+          setHelpButtonPosition({
+            x: constrainedX,
+            y: constrainedY,
+          });
+        }
+      },
+      onPanResponderRelease: () => {
+        // Position is already constrained in onPanResponderMove
+      },
     });
   }, [helpButtonPosition.x, helpButtonPosition.y, screenWidth, screenHeight, user?.token]);
 
@@ -192,7 +192,7 @@ function SellScreenContent() {
         aspect: [4, 3],
         allowsMultipleSelection: false,
       });
-      
+
       if (!result.canceled && result.assets[0]) {
         await processSelectedImage(result.assets[0].uri);
       }
@@ -209,13 +209,13 @@ function SellScreenContent() {
         Alert.alert('Permission Required', 'Camera permission is required to take photos.');
         return;
       }
-      
+
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         quality: 0.8,
         aspect: [4, 3],
       });
-      
+
       if (!result.canceled && result.assets[0]) {
         await processSelectedImage(result.assets[0].uri);
       }
@@ -232,14 +232,14 @@ function SellScreenContent() {
         Alert.alert('Permission Required', 'Photo library permission is required.');
         return;
       }
-      
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 0.8,
         aspect: [4, 3],
       });
-      
+
       if (!result.canceled && result.assets[0]) {
         await processSelectedImage(result.assets[0].uri);
       }
@@ -280,15 +280,15 @@ function SellScreenContent() {
       const imageUrl = uploadUrl.url.split("?")[0];
 
       // Update card with upload URL
-      setSelectedCards(prev => 
-        prev.map(card => 
-          card.id === newCard.id 
-            ? { 
-                ...card, 
-                uploadUrl: imageUrl, 
-                objectName: uploadUrl.objectName,
-                uploadProgress: 25 
-              }
+      setSelectedCards(prev =>
+        prev.map(card =>
+          card.id === newCard.id
+            ? {
+              ...card,
+              uploadUrl: imageUrl,
+              objectName: uploadUrl.objectName,
+              uploadProgress: 25
+            }
             : card
         )
       );
@@ -300,9 +300,9 @@ function SellScreenContent() {
         (progress) => {
           // 使用节流来减少进度更新频率
           const throttledProgress = Math.round(progress * 10) / 10; // 只保留一位小数
-          setSelectedCards(prev => 
-            prev.map(card => 
-              card.id === newCard.id 
+          setSelectedCards(prev =>
+            prev.map(card =>
+              card.id === newCard.id
                 ? { ...card, uploadProgress: 25 + (throttledProgress * 0.75) }
                 : card
             )
@@ -311,35 +311,35 @@ function SellScreenContent() {
       );
 
       // Mark as uploaded
-      setSelectedCards(prev => 
-        prev.map(card => 
-          card.id === newCard.id 
-            ? { 
-                ...card, 
-                isUploading: false, 
-                isUploaded: true, 
-                uploadProgress: 100 
-              }
+      setSelectedCards(prev =>
+        prev.map(card =>
+          card.id === newCard.id
+            ? {
+              ...card,
+              isUploading: false,
+              isUploaded: true,
+              uploadProgress: 100
+            }
             : card
         )
       );
 
     } catch (error) {
       console.error('Upload error:', error);
-      setSelectedCards(prev => 
-        prev.map(card => 
-          card.id === newCard.id 
-            ? { 
-                ...card, 
-                isUploading: false, 
-                uploadError: error instanceof Error ? error.message : 'Upload failed' 
-              }
+      setSelectedCards(prev =>
+        prev.map(card =>
+          card.id === newCard.id
+            ? {
+              ...card,
+              isUploading: false,
+              uploadError: error instanceof Error ? error.message : 'Upload failed'
+            }
             : card
         )
       );
-      
+
       Alert.alert(
-        'Upload Failed', 
+        'Upload Failed',
         error instanceof Error ? error.message : 'Failed to upload image. Please try again.'
       );
     }
@@ -363,7 +363,7 @@ function SellScreenContent() {
     const hasUploadedImages = selectedCards.some(card => card.isUploaded);
     const hasCardInfo = cardInfo.trim() !== '';
     const noUploadingImages = !selectedCards.some(card => card.isUploading);
-    
+
     return (hasUploadedImages || hasCardInfo) && noUploadingImages;
   }, [selectedCards, cardInfo]);
 
@@ -376,7 +376,7 @@ function SellScreenContent() {
 
   const handleSubmit = async () => {
     const endTimer = PerformanceMonitor.getInstance().startTimer('sell_submit');
-    
+
     if (!isFormValid || !user?.token) {
       Alert.alert('Incomplete Form', 'Please add at least one card image or enter card information.');
       return;
@@ -402,7 +402,7 @@ function SellScreenContent() {
 
       // Show success message with order details
       Alert.alert(
-        'Order Created Successfully! 🎉', 
+        'Order Created Successfully! 🎉',
         `Order #${orderResult.order_no.slice(-14)}\n\n` +
         `${uploadedImages.length} image(s) uploaded\n` +
         `Wallet: ${selectedWallet}\n` +
@@ -413,19 +413,19 @@ function SellScreenContent() {
           { text: 'OK', style: 'default' },
         ]
       );
-      
+
       // Check for order created popup
       checkOrderCreatedPopup(orderResult.order_no);
-      
+
       // Reset form
       setSelectedCards([]);
       setCardInfo('');
       setSelectedCoupon(null);
-      
+
     } catch (error) {
       console.error('Submit error:', error);
       Alert.alert(
-        'Submission Failed', 
+        'Submission Failed',
         error instanceof Error ? error.message : 'Failed to create order. Please try again.'
       );
     } finally {
@@ -456,7 +456,7 @@ function SellScreenContent() {
   const CardPreviewItem = React.memo(({ card }: { card: SelectedCard }) => (
     <View key={card.id} style={styles.cardPreview}>
       <Image source={{ uri: card.localUri }} style={styles.cardPreviewImage} />
-      
+
       {/* Upload Status Overlay */}
       {card.isUploading && (
         <View style={styles.uploadOverlay}>
@@ -466,14 +466,14 @@ function SellScreenContent() {
           </Text>
         </View>
       )}
-      
+
       {/* Success Indicator */}
       {card.isUploaded && (
         <View style={[styles.statusBadge, { backgroundColor: colors.success }]}>
           <CheckCircle size={12} color="#FFFFFF" />
         </View>
       )}
-      
+
       {/* Error Indicator */}
       {card.uploadError && (
         <View style={styles.errorOverlay}>
@@ -486,7 +486,7 @@ function SellScreenContent() {
           </TouchableOpacity>
         </View>
       )}
-      
+
       {/* Remove Button */}
       <TouchableOpacity
         style={[styles.removeCardButton, { backgroundColor: colors.error }]}
@@ -527,7 +527,7 @@ function SellScreenContent() {
 
             <View style={styles.headerSpacer} />
 
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={handleContactPress}
               style={[styles.contactButton, { backgroundColor: colors.primary }]}
             >
@@ -539,7 +539,7 @@ function SellScreenContent() {
           {/* Card Upload Section */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Card Information</Text>
-            
+
             <TextInput
               style={[
                 styles.cardInfoInput,
@@ -557,11 +557,11 @@ function SellScreenContent() {
               numberOfLines={2}
               textAlignVertical="top"
             />
-            
+
             <TouchableOpacity
               style={[
                 styles.uploadButton,
-                { 
+                {
                   backgroundColor: colors.card,
                   borderColor: colors.border,
                 },
@@ -573,13 +573,13 @@ function SellScreenContent() {
                 {Platform.OS === 'web' ? 'Select Card Images (Max 10)' : 'Add Card Images (Max 10)'}
               </Text>
               <Text style={[styles.uploadButtonSubtext, { color: colors.textSecondary }]}>
-                {Platform.OS === 'web' 
-                  ? 'Click to select images from your device' 
+                {Platform.OS === 'web'
+                  ? 'Click to select images from your device'
                   : 'Images will be uploaded to secure cloud storage'
                 }
               </Text>
             </TouchableOpacity>
-            
+
             {/* Card Previews */}
             {selectedCards.length > 0 && (
               <View style={styles.cardPreviewContainer}>
@@ -611,7 +611,7 @@ function SellScreenContent() {
                   ]}
                   onPress={() => setSelectedWallet(currencyName)}
                 >
-                  <View style={[styles.walletIcon, { backgroundColor: selectedWallet === currencyName ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}> 
+                  <View style={[styles.walletIcon, { backgroundColor: selectedWallet === currencyName ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
                     <Text style={[styles.walletIconText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.primary }]}>{user?.currency_symbol}</Text>
                   </View>
                   <Text style={[styles.walletText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.text }]}> {user?.country_name} {user?.currency_name} </Text>
@@ -629,7 +629,7 @@ function SellScreenContent() {
                   ]}
                   onPress={() => setSelectedWallet('USDT')}
                 >
-                  <View style={[styles.walletIcon, { backgroundColor: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}> 
+                  <View style={[styles.walletIcon, { backgroundColor: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
                     <Text style={[styles.walletIconText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.primary }]}>₮</Text>
                   </View>
                   <Text style={[styles.walletText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }]}> USDT </Text>
@@ -642,7 +642,7 @@ function SellScreenContent() {
           )}
 
           {/* Discount Code Section */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.section, styles.discountSection, { backgroundColor: colors.card }]}
             onPress={() => setShowCouponModal(true)}
           >
@@ -664,7 +664,7 @@ function SellScreenContent() {
 
           {/* VIP & Activity Section */}
           <View style={styles.section}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.featureButton, { backgroundColor: colors.primary }]}
               onPress={() => setShowVIPModal(true)}
             >
@@ -675,22 +675,22 @@ function SellScreenContent() {
               </View>
               <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[styles.featureButton, { backgroundColor: '#1E40AF' }]}
               onPress={() => setShowActivityModal(true)}
             >
               <Trophy size={20} color="#FFFFFF" />
               <View style={styles.featureTextContainer}>
                 <Text style={styles.featureTitle}>Activity Rebate Program</Text>
-                <Text style={styles.featureSubtitle}>Earn up to 2% cashback</Text>
+                <Text style={styles.featureSubtitle}>Get more rewards</Text>
               </View>
               <ChevronRight size={16} color="rgba(255, 255, 255, 0.8)" />
             </TouchableOpacity>
-            
+
             {/* Overdue Compensation */}
             {!!orderSellDetail?.overdue_max_percent && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.featureButton, { backgroundColor: '#DC2626' }]}
                 onPress={() => setShowOverdueModal(true)}
               >
@@ -718,7 +718,7 @@ function SellScreenContent() {
           <TouchableOpacity
             style={[
               styles.sellButton,
-              { 
+              {
                 backgroundColor: isFormValid && !isSubmitting ? colors.primary : colors.border,
                 opacity: isSubmitting ? 0.7 : 1,
               }
@@ -739,9 +739,9 @@ function SellScreenContent() {
 
         {/* Floating Help Button */}
         {orderSellDetail && !!orderSellDetail?.sell_card_tips && (
-          <View 
+          <View
             style={[
-              styles.helpButtonContainer, 
+              styles.helpButtonContainer,
               {
                 left: helpButtonPosition.x,
                 top: helpButtonPosition.y,
@@ -806,13 +806,13 @@ function SellScreenContent() {
             onClose={() => setShowSellTipsModal(false)}
             title="Card Selling Guide"
             htmlContent={
-              isLoadingOrderSellDetail 
-                ? '<p>Loading...</p>' 
+              isLoadingOrderSellDetail
+                ? '<p>Loading...</p>'
                 : orderSellDetail?.sell_card_tips || '<p>No content available</p>'
             }
           />
         )}
-        
+
         {/* Customer Service Button */}
         <CustomerServiceButton
           style={styles.customerServiceButton}
@@ -1012,24 +1012,25 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     position: 'relative',
-    minHeight: 100,
+    minHeight: 50,
   },
   walletIcon: {
-    width: 40,
-    height: 40,
+    width: 100,
+    height: 30,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.sm,
   },
   walletIconText: {
-    fontSize: 20,
+    fontSize: 16,
     fontFamily: 'Inter-Bold',
   },
   walletText: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     textAlign: 'center',
+    verticalAlign: 'middle'
   },
   selectedIcon: {
     position: 'absolute',

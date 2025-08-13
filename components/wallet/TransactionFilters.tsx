@@ -11,8 +11,8 @@ import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
 interface TransactionFiltersProps {
-  activeType: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip';
-  onTypeChange: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip') => void;
+  activeType: 'all' | 'withdraw' | 'order' | 'transfer' | 'other';
+  onTypeChange: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'other') => void;
 }
 
 export default function TransactionFilters({
@@ -27,8 +27,7 @@ export default function TransactionFilters({
     { key: 'order', label: 'Orders' },
     { key: 'withdraw', label: 'Withdrawals' },
     { key: 'transfer', label: 'Transfers' },
-    { key: 'recommend', label: 'Referrals' },
-    { key: 'vip', label: 'VIP' },
+    { key: 'other', label: 'Others' },
   ], []);
 
   // 使用 useCallback 优化事件处理

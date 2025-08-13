@@ -3,6 +3,6 @@
   "target": {
     "namespace": "android_app",
     "package_name": "com.bsdb.cardking",
-    "sha256_cert_fingerprints": ["YOUR_SHA256_FINGERPRINT"]
+    "sha256_cert_fingerprints": ["33:EB:B3:05:C4:EA:79:AD:D3:F4:C0:FB:69:54:43:F3:B3:7F:6D:4E:77:77:9F:54:F4:FA:5A:54:58:4E:13:DE"]
   }
 }]

@@ -26,7 +26,7 @@ interface WalletState {
   
   // Filters
   activeWalletType: '1' | '2'; // 1: NGN, 2: USDT
-  activeTransactionType: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip';
+  activeTransactionType: 'all' | 'withdraw' | 'order' | 'transfer' | 'other';
   
   // Actions
   fetchBalance: (token: string) => Promise<void>;
@@ -34,7 +34,7 @@ interface WalletState {
   loadMoreTransactions: (token: string) => Promise<void>;
   fetchLogDetail: (token: string, logId: number) => Promise<MoneyLogDetail>;
   setActiveWalletType: (type: '1' | '2') => void;
-  setActiveTransactionType: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip') => void;
+  setActiveTransactionType: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'other') => void;
   clearWalletData: () => void;
   selectedWithdrawAccount: any | null;
   setSelectedWithdrawAccount: (account: any | null) => void;
@@ -230,7 +230,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     });
   },
 
-  setActiveTransactionType: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip') => {
+  setActiveTransactionType: (type: 'all' | 'withdraw' | 'order' | 'transfer' | 'other') => {
     set({ 
       activeTransactionType: type,
       // Reset transactions when changing transaction type

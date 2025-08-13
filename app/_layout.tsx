@@ -12,29 +12,28 @@ import { ThemeProvider } from '@/theme/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { usePopupManager } from '@/hooks/usePopupManager';
 import PopupModal from '@/components/UI/PopupModal';
-import { View, ActivityIndicator, Text } from 'react-native';
+import { View, ActivityIndicator, Text, Platform } from 'react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
-import { Platform } from 'react-native';
 import * as Device from 'expo-device';
 
-// Loading component for initialization
 function InitializationLoader() {
   const { colors } = useTheme();
-
   return (
     <View style={{
       flex: 1,
+      backgroundColor: colors.background,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: colors.background,
-      gap: Spacing.md,
+      paddingHorizontal: 20,
     }}>
       <ActivityIndicator size="large" color={colors.primary} />
       <Text style={{
-        fontSize: 16,
+        marginTop: 16,
+        fontSize: 18,
         fontFamily: 'Inter-Medium',
         color: colors.textSecondary,
+        textAlign: 'center',
       }}>
         Initializing...
       </Text>
@@ -47,84 +46,55 @@ export default function RootLayout() {
   const { initialize } = useAppStore();
   const { fetchCountries } = useCountryStore();
   const { isAuthenticated, user, initialize: initializeAuth, isInitialized } = useAuthStore();
-
-  const {
-    isVisible: popupVisible,
-    popData,
-    closePopup,
-    checkAppStartPopup,
-  } = usePopupManager();
-
+  const { isVisible: popupVisible, popData, closePopup, checkAppStartPopup } = usePopupManager();
+  
   useFrameworkReady();
-  useAuthProtection(); // Add auth protection
+  useAuthProtection();
 
-  const isHuawei = Platform.OS === 'android' && Device.brand?.toLowerCase() === 'huawei';
-  if (!isHuawei) {
-    useNotifications(); // Initialize notifications
-  }
+  // 假设 useNotifications 返回一个普通函数来启动通知
+  useNotifications();
 
   useEffect(() => {
     const init = async () => {
       try {
-        // 首先初始化认证状态
         await initializeAuth();
-
-        // Fetch countries and banners in parallel (these don't require auth)
-        await Promise.all([
-          fetchCountries(),
-        ]);
-
-        // Initialize app data with user token if authenticated
+        await Promise.all([fetchCountries()]);
         const userToken = isAuthenticated && user?.token ? user.token : undefined;
         await initialize(userToken);
-
-        // Check for app start popup after initialization
         checkAppStartPopup();
 
-        // Check onboarding status
         const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
         if (!hasCompletedOnboarding) {
           router.replace('/onboarding');
         }
       } catch (error) {
         console.error('Initialization error:', error);
+        // TODO: 可以调用弹窗或者toast提示错误
       }
     };
-
     init();
-  }, []); // 只依赖 []
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <ThemeProvider>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        {isInitialized ? (
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        ) : null}
-        <Stack.Screen name="notifications" options={{ headerShown: false }} />
-        <Stack.Screen name="rates" options={{ headerShown: false }} />
-        <Stack.Screen name="refer" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" />
+        {isInitialized && <Stack.Screen name="(tabs)" />}
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="rates" />
+        <Stack.Screen name="refer" />
         <Stack.Screen name="calculator" />
         <Stack.Screen name="+not-found" />
       </Stack>
 
-      {/* Show loading screen during initialization */}
       {!isInitialized && <InitializationLoader />}
 
       <StatusBar style="auto" />
 
-      {/* Global Popup Modal */}
       {popupVisible && popData && (
-        <PopupModal
-          visible={popupVisible}
-          onClose={closePopup}
-          popData={popData}
-        />
+        <PopupModal visible={popupVisible} onClose={closePopup} popData={popData} />
       )}
     </ThemeProvider>
   );

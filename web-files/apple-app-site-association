@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "YOUR_TEAM_ID.com.bsdb.cardking",
+        "appID": "PXB4RS6F4F.com.bsdb.cardking",
         "paths": [ "/register/*", "/register", "*" ]
       }
     ]

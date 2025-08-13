@@ -32,7 +32,7 @@ export interface WalletTransaction {
     vip_rate: string;
     remark: string;
     name: string;
-    type: 'order' | 'withdraw' | 'admin' | 'transfer' | 'dispute' | 'activity' | 'rank' | 'platform' | 'recommend' | 'vip';
+    type: 'order' | 'withdraw' | 'admin' | 'transfer' | 'activity' | 'rank' | 'platform' | 'recommend' | 'vip';
     order_status: string;
     image: string;
     account_no: string;
@@ -43,7 +43,7 @@ export interface WalletTransaction {
 
 export interface WalletTransactionRequest {
     token: string;
-    type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip';
+    type: 'all' | 'withdraw' | 'order' | 'transfer' | 'other';
     wallet_type: '1' | '2'; // 1: national currency, 2: USDT
     page: number;
     page_size: number;

@@ -10,6 +10,12 @@ import {
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
+const screenWidth = Dimensions.get('window').width * 0.85;
+const BOX_COUNT = 6;
+const BOX_GAP = Spacing.sm; // 你的间距常量
+const containerPadding = Spacing.md * 2; // 左右 padding
+const boxWidth = (screenWidth - containerPadding - (BOX_COUNT - 1) * BOX_GAP) / BOX_COUNT;
+
 interface SixDigitPasswordInputProps {
   value: string;
   onChangeText: (text: string) => void;
@@ -162,11 +168,11 @@ const styles = StyleSheet.create({
   digitContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: Spacing.sm,
+    gap: Spacing.xs,
     paddingHorizontal: Spacing.sm,
   },
   digitBox: {
-    width: 48,
+    width: boxWidth,
     height: 56,
     borderRadius: 12,
     borderWidth: 2,

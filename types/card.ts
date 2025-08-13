@@ -86,6 +86,7 @@ export interface CardItem {
     usdt_rate: number;
     name: string;
     category_id: number;
+    category_name: string;
 }
 
 export interface CardCategory {

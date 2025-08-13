@@ -27,7 +27,6 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CardCategory | null>(null);
-  const [currentCategory, setCurrentCategory] = useState<CardCategory | null>(null);
   const { initData } = useAppStore();
 
   // 判断是否隐藏钱包类型tab
@@ -35,11 +34,14 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
 
   const handleCategorySelect = (category: CardCategory) => {
     setSelectedCategory(category);
-    setCurrentCategory(category);
   };
 
   const handleCardSelect = (card: CardItem) => {
-    onSelectCard(card);
+    // 把分类名合到 card 对象里
+    onSelectCard({
+      ...card,
+      category_name: selectedCategory?.category_name || ''
+    });
     setModalVisible(false);
     setSelectedCategory(null);
   };
@@ -93,7 +95,7 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
     >
       <View style={styles.cardInfo}>
         <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
-          {card.name}
+          {selectedCategory?.category_name} / {card.name}
         </Text>
         <View style={styles.rateContainer}>
           <Text style={[styles.cardRate, { color: colors.primary }]}>
@@ -130,7 +132,7 @@ export default function TwoLevelCardSelector({ currencySymbol, categories, selec
           {selectedCard ? (
             <View style={styles.selectedCardInfo}>
               <Text style={[styles.selectedCardName, { color: colors.text }]} numberOfLines={1}>
-                {currentCategory == null ? categories[0].category_name : currentCategory.category_name} / {selectedCard.name}
+              {selectedCard.category_name ? `${selectedCard.category_name} / ` : ''} {selectedCard.name}
               </Text>
               <Text style={[styles.selectedCardRate, { color: colors.textSecondary }]}>
                 {currencySymbol}{selectedCard.rate.toFixed(2)}

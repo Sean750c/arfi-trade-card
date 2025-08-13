@@ -21,6 +21,8 @@ import type { OrderDetail } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { OrderService } from '@/services/order';
+import { useAppStore } from '@/stores/useAppStore';
+import * as Linking from 'expo-linking';
 
 const { width } = Dimensions.get('window');
 
@@ -31,9 +33,12 @@ function OrderDetailScreenContent() {
   const { user } = useAuthStore();
   const { isLoadingDetail, detailError } = useOrderStore();
   const { orderNo } = useLocalSearchParams<{ orderNo: string }>();
+  const { initData } = useAppStore();
 
   const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   useEffect(() => {
     if (user?.token && orderNo) {
@@ -55,6 +60,8 @@ function OrderDetailScreenContent() {
       }
     } catch (error) {
       console.error('Failed to load order detail:', error);
+    } finally {
+      setIsFirstLoad(false);
     }
   };
 
@@ -110,10 +117,19 @@ function OrderDetailScreenContent() {
   };
 
   const handleContactSupport = () => {
-    Alert.alert('Contact Support', 'Support contact functionality would be implemented here');
+    //Alert.alert('Contact Support', 'Support contact functionality would be implemented here');
+    const phone = initData?.service_phone;
+    if (phone) {
+      const url = `https://wa.me/${phone.replace(/[^\d]/g, '')}`;
+      Linking.openURL(url).catch(() => {
+        Alert.alert('Unable to open WhatsApp', 'Please check if WhatsApp is installed or if the phone number is correct.');
+      });
+    } else {
+      Alert.alert('Unable to get service phone', 'Please try again later.');
+    }
   };
 
-  if (isLoadingDetail) {
+  if (isLoadingDetail || isFirstLoad) {
     return (
       <SafeAreaWrapper backgroundColor={colors.background}>
         <View style={styles.loadingContainer}>
@@ -336,7 +352,7 @@ function OrderDetailScreenContent() {
                 {orderDetail.coupon_code}
               </Text>
               <Text style={[styles.couponAmount, { color: colors.primary }]}>
-                -{formatAmount(orderDetail.coupon_amount, orderDetail.wallet_type)}
+                {formatAmount(orderDetail.coupon_amount, orderDetail.wallet_type)}
               </Text>
             </View>
           </View>

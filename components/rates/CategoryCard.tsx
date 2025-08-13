@@ -24,7 +24,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 
 interface CategoryCardProps {
   category: CategoryData;
-  onCardPress: (cardId: number, categoryId: number) => void;
+  onCardPress: (cardId: number, categoryName: string) => void;
 }
 
 export default function CategoryCard({
@@ -82,11 +82,12 @@ export default function CategoryCard({
   const getTopRate = (rate: string) => {
     let value = rate;
     if (rate.includes("~")) {
+      // 取波浪线后的部分
       value = rate.split("~")[1];
     }
-
-    const num = parseFloat(value);
-    return isNaN(num) ? null : num.toFixed(2);
+    // 去掉非数字、小数点、负号
+    const cleaned = value.replace(/[^0-9.-]/g, "");
+    return cleaned;
   };
 
   const renderCardItem = (cardId: number, isLast: boolean) => {
@@ -108,7 +109,7 @@ export default function CategoryCard({
         <View style={styles.cardHeader}>
           <TouchableOpacity
             style={styles.cardMainInfo}
-            onPress={() => onCardPress(cardId, category.category_id)}
+            onPress={() => onCardPress(cardId, category.category_name)}
           >
             <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
               {cardData.name}

@@ -165,7 +165,7 @@ function WalletScreenContent() {
   }, [setActiveWalletType, setSelectedWithdrawAccount]);
 
   const handleTransactionTypeChange = useCallback((
-    type: 'all' | 'withdraw' | 'order' | 'transfer' | 'recommend' | 'vip'
+    type: 'all' | 'withdraw' | 'order' | 'transfer' | 'other'
   ) => {
     setActiveTransactionType(type);
   }, [setActiveTransactionType]);

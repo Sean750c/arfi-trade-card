@@ -24,6 +24,7 @@ import { CalculatorService } from '@/services/calculator';
 import type { CalculatorData, CardItem } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function CalculatorScreen() {
   const { colors } = useTheme();
@@ -40,6 +41,7 @@ export default function CalculatorScreen() {
   const [calculatedAmount, setCalculatedAmount] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [amountVisible, setAmountVisible] = useState(true);
+  const { cardId, categoryName } = useLocalSearchParams();
 
   const denominations = ['25', '50', '100', '200', '500'];
   const currencies = [
@@ -74,9 +76,27 @@ export default function CalculatorScreen() {
       const data = await CalculatorService.getCalculatorData(params);
       setCalculatorData(data);
 
-      // Set default card if available
-      if (data.card_list.length > 0 && data.card_list[0].list.length > 0) {
-        setSelectedCard(data.card_list[0].list[0]);
+      // 如果URL带了cardId和categoryId，优先用它们找到对应卡
+      if (cardId && categoryName) {
+        const foundCategory = data.card_list.find(c => c.category_name === categoryName);
+        const foundCard = foundCategory?.list.find(c => c.card_id?.toString() === cardId);
+        if (foundCard) {
+          setSelectedCard({
+            ...foundCard,
+            category_name: foundCategory?.category_name || ''
+          });
+        } else if (data.card_list[0]?.list[0]) {
+          setSelectedCard({
+            ...data.card_list[0].list[0],
+            category_name: data.card_list[0]?.category_name || ''
+          });
+        }
+      } else if (data.card_list.length > 0 && data.card_list[0].list.length > 0) {
+        // Set default card if available
+        setSelectedCard({
+          ...data.card_list[0].list[0],
+          category_name: data.card_list[0]?.category_name || ''
+        });
       }
 
       setLastUpdated(new Date());
