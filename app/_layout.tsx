@@ -16,6 +16,7 @@ import { View, ActivityIndicator, Text, Platform } from 'react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import * as Device from 'expo-device';
+import * as WebBrowser from 'expo-web-browser';
 
 function InitializationLoader() {
   const { colors } = useTheme();
@@ -53,6 +54,11 @@ export default function RootLayout() {
 
   // 假设 useNotifications 返回一个普通函数来启动通知
   useNotifications();
+
+  // Handle WebBrowser auth sessions globally
+  useEffect(() => {
+    WebBrowser.maybeCompleteAuthSession();
+  }, []);
 
   useEffect(() => {
     const init = async () => {

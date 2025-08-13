@@ -236,6 +236,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   socialLoginCallback: async (result: SocialLoginResult) => {
     set({ isLoading: true, error: null });
     try {
+      console.log('🔍 Social Login Callback Debug - Received result:', result);
+      console.log('🔍 is_social_bind:', result.is_social_bind);
+      console.log('🔍 token exists:', !!result.token);
+      console.log('🔍 username:', result.username);
+      console.log('🔍 social_id:', result.social_id);
+      console.log('🔍 social_email:', result.social_email);
+      
       if (result.is_social_bind === true && result.token) {
         console.log('Already bound. Fetching user info...');
         // If already bound, fetch user info and log in
@@ -249,11 +256,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           error: null,
         });
         await AsyncStorage.setItem('user', JSON.stringify(freshUser));
+        console.log('✅ Social Login Debug - User logged in successfully, redirecting to home');
         router.replace('/(tabs)');
       } else {
         console.log('User not bound. Navigating to social-register screen...');
         // Not bound, navigate to social register screen
         // Pass social login data to the new screen
+        console.log('🔍 Social Login Debug - Redirecting to social-register with params');
         router.replace({
           pathname: '/(auth)/social-register', params: {
             username: result.username,
