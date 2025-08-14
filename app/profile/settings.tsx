@@ -182,6 +182,7 @@ export default function SettingsScreen() {
       setShowDeleteModal(false);
       setDeleteLoading(false);
       Alert.alert('Account Deleted', 'Your account has been deleted.');
+      router.push('/(tabs)');
     } catch (e) {
       setDeleteLoading(false);
       Alert.alert('Error', e instanceof Error ? e.message : 'Failed to delete account.');

@@ -23,6 +23,9 @@ interface AuthState {
     whatsapp?: string;
     recommend_code?: string;
     code?: string;
+    sign_to_coupon?: string;
+    social_id?: string;
+    social_type?: string;
   }) => Promise<void>;
   reloadUser: () => Promise<void>;
   setUser: (user: User) => void; // Add method to set user directly (for social login)
@@ -188,6 +191,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const response = await AuthService.googleLogin(params);
       response.social_email = params.social_email ?? '';
+      response.social_type = 'google';
       await get().socialLoginCallback(response); // Use the new callback
     } catch (error) {
       set({
@@ -202,6 +206,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const response = await AuthService.facebookLogin(params);
       response.social_email = params.social_email ?? '';
+      response.social_type = 'facebook';
       await get().socialLoginCallback(response); // Use the new callback
       set({
         isLoading: false,
@@ -220,6 +225,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const response = await AuthService.appleLogin(params);
       response.social_email = params.social_email ?? '';
+      response.social_type = 'apple';
       await get().socialLoginCallback(response); // Use the new callback
       set({
         isLoading: false,
@@ -267,6 +273,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           pathname: '/(auth)/social-register', params: {
             username: result.username,
             social_id: result.social_id,
+            social_type: result.social_type,
             social_email: result.social_email,
           }
         });

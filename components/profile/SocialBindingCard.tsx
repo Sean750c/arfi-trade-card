@@ -294,7 +294,7 @@ export default function SocialBindingCard() {
   );
 
   // Close the web browser opened by AuthSession
-  WebBrowser.maybeCompleteAuthSession();
+  // WebBrowser.maybeCompleteAuthSession();
 
   return (
     <Card style={styles.container}>

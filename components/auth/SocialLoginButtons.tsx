@@ -46,79 +46,52 @@ export default function SocialLoginButtons() {
   // Handle Google Login
   const handleGoogleLogin = async () => {
     try {
-      console.log('🔍 Google Login Debug - Starting login process');
-      console.log('🔍 requestGoogle exists:', !!requestGoogle);
-      console.log('🔍 Platform:', Platform.OS);
-      console.log('🔍 Client IDs:', { androidClientId, iosClientId, webClientId });
-      
       if (!requestGoogle) {
         Alert.alert('Info', 'Google services are not available on this device!');
-        console.log('❌ Google Login Debug - requestGoogle is null');
         return;
       }
       
-      console.log('🔍 Google Login Debug - Calling promptAsyncGoogle...');
       const result = await promptAsyncGoogle();
-      console.log('🔍 Google Login Debug - promptAsyncGoogle result:', result);
-      console.log('🔍 Google Login Debug - result.type:', result.type);
       
       if (result.type === 'success' && result.authentication?.accessToken) {
-        console.log('✅ Google Login Debug - Authentication successful');
-        console.log('🔍 Access token exists:', !!result.authentication.accessToken);
-        
         const accessToken = result.authentication.accessToken;
-        console.log('🔍 Google Login Debug - Fetching user info from Google API...');
         
         const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         const userInfo = await userInfoResponse.json();
-        console.log('🔍 Google Login Debug - Google user info:', userInfo);
         
         const requestData: GoogleLoginRequest = {
           social_id: userInfo.id,
           social_email: userInfo.email || '',
           social_name: userInfo.name || '',
         };
-        console.log('🔍 Google Login Debug - Calling googleLogin with data:', requestData);
         
         await googleLogin(requestData);
-        console.log('✅ Google Login Debug - googleLogin completed successfully');
       } else if (result.type === 'cancel') {
-        console.log('⚠️ Google Login Debug - User cancelled login');
         Alert.alert('Login Cancelled', 'Google login was cancelled.');
       } else if (result.type === 'error') {
-        console.log('❌ Google Login Debug - Error occurred:', result.error);
         Alert.alert('Login Error', result.error?.message || 'An unknown error occurred during Google login.');
       } else {
         // Debug: Handle unexpected result types
-        console.log('⚠️ Google Login Debug - Unexpected result type:', result.type);
-        console.log('🔍 Full result object:', result);
         Alert.alert('Debug Info', `Unexpected result type: ${result.type}. Check console for details.`);
       }
     } catch (error) {
-      console.error('❌ Google Login Debug - Exception caught:', error);
       Alert.alert('Error', error instanceof Error ? error.message : 'Google login failed');
     }
   };
 
   // Handle Facebook Login
   const handleFacebookLogin = async () => {
-    try {
-      console.log('🔍 Facebook Login Debug - Starting login process');
-      
+    try {      
       const result = await promptAsyncFacebook();
-      console.log('🔍 Facebook Login Debug - promptAsyncFacebook result:', result);
       
       if (result.type === 'success' && result.authentication?.accessToken) {
-        console.log('✅ Facebook Login Debug - Authentication successful');
-        
         const accessToken = result.authentication.accessToken;
         const userInfoResponse = await fetch(
           `https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`
         );
         const userInfo = await userInfoResponse.json();
-        console.log('🔍 Facebook Login Debug - Facebook user info:', userInfo);
         
         const requestData: FacebookLoginRequest = {
           facebook_token: accessToken,
@@ -126,21 +99,16 @@ export default function SocialLoginButtons() {
           social_email: userInfo.email || '', // 有些用户可能没有公开 email
           social_name: userInfo.name || '',
         };
-        console.log('🔍 Facebook Login Debug - Calling facebookLogin with data:', requestData);
         
         await facebookLogin(requestData);
       } else if (result.type === 'cancel') {
-        console.log('⚠️ Facebook Login Debug - User cancelled login');
         Alert.alert('Login Cancelled', 'Facebook login was cancelled.');
       } else if (result.type === 'error') {
-        console.log('❌ Facebook Login Debug - Error occurred:', result.error);
         Alert.alert('Login Error', result.error?.message || 'An unknown error occurred during Facebook login.');
       } else {
-        console.log('⚠️ Facebook Login Debug - Unexpected result type:', result.type);
         Alert.alert('Debug Info', `Unexpected result type: ${result.type}. Check console for details.`);
       }
     } catch (error) {
-      console.error('❌ Facebook Login Debug - Exception caught:', error);
       Alert.alert('Error', error instanceof Error ? error.message : 'Facebook login failed');
     }
   };
@@ -152,9 +120,7 @@ export default function SocialLoginButtons() {
       return;
     }
 
-    try {
-      console.log('🔍 Apple Login Debug - Starting login process');
-      
+    try {    
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -162,30 +128,22 @@ export default function SocialLoginButtons() {
         ],
       });
       
-      console.log('🔍 Apple Login Debug - Apple credential:', credential);
-
-      if (credential.authorizationCode) {
-        console.log('✅ Apple Login Debug - Authorization code received');
-        
+      if (credential.authorizationCode) {        
         const requestData: AppleLoginRequest = {
           social_id: credential.user,
           social_email: credential.email || '',
           social_name: credential.fullName?.givenName || '',
           social_code: credential.authorizationCode,
         };
-        console.log('🔍 Apple Login Debug - Calling appleLogin with data:', requestData);
         
         await appleLogin(requestData);
       } else {
-        console.log('❌ Apple Login Debug - No authorization code received');
         Alert.alert('Login Error', 'Apple identity token not found.');
       }
     } catch (e: any) {
       if (e.code === 'ERR_CANCELED') {
-        console.log('⚠️ Apple Login Debug - User cancelled login');
         Alert.alert('Login Cancelled', 'Apple login was cancelled.');
       } else {
-        console.error('❌ Apple Login Debug - Exception caught:', e);
         Alert.alert('Login Error', e.message || 'An unknown error occurred during Apple login.');
       }
     }
@@ -196,33 +154,7 @@ export default function SocialLoginButtons() {
   const isFacebookLoginAvailable = requestFacebook && (initData?.facebook_login_enable !== false);
   const isAppleLoginAvailable = Platform.OS === 'ios' && (initData?.apple_login_enable !== false);
 
-  // Function to handle social binding
-  const handleSocialBind = async (socialType: 'google' | 'facebook' | 'apple', accessToken: string, socialId: string, socialEmail: string, socialName?: string) => {
-    try {
-      const { user } = useAuthStore.getState();
-      if (!user?.token) {
-        Alert.alert('Error', 'User not authenticated. Please log in first.');
-        return;
-      }
-      const bindResult = await AuthService.socialBind({
-        token: user.token,
-        social_type: socialType,
-        apple_code: socialType === 'apple' ? accessToken : '', // Apple uses identityToken as code
-        facebook_token: socialType === 'facebook' ? accessToken : '',
-        social_id: socialId,
-        social_email: socialEmail,
-        social_picture: '', // Assuming no picture from this flow
-        social_name: socialName,
-        version: '1.0', // Or dynamically get app version
-      });
-      if (bindResult.is_social_bind) {
-        Alert.alert('Success', `${socialType} account bound successfully!`);
-        useAuthStore.getState().reloadUser(); // Reload user info to reflect binding
-      } else {
-        Alert.alert('Binding Failed', `Failed to bind ${socialType} account.`);
-      }
-    } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Apple login failed');
+
   return (
     <View style={styles.container}>
       {isGoogleLoginAvailable && (

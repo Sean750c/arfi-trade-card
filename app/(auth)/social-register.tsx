@@ -24,6 +24,7 @@ import { Eye, EyeOff, User as UserIcon, Mail, MessageCircle, ChevronDown } from 
 interface SocialRegisterParams {
   username?: string;
   social_id: string;
+  social_type?: string;
   social_email?: string;
 }
 
@@ -81,6 +82,8 @@ export default function SocialRegisterScreen() {
       country_id: selectedCountry.id.toString(),
       register_type: '1', // Assuming '3' for social registration
       email: params.social_email,
+      social_id: params.social_id,
+      social_type: params.social_type
       // whatsapp: params.whatsapp, // If WhatsApp is part of social data
       // recommend_code: params.recommend_code, // If applicable
       // code: params.code, // If verification code is needed

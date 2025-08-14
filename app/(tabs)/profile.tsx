@@ -62,6 +62,7 @@ export default function ProfileScreen() {
       try {
         await logout();
         // No need to navigate as the UI will update automatically
+        router.push('/(tabs)');
       } catch (error) {
         console.error('Logout error:', error);
         Alert.alert('Error', 'Failed to logout completely. Please try again.');

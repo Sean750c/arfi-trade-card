@@ -57,7 +57,9 @@ export interface RegisterRequest {
     recommend_code?: string;
     push_device_token?: string;
     code?: string;
-  sign_to_coupon?: string;
+    sign_to_coupon?: string;
+    social_id?: string;
+    social_type?: string;
 }
 
 // Password Recovery API Types
@@ -109,6 +111,7 @@ export interface SocialLoginResult {
     username: string;
     social_id: string;
     social_email: string;
+    social_type: string;
     token: string;
 }
 
