@@ -156,7 +156,6 @@ export default function SocialLoginButtons() {
   const isFacebookLoginAvailable = requestFacebook && (initData?.facebook_login_enable !== false);
   const isAppleLoginAvailable = Platform.OS === 'ios' && (initData?.apple_login_enable !== false);
 
-
   return (
     <View style={styles.container}>
       {isGoogleLoginAvailable && (

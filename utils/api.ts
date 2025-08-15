@@ -55,14 +55,20 @@ export class APIRequest {
         const { clearAuth } = useAuthStore.getState();
         
         // Clear authentication state
-        clearAuth();
+        setTimeout(() => {
+          clearAuth();
+        }, 100); // Add a small delay
         
         // Redirect to login page
-        router.replace('/(auth)/login');
+        setTimeout(() => {
+          router.replace('/(auth)/login');
+        }, 100); // Add a small delay
       } catch (error) {
         console.error('Error clearing auth state:', error);
         // Still redirect even if clearing fails
-        router.replace('/(auth)/login');
+        setTimeout(() => {
+          router.replace('/(auth)/login');
+        }, 100); // Add a small delay
       }
       
       // throw new Error('Session expired. Please login again.');

@@ -55,7 +55,7 @@ export function useAuthProtection() {
     if (!isAuthenticated && isProtectedRoute) {
       console.log(`Redirecting to login from protected route: ${currentPath}`);
       // Use setTimeout to ensure navigation happens after current render cycle
-      setTimeout(() => {
+      setTimeout(() => { // Add a small delay
         router.replace('/(auth)/login');
       }, 0);
       return;
@@ -64,8 +64,7 @@ export function useAuthProtection() {
     // If user is authenticated and on auth pages, redirect to home
     if (isAuthenticated && currentPath.includes('(auth)')) {
       console.log(`Redirecting authenticated user to home from: ${currentPath}`);
-      // Use setTimeout to ensure navigation happens after current render cycle
-      setTimeout(() => {
+      setTimeout(() => { // Add a small delay
         router.replace('/(tabs)');
       }, 0);
       return;

@@ -256,27 +256,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const freshUser = { ...userInfo, token: result.token };
         console.log('Fetched user info:', freshUser);
         set({
-          isAuthenticated: true,
+          isAuthenticated: true, // Ensure isAuthenticated is set before navigation
           user: freshUser,
           isLoading: false,
           error: null,
         });
         await AsyncStorage.setItem('user', JSON.stringify(freshUser));
-        console.log('✅ Social Login Debug - User logged in successfully, redirecting to home');
-        router.replace('/(tabs)');
+        setTimeout(() => {
+          console.log('✅ Social Login Debug - User logged in successfully, redirecting to home');
+          router.replace('/(tabs)');
+        }, 100); // Add a small delay
       } else {
         console.log('User not bound. Navigating to social-register screen...');
         // Not bound, navigate to social register screen
         // Pass social login data to the new screen
-        console.log('🔍 Social Login Debug - Redirecting to social-register with params');
-        router.replace({
-          pathname: '/(auth)/social-register', params: {
-            username: result.username,
-            social_id: result.social_id,
-            social_type: result.social_type,
-            social_email: result.social_email,
-          }
-        });
+        setTimeout(() => {
+          console.log('🔍 Social Login Debug - Redirecting to social-register with params');
+          router.replace({
+            pathname: '/(auth)/social-register', params: {
+              username: result.username,
+              social_id: result.social_id,
+              social_email: result.social_email,
+            }
+          });
+        }, 100); // Add a small delay
         set({
           isLoading: false,
           error: null,

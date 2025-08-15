@@ -70,8 +70,10 @@ export default function RootLayout() {
         checkAppStartPopup();
 
         const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
-        if (!hasCompletedOnboarding) {
-          router.replace('/onboarding');
+        if (!hasCompletedOnboarding) { // Only redirect if onboarding hasn't been completed
+          setTimeout(() => {
+            router.replace('/onboarding');
+          }, 100); // Add a small delay to ensure router is ready
         }
       } catch (error) {
         console.error('Initialization error:', error);
