@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Keyboard,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft, Mail, MessageCircle, ArrowRight, Shield } from 'lucide-react-native';
@@ -44,6 +45,9 @@ export default function ForgotPasswordScreen() {
   };
 
   const handleSendCode = async () => {
+    // 强制关闭键盘
+    Keyboard.dismiss();
+    
     const newErrors: Record<string, string> = {};
     
     if (recoveryMethod === 'email') {
@@ -81,6 +85,9 @@ export default function ForgotPasswordScreen() {
   };
 
   const handleResetPassword = async () => {
+    // 强制关闭键盘
+    Keyboard.dismiss();
+    
     const newErrors: Record<string, string> = {};
     
     if (!verificationCode) {

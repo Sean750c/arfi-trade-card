@@ -8,6 +8,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
   Image,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -74,6 +75,9 @@ export default function SocialRegisterScreen() {
   };
 
   const handleRegister = async () => {
+    // 强制关闭键盘
+    Keyboard.dismiss();
+    
     if (!validateForm() || !selectedCountry) return;
 
     const registerData: RegisterRequest = {
@@ -104,6 +108,14 @@ export default function SocialRegisterScreen() {
     setSelectedCountry(country);
     setShowCountryPicker(false);
   };
+
+  // 页面获得焦点时关闭键盘
+  useFocusEffect(
+    React.useCallback(() => {
+      // 页面获得焦点时关闭键盘
+      Keyboard.dismiss();
+    }, [])
+  );
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>

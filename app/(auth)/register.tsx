@@ -10,6 +10,7 @@ import {
   Platform,
   Alert,
   Image,
+  Keyboard,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft, Mail, Phone, ChevronDown, Eye, EyeOff } from 'lucide-react-native';
@@ -141,6 +142,9 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = async () => {
+    // 强制关闭键盘
+    Keyboard.dismiss();
+    
     CommonService.analysis('register_before', '1');
     if (validateForm()) {
       try {
