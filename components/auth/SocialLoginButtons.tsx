@@ -35,6 +35,8 @@ export default function SocialLoginButtons() {
     androidClientId,
     iosClientId,
     webClientId,
+    responseType: 'token', // 👈 强制返回 accessToken
+    scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
   });
 
   // Facebook Auth Hook

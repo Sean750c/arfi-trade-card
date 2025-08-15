@@ -87,7 +87,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
         <Stack.Screen name="(auth)" />
-        {isInitialized && <Stack.Screen name="(tabs)" />}
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="rates" />
         <Stack.Screen name="refer" />

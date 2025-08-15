@@ -89,9 +89,10 @@ function ReferScreenContent() {
   const handleCopyLink = async () => {
     if (inviteInfo?.invite_code) {
       // 生成通用链接，指向 https://www.cardking.ng/register?recommend_code=XXX
-      const universalLink = Linking.createURL('register', {
-        queryParams: { recommend_code: inviteInfo.invite_code },
-      });
+      // const universalLink = Linking.createURL('register', {
+      //   queryParams: { recommend_code: inviteInfo.invite_code },
+      // });
+      const universalLink = `https://www.cardking.ng/register?recommend_code=${inviteInfo.invite_code}`;
       await Clipboard.setStringAsync(universalLink);
       Alert.alert('Copied', 'Referral link copied!');
     } else {
@@ -104,9 +105,10 @@ function ReferScreenContent() {
     try {
       if (inviteInfo?.invite_code) {
         // 生成通用链接，指向 https://www.cardking.ng/register?recommend_code=XXX
-        const universalLink = Linking.createURL('register', {
-          queryParams: { recommend_code: inviteInfo.invite_code },
-        });
+        // const universalLink = Linking.createURL('register', {
+        //   queryParams: { recommend_code: inviteInfo.invite_code },
+        // });
+        const universalLink = `https://www.cardking.ng/register?recommend_code=${inviteInfo.invite_code}`;
         
         // 创建友好的分享消息
         const shareMessage = `🎁 Join CardKing and get instant rewards!\n\n` +

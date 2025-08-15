@@ -44,6 +44,8 @@ export default function RegisterScreen() {
     return initData.register_type.split(',').map(type => type.trim()).filter(Boolean);
   }, [initData?.register_type]);
 
+  const urlParams = new URLSearchParams(window.location.search);
+
   // 新增：如果当前选中的注册方式不可用，自动切换到第一个可用方式
   React.useEffect(() => {
     if (availableTypes.length && !availableTypes.includes(registrationType)) {
@@ -57,7 +59,7 @@ export default function RegisterScreen() {
     whatsapp: '',
     password: '',
     confirmPassword: '',
-    referralCode: '',
+    referralCode: urlParams.get('recommend_code') || '',
   });
 
   const [termsAccepted, setTermsAccepted] = useState(true);

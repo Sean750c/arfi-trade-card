@@ -5,14 +5,14 @@ export default ({ config }) => ({
   name: "CardKing",
   slug: "cardking",
   version: "1.0.2",
-  orientation: "portrait",
+  orientation: "default",
   icon: "./assets/images/logo.png",
-  scheme: "myapp",
+  scheme: "cardking",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
   splash: {
     image: "./assets/images/logo.png",
-    resizeMode: "contain",
+    resizeMode: "cover",
     backgroundColor: "#ffffff"
   },
   ios: {

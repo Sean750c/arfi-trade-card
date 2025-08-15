@@ -205,7 +205,7 @@ export default function MyInvitesList({
           ) : (
             <FlatList
               data={invitingList}
-              keyExtractor={(item, idx) => String(item.user_id || idx)}
+              keyExtractor={(item, idx) => `invite_${item.user_id}`}
               renderItem={renderReferralItem}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.1}

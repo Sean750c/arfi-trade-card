@@ -205,7 +205,7 @@
         
         // Try to open the app with custom scheme as fallback
         function tryOpenApp() {
-            const customSchemeUrl = `myapp://register?recommend_code=${recommendCode || ''}`;
+            const customSchemeUrl = `cardking://register?recommend_code=${recommendCode || ''}`;
             window.location.href = customSchemeUrl;
             
             // Fallback to app store if app doesn't open within 2 seconds
