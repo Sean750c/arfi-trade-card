@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Keyboard,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
@@ -55,6 +56,9 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
+    // 强制关闭键盘
+    Keyboard.dismiss();
+    
     if (validateForm()) {
       try {
         await login(username, password);
@@ -86,6 +90,21 @@ export default function LoginScreen() {
   const handleBiometricSuccess = () => {
     router.replace('/(tabs)');
   };
+
+  const handleSocialLoginSuccess = () => {
+    // 强制关闭键盘
+    Keyboard.dismiss();
+    // Social login success is handled by the auth store
+    // This callback is just for any additional UI updates if needed
+  };
+
+  // 页面获得焦点时关闭键盘
+  useFocusEffect(
+    React.useCallback(() => {
+      // 页面获得焦点时关闭键盘
+      Keyboard.dismiss();
+    }, [])
+  );
 
   return (
     <KeyboardAvoidingView
