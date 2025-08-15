@@ -23,7 +23,7 @@ import Constants from 'expo-constants';
 
 export default function SocialLoginButtons() {
   const { colors } = useTheme();
-  const { setUser, appleLogin, facebookLogin, googleLogin } = useAuthStore();
+  const { setUser, appleLogin, facebookLogin, googleLogin, isLoading } = useAuthStore();
   const { initData } = useAppStore();
 
   // Google Auth Hook
@@ -162,6 +162,7 @@ export default function SocialLoginButtons() {
         <TouchableOpacity
           style={[styles.socialButton, { borderColor: colors.border, backgroundColor: colors.card }]}
           onPress={handleGoogleLogin}
+          disabled={isLoading}
           activeOpacity={0.8}
         >
           <Image
@@ -179,6 +180,7 @@ export default function SocialLoginButtons() {
         <TouchableOpacity
           style={[styles.socialButton, { borderColor: colors.border, backgroundColor: colors.card }]}
           onPress={handleFacebookLogin}
+          disabled={isLoading}
           activeOpacity={0.8}
         >
           <Image
@@ -196,6 +198,7 @@ export default function SocialLoginButtons() {
         <TouchableOpacity
           style={[styles.socialButton, { borderColor: colors.border, backgroundColor: colors.card }]}
           onPress={handleAppleLogin}
+          disabled={isLoading}
           activeOpacity={0.8}
         >
           <Image
