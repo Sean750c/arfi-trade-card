@@ -11,7 +11,7 @@ import {
   Keyboard,
   Image,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { User, RegisterRequest, Country } from '@/types';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';

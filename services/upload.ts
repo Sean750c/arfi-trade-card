@@ -77,4 +77,60 @@ export class UploadService {
       throw new Error('Failed to upload image');
     }
   }
+
+  static async uploadImage(
+    uploadUrl: string,
+    imageUri: string,
+    onProgress?: (progress: number) => void,
+    maxRetries = 3
+  ): Promise<string> {
+    // Helper: sleep for retry backoff
+    const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+  
+    // Convert image URI to ArrayBuffer
+    const getArrayBuffer = async () => {
+      const response = await fetch(imageUri);
+      return await response.arrayBuffer();
+    };
+  
+    const buffer = await getArrayBuffer();
+    const fileSize = buffer.byteLength;
+    const chunkSize = 1024 * 1024 * 2; // 2MB per chunk
+  
+    let offset = 0;
+  
+    while (offset < fileSize) {
+      const end = Math.min(offset + chunkSize, fileSize);
+      const chunk = buffer.slice(offset, end);
+  
+      let attempt = 0;
+      let uploaded = false;
+  
+      while (!uploaded && attempt < maxRetries) {
+        try {
+          const res = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'image/jpeg',
+              'Content-Range': `bytes ${offset}-${end - 1}/${fileSize}`,
+            },
+            body: chunk,
+          });
+  
+          if (!res.ok) throw new Error(`Status ${res.status}`);
+  
+          uploaded = true;
+          if (onProgress) onProgress(Math.min(1, end / fileSize));
+        } catch (err) {
+          attempt++;
+          if (attempt >= maxRetries) throw new Error(`Chunk upload failed: ${err}`);
+          await sleep(500 * attempt); // exponential backoff
+        }
+      }
+  
+      offset = end;
+    }
+  
+    return uploadUrl.split('?')[0];
+  }
 }
