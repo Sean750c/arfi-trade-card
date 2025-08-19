@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { router, useSegments } from 'expo-router';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -29,6 +29,14 @@ const PROTECTED_ROUTES = [
 export function useAuthProtection() {
   const { isAuthenticated, isInitialized } = useAuthStore();
   const segments = useSegments();
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     // Wait for initialization to complete before any navigation
@@ -54,9 +62,11 @@ export function useAuthProtection() {
     // If user is not authenticated and trying to access a protected route
     if (!isAuthenticated && isProtectedRoute) {
       console.log(`Redirecting to login from protected route: ${currentPath}`);
-      // Use setTimeout to ensure navigation happens after current render cycle
-      setTimeout(() => { // Add a small delay
-        router.replace('/(auth)/login');
+      // Check if component is still mounted before navigation
+      setTimeout(() => {
+        if (isMounted.current) {
+          router.replace('/(auth)/login');
+        }
       }, 0);
       return;
     }
@@ -64,10 +74,12 @@ export function useAuthProtection() {
     // If user is authenticated and on auth pages, redirect to home
     if (isAuthenticated && currentPath.includes('(auth)')) {
       console.log(`Redirecting authenticated user to home from: ${currentPath}`);
-      setTimeout(() => { // Add a small delay
-        router.replace('/(tabs)');
+      setTimeout(() => {
+        if (isMounted.current) {
+          router.replace('/(tabs)');
+        }
       }, 0);
       return;
     }
-  }, [isAuthenticated, isInitialized, segments]);
+  }, [isAuthenticated, isInitialized, segments, isMounted]);
 }
