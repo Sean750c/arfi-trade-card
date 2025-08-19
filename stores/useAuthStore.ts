@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useRef } from 'react';
 import { User, SocialLoginResult, GoogleLoginRequest, FacebookLoginRequest, AppleLoginRequest } from '@/types';
 import { AuthService } from '@/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -241,6 +242,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   socialLoginCallback: async (result: SocialLoginResult) => {
     set({ isLoading: true, error: null });
+    
+    // Create a ref to track if the operation should continue
+    let shouldContinue = true;
+    
     try {
       console.log('🔍 Social Login Callback Debug - Received result:', result);
       console.log('🔍 is_social_bind:', result.is_social_bind);
@@ -264,7 +269,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         await AsyncStorage.setItem('user', JSON.stringify(freshUser));
         setTimeout(() => {
           console.log('✅ Social Login Debug - User logged in successfully, redirecting to home');
-          router.replace('/(tabs)');
+          if (shouldContinue) {
+            router.replace('/(tabs)');
+          }
         }, 100); // Add a small delay
       } else {
         console.log('User not bound. Navigating to social-register screen...');
@@ -272,13 +279,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Pass social login data to the new screen
         setTimeout(() => {
           console.log('🔍 Social Login Debug - Redirecting to social-register with params');
-          router.replace({
-            pathname: '/(auth)/social-register', params: {
-              username: result.username,
-              social_id: result.social_id,
-              social_email: result.social_email,
-            }
-          });
+          if (shouldContinue) {
+            router.replace({
+              pathname: '/(auth)/social-register', params: {
+                username: result.username,
+                social_id: result.social_id,
+                social_email: result.social_email,
+              }
+            });
+          }
         }, 100); // Add a small delay
         set({
           isLoading: false,
@@ -293,5 +302,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       throw error;
     }
+    
+    // Mark operation as complete to prevent further navigation
+    return () => {
+      shouldContinue = false;
+    };
   },
 }));

@@ -49,6 +49,15 @@ export class APIRequest {
       // Token expired, clear auth state and redirect to login
       console.log('Token expired, clearing auth and redirecting to login');
       
+      // Create a flag to prevent multiple simultaneous operations
+      let isHandlingExpiration = false;
+      
+      if (isHandlingExpiration) {
+        return; // Prevent multiple simultaneous token expiration handling
+      }
+      
+      isHandlingExpiration = true;
+      
       try {
         // Import auth store dynamically to avoid circular dependencies
         const { useAuthStore } = await import('@/stores/useAuthStore');
@@ -56,18 +65,26 @@ export class APIRequest {
         
         // Clear authentication state
         setTimeout(() => {
-          clearAuth();
+          if (isHandlingExpiration) {
+            clearAuth();
+          }
         }, 100); // Add a small delay
         
         // Redirect to login page
         setTimeout(() => {
-          router.replace('/(auth)/login');
+          if (isHandlingExpiration) {
+            router.replace('/(auth)/login');
+            isHandlingExpiration = false;
+          }
         }, 100); // Add a small delay
       } catch (error) {
         console.error('Error clearing auth state:', error);
         // Still redirect even if clearing fails
         setTimeout(() => {
-          router.replace('/(auth)/login');
+          if (isHandlingExpiration) {
+            router.replace('/(auth)/login');
+            isHandlingExpiration = false;
+          }
         }, 100); // Add a small delay
       }
       

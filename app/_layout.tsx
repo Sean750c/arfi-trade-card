@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -44,6 +44,7 @@ function InitializationLoader() {
 
 export default function RootLayout() {
   const router = useRouter();
+  const isMounted = useRef(true);
   const { initialize } = useAppStore();
   const { fetchCountries } = useCountryStore();
   const { isAuthenticated, user, initialize: initializeAuth, isInitialized } = useAuthStore();
@@ -51,6 +52,13 @@ export default function RootLayout() {
   
   useFrameworkReady();
   useAuthProtection();
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // 假设 useNotifications 返回一个普通函数来启动通知
   useNotifications();
@@ -72,7 +80,9 @@ export default function RootLayout() {
         const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
         if (!hasCompletedOnboarding) { // Only redirect if onboarding hasn't been completed
           setTimeout(() => {
-            router.replace('/onboarding');
+            if (isMounted.current) {
+              router.replace('/onboarding');
+            }
           }, 100); // Add a small delay to ensure router is ready
         }
       } catch (error) {
