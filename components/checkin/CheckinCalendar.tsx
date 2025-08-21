@@ -1,13 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import {
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle,
-  CalendarDays,
-  Clock,
-  Star,
-} from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, CircleCheck as CheckCircle, CalendarDays, Clock, Star } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { CheckinRule, RewardType } from '@/types';

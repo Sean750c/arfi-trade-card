@@ -1,13 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import {
-  Star,
-  Ticket,
-  DollarSign,
-  Gift,
-  HelpCircle,
-  Coins,
-} from 'lucide-react-native';
+import { Star, Ticket, DollarSign, Gift, CircleHelp as HelpCircle, Coins } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { RewardType } from '@/types';
