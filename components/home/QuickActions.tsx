@@ -72,7 +72,7 @@ export default function QuickActions() {
       title: 'Daily Check-in',
       subtitle: 'Earn points',
       icon: <Calendar size={24} color="#FFFFFF" />,
-      route: '/profile/checkin',
+      route: '/profile/checkin', // 确保路由正确
       color: '#8B5CF6',
     },
     {

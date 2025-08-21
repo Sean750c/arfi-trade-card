@@ -105,6 +105,7 @@ export default function RootLayout() {
         <Stack.Screen name="refer" />
         <Stack.Screen name="calculator" />
         <Stack.Screen name="profile/checkin" />
+        {/* Add the lottery screen here */}
         <Stack.Screen name="profile/lottery" />
         <Stack.Screen name="+not-found" />
       </Stack>

@@ -1,3 +1,4 @@
+```typescript
 import { create } from 'zustand';
 import { CheckinConfig } from '@/types';
 import { CheckinService } from '@/services/checkin';
@@ -14,7 +15,7 @@ interface CheckinState {
   
   // Actions
   fetchCheckinConfig: (token: string, date: string) => Promise<void>;
-  performCheckin: (token: string, ruleId: number, date: string) => Promise<void>;
+  performCheckin: (token: string, ruleId: number, currentDisplayDate: string) => Promise<void>;
   clearCheckinData: () => void;
 }
 
@@ -46,14 +47,14 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
     }
   },
 
-  performCheckin: async (token: string, ruleId: number, date: string) => {
+  performCheckin: async (token: string, ruleId: number, currentDisplayDate: string) => {
     set({ isCheckingIn: true, checkinError: null });
     
     try {
       await CheckinService.performCheckin(token, ruleId);
       
       // Refresh checkin config after successful checkin
-      await get().fetchCheckinConfig(token, date);
+      await get().fetchCheckinConfig(token, currentDisplayDate);
       
       set({ isCheckingIn: false });
     } catch (error) {
@@ -81,3 +82,4 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
     });
   },
 }));
+```
