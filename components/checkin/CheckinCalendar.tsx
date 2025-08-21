@@ -1,4 +1,3 @@
-```typescript
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import {
@@ -47,7 +46,7 @@ export default function CheckinCalendar({
 
   const today = useMemo(() => {
     const d = new Date();
-    return \`${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
   }, []);
 
   const currentDisplayMonthYear = useMemo(() => {
@@ -99,7 +98,7 @@ export default function CheckinCalendar({
 
     switch (status) {
       case 'signed':
-        dayStyle = { backgroundColor: \`${colors.primary}15`, borderColor: colors.primary };
+        dayStyle = { backgroundColor: `${colors.primary}15`, borderColor: colors.primary };
         textStyle = { color: colors.primary };
         icon = <CheckCircle size={16} color={colors.primary} />;
         break;
@@ -169,7 +168,7 @@ export default function CheckinCalendar({
       <View style={styles.navigationHeader}>
         <TouchableOpacity
           onPress={() => onDateChange('prev')}
-          style={[styles.navButton, { backgroundColor: \`${colors.primary}15` }]}
+          style={[styles.navButton, { backgroundColor: `${colors.primary}15` }]}
         >
           <ChevronLeft size={20} color={colors.primary} />
         </TouchableOpacity>
@@ -178,7 +177,7 @@ export default function CheckinCalendar({
         </Text>
         <TouchableOpacity
           onPress={() => onDateChange('next')}
-          style={[styles.navButton, { backgroundColor: \`${colors.primary}15` }]}
+          style={[styles.navButton, { backgroundColor: `${colors.primary}15` }]}
         >
           <ChevronRight size={20} color={colors.primary} />
         </TouchableOpacity>
@@ -289,5 +288,3 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
   },
 });
-
-```

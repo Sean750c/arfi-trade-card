@@ -1,4 +1,3 @@
-```typescript
 import type { APIResponse } from './api';
 
 // Reward Types Enum (for better readability)
@@ -104,5 +103,3 @@ export interface CheckinRequest {
 
 export type CheckinConfigResponse = APIResponse<CheckinConfig>;
 export type CheckinResponse = APIResponse<{}>;
-
-```

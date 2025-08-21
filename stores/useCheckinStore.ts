@@ -1,4 +1,3 @@
-```typescript
 import { create } from 'zustand';
 import { CheckinConfig } from '@/types';
 import { CheckinService } from '@/services/checkin';
@@ -82,4 +81,3 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
     });
   },
 }));
-```

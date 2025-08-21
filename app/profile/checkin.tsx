@@ -1,4 +1,3 @@
-```typescript
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
@@ -36,7 +35,7 @@ const formatDate = (date: Date) => {
   const year = date.getFullYear();
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const day = date.getDate().toString().padStart(2, '0');
-  return \`${year}-${month}-${day}`;
+  return `${year}-${month}-${day}`;
 };
 
 function CheckinScreenContent() {
@@ -124,7 +123,7 @@ function CheckinScreenContent() {
 
   // Handle calendar navigation
   const handleCalendarDateChange = useCallback(
-    (direction: 'prev' | 'next') => {
+    (direction: string) => {
       const date = new Date(currentDisplayDate);
       if (direction === 'prev') {
         date.setDate(date.getDate() - 7); // Go back one week
@@ -140,7 +139,7 @@ function CheckinScreenContent() {
     return checkinConfig?.rule.filter((rule) => rule.is_checkin).length || 0;
   }, [checkinConfig]);
 
-  const userPoints = user?.point || 0;
+  const userPoints = checkinConfig?.user_point || 0;
   const currencySymbol = user?.currency_symbol || '₦';
 
   const renderRewardSection = (
@@ -221,7 +220,7 @@ function CheckinScreenContent() {
             </View>
             <TouchableOpacity
               style={[styles.taskButton, { backgroundColor: colors.primary }]}
-              onPress={() => Alert.alert('Task Action', \`Navigate to ${task.code}`)} // Placeholder for task navigation
+              onPress={() => Alert.alert('Task Action', `Navigate to ${task.code}`)} // Placeholder for task navigation
             >
               <Text style={styles.taskButtonText}>Go</Text>
             </TouchableOpacity>
@@ -232,7 +231,7 @@ function CheckinScreenContent() {
   };
 
   if (!isAuthenticated) {
-    return <AuthGuard />;
+    return null;
   }
 
   return (
@@ -260,20 +259,20 @@ function CheckinScreenContent() {
           >
             <Text style={styles.summaryLabel}>Make-Up Signs</Text>
             <Text style={styles.summaryValue}>
-              {checkinConfig?.max_make_up_sign_rule - checkinConfig?.used_make_up_sign_count || 0}
+              {(checkinConfig?.max_make_up_sign_rule || 0) - (checkinConfig?.used_make_up_sign_count || 0)}
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Check-in Calendar */}
         {configError ? (
-          <View style={[styles.errorContainer, { backgroundColor: \`${colors.error}10` }]}>
+          <View style={[styles.errorContainer, { backgroundColor: `${colors.error}10` }]}>
             <Info size={24} color={colors.error} />
             <Text style={[styles.errorText, { color: colors.error }]}>
               {configError}
             </Text>
             <TouchableOpacity
-              onPress={() => fetchCheckinConfig(user.token, currentDisplayDate)}
+              onPress={() => fetchCheckinConfig(user?.token || '', currentDisplayDate)}
               style={[styles.retryButton, { backgroundColor: colors.error }]}
             >
               <Text style={styles.retryButtonText}>Retry</Text>
@@ -523,5 +522,3 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
-
-```

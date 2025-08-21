@@ -1,4 +1,3 @@
-```typescript
 import React from 'react';
 import {
   View,
@@ -53,7 +52,7 @@ export default function MakeUpSignModal({
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={[styles.infoCard, { backgroundColor: \`${colors.primary}10` }]}>
+            <View style={[styles.infoCard, { backgroundColor: `${colors.primary}10` }]}>
               <Text style={[styles.infoText, { color: colors.text }]}>
                 You have used <Text style={styles.highlightText}>{usedCount}</Text> out of{' '}
                 <Text style={styles.highlightText}>{maxCount}</Text> available make-up signs.
@@ -94,7 +93,7 @@ export default function MakeUpSignModal({
               </Text>
             )}
 
-            <View style={[styles.noteBox, { backgroundColor: \`${colors.warning}10` }]}>
+            <View style={[styles.noteBox, { backgroundColor: `${colors.warning}10` }]}>
               <Text style={[styles.noteTitle, { color: colors.warning }]}>
                 💡 How to Make-Up Sign:
               </Text>
@@ -204,5 +203,3 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
-
-```
