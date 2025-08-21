@@ -56,38 +56,38 @@ export default function RewardIcon({
   const formatValue = () => {
     switch (type) {
       case RewardType.POINTS:
-        return `${value} Pts`;
+        return `${value}`;
       case RewardType.CASH:
-        return `${currencySymbol}${parseFloat(value as string).toFixed(2)}`;
+        return `${currencySymbol}${parseFloat(value as string).toFixed(0)}`;
       case RewardType.COUPON:
       case RewardType.PHYSICAL_PRODUCT:
       case RewardType.OTHER:
-        return value; // Display as is for non-numeric types
+        return typeof value === 'string' && value.length > 8 ? `${value.slice(0, 8)}...` : value;
       default:
         return value;
     }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { minWidth: size }]}>
+      {showValue && (
+        <Text style={[styles.valueText, { fontSize, color: iconColor }]}>
+          {formatValue()}
+        </Text>
+      )}
       <View
         style={[
           styles.iconWrapper,
           {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
+            width: size * 0.7,
+            height: size * 0.7,
+            borderRadius: (size * 0.7) / 2,
             backgroundColor: `${iconColor}15`,
           },
         ]}
       >
         {renderIcon()}
       </View>
-      {showValue && (
-        <Text style={[styles.valueText, { fontSize, color: colors.text }]}>
-          {formatValue()}
-        </Text>
-      )}
     </View>
   );
 }
@@ -95,7 +95,7 @@ export default function RewardIcon({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    gap: Spacing.xxs,
+    gap: 2,
   },
   iconWrapper: {
     justifyContent: 'center',
@@ -103,5 +103,6 @@ const styles = StyleSheet.create({
   },
   valueText: {
     fontFamily: 'Inter-SemiBold',
+    textAlign: 'center',
   },
 });

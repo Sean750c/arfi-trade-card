@@ -239,43 +239,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
   },
   weekDayText: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
-    width: '14%', // Roughly 1/7th of the width
+    flex: 1,
     textAlign: 'center',
   },
   daysGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xs,
   },
   dayContainer: {
-    width: '13%', // Slightly less than 1/7th to allow spacing
-    aspectRatio: 1, // Make it square
+    flex: 1,
+    aspectRatio: 0.85, // Slightly taller than square for better text layout
     borderRadius: 12,
     borderWidth: 1,
-    margin: '0.7%', // Small margin for spacing
+    marginHorizontal: 2,
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.xxs,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: 4,
+    minHeight: 80,
   },
   dayOfMonth: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Inter-Bold',
+    marginBottom: 2,
   },
   rewardInfo: {
-    flexDirection: 'row',
-    gap: Spacing.xxs,
-    flexWrap: 'wrap',
+    flexDirection: 'column',
+    gap: 2,
     justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
   },
   dayStatusIcon: {
-    position: 'absolute',
-    bottom: 4,
-    right: 4,
+    marginTop: 4,
   },
   loadingContainer: {
     minHeight: 150,

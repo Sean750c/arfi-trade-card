@@ -58,6 +58,25 @@ export interface CheckinTask {
   enable: boolean;
 }
 
+export interface CheckinLogEntry {
+  id: number;
+  activity_id: number;
+  rule_id: number;
+  user_id: number;
+  reward_type: RewardType;
+  reward_value: string;
+  reward_data: any;
+  create_time: number;
+  memo: string;
+  date: string; // YYYY-MM-DD format
+}
+
+export interface CheckinLogRequest {
+  token: string;
+  page: number;
+  page_size: number;
+}
+
 export interface CheckinConfig {
   id: number;
   activity_no: string;
@@ -103,3 +122,4 @@ export interface CheckinRequest {
 
 export type CheckinConfigResponse = APIResponse<CheckinConfig>;
 export type CheckinResponse = APIResponse<{}>;
+export type CheckinLogResponse = APIResponse<CheckinLogEntry[]>;

@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import {
+import { ChevronLeft, Star, Trophy, Gift, Calendar, Clock, Zap, List } from 'lucide-react-native';
   CalendarCheck,
   Star,
   Gift,
@@ -27,6 +27,7 @@ import { useCheckinStore } from '@/stores/useCheckinStore';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import CheckinCalendar from '@/components/checkin/CheckinCalendar';
 import MakeUpSignModal from '@/components/checkin/MakeUpSignModal';
+import CheckinLogModal from '@/components/checkin/CheckinLogModal';
 import RewardIcon from '@/components/checkin/RewardIcon';
 import { RewardType } from '@/types';
 
@@ -52,6 +53,7 @@ function CheckinScreenContent() {
   } = useCheckinStore();
 
   const [currentDisplayDate, setCurrentDisplayDate] = useState(formatDate(new Date()));
+  const [showLogModal, setShowLogModal] = useState(false);
   const [showMakeUpSignModal, setShowMakeUpSignModal] = useState(false);
 
   // Fetch data on focus
@@ -254,6 +256,17 @@ function CheckinScreenContent() {
           </View>
           <View style={styles.summaryDivider} />
           <TouchableOpacity
+  // Calculate check-in progress
+  const getCheckinProgress = () => {
+    if (!checkinConfig?.rule) return { completed: 0, total: 0 };
+    
+    const completed = checkinConfig.rule.filter(rule => rule.is_checkin).length;
+    const total = checkinConfig.rule.length;
+    return { completed, total };
+  };
+
+  const progress = getCheckinProgress();
+
             style={styles.summaryItem}
             onPress={() => setShowMakeUpSignModal(true)}
           >
@@ -297,8 +310,9 @@ function CheckinScreenContent() {
             <CalendarCheck size={48} color={colors.textSecondary} />
             <Text style={[styles.noActivityText, { color: colors.text }]}>
               No Check-in Activity Available
+          <View style={styles.headerSpacer} />
             </Text>
-            <Text style={[styles.noActivitySubtext, { color: colors.textSecondary }]}>
+        <View style={[styles.errorContainer, { backgroundColor: colors.card }]}>
               Please check back later for new exciting check-in events!
             </Text>
           </View>
@@ -306,6 +320,11 @@ function CheckinScreenContent() {
 
         {/* First Check-in Reward */}
         {checkinConfig?.first_checkin_reward?.enable && (
+          <Button
+            title="Refresh"
+            onPress={() => user?.token && fetchCheckinConfig(user.token, currentDisplayDate)}
+            style={styles.refreshButton}
+          />
           <View style={[styles.section, { backgroundColor: colors.card }]}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>First Check-in Bonus</Text>
             <View style={[styles.rewardItem, { borderColor: colors.border }]}>
@@ -323,37 +342,146 @@ function CheckinScreenContent() {
                   color={colors.success}
                 />
               </View>
-              <View style={styles.rewardRight}>
-                {checkinConfig.first_checkin_reward.is_checkin ? (
-                  <Text style={[styles.claimedText, { color: colors.success }]}>
-                    Claimed
-                  </Text>
-                ) : (
-                  <Text style={[styles.unclaimedText, { color: colors.warning }]}>
-                    Unclaimed
-                  </Text>
-                )}
-              </View>
+        {checkinConfig.first_checkin_reward?.enable && (
+          <Card style={styles.rewardCard}>
+            <View style={styles.rewardHeader}>
+              <Gift size={20} color={colors.primary} />
+              <Text style={[styles.rewardTitle, { color: colors.text }]}>
+                First Check-in Reward
+              </Text>
+              {checkinConfig.first_checkin_reward.is_checkin && (
+                <View style={[styles.claimedBadge, { backgroundColor: colors.success }]}>
+                  <Text style={styles.claimedText}>Claimed</Text>
+                </View>
+              )}
             </View>
-          </View>
+            <View style={styles.rewardContent}>
+              <RewardIcon
+                type={checkinConfig.first_checkin_reward.prize_type}
+                value={checkinConfig.first_checkin_reward.prize}
+                currencySymbol={user?.currency_symbol || '₦'}
+                size={40}
+                iconSize={24}
+                fontSize={14}
+              />
+              <Text style={[styles.rewardDescription, { color: colors.textSecondary }]}>
+                {checkinConfig.first_checkin_reward.is_checkin ? 'Already claimed' : 'Available on first check-in'}
+              </Text>
+            </View>
+          </Card>
         )}
 
         {/* Accumulated Check-in Rewards */}
-        {renderRewardSection(
-          'Accumulated Check-in Rewards',
-          checkinConfig?.accumulate_checkin_reward || [],
-          'accumulated'
+        {checkinConfig.accumulate_checkin_reward && checkinConfig.accumulate_checkin_reward.length > 0 && (
+          <Card style={styles.rewardCard}>
+            <View style={styles.rewardHeader}>
+              <Trophy size={20} color={colors.warning} />
+              <Text style={[styles.rewardTitle, { color: colors.text }]}>
+                Consecutive Check-in Rewards
+              </Text>
+            </View>
+            <View style={styles.accumulateRewardsList}>
+              {checkinConfig.accumulate_checkin_reward.map((reward, index) => (
+                <View key={index} style={[styles.accumulateRewardItem, { borderColor: colors.border }]}>
+                  <View style={styles.accumulateRewardInfo}>
+                    <Text style={[styles.accumulateRewardCount, { color: colors.text }]}>
+                      {reward.checkin_count} Days
+                    </Text>
+                    <RewardIcon
+                      type={reward.prize_type}
+                      value={reward.prize}
+                      currencySymbol={user?.currency_symbol || '₦'}
+                      size={32}
+                      iconSize={18}
+                      fontSize={12}
+                    />
+                  </View>
+                  {reward.is_checkin && (
+                    <View style={[styles.claimedBadge, { backgroundColor: colors.success }]}>
+                      <Text style={styles.claimedText}>Claimed</Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          </Card>
         )}
 
-        {/* Daily Accumulated Amount Rewards */}
-        {renderRewardSection(
-          'Daily Trade Rewards',
-          checkinConfig?.daily_accumulate_amount_reward || [],
-          'daily'
+        {/* Daily Accumulate Amount Rewards */}
+        {checkinConfig.daily_accumulate_amount_reward && checkinConfig.daily_accumulate_amount_reward.length > 0 && (
+          <Card style={styles.rewardCard}>
+            <View style={styles.rewardHeader}>
+              <Zap size={20} color={colors.success} />
+              <Text style={[styles.rewardTitle, { color: colors.text }]}>
+                Daily Trading Rewards
+              </Text>
+            </View>
+            <View style={styles.accumulateRewardsList}>
+              {checkinConfig.daily_accumulate_amount_reward.map((reward, index) => (
+                <View key={index} style={[styles.accumulateRewardItem, { borderColor: colors.border }]}>
+                  <View style={styles.accumulateRewardInfo}>
+                    <Text style={[styles.accumulateRewardCount, { color: colors.text }]}>
+                      Trade ${reward.amount}+
+                    </Text>
+                    <RewardIcon
+                      type={reward.prize_type}
+                      value={reward.prize}
+                      currencySymbol={user?.currency_symbol || '₦'}
+                      size={32}
+                      iconSize={18}
+                      fontSize={12}
+                    />
+                  </View>
+                  {reward.is_checkin && (
+                    <View style={[styles.claimedBadge, { backgroundColor: colors.success }]}>
+                      <Text style={styles.claimedText}>Claimed</Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+        {/* Accumulated Check-in Rewards */}
         )}
 
-        {/* Tasks */}
-        {renderTaskSection(checkinConfig?.task || [])}
+        {/* Additional Tasks */}
+        {checkinConfig.task && checkinConfig.task.length > 0 && (
+          <Card style={styles.rewardCard}>
+            <View style={styles.rewardHeader}>
+              <Star size={20} color={colors.warning} />
+              <Text style={[styles.rewardTitle, { color: colors.text }]}>
+                Bonus Tasks
+              </Text>
+            </View>
+            <View style={styles.tasksList}>
+              {checkinConfig.task.filter(task => task.enable).map((task, index) => (
+                <View key={index} style={[styles.taskItem, { borderColor: colors.border }]}>
+                  <View style={styles.taskInfo}>
+                    <Text style={[styles.taskName, { color: colors.text }]}>
+                      {task.name}
+                    </Text>
+                    <RewardIcon
+                      type={task.prize_type}
+                      value={task.prize}
+                      currencySymbol={user?.currency_symbol || '₦'}
+                      size={28}
+                      iconSize={16}
+                      fontSize={11}
+                    />
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.taskButton, { backgroundColor: colors.primary }]}
+                    onPress={() => {
+                      // TODO: Handle task action based on task.code
+                      Alert.alert('Task', `Navigate to ${task.code}`);
+                    }}
+                  >
+                    <Text style={styles.taskButtonText}>Go</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </Card>
+        )}
       </ScrollView>
 
       {/* Make-Up Sign Modal */}
@@ -366,6 +494,13 @@ function CheckinScreenContent() {
           maxCount={checkinConfig.max_make_up_sign_rule}
         />
       )}
+
+      <CheckinLogModal
+        visible={showLogModal}
+        onClose={() => setShowLogModal(false)}
+        token={user?.token || ''}
+        currencySymbol={user?.currency_symbol || '₦'}
+      />
     </SafeAreaWrapper>
   );
 }
@@ -424,6 +559,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
+    justifyContent: 'space-between',
     fontFamily: 'Inter-Bold',
     marginBottom: Spacing.md,
   },
@@ -485,6 +621,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: Spacing.md,
+    margin: Spacing.lg,
+    padding: Spacing.xl,
+    borderRadius: 16,
     borderRadius: 8,
     marginBottom: Spacing.lg,
   },
@@ -499,26 +638,107 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     borderRadius: 6,
   },
+    justifyContent: 'space-between',
   retryButtonText: {
     color: '#FFFFFF',
     fontSize: 12,
     fontFamily: 'Inter-Medium',
   },
+    flex: 1,
+  },
+  claimedBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
   noActivityContainer: {
+  claimedText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontFamily: 'Inter-Bold',
+  },
     alignItems: 'center',
     padding: Spacing.xl,
     borderRadius: 16,
     gap: Spacing.md,
-    marginBottom: Spacing.lg,
+  },
+  headerSpacer: {
+    width: 40, // Same as button width for balance
+  },
+  logButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   noActivityText: {
     fontSize: 18,
     fontFamily: 'Inter-Bold',
+    textAlign: 'center',
+    flex: 1,
+    textAlign: 'center',
   },
   noActivitySubtext: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
     lineHeight: 20,
+  accumulateRewardsList: {
+    gap: Spacing.sm,
+  },
+  accumulateRewardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderRadius: 12,
+  },
+  accumulateRewardInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    flex: 1,
+  },
+  accumulateRewardCount: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    minWidth: 60,
+  },
+  tasksList: {
+    gap: Spacing.sm,
+  },
+  taskItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderRadius: 12,
+  },
+  taskInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    flex: 1,
+  },
+  taskName: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    flex: 1,
+  },
+  taskButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: 8,
+  },
+  taskButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'Inter-Bold',
+  },
+  },
+  refreshButton: {
+    marginTop: Spacing.md,
   },
 });
