@@ -77,6 +77,14 @@ export default function QuickActions() {
     },
     {
       id: '4',
+      title: 'Lucky Draw',
+      subtitle: 'Win prizes',
+      icon: <Star size={24} color="#FFFFFF" />,
+      route: '/profile/lottery',
+      color: '#EC4899',
+    },
+    {
+      id: '5',
       title: 'Refer & Earn',
       subtitle: 'Get rewards',
       icon: <Users size={24} color="#FFFFFF" />,
@@ -84,7 +92,7 @@ export default function QuickActions() {
       color: '#F59E0B',
     },
     {
-      id: '5',
+      id: '6',
       title: 'My Wallet',
       subtitle: 'Manage funds',
       icon: <CreditCard size={24} color="#FFFFFF" />,
