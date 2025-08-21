@@ -36,7 +36,7 @@ const formatDate = (date: Date) => {
   const year = date.getFullYear();
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const day = date.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return \`${year}-${month}-${day}`;
 };
 
 function CheckinScreenContent() {
@@ -221,7 +221,7 @@ function CheckinScreenContent() {
             </View>
             <TouchableOpacity
               style={[styles.taskButton, { backgroundColor: colors.primary }]}
-              onPress={() => Alert.alert('Task Action', `Navigate to ${task.code}`)} // Placeholder for task navigation
+              onPress={() => Alert.alert('Task Action', \`Navigate to ${task.code}`)} // Placeholder for task navigation
             >
               <Text style={styles.taskButtonText}>Go</Text>
             </TouchableOpacity>
@@ -267,7 +267,7 @@ function CheckinScreenContent() {
 
         {/* Check-in Calendar */}
         {configError ? (
-          <View style={[styles.errorContainer, { backgroundColor: `${colors.error}10` }]}>
+          <View style={[styles.errorContainer, { backgroundColor: \`${colors.error}10` }]}>
             <Info size={24} color={colors.error} />
             <Text style={[styles.errorText, { color: colors.error }]}>
               {configError}

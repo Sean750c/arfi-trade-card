@@ -57,9 +57,9 @@ export default function RewardIcon({
   const formatValue = () => {
     switch (type) {
       case RewardType.POINTS:
-        return `${value} Pts`;
+        return \`${value} Pts`;
       case RewardType.CASH:
-        return `${currencySymbol}${parseFloat(value as string).toFixed(2)}`;
+        return \`${currencySymbol}${parseFloat(value as string).toFixed(2)}`;
       case RewardType.COUPON:
       case RewardType.PHYSICAL_PRODUCT:
       case RewardType.OTHER:
@@ -78,7 +78,7 @@ export default function RewardIcon({
             width: size,
             height: size,
             borderRadius: size / 2,
-            backgroundColor: `${iconColor}15`,
+            backgroundColor: \`${iconColor}15`,
           },
         ]}
       >
