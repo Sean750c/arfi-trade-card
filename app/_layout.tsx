@@ -104,6 +104,7 @@ export default function RootLayout() {
         <Stack.Screen name="rates" />
         <Stack.Screen name="refer" />
         <Stack.Screen name="calculator" />
+        <Stack.Screen name="profile/checkin" />
         <Stack.Screen name="+not-found" />
       </Stack>
 

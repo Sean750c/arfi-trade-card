@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { router } from 'expo-router';
-import { Gift, TrendingUp, Users, CreditCard, Zap, Star } from 'lucide-react-native';
+import { Gift, TrendingUp, Users, CreditCard, Zap, Star, Calendar } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
@@ -69,19 +69,27 @@ export default function QuickActions() {
     },
     {
       id: '3',
-      title: 'Refer & Earn',
-      subtitle: 'Get rewards',
-      icon: <Users size={24} color="#FFFFFF" />,
-      route: '/refer',
+      title: 'Daily Check-in',
+      subtitle: 'Earn points',
+      icon: <Calendar size={24} color="#FFFFFF" />,
+      route: '/profile/checkin',
       color: '#8B5CF6',
     },
     {
       id: '4',
+      title: 'Refer & Earn',
+      subtitle: 'Get rewards',
+      icon: <Users size={24} color="#FFFFFF" />,
+      route: '/refer',
+      color: '#F59E0B',
+    },
+    {
+      id: '5',
       title: 'My Wallet',
       subtitle: 'Manage funds',
       icon: <CreditCard size={24} color="#FFFFFF" />,
       route: '/(tabs)/wallet',
-      color: '#F59E0B',
+      color: '#6366F1',
     },
   ];
 
