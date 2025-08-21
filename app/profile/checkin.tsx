@@ -10,18 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
-import { 
-  ChevronLeft, 
-  Calendar, 
-  Gift, 
-  Trophy, 
-  Star, 
-  CheckCircle, 
-  Clock,
-  Zap,
-  Target,
-  Award
-} from 'lucide-react-native';
+import { ChevronLeft, Calendar, Gift, Trophy, Star, CircleCheck as CheckCircle, Clock, Zap, Target, Award } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
