@@ -34,7 +34,7 @@ export default function CheckinLogModal({
   const renderLogEntry = ({ item: log }: { item: CheckinLogEntry }) => (
     <View style={[styles.logEntry, { borderBottomColor: colors.border }]}>
       <View style={styles.logHeader}>
-        <View style={[styles.logIcon, { backgroundColor: `${colors.primary}15` }]}>
+        <View style={[styles.logIcon, { backgroundColor: \`${colors.primary}15` }]}>
           <TrendingUp size={16} color={colors.primary} />
         </View>
         <View style={styles.logContent}>

@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { Calendar, Trophy, Star, Clock, ChevronRight, ChevronLeft, List as ListIcon, Gift, DollarSign, Coins, CheckCircle } from 'lucide-react-native';
+import { Calendar, Trophy, Star, Clock, ChevronRight, ChevronLeft, List as ListIcon, Gift, DollarSign, Coins, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { ChevronLeft, Star, Trophy, Gift, Calendar, Clock, Zap, List, CalendarCheck, DollarSign, Ticket, CircleHelp as HelpCircle, Info } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Card from '@/components/UI/Card'; // Import Card component
