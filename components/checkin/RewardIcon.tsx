@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Star, Ticket, DollarSign, Gift, CircleHelp as HelpCircle, Coins } from 'lucide-react-native';
+import { Star, Ticket, DollarSign, Gift, CircleHelp as HelpCircle, Coins, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { RewardType } from '@/types';
 
 interface RewardIconProps {
-  type: RewardType;
+  type: RewardType | `${RewardType}`;
   value: string | number;
   currencySymbol?: string;
   size?: number;
@@ -32,9 +32,9 @@ export default function RewardIcon({
   const iconColor = color || colors.primary;
 
   const renderIcon = () => {
-    switch (type) {
+    switch (Number(type)) {
       case RewardType.POINTS:
-        return <Star size={iconSize} color={iconColor} fill={iconColor} />;
+        return <Star size={iconSize} color={iconColor} fill={`${iconColor}`} />;
       case RewardType.COUPON:
         return <Ticket size={iconSize} color={iconColor} />;
       case RewardType.CASH:
@@ -44,7 +44,7 @@ export default function RewardIcon({
       case RewardType.OTHER:
         return <HelpCircle size={iconSize} color={iconColor} />;
       default:
-        return <Coins size={iconSize} color={iconColor} />;
+        return <Sparkles size={iconSize} color={iconColor} />;
     }
   };
 
@@ -80,14 +80,14 @@ export default function RewardIcon({
 
   return (
     <View style={[styles.container, { minWidth: size }]}>
+      <View style={[styles.iconWrapper, { width: size * 0.7, height: size * 0.7, borderRadius: (size * 0.7) / 2, backgroundColor: `${iconColor}15` }]}>
+        {renderIcon()}
+      </View>
       {showValue && (
         <Text style={[styles.valueText, { fontSize, color: iconColor, maxWidth: size * 4 }]}>
           {formatValue()}
         </Text>
       )}
-      <View style={[styles.iconWrapper, { width: size * 0.7, height: size * 0.7, borderRadius: (size * 0.7) / 2, backgroundColor: `${iconColor}15` }]}>
-        {renderIcon()}
-      </View>
     </View>
   );
 }
@@ -95,6 +95,7 @@ export default function RewardIcon({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
+    flexDirection: 'row',
     gap: 2,
   },
   iconWrapper: {

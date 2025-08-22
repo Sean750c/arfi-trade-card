@@ -20,6 +20,7 @@ import {
   Clock,
   Star,
   Info,
+  X,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
@@ -212,7 +213,7 @@ export default function CheckinCalendar({
         key={rule.id}
         style={[styles.dayContainer, dayStyle, { width: DAY_WIDTH }]}
         onPress={() => {
-          if (isClickable) handleDayPress(rule);
+          if (isClickable) { handleDayPress(rule); return; }
           handleRewardPress(rule);
         }}
         disabled={!isClickable && !rule.extra_reward}
@@ -289,7 +290,7 @@ export default function CheckinCalendar({
     { type: RewardType.CASH, label: 'Cash', color: colors.primary },
     { type: RewardType.COUPON, label: 'Coupon', color: colors.primary },
     { type: RewardType.PHYSICAL_PRODUCT, label: 'Gift', color: colors.primary },
-    // { type: RewardType.OTHER, label: 'Other', color: colors.primary },
+    // { type: RewardType.OTHER, label: 'Other', color: colors.success },
   ];
 
   const rewardTableData = rules?.map((r) => ({
@@ -371,17 +372,33 @@ export default function CheckinCalendar({
       <Modal
         transparent
         visible={rewardModalVisible}
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setRewardModalVisible(false)}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setRewardModalVisible(false)}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+          <View style={[styles.bottomModalContent, { backgroundColor: colors.card }]}>
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setRewardModalVisible(false)}>
+              <X size={24} color={colors.text} />
+            </TouchableOpacity>
             {selectedReward && (
               <>
-                <Text style={[styles.modalTitle, { color: colors.text }]}>{RewardType[selectedReward.type]}</Text>
-                <Text style={[styles.modalValue, { color: colors.primary }]}>{selectedReward.value}</Text>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Reward Details</Text>
+                <View style={{ marginBottom: Spacing.sm }}>
+                  <Text style={{ color: colors.textSecondary }}>Base Reward:</Text>
+                  <Text style={[styles.modalValue, { color: colors.primary }]}>{selectedReward.value}</Text>
+                </View>
+                {selectedReward.type && selectedReward.value && (
+                  <View>
+                    <Text style={{ color: colors.textSecondary }}>Extra Reward:</Text>
+                    <Text style={[styles.modalValue, { color: colors.success }]}>
+                      {RewardType[selectedReward.type]}: {selectedReward.value}
+                    </Text>
+                  </View>
+                )}
                 {selectedReward.description && (
-                  <Text style={[styles.modalDesc, { color: colors.textSecondary }]}>{selectedReward.description}</Text>
+                  <Text style={[styles.modalDesc, { color: colors.textSecondary, marginTop: Spacing.sm }]}>
+                    {selectedReward.description}
+                  </Text>
                 )}
               </>
             )}
@@ -397,25 +414,45 @@ export default function CheckinCalendar({
         onRequestClose={() => setRewardTableVisible(false)}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setRewardTableVisible(false)}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card, minWidth: '90%' }]}>
+          <View style={[styles.bottomModalContent, { backgroundColor: colors.card }]}>
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setRewardTableVisible(false)}>
+              <X size={24} color={colors.text} />
+            </TouchableOpacity>
+
             <Text style={[styles.modalTitle, { color: colors.text }]}>Daily Rewards</Text>
 
-            <ScrollView horizontal>
+            <ScrollView horizontal style={{ marginTop: Spacing.sm }}>
               <View>
                 <View style={styles.tableHeader}>
-                  <Text style={[styles.tableCell, { fontWeight: 'bold', minWidth: 80 }]}>Date</Text>
-                  <Text style={[styles.tableCell, { fontWeight: 'bold', minWidth: 80 }]}>Base</Text>
-                  <Text style={[styles.tableCell, { fontWeight: 'bold', minWidth: 80 }]}>Extra</Text>
+                  <Text style={[styles.tableCell, { minWidth: 80, fontWeight: 'bold' }]}>Date</Text>
+                  <Text style={[styles.tableCell, { minWidth: 80, fontWeight: 'bold' }]}>Base</Text>
+                  <Text style={[styles.tableCell, { minWidth: 80, fontWeight: 'bold' }]}>Extra</Text>
+                  <Text style={[styles.tableCell, { minWidth: 80, fontWeight: 'bold' }]}>Status</Text>
                 </View>
-                {rewardTableData.map((r, idx) => (
-                  <View key={idx} style={styles.tableRow}>
-                    <Text style={[styles.tableCell, { minWidth: 80, color: colors.text }]}>{r.date}</Text>
-                    <Text style={[styles.tableCell, { minWidth: 80, color: colors.text }]}>{r.baseReward}</Text>
-                    <Text style={[styles.tableCell, { minWidth: 80, color: colors.warning }]}>
-                      {r.extraReward ? `${RewardType[r.extraType]}: ${r.extraReward}` : '-'}
-                    </Text>
-                  </View>
-                ))}
+                {rewardTableData.map((r, idx) => {
+                  const isSigned = rules?.find(rule => rule.date === r.date)?.is_checkin;
+                  return (
+                    <View
+                      key={idx}
+                      style={[
+                        styles.tableRow,
+                        { backgroundColor: isSigned ? `${colors.success}20` : `${colors.border}10` },
+                      ]}
+                    >
+                      <Text style={[styles.tableCell, { minWidth: 80, color: colors.text }]}>{r.date}</Text>
+                      <Text style={[styles.tableCell, { minWidth: 80, color: colors.primary }]}>{r.baseReward}</Text>
+                      <Text style={[styles.tableCell, { minWidth: 80, color: colors.warning }]}>
+                        {r.extraReward ? `${RewardType[r.extraType]}: ${r.extraReward}` : '-'}
+                      </Text>
+                      <View style={[styles.tableRow, { minWidth: 80, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]}>
+                        {isSigned ? <CheckCircle size={16} color={colors.success} /> : <Clock size={16} color={colors.textSecondary} />}
+                        <Text style={{ marginLeft: 4, color: isSigned ? colors.success : colors.textSecondary }}>
+                          {isSigned ? 'Signed' : 'Pending'}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
             </ScrollView>
           </View>
@@ -574,5 +611,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
+  },
+  bottomModalContent: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: Spacing.md,
+    maxHeight: '80%',
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
   },
 });

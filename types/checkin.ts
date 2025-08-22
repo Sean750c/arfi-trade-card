@@ -29,7 +29,7 @@ export interface MakeUpSignRule {
 
 export interface AccumulateCheckinReward {
   checkin_count: string; // Number of accumulated check-ins required
-  prize_type: RewardType; // Type of prize
+  prize_type: RewardType | `${RewardType}`; // Type of prize
   prize: string; // Value of prize
   prize_data: any; // Additional data for prize
   is_checkin: boolean; // True if already claimed
