@@ -375,9 +375,492 @@ export default function CheckinCalendar({
         animationType="slide"
         onRequestClose={() => setRewardModalVisible(false)}
       >
-        <Pressable style={styles.modalOverlay} onPress={() => setRewardModalVisible(false)}>
-          <View style={[styles.bottomModalContent, { backgroundColor: colors.card }]}>
-            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setRewardModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <Pressable style={styles.modalBackdrop} onPress={() => setRewardModalVisible(false)} />
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Reward Details</Text>
+              <TouchableOpacity 
+                style={[styles.closeButton, { backgroundColor: `${colors.primary}15` }]} 
+                onPress={() => setRewardModalVisible(false)}
+              >
+                <X size={20} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalBody}>
+              {selectedReward && (
+                <>
+                  <View style={[styles.rewardDetailCard, { backgroundColor: colors.background }]}>
+                    <Text style={[styles.rewardLabel, { color: colors.textSecondary }]}>Base Reward:</Text>
+                    <View style={styles.rewardValueContainer}>
+                      <RewardIcon
+                        type={RewardType.POINTS}
+                        value={selectedReward.value}
+                        size={32}
+                        iconSize={18}
+                        fontSize={16}
+                        color={colors.primary}
+                        showValue={true}
+                      />
+                    </View>
+                  </View>
+                  
+                  {selectedReward.type && selectedReward.type !== RewardType.POINTS && (
+                    <View style={[styles.rewardDetailCard, { backgroundColor: `${colors.success}10` }]}>
+                      <Text style={[styles.rewardLabel, { color: colors.textSecondary }]}>Extra Reward:</Text>
+                      <View style={styles.rewardValueContainer}>
+                        <RewardIcon
+                          type={selectedReward.type}
+                          value={selectedReward.value}
+                          size={32}
+                          iconSize={18}
+                          fontSize={16}
+                          color={colors.success}
+                          showValue={true}
+                        />
+                      </View>
+                    </View>
+                  )}
+                  
+                  {selectedReward.description && (
+                    <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
+                      <Text style={[styles.infoText, { color: colors.text }]}>
+                        {selectedReward.description}
+                      </Text>
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 奖励表格弹窗 */}
+      <Modal
+        transparent
+        visible={rewardTableVisible}
+        animationType="slide"
+        onRequestClose={() => setRewardTableVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable style={styles.modalBackdrop} onPress={() => setRewardTableVisible(false)} />
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Daily Rewards Schedule</Text>
+              <TouchableOpacity 
+                style={[styles.closeButton, { backgroundColor: `${colors.primary}15` }]} 
+                onPress={() => setRewardTableVisible(false)}
+              >
+                <X size={20} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalBody}>
+              <View style={[styles.tableContainer, { borderColor: colors.border }]}>
+                <View style={[styles.tableHeader, { backgroundColor: colors.primary }]}>
+                  <Text style={[styles.tableHeaderCell, styles.dateColumn]}>Date</Text>
+                  <Text style={[styles.tableHeaderCell, styles.baseColumn]}>Base</Text>
+                  <Text style={[styles.tableHeaderCell, styles.extraColumn]}>Extra</Text>
+                  <Text style={[styles.tableHeaderCell, styles.statusColumn]}>Status</Text>
+                </View>
+                
+                <ScrollView 
+                  style={styles.tableScrollView}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled={true}
+                >
+                  {rewardTableData.map((r, idx) => {
+                    const rule = rules?.find(rule => rule.date === r.date);
+                    const isSigned = rule?.is_checkin;
+                    const status = getDayStatus(rule!);
+                    
+                    return (
+                      <View
+                        key={idx}
+                        style={[
+                          styles.tableRow,
+                          { 
+                            backgroundColor: isSigned 
+                              ? `${colors.success}15` 
+                              : status === 'today'
+                                ? `${colors.primary}10`
+                                : idx % 2 === 0 
+                                  ? colors.background 
+                                  : colors.card,
+                            borderBottomColor: colors.border,
+                          },
+                        ]}
+                      >
+                        <View style={[styles.tableCell, styles.dateColumn]}>
+                          <Text style={[styles.tableCellText, { color: colors.text }]}>
+                            {new Date(r.date).getDate()}
+                          </Text>
+                          <Text style={[styles.tableCellSubtext, { color: colors.textSecondary }]}>
+                            {new Date(r.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                          </Text>
+                        </View>
+                        
+                        <View style={[styles.tableCell, styles.baseColumn]}>
+                          <RewardIcon
+                            type={RewardType.POINTS}
+                            value={r.baseReward}
+                            size={24}
+                            iconSize={14}
+                            fontSize={12}
+                            color={colors.primary}
+                            showValue={true}
+                            mode="compact"
+                          />
+                        </View>
+                        
+                        <View style={[styles.tableCell, styles.extraColumn]}>
+                          {r.extraReward && r.extraType ? (
+                            <RewardIcon
+                              type={r.extraType}
+                              value={r.extraReward}
+                              size={24}
+                              iconSize={14}
+                              fontSize={12}
+                              color={colors.warning}
+                              showValue={true}
+                              mode="compact"
+                            />
+                          ) : (
+                            <Text style={[styles.noExtraText, { color: colors.textSecondary }]}>-</Text>
+                          )}
+                        </View>
+                        
+                        <View style={[styles.tableCell, styles.statusColumn]}>
+                          <View style={styles.statusContainer}>
+                            {isSigned ? (
+                              <>
+                                <CheckCircle size={14} color={colors.success} />
+                                <Text style={[styles.statusText, { color: colors.success }]}>
+                                  Signed
+                                </Text>
+                              </>
+                            ) : status === 'today' ? (
+                              <>
+                                <Star size={14} color={colors.primary} fill={colors.primary} />
+                                <Text style={[styles.statusText, { color: colors.primary }]}>
+                                  Today
+                                </Text>
+                              </>
+                            ) : status === 'past' ? (
+                              <>
+                                <Clock size={14} color={colors.warning} />
+                                <Text style={[styles.statusText, { color: colors.warning }]}>
+                                  Missed
+                                </Text>
+                              </>
+                            ) : (
+                              <>
+                                <CalendarDays size={14} color={colors.textSecondary} />
+                                <Text style={[styles.statusText, { color: colors.textSecondary }]}>
+                                  Future
+                                </Text>
+                              </>
+                            )}
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+              
+              <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
+                <Text style={[styles.infoTitle, { color: colors.primary }]}>
+                  💡 Reward Information
+                </Text>
+                <Text style={[styles.infoText, { color: colors.text }]}>
+                  • Base rewards are given daily for check-ins{'\n'}
+                  • Extra rewards are special bonuses for certain days{'\n'}
+                  • Missed days can be made up using points
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 16,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  navigationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  navButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  monthYear: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+  },
+  weekHeaderRow: {
+    flexDirection: 'row',
+    marginBottom: Spacing.sm,
+  },
+  weekHeaderText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
+  },
+  daysGrid: {},
+  daysGridScroll: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.xs,
+  },
+  dayContainer: {
+    aspectRatio: 1.0,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginHorizontal: 2,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: 4,
+    minHeight: 90,
+  },
+  dayOfMonth: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    marginBottom: 2,
+  },
+  rewardInfo: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dayStatusIcon: {
+    marginTop: 4,
+  },
+  loadingContainer: {
+    minHeight: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: Spacing.sm,
+    fontSize: 14,
+  },
+  noActivityText: {
+    textAlign: 'center',
+    marginTop: Spacing.md,
+    fontSize: 14,
+  },
+  rewardLegendContainer: {
+    marginTop: Spacing.md,
+    padding: Spacing.sm,
+    borderRadius: 12,
+    position: 'relative',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Bold',
+  },
+  infoButton: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+  },
+  legendList: {
+    flexDirection: 'row',
+    marginTop: Spacing.sm,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: Spacing.lg,
+  },
+  legendLabel: {
+    marginLeft: 4,
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  modalContent: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: Spacing.xl,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 16,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.08)',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBody: {
+    gap: Spacing.lg,
+  },
+  rewardDetailCard: {
+    padding: Spacing.lg,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  rewardLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    marginBottom: Spacing.sm,
+  },
+  rewardValueContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  tableContainer: {
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 2,
+    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  tableHeaderCell: {
+    fontSize: 14,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  dateColumn: {
+    flex: 1.2,
+  },
+  baseColumn: {
+    flex: 1,
+  },
+  extraColumn: {
+    flex: 1.2,
+  },
+  statusColumn: {
+    flex: 1.2,
+  },
+  tableScrollView: {
+    maxHeight: 300,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    alignItems: 'center',
+  },
+  tableCell: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xs,
+  },
+  tableCellText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+    textAlign: 'center',
+  },
+  tableCellSubtext: {
+    fontSize: 11,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  noExtraText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  statusText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+  },
+  infoBox: {
+    padding: Spacing.lg,
+    borderRadius: 12,
+    marginTop: Spacing.md,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.sm,
+  },
+  infoText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 20,
+  },
+});
               <X size={24} color={colors.text} />
             </TouchableOpacity>
             {selectedReward && (
