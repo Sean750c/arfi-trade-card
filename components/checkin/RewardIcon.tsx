@@ -64,7 +64,7 @@ export default function RewardIcon({
   return (
     <View style={[styles.container, { minWidth: size }]}>
       {showValue && (
-        <Text style={[styles.valueText, { fontSize, color: iconColor }]}>
+        <Text style={[styles.valueText, { fontSize, color: iconColor, maxWidth: size * 2 }]}> {/* Added maxWidth */}
           {formatValue()}
         </Text>
       )}
@@ -97,5 +97,6 @@ const styles = StyleSheet.create({
   valueText: {
     fontFamily: 'Inter-SemiBold',
     textAlign: 'center',
+    flexWrap: 'wrap', // Allow text to wrap
   },
 });

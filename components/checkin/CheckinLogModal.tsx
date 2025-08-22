@@ -1,3 +1,4 @@
+```typescript
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -11,7 +12,6 @@ import {
 import { X, Calendar, TrendingUp } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
-import { useCheckinStore } from '@/stores/useCheckinStore';
 import { formatDate } from '@/utils/date';
 import RewardIcon from './RewardIcon';
 import type { CheckinLogEntry } from '@/types';
@@ -19,41 +19,17 @@ import type { CheckinLogEntry } from '@/types';
 interface CheckinLogModalProps {
   visible: boolean;
   onClose: () => void;
-  token: string;
+  checkinLogs: CheckinLogEntry[]; // Directly pass logs
   currencySymbol: string;
 }
 
 export default function CheckinLogModal({
   visible,
   onClose,
-  token,
+  checkinLogs,
   currencySymbol,
 }: CheckinLogModalProps) {
   const { colors } = useTheme();
-  const {
-    checkinLogs,
-    isLoadingLogs,
-    isLoadingMoreLogs,
-    logsError,
-    hasMoreLogs,
-    fetchCheckinLogs,
-    loadMoreCheckinLogs,
-  } = useCheckinStore();
-
-  const [initialized, setInitialized] = useState(false);
-
-  useEffect(() => {
-    if (visible && token) {
-      setInitialized(false);
-      fetchCheckinLogs(token, true).then(() => setInitialized(true));
-    }
-  }, [visible, token, fetchCheckinLogs]);
-
-  const handleLoadMore = () => {
-    if (!isLoadingMoreLogs && hasMoreLogs && initialized) {
-      loadMoreCheckinLogs(token);
-    }
-  };
 
   const renderLogEntry = ({ item: log }: { item: CheckinLogEntry }) => (
     <View style={[styles.logEntry, { borderBottomColor: colors.border }]}>
@@ -63,7 +39,7 @@ export default function CheckinLogModal({
         </View>
         <View style={styles.logContent}>
           <Text style={[styles.logMemo, { color: colors.text }]}>
-            {log.memo || 'Daily Check-in'}
+            {log.memo || (log.type === 1 ? 'Daily Check-in' : 'Make-up Sign')}
           </Text>
           <Text style={[styles.logDate, { color: colors.textSecondary }]}>
             {formatDate(log.create_time)}
@@ -105,38 +81,20 @@ export default function CheckinLogModal({
             </TouchableOpacity>
           </View>
 
-          {logsError ? (
-            <View style={styles.errorContainer}>
-              <Text style={[styles.errorText, { color: colors.error }]}>{logsError}</Text>
+          {checkinLogs.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Calendar size={48} color={colors.textSecondary} />
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                No check-in history found for this period.
+              </Text>
             </View>
           ) : (
             <FlatList
               data={checkinLogs}
               keyExtractor={(item) => item.id.toString()}
               renderItem={renderLogEntry}
-              onEndReached={handleLoadMore}
-              onEndReachedThreshold={0.1}
-              ListEmptyComponent={
-                !isLoadingLogs && initialized ? (
-                  <View style={styles.emptyContainer}>
-                    <Calendar size={48} color={colors.textSecondary} />
-                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                      No check-in history found
-                    </Text>
-                  </View>
-                ) : null
-              }
-              ListFooterComponent={
-                isLoadingMoreLogs ? (
-                  <View style={styles.loadingFooter}>
-                    <ActivityIndicator size="small" color={colors.primary} />
-                  </View>
-                ) : null
-              }
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.modalList}
-              refreshing={isLoadingLogs}
-              onRefresh={() => fetchCheckinLogs(token, true)}
               initialNumToRender={10}
               maxToRenderPerBatch={10}
               windowSize={10}
@@ -237,3 +195,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+```

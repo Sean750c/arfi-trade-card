@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
 import { ChevronLeft, ChevronRight, CircleCheck as CheckCircle, CalendarDays, Clock, Star } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
@@ -19,6 +19,8 @@ interface CheckinCalendarProps {
   maxMakeUpSigns: number;
   usedMakeUpSigns: number;
 }
+
+const { width: screenWidth } = Dimensions.get('window');
 
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -92,7 +94,7 @@ export default function CheckinCalendar({
     switch (status) {
       case 'signed':
         dayStyle = { backgroundColor: `${colors.primary}15`, borderColor: colors.primary };
-        textStyle = { color: colors.primary };
+        textStyle = { color: colors.text }; // Keep text dark for contrast
         icon = <CheckCircle size={16} color={colors.primary} />;
         break;
       case 'today':
@@ -106,7 +108,7 @@ export default function CheckinCalendar({
         break;
       case 'past':
         dayStyle = { backgroundColor: colors.card, borderColor: colors.border };
-        textStyle = { color: colors.textSecondary };
+        textStyle = { color: colors.text }; // Keep text dark for contrast
         if (!rule.is_checkin && usedMakeUpSigns < maxMakeUpSigns) {
           icon = <Clock size={16} color={colors.warning} />; // Make-up sign available
         } else {
@@ -114,7 +116,7 @@ export default function CheckinCalendar({
         }
         break;
       case 'future':
-        dayStyle = { backgroundColor: colors.card, borderColor: colors.border };
+        dayStyle = { backgroundColor: `${colors.border}50`, borderColor: `${colors.border}80` }; // Lighter gray for future
         textStyle = { color: colors.textSecondary };
         icon = <CalendarDays size={16} color={colors.textSecondary} />;
         break;
@@ -132,20 +134,20 @@ export default function CheckinCalendar({
           <RewardIcon
             type={RewardType.POINTS}
             value={rule.base_reward}
-            size={16}
-            iconSize={10}
-            fontSize={10}
-            color={status === 'today' ? '#FFFFFF' : colors.primary}
+            size={20} // Slightly larger for better visibility
+            iconSize={12}
+            fontSize={11}
+            color={status === 'today' ? '#FFFFFF' : colors.text} // Use text color for contrast
             showValue={true}
           />
           {rule.extra_reward_type && rule.extra_reward && (
             <RewardIcon
               type={rule.extra_reward_type}
               value={rule.extra_reward}
-              size={16}
-              iconSize={10}
-              fontSize={10}
-              color={status === 'today' ? '#FFFFFF' : colors.warning}
+              size={20} // Match base reward icon size
+              iconSize={12}
+              fontSize={11}
+              color={status === 'today' ? '#FFFFFF' : colors.warning} // Use warning color for extra
               currencySymbol={currencySymbol}
               showValue={true}
             />
@@ -193,9 +195,13 @@ export default function CheckinCalendar({
         </View>
       ) : (
         <View style={styles.daysGrid}>
-          {rules.map(renderDay)}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daysGridScroll}>
+            {rules.map(renderDay)}
+          </ScrollView>
         </View>
       )}
+
+      {rules.length === 0 && !isLoading && <Text style={[styles.noActivityText, { color: colors.textSecondary }]}>No check-in activity for this week.</Text>}
     </View>
   );
 }
@@ -241,13 +247,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   daysGrid: {
+    // Removed flexDirection: 'row' and justifyContent: 'space-between' here
+    // The ScrollView will handle the layout
+  },
+  daysGridScroll: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.xs,
+    paddingHorizontal: Spacing.xs, // Apply padding here for scrollable content
   },
   dayContainer: {
-    flex: 1,
-    aspectRatio: 0.85, // Slightly taller than square for better text layout
+    width: screenWidth / 4.5, // Fixed width for each day
+    aspectRatio: 0.9, // Slightly taller than square for better text layout
     borderRadius: 12,
     borderWidth: 1,
     marginHorizontal: 2,
@@ -263,7 +272,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   rewardInfo: {
-    flexDirection: 'column',
+    flexDirection: 'row', // Changed to row for horizontal display of rewards
     gap: 2,
     justifyContent: 'center',
     alignItems: 'center',
@@ -281,5 +290,10 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
+  },
+  noActivityText: {
+    textAlign: 'center',
+    marginTop: Spacing.lg,
+    fontSize: 15,
   },
 });

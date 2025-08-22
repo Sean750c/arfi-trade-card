@@ -59,10 +59,10 @@ export interface CheckinTask {
 }
 
 export interface CheckinLogEntry {
-  id: number;
-  activity_id: number;
-  rule_id: number;
-  user_id: number;
+  id: number; // log id
+  activity_id: number; // activity id
+  rule_id: number; // rule id
+  user_id: number; // user id
   reward_type: RewardType;
   reward_value: string;
   reward_data: any;
@@ -70,11 +70,14 @@ export interface CheckinLogEntry {
   memo: string;
   date: string; // YYYY-MM-DD format
 }
-
-export interface CheckinLogRequest {
-  token: string;
-  page: number;
-  page_size: number;
+// Add fields from the provided checkin_logs example
+export interface CheckinLogEntry {
+  base_reward: string;
+  extra_reward: string;
+  extra_reward_type: RewardType;
+  accumulate_reward: string;
+  accumulate_reward_type: RewardType;
+  type: number; // 1: checkin, 2: makeup sign
 }
 
 export interface CheckinConfig {
@@ -99,7 +102,7 @@ export interface CheckinConfig {
   cycle_week: string; // Week number of the cycle
   cycle_year: string; // Year of the cycle
   checkin: boolean; // True if today's check-in is done
-  make_up_sign_rule: MakeUpSignRule[]; // Rules for make-up signs
+  make_up_sign_rule: MakeUpSignRule[]; // Rules for make-up signs (cost)
   accumulate_checkin_reward: AccumulateCheckinReward[]; // Accumulated check-in rewards
   first_checkin_reward: FirstCheckinReward; // First check-in reward
   daily_accumulate_amount_reward: DailyAccumulateAmountReward[]; // Daily accumulated amount rewards
@@ -107,7 +110,7 @@ export interface CheckinConfig {
   used_make_up_sign_count: number; // Used make-up signs
   task: CheckinTask[]; // Additional tasks
   user_point: number; // User's current points
-  system_time: number; // Current system timestamp
+  system_time: number; // Current system timestamp (seconds)
 }
 
 export interface CheckinConfigRequest {
@@ -122,4 +125,3 @@ export interface CheckinRequest {
 
 export type CheckinConfigResponse = APIResponse<CheckinConfig>;
 export type CheckinResponse = APIResponse<{}>;
-export type CheckinLogResponse = APIResponse<CheckinLogEntry[]>;

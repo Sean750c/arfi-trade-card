@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  View,
+  View, // Keep View for basic containers
   Text,
   StyleSheet,
   ScrollView,
@@ -8,15 +8,18 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { Calendar, Trophy, Star, Clock, ChevronRight, ChevronLeft, List as ListIcon, Gift, DollarSign, Coins, CheckCircle } from 'lucide-react-native';
 import { ChevronLeft, Star, Trophy, Gift, Calendar, Clock, Zap, List, CalendarCheck, DollarSign, Ticket, CircleHelp as HelpCircle, Info } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
+import Card from '@/components/UI/Card'; // Import Card component
+import Button from '@/components/UI/Button'; // Import Button component
 import Header from '@/components/UI/Header';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useCheckinStore } from '@/stores/useCheckinStore';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import RewardIcon from '@/components/checkin/RewardIcon';
 import CheckinCalendar from '@/components/checkin/CheckinCalendar';
 import MakeUpSignModal from '@/components/checkin/MakeUpSignModal';
 import CheckinLogModal from '@/components/checkin/CheckinLogModal';
@@ -41,8 +44,8 @@ function CheckinScreenContent() {
     configError,
     checkinError,
     fetchCheckinConfig,
-    performCheckin,
-  } = useCheckinStore();
+    performCheckin, // This action is still used for actual check-in/make-up
+  } = useCheckinStore(); // Use the updated store
 
   const [currentDisplayDate, setCurrentDisplayDate] = useState(formatDate(new Date()));
   const [showLogModal, setShowLogModal] = useState(false);
