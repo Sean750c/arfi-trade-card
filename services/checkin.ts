@@ -23,7 +23,7 @@ export class CheckinService {
         throw new Error(response.msg || 'Failed to fetch checkin config');
       }
 
-      console.log(response.data);
+      //console.log(response.data);
 
       return response.data;
     } catch (error) {
