@@ -8,11 +8,9 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { Calendar, Trophy, Star, Clock, ChevronRight, ChevronLeft, List as ListIcon, Gift, DollarSign, Coins, CircleCheck as CheckCircle } from 'lucide-react-native';
-import { ChevronLeft, Star, Trophy, Gift, Calendar, Clock, Zap, List, CalendarCheck, DollarSign, Ticket, CircleHelp as HelpCircle, Info } from 'lucide-react-native';
+import { useFocusEffect } from 'expo-router';
+import { Star, Trophy, Zap, Info, List as ListIcon, Coins, CircleCheck as CheckCircle } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
-import Card from '@/components/UI/Card'; // Import Card component
-import Button from '@/components/UI/Button'; // Import Button component
 import Header from '@/components/UI/Header';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
@@ -23,8 +21,8 @@ import RewardIcon from '@/components/checkin/RewardIcon';
 import CheckinCalendar from '@/components/checkin/CheckinCalendar';
 import MakeUpSignModal from '@/components/checkin/MakeUpSignModal';
 import CheckinLogModal from '@/components/checkin/CheckinLogModal';
-import RewardIcon from '@/components/checkin/RewardIcon';
 import { RewardType } from '@/types';
+import { parseYMD, toMidnight } from '@/utils/date';
 
 // Helper to format date to YYYY-MM-DD
 const formatDate = (date: Date) => {
@@ -121,7 +119,7 @@ function CheckinScreenContent() {
   // Handle calendar navigation
   const handleCalendarDateChange = useCallback(
     (direction: string) => {
-      const date = new Date(currentDisplayDate);
+      const date = parseYMD(currentDisplayDate);
       if (direction === 'prev') {
         date.setDate(date.getDate() - 7); // Go back one week
       } else {
@@ -198,9 +196,9 @@ function CheckinScreenContent() {
               <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
           </View>
-        ) : checkinConfig && checkinConfig.rule.length > 0 ? (
+        ) : (
           <CheckinCalendar
-            rules={checkinConfig.rule}
+            rules={checkinConfig?.rule || undefined}
             onCheckin={handleCheckin}
             onMakeUpSign={handleMakeUpSign}
             currentDisplayDate={currentDisplayDate}
@@ -209,19 +207,9 @@ function CheckinScreenContent() {
             isCheckingIn={isCheckingIn}
             userPoints={userPoints}
             currencySymbol={currencySymbol}
-            maxMakeUpSigns={checkinConfig.max_make_up_sign_rule}
-            usedMakeUpSigns={checkinConfig.used_make_up_sign_count}
+            maxMakeUpSigns={checkinConfig?.max_make_up_sign_rule || 0}
+            usedMakeUpSigns={checkinConfig?.used_make_up_sign_count || 0}
           />
-        ) : (
-          <View style={[styles.noActivityContainer, { backgroundColor: colors.card }]}>
-            <CalendarCheck size={48} color={colors.textSecondary} />
-            <Text style={[styles.noActivityText, { color: colors.text }]}>
-              No Check-in Activity Available
-            </Text>
-            <Text style={[styles.noActivitySubtext, { color: colors.textSecondary }]}>
-              Please check back later for new exciting check-in events!
-            </Text>
-          </View>
         )}
 
         {/* First Check-in Reward */}
@@ -385,7 +373,7 @@ function CheckinScreenContent() {
       <CheckinLogModal
         visible={showLogModal}
         onClose={() => setShowLogModal(false)}
-        token={user?.token || ''}
+        checkinLogs={checkinConfig?.checkin_logs}
         currencySymbol={user?.currency_symbol || '₦'}
       />
     </SafeAreaWrapper>

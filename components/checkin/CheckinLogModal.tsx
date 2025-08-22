@@ -1,4 +1,3 @@
-```typescript
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -19,7 +18,7 @@ import type { CheckinLogEntry } from '@/types';
 interface CheckinLogModalProps {
   visible: boolean;
   onClose: () => void;
-  checkinLogs: CheckinLogEntry[]; // Directly pass logs
+  checkinLogs: CheckinLogEntry[] | undefined; // Directly pass logs
   currencySymbol: string;
 }
 
@@ -34,21 +33,21 @@ export default function CheckinLogModal({
   const renderLogEntry = ({ item: log }: { item: CheckinLogEntry }) => (
     <View style={[styles.logEntry, { borderBottomColor: colors.border }]}>
       <View style={styles.logHeader}>
-        <View style={[styles.logIcon, { backgroundColor: \`${colors.primary}15` }]}>
+        <View style={[styles.logIcon, { backgroundColor: `${colors.primary}15` }]}>
           <TrendingUp size={16} color={colors.primary} />
         </View>
         <View style={styles.logContent}>
           <Text style={[styles.logMemo, { color: colors.text }]}>
-            {log.memo || (log.type === 1 ? 'Daily Check-in' : 'Make-up Sign')}
+            {(log.type === 1 ? 'Daily Check-in' : 'Make-up Sign')}
           </Text>
           <Text style={[styles.logDate, { color: colors.textSecondary }]}>
-            {formatDate(log.create_time)}
+            {log.date}
           </Text>
         </View>
         <View style={styles.logReward}>
           <RewardIcon
-            type={log.reward_type}
-            value={log.reward_value}
+            type={log.extra_reward_type}
+            value={log.extra_reward}
             currencySymbol={currencySymbol}
             size={24}
             iconSize={14}
@@ -81,7 +80,7 @@ export default function CheckinLogModal({
             </TouchableOpacity>
           </View>
 
-          {checkinLogs.length === 0 ? (
+          {checkinLogs && checkinLogs.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Calendar size={48} color={colors.textSecondary} />
               <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
@@ -195,4 +194,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-```

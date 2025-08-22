@@ -63,21 +63,13 @@ export interface CheckinLogEntry {
   activity_id: number; // activity id
   rule_id: number; // rule id
   user_id: number; // user id
-  reward_type: RewardType;
-  reward_value: string;
-  reward_data: any;
-  create_time: number;
-  memo: string;
-  date: string; // YYYY-MM-DD format
-}
-// Add fields from the provided checkin_logs example
-export interface CheckinLogEntry {
   base_reward: string;
   extra_reward: string;
   extra_reward_type: RewardType;
   accumulate_reward: string;
   accumulate_reward_type: RewardType;
   type: number; // 1: checkin, 2: makeup sign
+  date: string; // YYYY-MM-DD format
 }
 
 export interface CheckinConfig {
@@ -98,7 +90,7 @@ export interface CheckinConfig {
   update_user: number;
   brand_id: number;
   rule: CheckinRule[]; // Daily check-in rules for the current cycle
-  checkin_logs: any[]; // Not used in UI directly, but part of API
+  checkin_logs: CheckinLogEntry[]; // Not used in UI directly, but part of API
   cycle_week: string; // Week number of the cycle
   cycle_year: string; // Year of the cycle
   checkin: boolean; // True if today's check-in is done

@@ -71,4 +71,14 @@ export function formatDateString(timestamp: string) {
     } else {
         return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
     }
-} 
+}
+
+/** 安全解析 YYYY-MM-DD，避免 UTC 偏移 */
+export function parseYMD(ymd: string) {
+    const [y, m, d] = ymd.split('-').map(Number);
+    return new Date(y, (m || 1) - 1, d || 1);
+};
+
+export function toMidnight(d: Date) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+};

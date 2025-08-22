@@ -16,6 +16,7 @@ interface CheckinState {
   
   // Actions
   fetchCheckinConfig: (token: string, date: string) => Promise<void>;
+  performCheckin: (token: string, ruleId: number, currentDisplayDate: string) => Promise<void>;
   clearCheckinData: () => void;
 }
 
