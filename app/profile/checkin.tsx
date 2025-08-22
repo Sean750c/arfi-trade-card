@@ -9,13 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { ChevronLeft, Star, Trophy, Gift, Calendar, Clock, Zap, List,
-  CalendarCheck,
-  DollarSign,
-  Ticket,
-  HelpCircle,
-  Info,
-} from 'lucide-react-native';
+import { ChevronLeft, Star, Trophy, Gift, Calendar, Clock, Zap, List, CalendarCheck, DollarSign, Ticket, CircleHelp as HelpCircle, Info } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Header from '@/components/UI/Header';
 import Spacing from '@/constants/Spacing';
