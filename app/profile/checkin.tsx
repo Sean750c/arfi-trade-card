@@ -9,10 +9,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { ChevronLeft, Star, Trophy, Gift, Calendar, Clock, Zap, List } from 'lucide-react-native';
-  CalendarCheck,
-  Star,
-  Gift,
+import {
+  ChevronLeft, Star, Trophy, Gift, Calendar, Clock, Zap, List, CalendarCheck,
   DollarSign,
   Ticket,
   HelpCircle,
@@ -29,6 +27,8 @@ import CheckinCalendar from '@/components/checkin/CheckinCalendar';
 import MakeUpSignModal from '@/components/checkin/MakeUpSignModal';
 import CheckinLogModal from '@/components/checkin/CheckinLogModal';
 import RewardIcon from '@/components/checkin/RewardIcon';
+import Card from '@/components/UI/Card';
+import Button from '@/components/UI/Button';
 import { RewardType } from '@/types';
 
 // Helper to format date to YYYY-MM-DD
@@ -143,6 +143,18 @@ function CheckinScreenContent() {
 
   const userPoints = checkinConfig?.user_point || 0;
   const currencySymbol = user?.currency_symbol || '₦';
+  const totalDays = checkinConfig?.rule.length || 0;
+
+  // Calculate check-in progress
+  const getCheckinProgress = () => {
+    if (!checkinConfig?.rule) return { completed: 0, total: 0 };
+
+    const completed = checkinConfig.rule.filter(rule => rule.is_checkin).length;
+    const total = checkinConfig.rule.length;
+    return { completed, total };
+  };
+
+  const progress = getCheckinProgress();
 
   const renderRewardSection = (
     title: string,
@@ -252,21 +264,10 @@ function CheckinScreenContent() {
           <View style={styles.summaryDivider} />
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>Signed Days</Text>
-            <Text style={styles.summaryValue}>{totalSignedDays}</Text>
+            <Text style={styles.summaryValue}>{totalSignedDays}/{totalDays}</Text>
           </View>
           <View style={styles.summaryDivider} />
           <TouchableOpacity
-  // Calculate check-in progress
-  const getCheckinProgress = () => {
-    if (!checkinConfig?.rule) return { completed: 0, total: 0 };
-    
-    const completed = checkinConfig.rule.filter(rule => rule.is_checkin).length;
-    const total = checkinConfig.rule.length;
-    return { completed, total };
-  };
-
-  const progress = getCheckinProgress();
-
             style={styles.summaryItem}
             onPress={() => setShowMakeUpSignModal(true)}
           >
@@ -310,16 +311,19 @@ function CheckinScreenContent() {
             <CalendarCheck size={48} color={colors.textSecondary} />
             <Text style={[styles.noActivityText, { color: colors.text }]}>
               No Check-in Activity Available
-          <View style={styles.headerSpacer} />
+              <View style={styles.headerSpacer} />
             </Text>
-        <View style={[styles.errorContainer, { backgroundColor: colors.card }]}>
-              Please check back later for new exciting check-in events!
-            </Text>
+            <View style={[styles.errorContainer, { backgroundColor: colors.card }]}>
+              <Text style={[styles.noActivityText, { color: colors.text }]}>
+                Please check back later for new exciting check-in events!
+              </Text>
+            </View>
           </View>
         )}
 
         {/* First Check-in Reward */}
         {checkinConfig?.first_checkin_reward?.enable && (
+          <Card style={styles.rewardCard}>
           <Button
             title="Refresh"
             onPress={() => user?.token && fetchCheckinConfig(user.token, currentDisplayDate)}
@@ -342,7 +346,12 @@ function CheckinScreenContent() {
                   color={colors.success}
                 />
               </View>
-        {checkinConfig.first_checkin_reward?.enable && (
+              </View>
+              </View>
+              </Card>
+        )}
+
+        {checkinConfig?.first_checkin_reward?.enable && (
           <Card style={styles.rewardCard}>
             <View style={styles.rewardHeader}>
               <Gift size={20} color={colors.primary} />
@@ -372,7 +381,7 @@ function CheckinScreenContent() {
         )}
 
         {/* Accumulated Check-in Rewards */}
-        {checkinConfig.accumulate_checkin_reward && checkinConfig.accumulate_checkin_reward.length > 0 && (
+        {checkinConfig?.accumulate_checkin_reward && checkinConfig.accumulate_checkin_reward.length > 0 && (
           <Card style={styles.rewardCard}>
             <View style={styles.rewardHeader}>
               <Trophy size={20} color={colors.warning} />
@@ -408,7 +417,7 @@ function CheckinScreenContent() {
         )}
 
         {/* Daily Accumulate Amount Rewards */}
-        {checkinConfig.daily_accumulate_amount_reward && checkinConfig.daily_accumulate_amount_reward.length > 0 && (
+        {checkinConfig?.daily_accumulate_amount_reward && checkinConfig.daily_accumulate_amount_reward.length > 0 && (
           <Card style={styles.rewardCard}>
             <View style={styles.rewardHeader}>
               <Zap size={20} color={colors.success} />
@@ -440,11 +449,11 @@ function CheckinScreenContent() {
                 </View>
               ))}
             </View>
-        {/* Accumulated Check-in Rewards */}
+          </Card>
         )}
 
         {/* Additional Tasks */}
-        {checkinConfig.task && checkinConfig.task.length > 0 && (
+        {checkinConfig?.task && checkinConfig.task.length > 0 && (
           <Card style={styles.rewardCard}>
             <View style={styles.rewardHeader}>
               <Star size={20} color={colors.warning} />
@@ -622,9 +631,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: Spacing.md,
     margin: Spacing.lg,
-    padding: Spacing.xl,
     borderRadius: 16,
-    borderRadius: 8,
     marginBottom: Spacing.lg,
   },
   errorText: {
@@ -638,24 +645,21 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     borderRadius: 6,
   },
-    justifyContent: 'space-between',
+  // justifyContent: 'space-between',
   retryButtonText: {
     color: '#FFFFFF',
     fontSize: 12,
     fontFamily: 'Inter-Medium',
   },
-    flex: 1,
-  },
+
   claimedBadge: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: 12,
-  noActivityContainer: {
-  claimedText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontFamily: 'Inter-Bold',
+    flex: 1,
   },
+  noActivityContainer: {
+
     alignItems: 'center',
     padding: Spacing.xl,
     borderRadius: 16,
@@ -676,13 +680,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     textAlign: 'center',
     flex: 1,
-    textAlign: 'center',
   },
   noActivitySubtext: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
     lineHeight: 20,
+
+  },
   accumulateRewardsList: {
     gap: Spacing.sm,
   },
@@ -708,37 +713,28 @@ const styles = StyleSheet.create({
   tasksList: {
     gap: Spacing.sm,
   },
-  taskItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderRadius: 12,
-  },
   taskInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
     flex: 1,
   },
-  taskName: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    flex: 1,
-  },
-  taskButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: 8,
-  },
-  taskButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontFamily: 'Inter-Bold',
-  },
-  },
   refreshButton: {
     marginTop: Spacing.md,
   },
+  rewardCard: {
+
+  },
+  rewardHeader: {
+
+  },
+  rewardTitle: {
+
+  },
+  rewardContent: {
+
+  },
+  rewardDescription: {
+
+  }
 });
