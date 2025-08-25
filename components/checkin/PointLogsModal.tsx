@@ -86,16 +86,6 @@ export default function PointLogsModal({ visible, onClose }: PointLogsModalProps
           <Text style={[styles.logTypeName, { color: colors.text }]}>
             {log.type_name}
           </Text>
-          {log.content && (
-            <Text style={[styles.logContent, { color: colors.textSecondary }]}>
-              {log.content}
-            </Text>
-          )}
-          {log.activity_no && (
-            <Text style={[styles.logActivityNo, { color: colors.textSecondary }]}>
-              Activity: {log.activity_no}
-            </Text>
-          )}
           <Text style={[styles.logDate, { color: colors.textSecondary }]}>
             {formatDate(log.create_time)}
           </Text>
@@ -107,9 +97,6 @@ export default function PointLogsModal({ visible, onClose }: PointLogsModalProps
           ]}>
             {formatPointChange(log.points)}
           </Text>
-          <View style={styles.pointsIcon}>
-            <Coins size={12} color={colors.primary} />
-          </View>
         </View>
       </View>
     </View>

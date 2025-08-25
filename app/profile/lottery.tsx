@@ -11,7 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Zap, Trophy, Gift, Star, Sparkles, Crown, History } from 'lucide-react-native';
+import { ChevronLeft, Zap, Trophy, Gift, Star, Sparkles, Crown, History, RefreshCw } from 'lucide-react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -373,6 +373,9 @@ function LotteryScreenContent() {
       default: return prize.prize_value;
     }
   };
+
+  const refreshActivity = () => {
+  }
 
   const getPrizeTypeIcon = (prizeType: number) => {
     switch (prizeType) {

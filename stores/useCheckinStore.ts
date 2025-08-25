@@ -109,15 +109,15 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
     try {
       const pointLogsData = await CheckinService.getPointLogs({
         token,
-        page: 0,
-        page_size: 20,
+        page: 1,
+        page_size: 10,
       });
 
       set({
         pointLogs: pointLogsData.list,
         pointLogsTotal: pointLogsData.total,
-        currentPointLogsPage: 0,
-        hasMorePointLogs: pointLogsData.list.length >= 20,
+        currentPointLogsPage: 1,
+        hasMorePointLogs: pointLogsData.list.length >= 10,
         isLoadingPointLogs: false,
       });
     } catch (error) {
@@ -147,7 +147,7 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
       const pointLogsData = await CheckinService.getPointLogs({
         token,
         page: nextPage,
-        page_size: 20,
+        page_size: 10,
       });
 
       if (pointLogsData.list.length === 0) {
@@ -155,12 +155,13 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
         return;
       }
 
-      set({
+      set(state => ({
         pointLogs: [...state.pointLogs, ...pointLogsData.list],
         currentPointLogsPage: nextPage,
-        hasMorePointLogs: pointLogsData.list.length >= 20,
+        hasMorePointLogs: pointLogsData.list.length >= 10,
         isLoadingMorePointLogs: false,
-      });
+      }));
+      
     } catch (error) {
       // Handle token expiration errors specifically
       if (error instanceof Error && error.message.includes('Session expired')) {

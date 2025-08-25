@@ -6,9 +6,8 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
-  Alert,
 } from 'react-native';
-import { Star, Gift, Ticket, DollarSign, Sparkles, Zap } from 'lucide-react-native';
+import { Star, Gift, Ticket, DollarSign, Zap, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import type { LotteryPrize } from '@/types';
@@ -37,11 +36,10 @@ export default function GridLotteryWheel({
 }: GridLotteryWheelProps) {
   const { colors } = useTheme();
   const [currentHighlight, setCurrentHighlight] = useState(0);
-  const animationRef = useRef<NodeJS.Timeout | null>(null);
+  const animationRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const highlightAnim = useRef(new Animated.Value(1)).current;
 
-  // 跑马灯动画序列 (顺时针)
-  const animationSequence = [0, 1, 2, 5, 8, 7, 6, 3];
+  const animationSequence = [0, 1, 2, 5, 8, 7, 6, 3]; // 顺时针动画序列
 
   useEffect(() => {
     if (isSpinning) {
@@ -51,21 +49,19 @@ export default function GridLotteryWheel({
     }
 
     return () => {
-      if (animationRef.current) {
-        clearInterval(animationRef.current);
-      }
+      stopMarqueeAnimation();
     };
   }, [isSpinning]);
 
   const startMarqueeAnimation = () => {
     let step = 0;
-    let speed = 100; // 初始速度
     let totalSteps = 0;
-    const maxSteps = 30; // 总步数
+    let speed = 100;
+    const maxSteps = 30;
 
-    animationRef.current = setInterval(() => {
+    const runStep = () => {
       setCurrentHighlight(animationSequence[step % animationSequence.length]);
-      
+
       // 脉冲动画
       Animated.sequence([
         Animated.timing(highlightAnim, {
@@ -88,16 +84,16 @@ export default function GridLotteryWheel({
         speed = Math.min(speed + 20, 300);
       }
 
-      // 停止条件
-      if (totalSteps >= maxSteps) {
+      if (totalSteps < maxSteps) {
+        animationRef.current = setTimeout(runStep, speed);
+      } else {
         stopMarqueeAnimation();
-        
-        // 如果有中奖奖品，高亮显示
+
         if (winningPrizeId) {
           const winningIndex = prizes.findIndex(p => p.id === winningPrizeId);
           if (winningIndex !== -1) {
             setCurrentHighlight(winningIndex);
-            
+
             // 中奖闪烁动画
             Animated.loop(
               Animated.sequence([
@@ -120,17 +116,14 @@ export default function GridLotteryWheel({
           }
         }
       }
+    };
 
-      if (animationRef.current) {
-        clearInterval(animationRef.current);
-        animationRef.current = setInterval(arguments.callee, speed);
-      }
-    }, speed);
+    runStep();
   };
 
   const stopMarqueeAnimation = () => {
     if (animationRef.current) {
-      clearInterval(animationRef.current);
+      clearTimeout(animationRef.current);
       animationRef.current = null;
     }
   };
@@ -181,12 +174,11 @@ export default function GridLotteryWheel({
   };
 
   const renderPrizeCell = (prize: LotteryPrize | null, index: number) => {
-    const isCenter = index === 4; // 中心位置
+    const isCenter = index === 4;
     const isHighlighted = currentHighlight === index && isSpinning;
     const isWinning = winningPrizeId && prize?.id === winningPrizeId;
 
     if (isCenter) {
-      // 中心抽奖按钮
       return (
         <Animated.View
           key="center"
@@ -195,7 +187,7 @@ export default function GridLotteryWheel({
             {
               backgroundColor: userPoints >= requiredPoints ? colors.primary : colors.border,
               transform: isSpinning ? [{ scale: highlightAnim }] : [],
-            }
+            },
           ]}
         >
           <TouchableOpacity
@@ -208,9 +200,7 @@ export default function GridLotteryWheel({
             <Text style={styles.spinButtonText}>
               {isSpinning ? 'SPINNING...' : 'SPIN'}
             </Text>
-            <Text style={styles.spinCostText}>
-              {requiredPoints} Points
-            </Text>
+            <Text style={styles.spinCostText}>{requiredPoints} Points</Text>
           </TouchableOpacity>
         </Animated.View>
       );
@@ -235,7 +225,7 @@ export default function GridLotteryWheel({
             borderColor: isHighlighted || isWinning ? '#FFFFFF' : 'transparent',
             borderWidth: isHighlighted || isWinning ? 3 : 0,
             transform: isHighlighted || isWinning ? [{ scale: highlightAnim }] : [],
-          }
+          },
         ]}
       >
         <View style={styles.prizeCellContent}>
@@ -251,24 +241,24 @@ export default function GridLotteryWheel({
     );
   };
 
-  // 创建3x3网格，中心为抽奖按钮
-  const gridItems = Array(9).fill(null).map((_, index) => {
-    if (index === 4) return null; // 中心位置
-    
-    // 映射网格位置到奖品索引
-    const prizeIndex = index > 4 ? index - 1 : index;
-    return prizes[prizeIndex] || null;
-  });
+  const gridItems = Array(9)
+    .fill(null)
+    .map((_, index) => {
+      if (index === 4) return null;
+      const prizeIndex = index > 4 ? index - 1 : index;
+      return prizes[prizeIndex] || null;
+    });
 
   return (
     <View style={styles.container}>
       <View style={[styles.grid, { backgroundColor: colors.card }]}>
         {gridItems.map((prize, index) => renderPrizeCell(prize, index))}
       </View>
-      
+
       <View style={styles.infoContainer}>
         <Text style={[styles.pointsInfo, { color: colors.text }]}>
-          Your Points: <Text style={{ color: colors.primary, fontFamily: 'Inter-Bold' }}>
+          Your Points:{' '}
+          <Text style={{ color: colors.primary, fontFamily: 'Inter-Bold' }}>
             {userPoints.toLocaleString()}
           </Text>
         </Text>
@@ -281,10 +271,7 @@ export default function GridLotteryWheel({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    marginVertical: Spacing.lg,
-  },
+  container: { alignItems: 'center', marginVertical: Spacing.lg },
   grid: {
     width: GRID_SIZE,
     height: GRID_SIZE,
@@ -293,10 +280,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: Spacing.sm,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 8,
@@ -309,10 +293,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 4,
@@ -325,10 +306,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 8,
@@ -340,48 +318,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 20,
   },
-  spinButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-    marginTop: 4,
-  },
+  spinButtonText: { color: '#FFFFFF', fontSize: 16, fontFamily: 'Inter-Bold', marginTop: 4 },
   spinCostText: {
     color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 10,
     fontFamily: 'Inter-Medium',
     marginTop: 2,
   },
-  prizeCellContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.xs,
-  },
-  prizeValue: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontFamily: 'Inter-Bold',
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  prizeName: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 9,
-    fontFamily: 'Inter-Medium',
-    textAlign: 'center',
-    marginTop: 2,
-  },
-  infoContainer: {
-    alignItems: 'center',
-    marginTop: Spacing.lg,
-    gap: Spacing.xs,
-  },
-  pointsInfo: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-  },
-  costInfo: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
+  prizeCellContent: { justifyContent: 'center', alignItems: 'center', padding: Spacing.xs },
+  prizeValue: { color: '#FFFFFF', fontSize: 12, fontFamily: 'Inter-Bold', marginTop: 4, textAlign: 'center' },
+  prizeName: { color: 'rgba(255,255,255,0.9)', fontSize: 9, fontFamily: 'Inter-Medium', textAlign: 'center', marginTop: 2 },
+  infoContainer: { alignItems: 'center', marginTop: Spacing.lg, gap: Spacing.xs },
+  pointsInfo: { fontSize: 16, fontFamily: 'Inter-Medium' },
+  costInfo: { fontSize: 14, fontFamily: 'Inter-Regular' },
 });

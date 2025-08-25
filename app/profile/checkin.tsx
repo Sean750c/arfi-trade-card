@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Star, Trophy, Zap, Info, List as ListIcon, Coins, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { Star, Trophy, Zap, Info, List as ListIcon, Coins, CircleCheck as CheckCircle, FileText } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Header from '@/components/UI/Header';
 import Spacing from '@/constants/Spacing';
@@ -138,7 +138,7 @@ function CheckinScreenContent() {
       .split(" ")    // 按空格分割成单词数组
       .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // 每个单词首字母大写
       .join(" ");    // 拼接回字符串
-  }  
+  }
 
   function taskRoute(code: string) {
     switch (code) {
@@ -157,7 +157,7 @@ function CheckinScreenContent() {
         return;
     }
   }
-  
+
 
   if (!isAuthenticated) {
     return null;
@@ -165,7 +165,16 @@ function CheckinScreenContent() {
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
-      <Header title="Daily Check-in" showBack={true} />
+
+      <Header title="Daily Check-in" showBack={true} rightComponent={
+        <TouchableOpacity
+          style={[styles.infoButton, { backgroundColor: `${colors.primary}15` }]}
+          onPress={() => setShowPointLogsModal(true)}
+        >
+          <FileText size={22} color={colors.primary} />
+        </TouchableOpacity>
+      } />
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -193,12 +202,6 @@ function CheckinScreenContent() {
             <Text style={styles.summaryValue}>
               {(checkinConfig?.max_make_up_sign_rule || 0) - (checkinConfig?.used_make_up_sign_count || 0)}
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.summaryItem}
-            onPress={() => setShowPointLogsModal(true)}
-          >
-            <Coins size={20} color="rgba(255, 255, 255, 0.8)" />
           </TouchableOpacity>
         </View>
 
@@ -583,5 +586,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.md,
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  infoButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
