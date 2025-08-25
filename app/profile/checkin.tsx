@@ -21,6 +21,7 @@ import RewardIcon from '@/components/checkin/RewardIcon';
 import CheckinCalendar from '@/components/checkin/CheckinCalendar';
 import MakeUpSignModal from '@/components/checkin/MakeUpSignModal';
 import CheckinLogModal from '@/components/checkin/CheckinLogModal';
+import PointLogsModal from '@/components/checkin/PointLogsModal';
 import { RewardType } from '@/types';
 import { formatLocalDate, parseYMD, toMidnight } from '@/utils/date';
 
@@ -40,6 +41,7 @@ function CheckinScreenContent() {
   const [currentDisplayDate, setCurrentDisplayDate] = useState(formatLocalDate(new Date()));
   const [showLogModal, setShowLogModal] = useState(false);
   const [showMakeUpSignModal, setShowMakeUpSignModal] = useState(false);
+  const [showPointLogsModal, setShowPointLogsModal] = useState(false);
 
   // Fetch data on focus
   useFocusEffect(
@@ -191,6 +193,12 @@ function CheckinScreenContent() {
             <Text style={styles.summaryValue}>
               {(checkinConfig?.max_make_up_sign_rule || 0) - (checkinConfig?.used_make_up_sign_count || 0)}
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.summaryItem}
+            onPress={() => setShowPointLogsModal(true)}
+          >
+            <Coins size={20} color="rgba(255, 255, 255, 0.8)" />
           </TouchableOpacity>
         </View>
 
@@ -382,6 +390,11 @@ function CheckinScreenContent() {
         onClose={() => setShowLogModal(false)}
         checkinLogs={checkinConfig?.checkin_logs}
         currencySymbol={user?.currency_symbol || '₦'}
+      />
+
+      <PointLogsModal
+        visible={showPointLogsModal}
+        onClose={() => setShowPointLogsModal(false)}
       />
     </SafeAreaWrapper>
   );
