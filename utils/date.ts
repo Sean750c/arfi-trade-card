@@ -82,3 +82,11 @@ export function parseYMD(ymd: string) {
 export function toMidnight(d: Date) {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
 };
+
+// Helper to format date to YYYY-MM-DD
+export function formatLocalDate(date: Date) {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };

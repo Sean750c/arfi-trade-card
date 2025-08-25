@@ -26,6 +26,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { CheckinRule, RewardType } from '@/types';
 import RewardIcon from './RewardIcon';
+import { formatLocalDate } from '@/utils/date';
 
 interface CheckinCalendarProps {
   rules: CheckinRule[] | undefined;
@@ -70,15 +71,13 @@ export default function CheckinCalendar({
   const [isNavigating, setIsNavigating] = useState(false);
 
   const [rewardModalVisible, setRewardModalVisible] = useState(false);
-  const [selectedReward, setSelectedReward] = useState<{ type: RewardType; value: any; description?: string } | null>(null);
+  const [selectedRule, setSelectedRule] = useState<CheckinRule | null>(null);
 
   const [rewardTableVisible, setRewardTableVisible] = useState(false);
 
   const today = useMemo(() => {
     const now = new Date();
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    const bj = new Date(utc + 8 * 3600 * 1000);
-    return `${bj.getFullYear()}-${(bj.getMonth() + 1).toString().padStart(2, '0')}-${bj.getDate().toString().padStart(2, '0')}`;
+    return `${formatLocalDate(now)}`;
   }, []);
 
   const currentDisplayMonthYear = useMemo(() => {
@@ -115,12 +114,8 @@ export default function CheckinCalendar({
   };
 
   const handleRewardPress = (rule: CheckinRule) => {
-    if (rule.extra_reward_type && rule.extra_reward) {
-      setSelectedReward({
-        type: rule.extra_reward_type,
-        value: rule.extra_reward,
-        description: 'Extra reward for this day',
-      });
+    if (rule) {
+      setSelectedRule(rule);
       setRewardModalVisible(true);
     }
   };
@@ -183,12 +178,12 @@ export default function CheckinCalendar({
         icon = <CheckCircle size={16} color={colors.primary} />;
         break;
       case 'today':
-        dayStyle = { backgroundColor: colors.primary, borderColor: colors.primary };
-        textStyle = { color: '#FFFFFF' };
+        dayStyle = { backgroundColor: `${colors.primary}85`, borderColor: colors.primary };
+        textStyle = { color: colors.primary };
         icon = isCheckingIn ? (
           <ActivityIndicator size="small" color="#FFFFFF" />
         ) : (
-          <Star size={16} color="#FFFFFF" fill="#FFFFFF" />
+          <Star size={16} color={colors.primary} fill={colors.primary} />
         );
         break;
       case 'past':
@@ -234,6 +229,7 @@ export default function CheckinCalendar({
             <RewardIcon
               type={rule.extra_reward_type}
               value={rule.extra_reward}
+              data={rule.extra_reward_data}
               size={20}
               iconSize={12}
               fontSize={10}
@@ -298,6 +294,7 @@ export default function CheckinCalendar({
     baseReward: r.base_reward,
     extraReward: r.extra_reward,
     extraType: r.extra_reward_type,
+    extraData: r.extra_reward_data
   })) || [];
 
   return (
@@ -389,45 +386,36 @@ export default function CheckinCalendar({
             </View>
             
             <View style={styles.modalBody}>
-              {selectedReward && (
+              {selectedRule && (
                 <>
-                  <View style={[styles.rewardDetailCard, { backgroundColor: colors.background }]}>
+                  <View style={[styles.rewardDetailCard, { backgroundColor: `${colors.success}10` }]}>
                     <Text style={[styles.rewardLabel, { color: colors.textSecondary }]}>Base Reward:</Text>
                     <View style={styles.rewardValueContainer}>
                       <RewardIcon
                         type={RewardType.POINTS}
-                        value={selectedReward.value}
+                        value={selectedRule.base_reward}
                         size={32}
                         iconSize={18}
                         fontSize={16}
-                        color={colors.primary}
                         showValue={true}
                       />
                     </View>
                   </View>
                   
-                  {selectedReward.type && selectedReward.type !== RewardType.POINTS && (
+                  {selectedRule.extra_reward && (
                     <View style={[styles.rewardDetailCard, { backgroundColor: `${colors.success}10` }]}>
                       <Text style={[styles.rewardLabel, { color: colors.textSecondary }]}>Extra Reward:</Text>
                       <View style={styles.rewardValueContainer}>
                         <RewardIcon
-                          type={selectedReward.type}
-                          value={selectedReward.value}
+                          type={selectedRule.extra_reward_type}
+                          value={selectedRule.extra_reward}
+                          data={selectedRule.extra_reward_data}
                           size={32}
                           iconSize={18}
                           fontSize={16}
-                          color={colors.success}
                           showValue={true}
                         />
                       </View>
-                    </View>
-                  )}
-                  
-                  {selectedReward.description && (
-                    <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
-                      <Text style={[styles.infoText, { color: colors.text }]}>
-                        {selectedReward.description}
-                      </Text>
                     </View>
                   )}
                 </>
@@ -495,10 +483,10 @@ export default function CheckinCalendar({
                       >
                         <View style={[styles.tableCell, styles.dateColumn]}>
                           <Text style={[styles.tableCellText, { color: colors.text }]}>
-                            {new Date(r.date).getDate()}
+                            {parseYMD(r.date).getDate()}
                           </Text>
                           <Text style={[styles.tableCellSubtext, { color: colors.textSecondary }]}>
-                            {new Date(r.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                            {parseYMD(r.date).toLocaleDateString('en-US', { weekday: 'short' })}
                           </Text>
                         </View>
                         
@@ -511,7 +499,6 @@ export default function CheckinCalendar({
                             fontSize={12}
                             color={colors.primary}
                             showValue={true}
-                            mode="compact"
                           />
                         </View>
                         
@@ -520,12 +507,12 @@ export default function CheckinCalendar({
                             <RewardIcon
                               type={r.extraType}
                               value={r.extraReward}
+                              data={r.extraData}
                               size={24}
                               iconSize={14}
                               fontSize={12}
                               color={colors.warning}
                               showValue={true}
-                              mode="compact"
                             />
                           ) : (
                             <Text style={[styles.noExtraText, { color: colors.textSecondary }]}>-</Text>
@@ -702,6 +689,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+    marginBottom: Spacing.lg,
   },
   modalBackdrop: {
     position: 'absolute',
@@ -713,14 +701,13 @@ const styles = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    padding: Spacing.xl,
+    padding: Spacing.lg,
     maxHeight: '80%',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: -4,
     },
-    shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 16,
   },
@@ -728,8 +715,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.xl,
-    paddingBottom: Spacing.md,
+    marginBottom: Spacing.md,
+    paddingBottom: Spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0, 0, 0, 0.08)',
   },
@@ -738,8 +725,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
   },
   closeButton: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
@@ -795,7 +782,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   dateColumn: {
-    flex: 1.2,
+    flex: 0.6,
   },
   baseColumn: {
     flex: 1,
@@ -804,14 +791,14 @@ const styles = StyleSheet.create({
     flex: 1.2,
   },
   statusColumn: {
-    flex: 1.2,
+    flex: 0.8,
   },
   tableScrollView: {
-    maxHeight: 300,
+    maxHeight: 400,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
     alignItems: 'center',
   },
@@ -848,7 +835,6 @@ const styles = StyleSheet.create({
   infoBox: {
     padding: Spacing.lg,
     borderRadius: 12,
-    marginTop: Spacing.md,
   },
   infoTitle: {
     fontSize: 16,

@@ -22,15 +22,7 @@ import CheckinCalendar from '@/components/checkin/CheckinCalendar';
 import MakeUpSignModal from '@/components/checkin/MakeUpSignModal';
 import CheckinLogModal from '@/components/checkin/CheckinLogModal';
 import { RewardType } from '@/types';
-import { parseYMD, toMidnight } from '@/utils/date';
-
-// Helper to format date to YYYY-MM-DD
-const formatDate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+import { formatLocalDate, parseYMD, toMidnight } from '@/utils/date';
 
 function CheckinScreenContent() {
   const { colors } = useTheme();
@@ -45,7 +37,7 @@ function CheckinScreenContent() {
     performCheckin, // This action is still used for actual check-in/make-up
   } = useCheckinStore(); // Use the updated store
 
-  const [currentDisplayDate, setCurrentDisplayDate] = useState(formatDate(new Date()));
+  const [currentDisplayDate, setCurrentDisplayDate] = useState(formatLocalDate(new Date()));
   const [showLogModal, setShowLogModal] = useState(false);
   const [showMakeUpSignModal, setShowMakeUpSignModal] = useState(false);
 
@@ -125,7 +117,7 @@ function CheckinScreenContent() {
       } else {
         date.setDate(date.getDate() + 7); // Go forward one week
       }
-      setCurrentDisplayDate(formatDate(date));
+      setCurrentDisplayDate(formatLocalDate(date));
     },
     [currentDisplayDate]
   );
@@ -178,10 +170,13 @@ function CheckinScreenContent() {
       >
         {/* Summary Card */}
         <View style={[styles.summaryCard, { backgroundColor: colors.primary }]}>
-          <View style={styles.summaryItem}>
+          <TouchableOpacity
+            style={styles.summaryItem}
+            onPress={() => setShowLogModal(true)}
+          >
             <Text style={styles.summaryLabel}>Total Points</Text>
             <Text style={styles.summaryValue}>{userPoints}</Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.summaryDivider} />
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>Signed Days</Text>
@@ -248,6 +243,7 @@ function CheckinScreenContent() {
                     <RewardIcon
                       type={reward.prize_type}
                       value={reward.prize}
+                      data={reward.prize_data}
                       currencySymbol={user?.currency_symbol || '₦'}
                       size={32}
                       iconSize={14}

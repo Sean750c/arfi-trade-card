@@ -3,11 +3,12 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Star, Ticket, DollarSign, Gift, CircleHelp as HelpCircle, Coins, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
-import { RewardType } from '@/types';
+import { RewardType, Coupon } from '@/types';
 
 interface RewardIconProps {
   type: RewardType | `${RewardType}`;
   value: string | number;
+  data?: any;
   currencySymbol?: string;
   size?: number;
   iconSize?: number;
@@ -20,6 +21,7 @@ interface RewardIconProps {
 export default function RewardIcon({
   type,
   value,
+  data,
   currencySymbol = '₦',
   size = 32,
   iconSize = 18,
@@ -50,7 +52,7 @@ export default function RewardIcon({
 
   const formatValue = () => {
     if (mode === 'compact') {
-      switch (type) {
+      switch (Number(type)) {
         case RewardType.POINTS:
           return `${value}`;
         case RewardType.CASH:
@@ -63,19 +65,27 @@ export default function RewardIcon({
           return '';
       }
     } else {
-      switch (type) {
+      switch (Number(type)) {
         case RewardType.POINTS:
-          return `${value}`;
+          return `${value} points`;
         case RewardType.CASH:
           return `${currencySymbol}${parseFloat(value as string).toFixed(2)}`;
         case RewardType.COUPON:
+          return formatDiscount(data);
         case RewardType.PHYSICAL_PRODUCT:
         case RewardType.OTHER:
-          return typeof value === 'string' && value.length > 8 ? `${value.slice(0, 8)}...` : value;
+          return typeof value === 'string' && value.length > 12 ? `${value.slice(0, 12)}...` : value;
         default:
           return value;
       }
     }
+  };
+
+  const formatDiscount = (coupon: any) => {
+    const discountValue = parseFloat(coupon.discount_value);
+
+    // 百分比类型优惠,抽奖的都是百分比类型的
+    return `${coupon.code}(${(discountValue * 100).toFixed(1)}% Off)`;
   };
 
   return (
@@ -84,7 +94,7 @@ export default function RewardIcon({
         {renderIcon()}
       </View>
       {showValue && (
-        <Text style={[styles.valueText, { fontSize, color: iconColor, maxWidth: size * 4 }]}>
+        <Text style={[styles.valueText, { fontSize, color: iconColor, maxWidth: size * 6 }]}>
           {formatValue()}
         </Text>
       )}
