@@ -11,7 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Zap, Trophy, Gift, Star, Sparkles, Crown } from 'lucide-react-native';
+import { ChevronLeft, Zap, Trophy, Gift, Star, Sparkles, Crown, History } from 'lucide-react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -25,6 +25,8 @@ import Svg, { Circle, Path, Text as SvgText, G } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
+import GridLotteryWheel from '@/components/lottery/GridLotteryWheel';
+import LotteryLogsModal from '@/components/lottery/LotteryLogsModal';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Header from '@/components/UI/Header';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
@@ -316,6 +318,7 @@ function LotteryScreenContent() {
     clearLastDrawResult,
   } = useLotteryStore();
 
+  const [showLogsModal, setShowLogsModal] = useState(false);
   const [showPrizeModal, setShowPrizeModal] = useState(false);
 
   useEffect(() => {
@@ -415,7 +418,36 @@ function LotteryScreenContent() {
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
-      <Header title="Lucky Draw" subtitle="Spin to win amazing prizes!" />
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={[styles.backButton, { backgroundColor: `${colors.primary}15` }]}
+        >
+          <ChevronLeft size={24} color={colors.primary} />
+        </TouchableOpacity>
+        
+        <View style={styles.headerContent}>
+          <Text style={[styles.title, { color: colors.text }]}>Lucky Draw</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Test your luck and win amazing prizes!
+          </Text>
+        </View>
+        
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={() => setShowLogsModal(true)}
+            style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
+          >
+            <History size={20} color={colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={refreshActivity}
+            style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
+          >
+            <RefreshCw size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+      </View>
       
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -450,16 +482,14 @@ function LotteryScreenContent() {
         </LinearGradient>
 
         {/* Lottery Wheel */}
-        <Card style={styles.wheelCard}>
-          <LotteryWheel
-            prizes={lotteryActivity.prizes}
-            isSpinning={isDrawing}
-            onSpin={handleSpin}
-            colors={colors}
-            userPoints={lotteryActivity.user_point}
-            requiredPoints={lotteryActivity.point}
-          />
-        </Card>
+        <GridLotteryWheel
+          prizes={lotteryActivity.prizes}
+          onSpin={handleSpin}
+          isSpinning={isDrawing}
+          winningPrizeId={lastDrawResult?.prize_id}
+          userPoints={lotteryActivity.user_point}
+          requiredPoints={lotteryActivity.point}
+        />
 
         {/* Prize List */}
         <Card style={styles.prizeListCard}>
@@ -558,6 +588,12 @@ function LotteryScreenContent() {
         </View>
       </ScrollView>
 
+      {/* Lottery Logs Modal */}
+      <LotteryLogsModal
+        visible={showLogsModal}
+        onClose={() => setShowLogsModal(false)}
+      />
+
       {/* Prize Result Modal */}
       <PrizeResultModal
         visible={showPrizeModal}
@@ -606,6 +642,44 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
+  },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerContent: {
+    flex: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+  },
+  subtitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
   },
 
   // Activity Card
