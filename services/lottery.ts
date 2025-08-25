@@ -2,10 +2,13 @@ import { APIRequest } from '@/utils/api';
 import type { 
   LotteryActivityResponse,
   LotteryDrawResponse,
+  LotteryLogsResponse,
   LotteryActivity,
   LotteryDrawResult,
+  LotteryLogsData,
   LotteryActivityRequest,
-  LotteryDrawRequest
+  LotteryDrawRequest,
+  LotteryLogsRequest
 } from '@/types';
 
 export class LotteryService {
@@ -58,6 +61,32 @@ export class LotteryService {
         throw new Error(`Failed to draw lottery: ${error.message}`);
       }
       throw new Error('Failed to draw lottery');
+    }
+  }
+
+  static async getLotteryLogs(params: LotteryLogsRequest): Promise<LotteryLogsData> {
+    try {
+      const response = await APIRequest.request<LotteryLogsResponse>(
+        '/gc/lottery/log',
+        'POST',
+        params
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to fetch lottery logs');
+      }
+
+      return response.data;
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch lottery logs: ${error.message}`);
+      }
+      throw new Error('Failed to fetch lottery logs');
     }
   }
 }
