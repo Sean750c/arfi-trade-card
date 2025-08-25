@@ -5,6 +5,9 @@ import type {
   CheckinConfig,
   CheckinConfigRequest,
   CheckinRequest,
+  PointLogsRequest,
+  PointLogsResponse,
+  PointLogsData,
 } from '@/types';
 
 export class CheckinService {
@@ -57,6 +60,32 @@ export class CheckinService {
         throw new Error(`Failed to perform checkin: ${error.message}`);
       }
       throw new Error('Failed to perform checkin');
+    }
+  }
+
+  static async getPointLogs(params: PointLogsRequest): Promise<PointLogsData> {
+    try {
+      const response = await APIRequest.request<PointLogsResponse>(
+        '/gc/point/getPointLogs',
+        'POST',
+        params
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to fetch point logs');
+      }
+
+      return response.data;
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch point logs: ${error.message}`);
+      }
+      throw new Error('Failed to fetch point logs');
     }
   }
 }

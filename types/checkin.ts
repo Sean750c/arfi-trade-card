@@ -72,6 +72,31 @@ export interface CheckinLogEntry {
   date: string; // YYYY-MM-DD format
 }
 
+export interface PointLogEntry {
+  id: number;
+  user_id: number;
+  points: number; // Can be positive or negative
+  type: number;
+  activity_type: number;
+  activity_no: string;
+  order_no: string;
+  content: string;
+  create_time: number;
+  brand_id: number;
+  type_name: string;
+}
+
+export interface PointLogsData {
+  list: PointLogEntry[];
+  total: number;
+}
+
+export interface PointLogsRequest {
+  token: string;
+  page: number;
+  page_size: number;
+}
+
 export interface CheckinConfig {
   id: number;
   activity_no: string;
@@ -117,3 +142,4 @@ export interface CheckinRequest {
 
 export type CheckinConfigResponse = APIResponse<CheckinConfig>;
 export type CheckinResponse = APIResponse<{}>;
+export type PointLogsResponse = APIResponse<PointLogsData>;
