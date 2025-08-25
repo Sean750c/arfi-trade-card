@@ -135,175 +135,6 @@ function PrizeResultModal({
   );
 }
 
-// Lottery wheel component
-function LotteryWheel({ 
-  prizes, 
-  isSpinning, 
-  onSpin, 
-  colors,
-  userPoints,
-  requiredPoints 
-}: { 
-  prizes: LotteryPrize[];
-  isSpinning: boolean;
-  onSpin: () => void;
-  colors: any;
-  userPoints: number;
-  requiredPoints: number;
-}) {
-  const rotation = useSharedValue(0);
-  const buttonScale = useSharedValue(1);
-
-  const animatedWheelStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
-
-  const animatedButtonStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }],
-  }));
-
-  const spinWheel = (targetAngle: number) => {
-    const spins = 5; // Number of full rotations
-    const finalAngle = spins * 360 + targetAngle;
-    
-    rotation.value = withSequence(
-      withTiming(finalAngle, { 
-        duration: 3000, 
-        easing: Easing.out(Easing.cubic) 
-      }),
-      withTiming(finalAngle, { duration: 500 })
-    );
-  };
-
-  const handleSpin = () => {
-    if (isSpinning || userPoints < requiredPoints) return;
-    
-    buttonScale.value = withSequence(
-      withSpring(0.9, { damping: 15 }),
-      withSpring(1, { damping: 15 })
-    );
-    
-    // Generate random target angle
-    const randomAngle = Math.random() * 360;
-    spinWheel(randomAngle);
-    
-    onSpin();
-  };
-
-  // Calculate slice angle for each prize
-  const sliceAngle = 360 / prizes.length;
-
-  // Generate wheel paths
-  const generateWheelPaths = () => {
-    return prizes.map((prize, index) => {
-      const startAngle = (index * sliceAngle - 90) * (Math.PI / 180);
-      const endAngle = ((index + 1) * sliceAngle - 90) * (Math.PI / 180);
-      
-      const x1 = WHEEL_RADIUS + WHEEL_RADIUS * 0.9 * Math.cos(startAngle);
-      const y1 = WHEEL_RADIUS + WHEEL_RADIUS * 0.9 * Math.sin(startAngle);
-      const x2 = WHEEL_RADIUS + WHEEL_RADIUS * 0.9 * Math.cos(endAngle);
-      const y2 = WHEEL_RADIUS + WHEEL_RADIUS * 0.9 * Math.sin(endAngle);
-
-      const largeArcFlag = sliceAngle > 180 ? 1 : 0;
-
-      const pathData = [
-        `M ${WHEEL_RADIUS} ${WHEEL_RADIUS}`,
-        `L ${x1} ${y1}`,
-        `A ${WHEEL_RADIUS * 0.9} ${WHEEL_RADIUS * 0.9} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-        'Z'
-      ].join(' ');
-
-      // Color based on prize type
-      const getSliceColor = (prizeType: number, index: number) => {
-        const baseColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
-        return baseColors[index % baseColors.length];
-      };
-
-      return {
-        path: pathData,
-        color: getSliceColor(prize.prize_type, index),
-        prize,
-        textAngle: (startAngle + endAngle) / 2,
-      };
-    });
-  };
-
-  const wheelPaths = generateWheelPaths();
-
-  return (
-    <View style={styles.wheelContainer}>
-      <View style={styles.wheelWrapper}>
-        <Animated.View style={[styles.wheel, animatedWheelStyle]}>
-          <Svg width={WHEEL_SIZE} height={WHEEL_SIZE}>
-            {wheelPaths.map((slice, index) => (
-              <G key={index}>
-                <Path
-                  d={slice.path}
-                  fill={slice.color}
-                  stroke="#FFFFFF"
-                  strokeWidth="2"
-                />
-                <SvgText
-                  x={WHEEL_RADIUS + (WHEEL_RADIUS * 0.6) * Math.cos(slice.textAngle)}
-                  y={WHEEL_RADIUS + (WHEEL_RADIUS * 0.6) * Math.sin(slice.textAngle)}
-                  fontSize="12"
-                  fill="#FFFFFF"
-                  fontWeight="bold"
-                  textAnchor="middle"
-                  alignmentBaseline="middle"
-                  transform={`rotate(${(slice.textAngle * 180 / Math.PI) + 90} ${WHEEL_RADIUS + (WHEEL_RADIUS * 0.6) * Math.cos(slice.textAngle)} ${WHEEL_RADIUS + (WHEEL_RADIUS * 0.6) * Math.sin(slice.textAngle)})`}
-                >
-                  {slice.prize.prize_name.length > 8 ? 
-                    slice.prize.prize_name.substring(0, 8) + '...' : 
-                    slice.prize.prize_name}
-                </SvgText>
-              </G>
-            ))}
-          </Svg>
-        </Animated.View>
-
-        {/* Center pointer */}
-        <View style={[styles.pointer, { borderBottomColor: colors.primary }]} />
-
-        {/* Center spin button */}
-        <Animated.View style={[styles.spinButtonContainer, animatedButtonStyle]}>
-          <TouchableOpacity
-            style={[
-              styles.spinButton,
-              { 
-                backgroundColor: userPoints >= requiredPoints ? colors.primary : colors.border,
-                shadowColor: colors.primary,
-              }
-            ]}
-            onPress={handleSpin}
-            disabled={isSpinning || userPoints < requiredPoints}
-            activeOpacity={0.8}
-          >
-            {isSpinning ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Zap size={24} color="#FFFFFF" fill="#FFFFFF" />
-            )}
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
-
-      {/* Spin cost info */}
-      <View style={[styles.spinInfo, { backgroundColor: colors.card }]}>
-        <Text style={[styles.spinCost, { color: colors.text }]}>
-          Cost: {requiredPoints} points per spin
-        </Text>
-        <Text style={[
-          styles.userPoints, 
-          { color: userPoints >= requiredPoints ? colors.success : colors.error }
-        ]}>
-          Your points: {userPoints}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
 function LotteryScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
@@ -321,6 +152,8 @@ function LotteryScreenContent() {
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [showPrizeModal, setShowPrizeModal] = useState(false);
 
+  const [isSpinning, setIsSpinning] = useState(false);
+
   useEffect(() => {
     if (user?.token) {
       fetchLotteryActivity(user.token);
@@ -329,7 +162,7 @@ function LotteryScreenContent() {
 
   // Show prize modal when draw result is available
   useEffect(() => {
-    if (lastDrawResult) {
+    if (lastDrawResult && !isSpinning) {
       setShowPrizeModal(true);
     }
   }, [lastDrawResult]);
@@ -350,8 +183,10 @@ function LotteryScreenContent() {
     }
 
     try {
+      setIsSpinning(true);
       await drawLottery(user.token, lotteryActivity.id);
     } catch (error) {
+      setIsSpinning(false);
       Alert.alert(
         'Draw Failed',
         error instanceof Error ? error.message : 'Failed to draw lottery'
@@ -461,13 +296,6 @@ function LotteryScreenContent() {
           colors={[colors.primary, '#6366F1']}
           style={styles.activityCard}
         >
-          <View style={styles.activityHeader}>
-            <Trophy size={24} color="#FFFFFF" />
-            <Text style={styles.activityTitle}>{lotteryActivity.name}</Text>
-          </View>
-          <Text style={styles.activityDescription}>
-            {lotteryActivity.desc}
-          </Text>
           <View style={styles.activityStats}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{lotteryActivity.user_point}</Text>
@@ -488,6 +316,11 @@ function LotteryScreenContent() {
         <GridLotteryWheel
           prizes={lotteryActivity.prizes}
           onSpin={handleSpin}
+          onSpinEnd={() => {
+            // 👉 只在这里弹窗，这时已至少转了3秒并准确停在中奖格
+            setIsSpinning(false);
+            // setIsSpinning(false); // 结束
+          }}
           isSpinning={isDrawing}
           winningPrizeId={lastDrawResult?.prize_id}
           userPoints={lotteryActivity.user_point}
@@ -559,20 +392,6 @@ function LotteryScreenContent() {
             >
               <Text style={[styles.earnPointsText, { color: colors.textSecondary }]}>
                 💳 Complete Orders
-              </Text>
-              <ChevronLeft 
-                size={16} 
-                color={colors.primary} 
-                style={{ transform: [{ rotate: '180deg' }] }} 
-              />
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.earnPointsItem}
-              onPress={() => router.push('/refer')}
-            >
-              <Text style={[styles.earnPointsText, { color: colors.textSecondary }]}>
-                👥 Invite Friends
               </Text>
               <ChevronLeft 
                 size={16} 
@@ -695,24 +514,6 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  activityHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.sm,
-  },
-  activityTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    color: '#FFFFFF',
-  },
-  activityDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginBottom: Spacing.lg,
-    lineHeight: 20,
-  },
   activityStats: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -730,76 +531,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: 'rgba(255, 255, 255, 0.8)',
     marginTop: 4,
-  },
-
-  // Wheel
-  wheelCard: {
-    alignItems: 'center',
-    padding: Spacing.xl,
-    marginBottom: Spacing.lg,
-  },
-  wheelContainer: {
-    alignItems: 'center',
-  },
-  wheelWrapper: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  wheel: {
-    width: WHEEL_SIZE,
-    height: WHEEL_SIZE,
-    borderRadius: WHEEL_SIZE / 2,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  pointer: {
-    position: 'absolute',
-    top: -10,
-    width: 0,
-    height: 0,
-    borderLeftWidth: 15,
-    borderRightWidth: 15,
-    borderBottomWidth: 30,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    zIndex: 10,
-  },
-  spinButtonContainer: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -35,
-    marginLeft: -35,
-    zIndex: 10,
-  },
-  spinButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  spinInfo: {
-    marginTop: Spacing.lg,
-    padding: Spacing.md,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  spinCost: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    marginBottom: 4,
-  },
-  userPoints: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
   },
 
   // Prize List
