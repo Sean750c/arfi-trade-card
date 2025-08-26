@@ -29,8 +29,8 @@ const { width: screenWidth } = Dimensions.get('window');
 const GRID_SIZE = screenWidth - Spacing.lg * 2;
 const CELL_SIZE = (GRID_SIZE - Spacing.sm * 2 - Spacing.xs * 6) / 3;
 
-// 至少转动 2s，减少等待时间
-const MIN_SPIN_MS = 2000;
+// 至少转动 3s
+const MIN_SPIN_MS = 3000;
 
 export default function GridLotteryWheel({
   prizes,
@@ -46,18 +46,13 @@ export default function GridLotteryWheel({
   const animationRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const highlightAnim = useRef(new Animated.Value(1)).current;
 
-  // 添加调试日志
-  useEffect(() => {
-    console.log('🎰 GridLotteryWheel - isSpinning:', isSpinning);
-    console.log('🎰 GridLotteryWheel - winningPrizeId:', winningPrizeId);
-  }, [isSpinning, winningPrizeId]);
-
   // 高亮绕外围的顺序（按 grid 索引）：0,1,2,5,8,7,6,3
   const animationSequence = [0, 1, 2, 5, 8, 7, 6, 3];
 
   // 保存“后端中奖ID”的最新值，避免闭包里读到旧值
   const winnerIdRef = useRef<number | null>(null);
   useEffect(() => {
+    console.log("winningPrizeId变化, 修改当前奖励:" + winningPrizeId);
     winnerIdRef.current = (typeof winningPrizeId === 'number') ? winningPrizeId : null;
   }, [winningPrizeId]);
 
@@ -68,17 +63,8 @@ export default function GridLotteryWheel({
     [RewardType.PHYSICAL_PRODUCT]: { icon: Gift, color: '#45B7D1' },
   };
 
-  // 使用更柔和的颜色，基于主题色系
-  const CELL_COLORS = [
-    `${colors.primary}`,     // 主色调
-    `${colors.success}`,     // 成功色
-    `${colors.warning}`,     // 警告色
-    '#8B5CF6',               // 紫色
-    '#EC4899',               // 粉色
-    '#06B6D4',               // 青色
-    '#F59E0B',               // 橙色
-    '#10B981',               // 绿色
-  ];
+  // 每个格子不同色，不按类型
+  const CELL_COLORS = ['#FF6B6B', '#4ECDC4', '#FFD93D', '#6C5CE7', '#F0932B', '#22A6B3', '#E84393', '#2ECC71'];
 
   // —— 占位“未中奖”且避免相邻（仅在 prizes 变化时运行一次）——
   const insertBetterLuckPrizes = (list: LotteryPrize[]): LotteryPrize[] => {
@@ -119,28 +105,9 @@ export default function GridLotteryWheel({
   );
 
   useEffect(() => {
-    startIdleAnimation();
-    return () => stopAnimation();
-  }, []);
-
-  useEffect(() => {
-    if (isSpinning) {
-      console.log('🎰 Starting spin animation...');
-      startSpinAnimation();
-    } else {
-      console.log('🎰 Stopping spin animation...');
-      stopAnimation();
-      startIdleAnimation();
-    }
+    console.log('isSpinning状态变化:' + isSpinning);
+    if (isSpinning && animationRef.current == null) startSpinAnimation();
   }, [isSpinning]);
-
-  const startIdleAnimation = () => {
-    stopAnimation();
-    animationRef.current = setTimeout(() => {
-      setCurrentHighlight(prev => (prev + 1) % 8);
-      startIdleAnimation();
-    }, 400);
-  };
 
   const stopAnimation = () => {
     if (animationRef.current) {
@@ -151,13 +118,13 @@ export default function GridLotteryWheel({
 
   // ✅ 关键：至少转 MIN_SPIN_MS，且等 winnerIdRef.current 有值后再收尾
   const startSpinAnimation = () => {
-    console.log('🎰 startSpinAnimation called');
+    console.log("开始抽奖动画:" + isSpinning);
     stopAnimation();
     let seqIndex = animationSequence.indexOf(currentHighlight);
     if (seqIndex === -1) seqIndex = 0;
 
     const startTime = Date.now();
-    let speed = 80; // 起步速度稍慢一些，减少眩晕感
+    let speed = 60; // 起步速度(越小越快)
 
     const stepOnce = () => {
       // 下一个序列位
@@ -165,48 +132,43 @@ export default function GridLotteryWheel({
       setCurrentHighlight(animationSequence[seqIndex]);
 
       Animated.sequence([
-        Animated.timing(highlightAnim, { toValue: 1.05, duration: 100, useNativeDriver: true }),
-        Animated.timing(highlightAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
+        Animated.timing(highlightAnim, { toValue: 1.12, duration: 60, useNativeDriver: true }),
+        Animated.timing(highlightAnim, { toValue: 1, duration: 60, useNativeDriver: true }),
       ]).start();
 
       const elapsed = Date.now() - startTime;
       const winnerId = winnerIdRef.current;
 
-      console.log('🎰 Animation step - elapsed:', elapsed, 'winnerId:', winnerId);
+      //console.log('elapsed:' + elapsed + ' MIN_SPIN_MS:' + MIN_SPIN_MS + ' winnerId:' + winnerId);
 
       // 满足：已到最少时间 且 后端已返回中奖id → 进入收尾对准
       if (elapsed >= MIN_SPIN_MS && winnerId != null) {
-        console.log('🎰 Conditions met, stopping animation...');
         const targetGridIndex = gridItems.findIndex(
           (cell) => cell && (cell as LotteryPrize).id === winnerId
         );
         // 找不到就兜底到第一个
         const safeTargetGridIndex = targetGridIndex >= 0 ? targetGridIndex : animationSequence[0];
         const targetSeqIndex = Math.max(0, animationSequence.indexOf(safeTargetGridIndex));
-        console.log('🎰 Target grid index:', safeTargetGridIndex, 'Target seq index:', targetSeqIndex);
         animateToWinningSeqIndex(seqIndex, targetSeqIndex);
         return;
       }
 
       // 继续跑圈：逐步加速→减速（简单线性即可）
-      speed = Math.min(200, speed + 6); // 减慢最大速度，减少眩晕感
+      speed = Math.min(140, speed + 4);
       animationRef.current = setTimeout(stepOnce, speed);
     };
-
     stepOnce();
   };
 
   // 以“当前序列位”到“目标序列位”收尾，额外多绕1-2圈更自然
   const animateToWinningSeqIndex = (currentSeq: number, targetSeq: number) => {
-    console.log('🎰 animateToWinningSeqIndex called - currentSeq:', currentSeq, 'targetSeq:', targetSeq);
     stopAnimation();
-    const extraLoops = 1; // 减少绕圈次数，减少等待时间
+    const extraLoops = 2; // 多绕圈
     const distance = (extraLoops * 8) + ((targetSeq - currentSeq + 8) % 8);
     let steps = 0;
     let seq = currentSeq;
 
     const finishStep = () => {
-      console.log('🎰 Animation finished, calling onSpinEnd');
       // 闪烁一下并回调给外部
       startWinningFlash();
       const targetGridIndex = animationSequence[targetSeq];
@@ -219,15 +181,15 @@ export default function GridLotteryWheel({
       setCurrentHighlight(animationSequence[seq]);
 
       Animated.sequence([
-        Animated.timing(highlightAnim, { toValue: 1.08, duration: 120, useNativeDriver: true }),
-        Animated.timing(highlightAnim, { toValue: 1, duration: 120, useNativeDriver: true }),
+        Animated.timing(highlightAnim, { toValue: 1.18, duration: 70, useNativeDriver: true }),
+        Animated.timing(highlightAnim, { toValue: 1, duration: 70, useNativeDriver: true }),
       ]).start();
 
       steps++;
       if (steps < distance) {
         // 收尾阶段逐步减速
-        const base = 120;
-        const slow = Math.min(300, base + Math.floor((steps / distance) * 180));
+        const base = 80;
+        const slow = Math.min(240, base + Math.floor((steps / distance) * 160));
         animationRef.current = setTimeout(tick, slow);
       } else {
         animationRef.current = null;
@@ -252,12 +214,12 @@ export default function GridLotteryWheel({
 
     const flash = () => {
       Animated.sequence([
-        Animated.timing(highlightAnim, { toValue: 1.15, duration: 250, useNativeDriver: true }),
-        Animated.timing(highlightAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+        Animated.timing(highlightAnim, { toValue: 1.25, duration: 180, useNativeDriver: true }),
+        Animated.timing(highlightAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
       ]).start(() => {
         flashCount++;
         if (flashCount < maxFlashes) flash();
-        else startIdleAnimation();
+        // else startIdleAnimation();
       });
     };
 
@@ -271,14 +233,7 @@ export default function GridLotteryWheel({
     return <Icon size={size} color="#FFFFFF" />;
   };
 
-  const getPrizeColor = (index: number) => {
-    // 为"Better Luck Next Time"使用特殊颜色
-    const prize = gridItems[index] as LotteryPrize | null;
-    if (prize?.prize_name === 'Better Luck Next Time') {
-      return `${colors.textSecondary}40`; // 更淡的灰色
-    }
-    return CELL_COLORS[index % CELL_COLORS.length];
-  };
+  const getPrizeColor = (index: number) => CELL_COLORS[index % CELL_COLORS.length];
 
   const renderPrizeCell = (prize: LotteryPrize | null, index: number) => {
     const isCenter = index === 4;
@@ -300,6 +255,7 @@ export default function GridLotteryWheel({
               },
               android: { elevation: 8 }
             }),
+            canSpin ? { transform: [{ scale: highlightAnim }] } : {}
           ]}
         >
           <TouchableOpacity
@@ -308,10 +264,7 @@ export default function GridLotteryWheel({
             disabled={!canSpin}
             activeOpacity={0.8}
           >
-            <LinearGradient 
-              colors={canSpin ? [colors.primary, `${colors.primary}CC`] : [`${colors.border}`, `${colors.textSecondary}`]} 
-              style={styles.gradientButton}
-            >
+            <LinearGradient colors={['#FF7F50', '#FF6347']} style={styles.gradientButton}>
               <Zap size={32} color="#FFF" />
               <Text style={styles.spinButtonText}>{isSpinning ? 'SPINNING...' : 'SPIN'}</Text>
               <Text style={styles.spinCostText}>{requiredPoints} Points</Text>
@@ -322,7 +275,7 @@ export default function GridLotteryWheel({
     }
 
     if (!prize) {
-      return <View key={`empty-${index}`} style={[styles.prizeCell, { backgroundColor: `${colors.border}30` }]} />;
+      return <View key={`empty-${index}`} style={[styles.prizeCell, { backgroundColor: colors.border }]} />;
     }
 
     return (
@@ -332,25 +285,15 @@ export default function GridLotteryWheel({
           styles.prizeCell,
           {
             backgroundColor: getPrizeColor(index),
-            borderWidth: isHighlighted ? 2 : 1,
-            borderColor: isHighlighted ? '#FFFFFF' : 'rgba(255,255,255,0.3)',
+            borderWidth: isHighlighted ? 3 : 0,
+            borderColor: isHighlighted ? '#FFF' : 'transparent',
             transform: isHighlighted ? [{ scale: highlightAnim }] : [],
-            shadowColor: isHighlighted ? '#000' : 'transparent',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: isHighlighted ? 0.2 : 0,
-            shadowRadius: 4,
-            elevation: isHighlighted ? 4 : 2,
           }
         ]}
       >
         <View style={styles.prizeCellContent}>
-          {getPrizeIcon(prize.prize_type, 18)}
-          <Text style={[
-            styles.prizeName,
-            prize.prize_name === 'Better Luck Next Time' && { opacity: 0.7 }
-          ]} numberOfLines={2}>
-            {prize.prize_name}
-          </Text>
+          {getPrizeIcon(prize.prize_type, 20)}
+          <Text style={styles.prizeName} numberOfLines={2}>{prize.prize_name}</Text>
         </View>
       </Animated.View>
     );
@@ -408,34 +351,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 24,
+    borderRadius: 88,
     padding: Spacing.sm,
   },
-  spinButtonText: { 
-    color: '#FFF', 
-    fontSize: 14, 
-    fontFamily: 'Inter-Bold', 
-    marginTop: 4 
-  },
-  spinCostText: { 
-    color: 'rgba(255,255,255,0.8)', 
-    fontSize: 9, 
-    fontFamily: 'Inter-Medium', 
-    marginTop: 2 
-  },
-  prizeCellContent: { 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    padding: Spacing.xs 
-  },
-  prizeName: { 
-    color: 'rgba(255,255,255,0.95)', 
-    fontSize: 9, 
-    fontFamily: 'Inter-SemiBold', 
-    textAlign: 'center', 
-    marginTop: 3,
-    lineHeight: 12,
-  },
+  spinButtonText: { color: '#FFF', fontSize: 16, fontFamily: 'Inter-Bold', marginTop: 4 },
+  spinCostText: { color: 'rgba(255,255,255,0.8)', fontSize: 10, fontFamily: 'Inter-Medium', marginTop: 2 },
+  prizeCellContent: { justifyContent: 'center', alignItems: 'center', padding: Spacing.xs },
+  prizeName: { color: 'rgba(255,255,255,0.9)', fontSize: 10, fontFamily: 'Inter-Medium', textAlign: 'center', marginTop: 2 },
   infoContainer: { alignItems: 'center', marginTop: Spacing.lg, gap: Spacing.xs },
   pointsInfo: { fontSize: 16, fontFamily: 'Inter-Medium' },
   costInfo: { fontSize: 14, fontFamily: 'Inter-Regular' },

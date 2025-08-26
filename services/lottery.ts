@@ -41,7 +41,7 @@ export class LotteryService {
   static async drawLottery(token: string, activityId: number): Promise<LotteryDrawResult> {
     try {
       const response = await APIRequest.request<LotteryDrawResponse>(
-        '/gc/Lottery/draw',
+        '/gc/lottery/draw',
         'POST',
         { token, activity_id: activityId }
       );

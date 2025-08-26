@@ -33,12 +33,11 @@ export interface LotteryDrawRequest {
 }
 
 export interface LotteryDrawResult {
-  prize_id: number;
+  id: number;
   prize_name: string;
-  prize_value: string;
+  prize_data: any;
   prize_type: number;
   prize_image?: string;
-  remaining_points?: number; // User's remaining points after draw
 }
 
 export interface LotteryLogEntry {

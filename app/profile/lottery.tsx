@@ -34,7 +34,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useLotteryStore } from '@/stores/useLotteryStore';
-import type { LotteryPrize, LotteryDrawResult } from '@/types';
+import { LotteryPrize, LotteryDrawResult, RewardType } from '@/types';
 
 const { width: screenWidth } = Dimensions.get('window');
 const WHEEL_SIZE = Math.min(screenWidth * 0.8, 300);
@@ -45,11 +45,13 @@ function PrizeResultModal({
   visible, 
   onClose, 
   result, 
+  currencySymbol = '₦',
   colors 
 }: { 
   visible: boolean; 
   onClose: () => void; 
   result: LotteryDrawResult | null;
+  currencySymbol: string;
   colors: any;
 }) {
   const scaleAnim = useSharedValue(0);
@@ -94,6 +96,31 @@ function PrizeResultModal({
     }
   };
 
+  const formatValue = () => {
+    const type = result?.prize_type;
+      switch (type) {
+        case RewardType.POINTS:
+          return `${result?.prize_data.point} Points`;
+        case RewardType.CASH:
+          return `${currencySymbol}${parseFloat(result?.prize_data.cash as string).toFixed(2)}`;
+        case RewardType.COUPON:
+          return formatDiscount(result?.prize_data.coupon);
+        case RewardType.PHYSICAL_PRODUCT:
+          return `${result?.prize_data.product}`;
+        case RewardType.OTHER:
+          return `${result?.prize_data.other}`;
+        default:
+          return 'unknown';
+      }
+  };
+
+  const formatDiscount = (coupon: any) => {
+    const discountValue = parseFloat(coupon.discount_value);
+
+    // 百分比类型优惠,抽奖的都是百分比类型的
+    return `${coupon.code}(${(discountValue * 100).toFixed(1)}% Off)`;
+  };
+
   if (!result) return null;
 
   return (
@@ -110,10 +137,7 @@ function PrizeResultModal({
             <Text style={styles.congratsText}>🎉 Congratulations! 🎉</Text>
             <Text style={styles.prizeNameText}>{result.prize_name}</Text>
             <Text style={styles.prizeValueText}>
-              {result.prize_type === 1 ? `${result.prize_value} Points` :
-               result.prize_type === 2 ? `₦${result.prize_value}` :
-               result.prize_type === 3 ? `$${result.prize_value}` :
-               result.prize_value}
+              {formatValue()}
             </Text>
           </LinearGradient>
           
@@ -162,12 +186,14 @@ function LotteryScreenContent() {
 
   // Show prize modal when draw result is available
   useEffect(() => {
+    console.log("lastDrawResult或isSpinning状态变化:" + isSpinning + ' ' + lastDrawResult);
     if (lastDrawResult && !isSpinning) {
       setShowPrizeModal(true);
     }
-  }, [lastDrawResult]);
+  }, [lastDrawResult, isSpinning]);
 
   const handleSpin = async () => {
+    console.log("点击抽奖");
     if (!user?.token || !lotteryActivity) return;
 
     if (lotteryActivity.user_point < lotteryActivity.point) {
@@ -183,8 +209,11 @@ function LotteryScreenContent() {
     }
 
     try {
+      console.log("设置抽奖状态isSpinning为true");
       setIsSpinning(true);
+      console.log("调用后台抽奖接口开始...");
       await drawLottery(user.token, lotteryActivity.id);
+      console.log("调用后台抽奖接口结束...");
     } catch (error) {
       setIsSpinning(false);
       Alert.alert(
@@ -321,8 +350,8 @@ function LotteryScreenContent() {
             setIsSpinning(false);
             // setIsSpinning(false); // 结束
           }}
-          isSpinning={isDrawing}
-          winningPrizeId={lastDrawResult?.prize_id}
+          isSpinning={isSpinning}
+          winningPrizeId={lastDrawResult?.id}
           userPoints={lotteryActivity.user_point}
           requiredPoints={lotteryActivity.point}
         />
@@ -421,6 +450,7 @@ function LotteryScreenContent() {
         visible={showPrizeModal}
         onClose={handlePrizeModalClose}
         result={lastDrawResult}
+        currencySymbol={user?.currency_symbol || '₦'}
         colors={colors}
       />
     </SafeAreaWrapper>
