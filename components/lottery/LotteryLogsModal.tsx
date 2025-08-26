@@ -27,7 +27,6 @@ export default function LotteryLogsModal({ visible, onClose }: LotteryLogsModalP
   const { user } = useAuthStore();
   const {
     lotteryLogs,
-    logsTotal,
     isLoadingLogs,
     isLoadingMoreLogs,
     logsError,
@@ -42,6 +41,8 @@ export default function LotteryLogsModal({ visible, onClose }: LotteryLogsModalP
     if (visible && user?.token) {
       setLogsInitialized(false);
       fetchLotteryLogs(user.token, true).then(() => setLogsInitialized(true));
+
+      // console.log(JSON.stringify(lotteryLogs));
     }
   }, [visible, user?.token, fetchLotteryLogs]);
 
@@ -81,14 +82,36 @@ export default function LotteryLogsModal({ visible, onClose }: LotteryLogsModalP
     }
   };
 
+  const formatPrizeType = (log: LotteryLogEntry) => {
+    switch (log.prize_type) {
+      case RewardType.POINTS:
+        return `Points`;
+      case RewardType.CASH:
+        return `Cash`;
+      case RewardType.COUPON:
+        return 'Coupon';
+      case RewardType.PHYSICAL_PRODUCT:
+        return 'Product';
+      default:
+        return 'Other';
+    }
+  };
+
+  const formatDiscount = (coupon: any) => {
+    const discountValue = parseFloat(coupon.discount_value);
+
+    // 百分比类型优惠,抽奖的都是百分比类型的
+    return `${coupon.code}(${(discountValue * 100).toFixed(1)}% Off)`;
+  };
+
   const formatPrizeValue = (log: LotteryLogEntry) => {
     switch (log.prize_type) {
       case RewardType.POINTS:
         return `${log.prize} Points`;
       case RewardType.CASH:
-        return `${user?.currency_symbol || '₦'}${log.prize}`;
+        return `${'$'}${log.prize}(${log.prize_name})`;
       case RewardType.COUPON:
-        return log.prize_name;
+        return formatDiscount(log.prize_data.coupon);
       case RewardType.PHYSICAL_PRODUCT:
         return log.prize_name;
       default:
@@ -109,26 +132,18 @@ export default function LotteryLogsModal({ visible, onClose }: LotteryLogsModalP
           {getPrizeIcon(log.prize_type)}
         </View>
         <View style={styles.logContent}>
-          <Text style={[styles.logActivityName, { color: colors.text }]}>
-            {log.activity_name}
+          <Text style={[styles.logActivityNo, { color: colors.primary }]}>
+            {formatPrizeType(log)}
           </Text>
-          <Text style={[styles.logActivityNo, { color: colors.textSecondary }]}>
-            Activity: {log.activity_no}
-          </Text>
-          <Text style={[styles.logDate, { color: colors.textSecondary }]}>
-            {formatDate(log.create_time)}
+          <Text style={[styles.logActivityName, { color: colors.textSecondary }]}>
+            {formatPrizeValue(log)}
           </Text>
         </View>
         <View style={styles.logPrize}>
-          <Text style={[
-            styles.prizeValue,
-            { color: getPrizeColor(log.prize_type) }
-          ]}>
-            {formatPrizeValue(log)}
+
+          <Text style={[styles.logDate, { color: colors.textSecondary }]}>
+            {formatDate(log.create_time)}
           </Text>
-          <View style={styles.prizeIcon}>
-            {getPrizeIcon(log.prize_type)}
-          </View>
         </View>
       </View>
     </View>
@@ -148,11 +163,9 @@ export default function LotteryLogsModal({ visible, onClose }: LotteryLogsModalP
               <Gift size={24} color={colors.primary} />
               <View style={styles.titleTextContainer}>
                 <Text style={[styles.modalTitle, { color: colors.text }]}>Lottery History</Text>
-                {logsTotal > 0 && (
                   <Text style={[styles.totalCount, { color: colors.textSecondary }]}>
-                    Total: {logsTotal} records
+                    Total: {lotteryLogs.length ?? 0} records
                   </Text>
-                )}
               </View>
             </View>
             <TouchableOpacity 
@@ -300,8 +313,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   logActivityName: {
-    fontSize: 15,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
   },
   logActivityNo: {
     fontSize: 12,

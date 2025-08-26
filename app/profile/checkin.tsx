@@ -169,7 +169,7 @@ function CheckinScreenContent() {
       <Header title="Daily Check-in" showBack={true} rightComponent={
         <TouchableOpacity
           style={[styles.infoButton, { backgroundColor: `${colors.primary}15` }]}
-          onPress={() => setShowPointLogsModal(true)}
+          onPress={() => setShowLogModal(true)}
         >
           <FileText size={22} color={colors.primary} />
         </TouchableOpacity>
@@ -183,7 +183,7 @@ function CheckinScreenContent() {
         <View style={[styles.summaryCard, { backgroundColor: colors.primary }]}>
           <TouchableOpacity
             style={styles.summaryItem}
-            onPress={() => setShowLogModal(true)}
+            onPress={() => setShowPointLogsModal(true)}
           >
             <Text style={styles.summaryLabel}>Total Points</Text>
             <Text style={styles.summaryValue}>{userPoints}</Text>

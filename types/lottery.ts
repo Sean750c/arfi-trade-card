@@ -69,4 +69,4 @@ export interface LotteryLogsRequest {
 
 export type LotteryActivityResponse = APIResponse<LotteryActivity>;
 export type LotteryDrawResponse = APIResponse<LotteryDrawResult>;
-export type LotteryLogsResponse = APIResponse<LotteryLogsData>;
+export type LotteryLogsResponse = APIResponse<LotteryLogEntry[]>;

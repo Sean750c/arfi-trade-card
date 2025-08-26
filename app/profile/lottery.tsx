@@ -35,21 +35,22 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useLotteryStore } from '@/stores/useLotteryStore';
 import { LotteryPrize, LotteryDrawResult, RewardType } from '@/types';
+import PointLogsModal from '@/components/checkin/PointLogsModal';
 
 const { width: screenWidth } = Dimensions.get('window');
 const WHEEL_SIZE = Math.min(screenWidth * 0.8, 300);
 const WHEEL_RADIUS = WHEEL_SIZE / 2;
 
 // Prize result modal component
-function PrizeResultModal({ 
-  visible, 
-  onClose, 
-  result, 
+function PrizeResultModal({
+  visible,
+  onClose,
+  result,
   currencySymbol = '₦',
-  colors 
-}: { 
-  visible: boolean; 
-  onClose: () => void; 
+  colors
+}: {
+  visible: boolean;
+  onClose: () => void;
   result: LotteryDrawResult | null;
   currencySymbol: string;
   colors: any;
@@ -112,12 +113,12 @@ function PrizeResultModal({
             <Text style={styles.congratsText}>🎉 Congratulations! 🎉</Text>
             <Text style={styles.prizeNameText}>{result.prize_name}</Text>
           </LinearGradient>
-          
+
           <View style={styles.prizeModalContent}>
             <Text style={[styles.prizeDescription, { color: colors.textSecondary }]}>
               Your prize has been added to your account!
             </Text>
-            
+
             <Button
               title="Awesome!"
               onPress={onClose}
@@ -149,6 +150,8 @@ function LotteryScreenContent() {
   const [showPrizeModal, setShowPrizeModal] = useState(false);
 
   const [isSpinning, setIsSpinning] = useState(false);
+
+  const [showPointLogsModal, setShowPointLogsModal] = useState(false);
 
   useEffect(() => {
     if (user?.token) {
@@ -209,6 +212,9 @@ function LotteryScreenContent() {
   };
 
   const refreshActivity = () => {
+    if (user?.token) {
+      fetchLotteryActivity(user.token);
+    }
   }
 
   const getPrizeTypeIcon = (prizeType: number) => {
@@ -262,14 +268,14 @@ function LotteryScreenContent() {
         >
           <ChevronLeft size={24} color={colors.primary} />
         </TouchableOpacity>
-        
+
         <View style={styles.headerContent}>
           <Text style={[styles.title, { color: colors.text }]}>Lucky Draw</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Test your luck and win amazing prizes!
           </Text>
         </View>
-        
+
         <View style={styles.headerActions}>
           <TouchableOpacity
             onPress={() => setShowLogsModal(true)}
@@ -285,7 +291,7 @@ function LotteryScreenContent() {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -296,10 +302,15 @@ function LotteryScreenContent() {
           style={styles.activityCard}
         >
           <View style={styles.activityStats}>
-            <View style={styles.statItem}>
+
+            <TouchableOpacity
+              style={[styles.statItem, { backgroundColor: `${colors.primary}15` }]}
+              onPress={() => setShowPointLogsModal(true)}
+            >
               <Text style={styles.statValue}>{lotteryActivity.user_point}</Text>
               <Text style={styles.statLabel}>Your Points</Text>
-            </View>
+            </TouchableOpacity>
+
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{lotteryActivity.point}</Text>
               <Text style={styles.statLabel}>Cost per Spin</Text>
@@ -333,14 +344,14 @@ function LotteryScreenContent() {
               Available Prizes
             </Text>
           </View>
-          
+
           <View style={styles.prizeGrid}>
             {lotteryActivity.prizes.map((prize, index) => (
               <View
                 key={prize.id}
                 style={[
                   styles.prizeItem,
-                  { 
+                  {
                     backgroundColor: colors.background,
                     borderColor: colors.border,
                   }
@@ -368,33 +379,33 @@ function LotteryScreenContent() {
               How to Earn Points
             </Text>
           </View>
-          
+
           <View style={styles.earnPointsList}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.earnPointsItem}
               onPress={() => router.push('/profile/checkin')}
             >
               <Text style={[styles.earnPointsText, { color: colors.textSecondary }]}>
                 📅 Daily Check-in
               </Text>
-              <ChevronLeft 
-                size={16} 
-                color={colors.primary} 
-                style={{ transform: [{ rotate: '180deg' }] }} 
+              <ChevronLeft
+                size={16}
+                color={colors.primary}
+                style={{ transform: [{ rotate: '180deg' }] }}
               />
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.earnPointsItem}
               onPress={() => router.push('/(tabs)/sell')}
             >
               <Text style={[styles.earnPointsText, { color: colors.textSecondary }]}>
                 💳 Complete Orders
               </Text>
-              <ChevronLeft 
-                size={16} 
-                color={colors.primary} 
-                style={{ transform: [{ rotate: '180deg' }] }} 
+              <ChevronLeft
+                size={16}
+                color={colors.primary}
+                style={{ transform: [{ rotate: '180deg' }] }}
               />
             </TouchableOpacity>
           </View>
@@ -421,6 +432,11 @@ function LotteryScreenContent() {
         result={lastDrawResult}
         currencySymbol={user?.currency_symbol || '₦'}
         colors={colors}
+      />
+
+      <PointLogsModal
+        visible={showPointLogsModal}
+        onClose={() => setShowPointLogsModal(false)}
       />
     </SafeAreaWrapper>
   );

@@ -7,7 +7,6 @@ interface LotteryState {
   lotteryActivity: LotteryActivity | null;
   lastDrawResult: LotteryDrawResult | null;
   lotteryLogs: LotteryLogEntry[];
-  logsTotal: number;
   
   // UI state
   isLoadingActivity: boolean;
@@ -36,7 +35,6 @@ export const useLotteryStore = create<LotteryState>((set, get) => ({
   lotteryActivity: null,
   lastDrawResult: null,
   lotteryLogs: [],
-  logsTotal: 0,
   isLoadingActivity: false,
   isDrawing: false,
   isLoadingLogs: false,
@@ -44,7 +42,7 @@ export const useLotteryStore = create<LotteryState>((set, get) => ({
   activityError: null,
   drawError: null,
   logsError: null,
-  currentLogsPage: 0,
+  currentLogsPage: 1,
   hasMoreLogs: true,
 
   fetchLotteryActivity: async (token: string) => {
@@ -104,7 +102,7 @@ export const useLotteryStore = create<LotteryState>((set, get) => ({
         isLoadingLogs: true, 
         logsError: null,
         lotteryLogs: [],
-        currentLogsPage: 0,
+        currentLogsPage: 1,
         hasMoreLogs: true,
       });
     } else {
@@ -114,15 +112,14 @@ export const useLotteryStore = create<LotteryState>((set, get) => ({
     try {
       const logsData = await LotteryService.getLotteryLogs({
         token,
-        page: 0,
+        page: 1,
         page_size: 20,
       });
 
       set({
-        lotteryLogs: logsData.list,
-        logsTotal: logsData.total,
-        currentLogsPage: 0,
-        hasMoreLogs: logsData.list.length >= 20,
+        lotteryLogs: logsData,
+        currentLogsPage: 1,
+        hasMoreLogs: logsData.length >= 20,
         isLoadingLogs: false,
       });
     } catch (error) {
@@ -155,15 +152,15 @@ export const useLotteryStore = create<LotteryState>((set, get) => ({
         page_size: 20,
       });
 
-      if (logsData.list.length === 0) {
+      if (logsData.length === 0) {
         set({ isLoadingMoreLogs: false, hasMoreLogs: false });
         return;
       }
 
       set({
-        lotteryLogs: [...state.lotteryLogs, ...logsData.list],
+        lotteryLogs: [...state.lotteryLogs, ...logsData],
         currentLogsPage: nextPage,
-        hasMoreLogs: logsData.list.length >= 20,
+        hasMoreLogs: logsData.length >= 20,
         isLoadingMoreLogs: false,
       });
     } catch (error) {
@@ -189,7 +186,6 @@ export const useLotteryStore = create<LotteryState>((set, get) => ({
       lotteryActivity: null,
       lastDrawResult: null,
       lotteryLogs: [],
-      logsTotal: 0,
       isLoadingActivity: false,
       isDrawing: false,
       isLoadingLogs: false,
@@ -197,7 +193,7 @@ export const useLotteryStore = create<LotteryState>((set, get) => ({
       activityError: null,
       drawError: null,
       logsError: null,
-      currentLogsPage: 0,
+      currentLogsPage: 1,
       hasMoreLogs: true,
     });
   },

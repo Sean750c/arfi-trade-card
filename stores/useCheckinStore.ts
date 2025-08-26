@@ -36,7 +36,7 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
   checkinConfig: null,
   pointLogs: [],
   pointLogsTotal: 0,
-  currentPointLogsPage: 0,
+  currentPointLogsPage: 1,
   hasMorePointLogs: true,
   isLoadingConfig: false,
   isCheckingIn: false,
@@ -99,7 +99,7 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
         isLoadingPointLogs: true, 
         pointLogsError: null,
         pointLogs: [],
-        currentPointLogsPage: 0,
+        currentPointLogsPage: 1,
         hasMorePointLogs: true,
       });
     } else {
@@ -180,7 +180,7 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
       checkinConfig: null,
       pointLogs: [],
       pointLogsTotal: 0,
-      currentPointLogsPage: 0,
+      currentPointLogsPage: 1,
       hasMorePointLogs: true,
       isLoadingConfig: false,
       isCheckingIn: false,

@@ -5,9 +5,7 @@ import type {
   LotteryLogsResponse,
   LotteryActivity,
   LotteryDrawResult,
-  LotteryLogsData,
-  LotteryActivityRequest,
-  LotteryDrawRequest,
+  LotteryLogEntry,
   LotteryLogsRequest
 } from '@/types';
 
@@ -64,7 +62,7 @@ export class LotteryService {
     }
   }
 
-  static async getLotteryLogs(params: LotteryLogsRequest): Promise<LotteryLogsData> {
+  static async getLotteryLogs(params: LotteryLogsRequest): Promise<LotteryLogEntry[]> {
     try {
       const response = await APIRequest.request<LotteryLogsResponse>(
         '/gc/lottery/log',
@@ -75,6 +73,8 @@ export class LotteryService {
       if (!response.success) {
         throw new Error(response.msg || 'Failed to fetch lottery logs');
       }
+
+      // console.log(response);
 
       return response.data;
     } catch (error) {
