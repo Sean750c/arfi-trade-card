@@ -77,7 +77,7 @@ export const useLotteryStore = create<LotteryState>((set, get) => ({
       set({ lastDrawResult: result, isDrawing: false });
       
       // Refresh activity data to update user points
-      await get().fetchLotteryActivity(token);
+      // await get().fetchLotteryActivity(token);
       
       return result;
     } catch (error) {

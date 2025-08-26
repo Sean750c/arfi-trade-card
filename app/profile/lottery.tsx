@@ -96,31 +96,6 @@ function PrizeResultModal({
     }
   };
 
-  const formatValue = () => {
-    const type = result?.prize_type;
-      switch (type) {
-        case RewardType.POINTS:
-          return `${result?.prize_data.point} Points`;
-        case RewardType.CASH:
-          return `${currencySymbol}${parseFloat(result?.prize_data.cash as string).toFixed(2)}`;
-        case RewardType.COUPON:
-          return formatDiscount(result?.prize_data.coupon);
-        case RewardType.PHYSICAL_PRODUCT:
-          return `${result?.prize_data.product}`;
-        case RewardType.OTHER:
-          return `${result?.prize_data.other}`;
-        default:
-          return 'unknown';
-      }
-  };
-
-  const formatDiscount = (coupon: any) => {
-    const discountValue = parseFloat(coupon.discount_value);
-
-    // 百分比类型优惠,抽奖的都是百分比类型的
-    return `${coupon.code}(${(discountValue * 100).toFixed(1)}% Off)`;
-  };
-
   if (!result) return null;
 
   return (
@@ -136,9 +111,6 @@ function PrizeResultModal({
             </View>
             <Text style={styles.congratsText}>🎉 Congratulations! 🎉</Text>
             <Text style={styles.prizeNameText}>{result.prize_name}</Text>
-            <Text style={styles.prizeValueText}>
-              {formatValue()}
-            </Text>
           </LinearGradient>
           
           <View style={styles.prizeModalContent}>
@@ -186,14 +158,12 @@ function LotteryScreenContent() {
 
   // Show prize modal when draw result is available
   useEffect(() => {
-    console.log("lastDrawResult或isSpinning状态变化:" + isSpinning + ' ' + lastDrawResult);
     if (lastDrawResult && !isSpinning) {
       setShowPrizeModal(true);
     }
   }, [lastDrawResult, isSpinning]);
 
   const handleSpin = async () => {
-    console.log("点击抽奖");
     if (!user?.token || !lotteryActivity) return;
 
     if (lotteryActivity.user_point < lotteryActivity.point) {
@@ -209,16 +179,13 @@ function LotteryScreenContent() {
     }
 
     try {
-      console.log("设置抽奖状态isSpinning为true");
       setIsSpinning(true);
-      console.log("调用后台抽奖接口开始...");
       await drawLottery(user.token, lotteryActivity.id);
-      console.log("调用后台抽奖接口结束...");
     } catch (error) {
       setIsSpinning(false);
       Alert.alert(
         'Draw Failed',
-        error instanceof Error ? error.message : 'Failed to draw lottery'
+        'Failed to draw lottery: please contact customer service'
       );
     }
   };
@@ -226,6 +193,9 @@ function LotteryScreenContent() {
   const handlePrizeModalClose = () => {
     setShowPrizeModal(false);
     clearLastDrawResult();
+    if (user?.token) {
+      fetchLotteryActivity(user.token);
+    }
   };
 
   const formatPrizeValue = (prize: LotteryPrize) => {
@@ -348,7 +318,6 @@ function LotteryScreenContent() {
           onSpinEnd={() => {
             // 👉 只在这里弹窗，这时已至少转了3秒并准确停在中奖格
             setIsSpinning(false);
-            // setIsSpinning(false); // 结束
           }}
           isSpinning={isSpinning}
           winningPrizeId={lastDrawResult?.id}
