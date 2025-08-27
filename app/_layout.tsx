@@ -12,33 +12,44 @@ import { ThemeProvider } from '@/theme/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { usePopupManager } from '@/hooks/usePopupManager';
 import PopupModal from '@/components/UI/PopupModal';
-import { View, ActivityIndicator, Text, Platform } from 'react-native';
+import { View, ActivityIndicator, Text, Platform, Image } from 'react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import * as Device from 'expo-device';
 import * as WebBrowser from 'expo-web-browser';
+import { LinearGradient } from 'expo-linear-gradient';
 
 function InitializationLoader() {
   const { colors } = useTheme();
   return (
-    <View style={{
-      flex: 1,
-      backgroundColor: colors.background,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-    }}>
-      <ActivityIndicator size="large" color={colors.primary} />
+    <LinearGradient
+      colors={[colors.primary, colors.background]}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}
+    >
+      <Image
+        source={require('@/assets/images/logo.png')}
+        style={{ width: 80, height: 80, marginBottom: 20 }}
+        resizeMode="contain"
+      />
+      <ActivityIndicator size="large" color="#fff" />
       <Text style={{
         marginTop: 16,
         fontSize: 18,
         fontFamily: 'Inter-Medium',
-        color: colors.textSecondary,
+        color: '#fff',
         textAlign: 'center',
       }}>
         Initializing...
       </Text>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -49,7 +60,7 @@ export default function RootLayout() {
   const { fetchCountries } = useCountryStore();
   const { isAuthenticated, user, initialize: initializeAuth, isInitialized } = useAuthStore();
   const { isVisible: popupVisible, popData, closePopup, checkAppStartPopup } = usePopupManager();
-  
+
   useFrameworkReady();
   useAuthProtection();
 

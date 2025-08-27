@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { router } from 'expo-router';
-import { Gift, TrendingUp, Users, CreditCard, Zap, Star, Calendar } from 'lucide-react-native';
+import { Gift, TrendingUp, Users, CreditCard, Zap, Star, Calendar, Compass } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 
@@ -98,6 +98,14 @@ export default function QuickActions() {
       icon: <CreditCard size={24} color="#FFFFFF" />,
       route: '/(tabs)/wallet',
       color: '#6366F1',
+    },
+    {
+      id: '7',
+      title: 'Explore',
+      subtitle: 'Events & Services',
+      icon: <Compass size={24} color="#FFFFFF" />,
+      route: '/explore', // 你可以自定义这个页面
+      color: '#14B8A6', // teal 风格，清新一点 
     },
   ];
 
