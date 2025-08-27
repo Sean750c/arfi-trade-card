@@ -30,7 +30,7 @@ const GRID_SIZE = screenWidth - Spacing.lg * 2;
 const CELL_SIZE = (GRID_SIZE - Spacing.sm * 2 - Spacing.xs * 6) / 3;
 
 // 至少转动 3s
-const MIN_SPIN_MS = 5000;
+const MIN_SPIN_MS = 8000;
 
 export default function GridLotteryWheel({
   prizes,
@@ -147,10 +147,14 @@ export default function GridLotteryWheel({
     if (seqIndex === -1) seqIndex = 0;
 
     const startTime = Date.now();
-    let speed = 60; // 起步速度(越小越快)
+
+    const accelDuration = 1500;  // 加速阶段
+    const steadyDuration = 4000; // 匀速阶段
+    const minSpinTime = MIN_SPIN_MS - 2500; // 至少转够 10s - 减速时间
+
+    let speed = 250; // 初始慢一点
 
     const stepOnce = () => {
-      // 下一个序列位
       seqIndex = (seqIndex + 1) % 8;
       setCurrentHighlight(animationSequence[seqIndex]);
 
@@ -162,37 +166,49 @@ export default function GridLotteryWheel({
       const elapsed = Date.now() - startTime;
       const winnerId = winnerIdRef.current;
 
-      // console.log('elapsed:' + elapsed + ' MIN_SPIN_MS:' + MIN_SPIN_MS + ' winnerId:' + winnerId);
-
-      // 满足：已到最少时间 且 后端已返回中奖id → 进入收尾对准
-      if (elapsed >= MIN_SPIN_MS && winnerId != null) {
-        const targetGridIndex = gridItems.findIndex(
-          (cell) => cell && (cell as LotteryPrize).id === winnerId
-        );
-        // 找不到就兜底到第一个
-        const safeTargetGridIndex = targetGridIndex >= 0 ? targetGridIndex : animationSequence[0];
-        const targetSeqIndex = Math.max(0, animationSequence.indexOf(safeTargetGridIndex));
-        animateToWinningSeqIndex(seqIndex, targetSeqIndex);
-        return;
+      if (elapsed < accelDuration) {
+        // 🚀 加速：逐渐减小间隔
+        const progress = elapsed / accelDuration;
+        speed = 250 - (190 * progress); // 250ms → 60ms
+      } else if (elapsed < accelDuration + steadyDuration) {
+        // ⏱ 匀速
+        speed = 60;
+      } else {
+        // 进入减速预备，但要保证最少转够 minSpinTime + 后端 winner 返回
+        if (!winnerId || elapsed < minSpinTime) {
+          speed = 70;
+        } else {
+          // ✅ winner 已返回 + 最少时间满足 → 进入收尾减速
+          const targetGridIndex = gridItems.findIndex(
+            (cell) => cell && (cell as LotteryPrize).id === winnerId
+          );
+          const safeTargetGridIndex =
+            targetGridIndex >= 0 ? targetGridIndex : animationSequence[0];
+          const targetSeqIndex = Math.max(
+            0,
+            animationSequence.indexOf(safeTargetGridIndex)
+          );
+          animateToWinningSeqIndex(seqIndex, targetSeqIndex);
+          return;
+        }
       }
 
-      // 继续跑圈：逐步加速→减速（简单线性即可）
-      speed = Math.min(140, speed * 1.05);
       animationRef.current = setTimeout(stepOnce, speed);
     };
+
     stepOnce();
   };
+
 
   // 以“当前序列位”到“目标序列位”收尾，额外多绕1-2圈更自然
   const animateToWinningSeqIndex = (currentSeq: number, targetSeq: number) => {
     stopAnimation();
-    const extraLoops = 3; // 多绕圈
-    const distance = (extraLoops * 8) + ((targetSeq - currentSeq + 8) % 8);
+    const extraLoops = 2; // 多绕几圈再停
+    const distance = extraLoops * 8 + ((targetSeq - currentSeq + 8) % 8);
     let steps = 0;
     let seq = currentSeq;
 
     const finishStep = () => {
-      // 闪烁一下并回调给外部
       startWinningFlash();
       setIsAnimation(false);
     };
@@ -208,9 +224,10 @@ export default function GridLotteryWheel({
 
       steps++;
       if (steps < distance) {
-        // 收尾阶段逐步减速
-        const base = 80;
-        const slow = Math.min(400, base + Math.floor(((steps / distance) ** 2) * 300));
+        // easeOutCubic 曲线：减速越来越慢
+        const t = steps / distance;
+        const ease = 1 - Math.pow(1 - t, 3);
+        const slow = 70 + ease * 500; // 最快70ms → 最慢570ms
         animationRef.current = setTimeout(tick, slow);
       } else {
         animationRef.current = null;
