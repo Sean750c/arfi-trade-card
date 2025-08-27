@@ -118,7 +118,7 @@ export default function RootLayout() {
         <Stack.Screen name="profile/checkin" />
         {/* Add the lottery screen here */}
         <Stack.Screen name="profile/lottery" />
-        <Stack.Screen name="explore" />
+        <Stack.Screen name="utilities" />
         <Stack.Screen name="+not-found" />
       </Stack>
 

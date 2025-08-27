@@ -5,24 +5,19 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   Alert,
-  Linking,
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
 import { 
   ChevronLeft, 
-  Calendar, 
-  ExternalLink, 
   Phone, 
   Wifi, 
   Smartphone,
   Globe,
   Zap,
   ChevronDown,
-  ChevronRight
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
@@ -32,33 +27,25 @@ import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useExploreStore } from '@/stores/useExploreStore';
-import { formatDateString } from '@/utils/date';
-import type { Activity, Supplier, DataBundle } from '@/types/explore';
+import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
+import type { Supplier, DataBundle } from '@/types/utilities';
 
-function ExploreScreenContent() {
+function UtilitiesScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
   const {
-    activities,
-    isLoadingActivities,
-    activitiesError,
     suppliers,
     dataBundles,
     isLoadingSuppliers,
     isLoadingDataBundles,
     isRecharging,
-    suppliersError,
-    dataBundlesError,
-    rechargeError,
     selectedSupplier,
-    fetchActivities,
     fetchSuppliers,
     fetchDataBundles,
     airtimeRecharge,
     dataRecharge,
     setSelectedSupplier,
-  } = useExploreStore();
+  } = useUtilitiesStore();
 
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'airtime' | 'data'>('airtime');
@@ -73,7 +60,6 @@ function ExploreScreenContent() {
 
   useEffect(() => {
     if (user?.token) {
-      fetchActivities(user.token, user.country_id);
       fetchSuppliers(user.token);
     }
   }, [user?.token, user?.country_id]);
@@ -91,7 +77,6 @@ function ExploreScreenContent() {
     setRefreshing(true);
     try {
       await Promise.all([
-        fetchActivities(user.token, user.country_id),
         fetchSuppliers(user.token),
       ]);
     } catch (error) {
@@ -100,19 +85,6 @@ function ExploreScreenContent() {
       setRefreshing(false);
     }
   }, [user?.token, user?.country_id]);
-
-  const handleActivityPress = async (activity: Activity) => {
-    try {
-      const supported = await Linking.canOpenURL(activity.active_url);
-      if (supported) {
-        await Linking.openURL(activity.active_url);
-      } else {
-        Alert.alert('Error', 'Cannot open this link');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to open activity link');
-    }
-  };
 
   const validatePhoneNumber = (phone: string) => {
     // Nigerian phone number validation
@@ -189,42 +161,6 @@ function ExploreScreenContent() {
       );
     }
   };
-
-  const renderActivityCard = (activity: Activity) => (
-    <TouchableOpacity
-      key={activity.id}
-      style={[styles.activityCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-      onPress={() => handleActivityPress(activity)}
-      activeOpacity={0.8}
-    >
-      <Image
-        source={{ uri: activity.active_image }}
-        style={styles.activityImage}
-        resizeMode="cover"
-      />
-      <View style={styles.activityOverlay} />
-      <View style={styles.activityContent}>
-        <Text style={[styles.activityTitle, { color: '#FFFFFF' }]}>
-          {activity.active_title}
-        </Text>
-        <Text style={[styles.activityMemo, { color: 'rgba(255, 255, 255, 0.9)' }]}>
-          {activity.active_memo}
-        </Text>
-        <View style={styles.activityFooter}>
-          <View style={styles.activityTime}>
-            <Calendar size={14} color="rgba(255, 255, 255, 0.8)" />
-            <Text style={[styles.activityTimeText, { color: 'rgba(255, 255, 255, 0.8)' }]}>
-              {formatDateString(activity.active_start_time)} - {formatDateString(activity.active_end_time)}
-            </Text>
-          </View>
-          <View style={[styles.activityLink, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}>
-            <ExternalLink size={12} color="#FFFFFF" />
-            <Text style={styles.activityLinkText}>View</Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
 
   const renderSupplierOption = (supplier: Supplier) => (
     <TouchableOpacity
@@ -324,54 +260,17 @@ function ExploreScreenContent() {
             <ChevronLeft size={24} color={colors.primary} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={[styles.title, { color: colors.text }]}>Explore</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Utilities</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Discover activities and services
+              Top-up & bill payments
             </Text>
           </View>
-        </View>
-
-        {/* Activities Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            🎉 Latest Activities
-          </Text>
-          
-          {isLoadingActivities ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                Loading activities...
-              </Text>
-            </View>
-          ) : activitiesError ? (
-            <Card style={styles.errorCard}>
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {activitiesError}
-              </Text>
-            </Card>
-          ) : activities.length > 0 ? (
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.activitiesScroll}
-            >
-              {activities.map(renderActivityCard)}
-            </ScrollView>
-          ) : (
-            <Card style={styles.emptyCard}>
-              <Calendar size={48} color={colors.textSecondary} />
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                No activities available at the moment
-              </Text>
-            </Card>
-          )}
         </View>
 
         {/* Life Services Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            📱 Life Services
+            📱 Top-up Services
           </Text>
           
           <Card style={styles.rechargeCard}>
@@ -607,10 +506,10 @@ function ExploreScreenContent() {
   );
 }
 
-export default function ExploreScreen() {
+export default function UtilitiesScreen() {
   return (
     <AuthGuard>
-      <ExploreScreenContent />
+      <UtilitiesScreenContent />
     </AuthGuard>
   );
 }
@@ -682,79 +581,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
-  },
-  
-  // Activities
-  activitiesScroll: {
-    paddingRight: Spacing.lg,
-  },
-  activityCard: {
-    width: 280,
-    height: 160,
-    borderRadius: 16,
-    marginRight: Spacing.md,
-    overflow: 'hidden',
-    position: 'relative',
-    borderWidth: 1,
-  },
-  activityImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
-  activityOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  activityContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: Spacing.lg,
-  },
-  activityTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.xs,
-  },
-  activityMemo: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    marginBottom: Spacing.sm,
-    lineHeight: 20,
-  },
-  activityFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  activityTime: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    flex: 1,
-  },
-  activityTimeText: {
-    fontSize: 11,
-    fontFamily: 'Inter-Regular',
-  },
-  activityLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  activityLinkText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
   },
 
   // Recharge Services

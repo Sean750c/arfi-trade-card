@@ -1,13 +1,8 @@
 import { create } from 'zustand';
-import { Activity, Supplier, DataBundle } from '@/types/explore';
-import { ExploreService } from '@/services/explore';
+import { Supplier, DataBundle } from '@/types/utilities';
+import { UtilitiesService } from '@/services/utilities';
 
-interface ExploreState {
-  // Activities data
-  activities: Activity[];
-  isLoadingActivities: boolean;
-  activitiesError: string | null;
-  
+interface UtilitiesState {
   // Recharge data
   suppliers: Supplier[];
   dataBundles: DataBundle[];
@@ -22,20 +17,16 @@ interface ExploreState {
   selectedSupplier: Supplier | null;
   
   // Actions
-  fetchActivities: (token?: string, countryId?: number) => Promise<void>;
   fetchSuppliers: (token: string) => Promise<void>;
   fetchDataBundles: (token: string, supplyCode: string) => Promise<void>;
   airtimeRecharge: (token: string, name: string, phone: string, amount: number) => Promise<void>;
   dataRecharge: (token: string, name: string, phone: string, amount: number, serviceId: number) => Promise<void>;
   setSelectedSupplier: (supplier: Supplier | null) => void;
-  clearExploreData: () => void;
+  clearUtilitiesData: () => void;
 }
 
-export const useExploreStore = create<ExploreState>((set, get) => ({
+export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
   // Initial state
-  activities: [],
-  isLoadingActivities: false,
-  activitiesError: null,
   suppliers: [],
   dataBundles: [],
   isLoadingSuppliers: false,
@@ -46,37 +37,11 @@ export const useExploreStore = create<ExploreState>((set, get) => ({
   rechargeError: null,
   selectedSupplier: null,
 
-  fetchActivities: async (token, countryId = 1) => {
-    set({ isLoadingActivities: true, activitiesError: null });
-    
-    try {
-      const finderData = await ExploreService.getFinder({
-        token,
-        country_id: countryId,
-      });
-      
-      set({ 
-        activities: finderData.active || [],
-        isLoadingActivities: false 
-      });
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('Session expired')) {
-        set({ isLoadingActivities: false });
-        return;
-      }
-      
-      set({
-        activitiesError: error instanceof Error ? error.message : 'Failed to fetch activities',
-        isLoadingActivities: false,
-      });
-    }
-  },
-
   fetchSuppliers: async (token: string) => {
     set({ isLoadingSuppliers: true, suppliersError: null });
     
     try {
-      const suppliers = await ExploreService.getSuppliers(token);
+      const suppliers = await UtilitiesService.getSuppliers(token);
       set({ 
         suppliers,
         isLoadingSuppliers: false 
@@ -98,7 +63,7 @@ export const useExploreStore = create<ExploreState>((set, get) => ({
     set({ isLoadingDataBundles: true, dataBundlesError: null });
     
     try {
-      const dataBundles = await ExploreService.getDataBundles({
+      const dataBundles = await UtilitiesService.getDataBundles({
         token,
         supply_code: supplyCode,
       });
@@ -124,7 +89,7 @@ export const useExploreStore = create<ExploreState>((set, get) => ({
     set({ isRecharging: true, rechargeError: null });
     
     try {
-      await ExploreService.airtimeRecharge({
+      await UtilitiesService.airtimeRecharge({
         token,
         name,
         phone,
@@ -151,7 +116,7 @@ export const useExploreStore = create<ExploreState>((set, get) => ({
     set({ isRecharging: true, rechargeError: null });
     
     try {
-      await ExploreService.dataRecharge({
+      await UtilitiesService.dataRecharge({
         token,
         name,
         phone,
@@ -182,11 +147,8 @@ export const useExploreStore = create<ExploreState>((set, get) => ({
     });
   },
 
-  clearExploreData: () => {
+  clearUtilitiesData: () => {
     set({
-      activities: [],
-      isLoadingActivities: false,
-      activitiesError: null,
       suppliers: [],
       dataBundles: [],
       isLoadingSuppliers: false,
