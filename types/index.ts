@@ -10,4 +10,4 @@ export * from './wallet';
 export * from './notification';
 export * from './checkin';
 export * from './lottery';
-export * from './lottery';
+export * from './explore';
