@@ -8,17 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
-import { 
-  ChevronLeft, 
-  Phone, 
-  Wifi, 
-  Zap,
-  Tv,
-  ArrowRight,
-  Smartphone,
-  Globe,
-  Home,
-} from 'lucide-react-native';
+import { ChevronLeft, Phone, Wifi, Zap, Tv, ArrowRight, Smartphone, Globe, Chrome as Home } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import AuthGuard from '@/components/UI/AuthGuard';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
