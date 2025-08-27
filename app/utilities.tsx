@@ -5,8 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
-  Alert,
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -14,226 +12,127 @@ import {
   ChevronLeft, 
   Phone, 
   Wifi, 
+  Zap,
+  Tv,
+  ArrowRight,
   Smartphone,
   Globe,
-  Zap,
-  ChevronDown,
+  Home,
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
-import Button from '@/components/UI/Button';
-import Input from '@/components/UI/Input';
 import AuthGuard from '@/components/UI/AuthGuard';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
-import type { Supplier, DataBundle } from '@/types/utilities';
+
+interface ServiceItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  route: string;
+  color: string;
+  isAvailable: boolean;
+  comingSoon?: boolean;
+}
 
 function UtilitiesScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
-  const {
-    suppliers,
-    dataBundles,
-    isLoadingSuppliers,
-    isLoadingDataBundles,
-    isRecharging,
-    selectedSupplier,
-    fetchSuppliers,
-    fetchDataBundles,
-    airtimeRecharge,
-    dataRecharge,
-    setSelectedSupplier,
-  } = useUtilitiesStore();
-
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'airtime' | 'data'>('airtime');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [airtimeAmount, setAirtimeAmount] = useState('');
-  const [selectedDataBundle, setSelectedDataBundle] = useState<DataBundle | null>(null);
-  const [showSupplierPicker, setShowSupplierPicker] = useState(false);
-  const [showDataBundlePicker, setShowDataBundlePicker] = useState(false);
 
-  // Predefined airtime amounts
-  const airtimeAmounts = [100, 200, 500, 1000, 2000, 5000];
-
-  useEffect(() => {
-    if (user?.token) {
-      fetchSuppliers(user.token);
-    }
-  }, [user?.token, user?.country_id]);
-
-  // Fetch data bundles when supplier is selected
-  useEffect(() => {
-    if (user?.token && selectedSupplier && activeTab === 'data') {
-      fetchDataBundles(user.token, selectedSupplier.mobileOperatorCode);
-    }
-  }, [user?.token, selectedSupplier, activeTab]);
+  const services: ServiceItem[] = [
+    {
+      id: 'mobile-recharge',
+      title: 'Mobile Recharge',
+      subtitle: 'Airtime & Data top-up',
+      icon: <Smartphone size={32} color="#FFFFFF" />,
+      route: '/utilities/mobile-recharge',
+      color: '#10B981',
+      isAvailable: true,
+    },
+    {
+      id: 'electricity',
+      title: 'Electricity Bills',
+      subtitle: 'Pay your power bills',
+      icon: <Zap size={32} color="#FFFFFF" />,
+      route: '/utilities/electricity',
+      color: '#F59E0B',
+      isAvailable: false,
+      comingSoon: true,
+    },
+    {
+      id: 'cable-tv',
+      title: 'Cable TV',
+      subtitle: 'DSTV, GOtv & more',
+      icon: <Tv size={32} color="#FFFFFF" />,
+      route: '/utilities/cable-tv',
+      color: '#8B5CF6',
+      isAvailable: false,
+      comingSoon: true,
+    },
+    {
+      id: 'internet',
+      title: 'Internet Bills',
+      subtitle: 'Broadband payments',
+      icon: <Globe size={32} color="#FFFFFF" />,
+      route: '/utilities/internet',
+      color: '#06B6D4',
+      isAvailable: false,
+      comingSoon: true,
+    },
+  ];
 
   const handleRefresh = useCallback(async () => {
-    if (!user?.token) return;
-    
     setRefreshing(true);
-    try {
-      await Promise.all([
-        fetchSuppliers(user.token),
-      ]);
-    } catch (error) {
-      console.error('Refresh error:', error);
-    } finally {
+    // Simulate refresh delay
+    setTimeout(() => {
       setRefreshing(false);
-    }
-  }, [user?.token, user?.country_id]);
+    }, 1000);
+  }, []);
 
-  const validatePhoneNumber = (phone: string) => {
-    // Nigerian phone number validation
-    const cleanPhone = phone.replace(/\D/g, '');
-    return cleanPhone.length >= 10 && cleanPhone.length <= 11;
+  const handleServicePress = (service: ServiceItem) => {
+    if (!service.isAvailable) {
+      return;
+    }
+    router.push(service.route as any);
   };
 
-  const handleAirtimeRecharge = async () => {
-    if (!user?.token || !selectedSupplier) {
-      Alert.alert('Error', 'Please select a network provider');
-      return;
-    }
-
-    if (!validatePhoneNumber(phoneNumber)) {
-      Alert.alert('Error', 'Please enter a valid Nigerian phone number');
-      return;
-    }
-
-    const amount = parseFloat(airtimeAmount);
-    if (!amount || amount <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
-      return;
-    }
-
-    try {
-      await airtimeRecharge(user.token, selectedSupplier.name, phoneNumber, amount);
-      Alert.alert(
-        'Success',
-        `Airtime recharge of ₦${amount} to ${phoneNumber} was successful!`,
-        [{ text: 'OK', onPress: () => {
-          setPhoneNumber('');
-          setAirtimeAmount('');
-        }}]
-      );
-    } catch (error) {
-      Alert.alert(
-        'Recharge Failed',
-        error instanceof Error ? error.message : 'Failed to recharge airtime'
-      );
-    }
-  };
-
-  const handleDataRecharge = async () => {
-    if (!user?.token || !selectedSupplier || !selectedDataBundle) {
-      Alert.alert('Error', 'Please select a network provider and data bundle');
-      return;
-    }
-
-    if (!validatePhoneNumber(phoneNumber)) {
-      Alert.alert('Error', 'Please enter a valid Nigerian phone number');
-      return;
-    }
-
-    try {
-      await dataRecharge(
-        user.token,
-        selectedSupplier.name,
-        phoneNumber,
-        selectedDataBundle.servicePrice,
-        selectedDataBundle.serviceId
-      );
-      Alert.alert(
-        'Success',
-        `Data recharge of ${selectedDataBundle.serviceName} to ${phoneNumber} was successful!`,
-        [{ text: 'OK', onPress: () => {
-          setPhoneNumber('');
-          setSelectedDataBundle(null);
-        }}]
-      );
-    } catch (error) {
-      Alert.alert(
-        'Recharge Failed',
-        error instanceof Error ? error.message : 'Failed to recharge data'
-      );
-    }
-  };
-
-  const renderSupplierOption = (supplier: Supplier) => (
+  const renderServiceCard = (service: ServiceItem) => (
     <TouchableOpacity
-      key={supplier.mobileOperatorCode}
+      key={service.id}
       style={[
-        styles.supplierOption,
-        {
-          backgroundColor: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode 
-            ? colors.primary 
-            : colors.card,
-          borderColor: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode 
-            ? colors.primary 
-            : colors.border,
+        styles.serviceCard,
+        { 
+          backgroundColor: service.color,
+          opacity: service.isAvailable ? 1 : 0.6,
         }
       ]}
-      onPress={() => {
-        setSelectedSupplier(supplier);
-        setShowSupplierPicker(false);
-        setSelectedDataBundle(null); // Reset data bundle selection
-      }}
+      onPress={() => handleServicePress(service)}
+      disabled={!service.isAvailable}
+      activeOpacity={0.8}
     >
-      <Text style={[
-        styles.supplierName,
-        { 
-          color: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode 
-            ? '#FFFFFF' 
-            : colors.text 
-        }
-      ]}>
-        {supplier.name}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const renderDataBundleOption = (bundle: DataBundle) => (
-    <TouchableOpacity
-      key={bundle.serviceId}
-      style={[
-        styles.dataBundleOption,
-        {
-          backgroundColor: selectedDataBundle?.serviceId === bundle.serviceId 
-            ? colors.primary 
-            : colors.card,
-          borderColor: selectedDataBundle?.serviceId === bundle.serviceId 
-            ? colors.primary 
-            : colors.border,
-        }
-      ]}
-      onPress={() => {
-        setSelectedDataBundle(bundle);
-        setShowDataBundlePicker(false);
-      }}
-    >
-      <Text style={[
-        styles.dataBundleName,
-        { 
-          color: selectedDataBundle?.serviceId === bundle.serviceId 
-            ? '#FFFFFF' 
-            : colors.text 
-        }
-      ]}>
-        {bundle.serviceName}
-      </Text>
-      <Text style={[
-        styles.dataBundlePrice,
-        { 
-          color: selectedDataBundle?.serviceId === bundle.serviceId 
-            ? 'rgba(255, 255, 255, 0.8)' 
-            : colors.textSecondary 
-        }
-      ]}>
-        ₦{bundle.servicePrice.toLocaleString()}
-      </Text>
+      {service.comingSoon && (
+        <View style={[styles.comingSoonBadge, { backgroundColor: '#FF4444' }]}>
+          <Text style={styles.comingSoonText}>Soon</Text>
+        </View>
+      )}
+      
+      <View style={styles.serviceIconContainer}>
+        {service.icon}
+      </View>
+      
+      <View style={styles.serviceContent}>
+        <Text style={styles.serviceTitle}>{service.title}</Text>
+        <Text style={styles.serviceSubtitle}>{service.subtitle}</Text>
+      </View>
+      
+      {service.isAvailable && (
+        <View style={styles.serviceArrow}>
+          <ArrowRight size={20} color="rgba(255, 255, 255, 0.8)" />
+        </View>
+      )}
     </TouchableOpacity>
   );
 
@@ -260,245 +159,49 @@ function UtilitiesScreenContent() {
             <ChevronLeft size={24} color={colors.primary} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={[styles.title, { color: colors.text }]}>Utilities</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Life Services</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Top-up & bill payments
+              Pay bills & top-up services
             </Text>
           </View>
         </View>
 
-        {/* Life Services Section */}
+        {/* Services Grid */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            📱 Top-up Services
+            📱 Available Services
           </Text>
           
-          <Card style={styles.rechargeCard}>
-            {/* Service Tabs */}
-            <View style={styles.serviceTabs}>
-              <TouchableOpacity
-                style={[
-                  styles.serviceTab,
-                  {
-                    backgroundColor: activeTab === 'airtime' ? colors.primary : 'transparent',
-                    borderColor: colors.primary,
-                  }
-                ]}
-                onPress={() => setActiveTab('airtime')}
-              >
-                <Phone size={20} color={activeTab === 'airtime' ? '#FFFFFF' : colors.primary} />
-                <Text style={[
-                  styles.serviceTabText,
-                  { color: activeTab === 'airtime' ? '#FFFFFF' : colors.primary }
-                ]}>
-                  Airtime
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[
-                  styles.serviceTab,
-                  {
-                    backgroundColor: activeTab === 'data' ? colors.primary : 'transparent',
-                    borderColor: colors.primary,
-                  }
-                ]}
-                onPress={() => setActiveTab('data')}
-              >
-                <Wifi size={20} color={activeTab === 'data' ? '#FFFFFF' : colors.primary} />
-                <Text style={[
-                  styles.serviceTabText,
-                  { color: activeTab === 'data' ? '#FFFFFF' : colors.primary }
-                ]}>
-                  Data
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Network Provider Selection */}
-            <View style={styles.formGroup}>
-              <Text style={[styles.formLabel, { color: colors.text }]}>
-                Network Provider
-              </Text>
-              <TouchableOpacity
-                style={[
-                  styles.picker,
-                  { 
-                    backgroundColor: colors.background,
-                    borderColor: colors.border,
-                  }
-                ]}
-                onPress={() => setShowSupplierPicker(!showSupplierPicker)}
-              >
-                <View style={styles.pickerContent}>
-                  <Smartphone size={20} color={colors.primary} />
-                  <Text style={[
-                    styles.pickerText,
-                    { color: selectedSupplier ? colors.text : colors.textSecondary }
-                  ]}>
-                    {selectedSupplier ? selectedSupplier.name : 'Select Network'}
-                  </Text>
-                </View>
-                <ChevronDown size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
-
-              {showSupplierPicker && (
-                <View style={[styles.pickerDropdown, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  {isLoadingSuppliers ? (
-                    <View style={styles.pickerLoading}>
-                      <ActivityIndicator size="small" color={colors.primary} />
-                    </View>
-                  ) : (
-                    suppliers.map(renderSupplierOption)
-                  )}
-                </View>
-              )}
-            </View>
-
-            {/* Phone Number Input */}
-            <Input
-              label="Phone Number"
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              placeholder="e.g., 08012345678"
-              keyboardType="phone-pad"
-              maxLength={11}
-            />
-
-            {/* Airtime Tab Content */}
-            {activeTab === 'airtime' && (
-              <View style={styles.tabContent}>
-                <Text style={[styles.formLabel, { color: colors.text }]}>
-                  Select Amount
-                </Text>
-                <View style={styles.amountGrid}>
-                  {airtimeAmounts.map((amount) => (
-                    <TouchableOpacity
-                      key={amount}
-                      style={[
-                        styles.amountOption,
-                        {
-                          backgroundColor: airtimeAmount === amount.toString() 
-                            ? colors.primary 
-                            : colors.background,
-                          borderColor: airtimeAmount === amount.toString() 
-                            ? colors.primary 
-                            : colors.border,
-                        }
-                      ]}
-                      onPress={() => setAirtimeAmount(amount.toString())}
-                    >
-                      <Text style={[
-                        styles.amountText,
-                        { 
-                          color: airtimeAmount === amount.toString() 
-                            ? '#FFFFFF' 
-                            : colors.text 
-                        }
-                      ]}>
-                        ₦{amount.toLocaleString()}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Input
-                  label="Custom Amount"
-                  value={airtimeAmount}
-                  onChangeText={setAirtimeAmount}
-                  placeholder="Enter custom amount"
-                  keyboardType="numeric"
-                />
-
-                <Button
-                  title={isRecharging ? 'Processing...' : 'Recharge Airtime'}
-                  onPress={handleAirtimeRecharge}
-                  disabled={isRecharging || !selectedSupplier || !phoneNumber || !airtimeAmount}
-                  loading={isRecharging}
-                  style={styles.rechargeButton}
-                  fullWidth
-                />
-              </View>
-            )}
-
-            {/* Data Tab Content */}
-            {activeTab === 'data' && (
-              <View style={styles.tabContent}>
-                <View style={styles.formGroup}>
-                  <Text style={[styles.formLabel, { color: colors.text }]}>
-                    Data Bundle
-                  </Text>
-                  <TouchableOpacity
-                    style={[
-                      styles.picker,
-                      { 
-                        backgroundColor: colors.background,
-                        borderColor: colors.border,
-                      }
-                    ]}
-                    onPress={() => setShowDataBundlePicker(!showDataBundlePicker)}
-                    disabled={!selectedSupplier}
-                  >
-                    <View style={styles.pickerContent}>
-                      <Globe size={20} color={colors.primary} />
-                      <Text style={[
-                        styles.pickerText,
-                        { color: selectedDataBundle ? colors.text : colors.textSecondary }
-                      ]}>
-                        {selectedDataBundle 
-                          ? `${selectedDataBundle.serviceName} - ₦${selectedDataBundle.servicePrice.toLocaleString()}`
-                          : selectedSupplier 
-                            ? 'Select Data Bundle'
-                            : 'Select Network First'
-                        }
-                      </Text>
-                    </View>
-                    <ChevronDown size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
-
-                  {showDataBundlePicker && selectedSupplier && (
-                    <View style={[styles.pickerDropdown, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                      {isLoadingDataBundles ? (
-                        <View style={styles.pickerLoading}>
-                          <ActivityIndicator size="small" color={colors.primary} />
-                        </View>
-                      ) : dataBundles.length > 0 ? (
-                        dataBundles.map(renderDataBundleOption)
-                      ) : (
-                        <Text style={[styles.emptyPickerText, { color: colors.textSecondary }]}>
-                          No data bundles available
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                </View>
-
-                <Button
-                  title={isRecharging ? 'Processing...' : 'Recharge Data'}
-                  onPress={handleDataRecharge}
-                  disabled={isRecharging || !selectedSupplier || !phoneNumber || !selectedDataBundle}
-                  loading={isRecharging}
-                  style={styles.rechargeButton}
-                  fullWidth
-                />
-              </View>
-            )}
-          </Card>
+          <View style={styles.servicesGrid}>
+            {services.map(renderServiceCard)}
+          </View>
         </View>
 
         {/* Info Section */}
         <Card style={styles.infoCard}>
           <View style={styles.infoHeader}>
-            <Zap size={24} color={colors.primary} />
+            <Home size={24} color={colors.primary} />
             <Text style={[styles.infoTitle, { color: colors.text }]}>
-              Quick & Secure Recharge
+              Why Choose Our Services?
             </Text>
           </View>
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            • Instant airtime and data top-up{'\n'}
-            • Support for all major Nigerian networks{'\n'}
-            • Secure payment processing{'\n'}
-            • 24/7 customer support
+            • Instant processing for all transactions{'\n'}
+            • Secure payment with your wallet balance{'\n'}
+            • Support for all major Nigerian service providers{'\n'}
+            • 24/7 customer support for any issues{'\n'}
+            • Competitive rates and no hidden fees
+          </Text>
+        </Card>
+
+        {/* Coming Soon Section */}
+        <Card style={[styles.comingSoonCard, { backgroundColor: `${colors.primary}08` }]}>
+          <Text style={[styles.comingSoonTitle, { color: colors.primary }]}>
+            🚀 Coming Soon
+          </Text>
+          <Text style={[styles.comingSoonDescription, { color: colors.text }]}>
+            We're working hard to bring you more services including electricity bills, 
+            cable TV subscriptions, and internet payments. Stay tuned for updates!
           </Text>
         </Card>
       </ScrollView>
@@ -552,170 +255,76 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     marginBottom: Spacing.lg,
   },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.xl,
-    gap: Spacing.sm,
-  },
-  loadingText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
-  errorCard: {
-    alignItems: 'center',
-    padding: Spacing.lg,
-  },
-  errorText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    textAlign: 'center',
-  },
-  emptyCard: {
-    alignItems: 'center',
-    padding: Spacing.xl,
+
+  // Services Grid
+  servicesGrid: {
     gap: Spacing.md,
   },
-  emptyText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    textAlign: 'center',
-  },
-
-  // Recharge Services
-  rechargeCard: {
+  serviceCard: {
+    borderRadius: 16,
     padding: Spacing.lg,
-  },
-  serviceTabs: {
-    flexDirection: 'row',
-    marginBottom: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  serviceTab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: Spacing.xs,
-  },
-  serviceTabText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  formGroup: {
-    marginBottom: Spacing.lg,
     position: 'relative',
-  },
-  formLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.sm,
-  },
-  picker: {
+    overflow: 'hidden',
+    minHeight: 100,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Spacing.md,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  comingSoonBadge: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 4,
     borderRadius: 12,
-    borderWidth: 1,
-    minHeight: 48,
   },
-  pickerContent: {
-    flexDirection: 'row',
+  comingSoonText: {
+    fontSize: 10,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+  },
+  serviceIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.sm,
+    marginRight: Spacing.lg,
+  },
+  serviceContent: {
     flex: 1,
   },
-  pickerText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
+  serviceTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
   },
-  pickerDropdown: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginTop: 4,
-    maxHeight: 200,
-    zIndex: 1000,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-  },
-  pickerLoading: {
-    padding: Spacing.lg,
-    alignItems: 'center',
-  },
-  emptyPickerText: {
-    padding: Spacing.lg,
-    textAlign: 'center',
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
-  supplierOption: {
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  supplierName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    textAlign: 'center',
-  },
-  dataBundleOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  dataBundleName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  dataBundlePrice: {
+  serviceSubtitle: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
-  tabContent: {
-    gap: Spacing.md,
-  },
-  amountGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  amountOption: {
-    flex: 1,
-    minWidth: '30%',
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 8,
-    borderWidth: 1,
+  serviceArrow: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  amountText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  rechargeButton: {
-    height: 48,
-    marginTop: Spacing.md,
   },
 
   // Info Card
   infoCard: {
     padding: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   infoHeader: {
     flexDirection: 'row',
@@ -728,6 +337,21 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
   },
   infoText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 20,
+  },
+
+  // Coming Soon Card
+  comingSoonCard: {
+    padding: Spacing.lg,
+  },
+  comingSoonTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    marginBottom: Spacing.sm,
+  },
+  comingSoonDescription: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     lineHeight: 20,
