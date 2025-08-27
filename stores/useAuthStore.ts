@@ -304,8 +304,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     
     // Mark operation as complete to prevent further navigation
-    return () => {
-      shouldContinue = false;
-    };
+    // return () => {
+    //   shouldContinue = false;
+    // };
   },
 }));

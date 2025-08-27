@@ -31,6 +31,7 @@ export interface User {
     t_password_null: boolean;
     register_time: number;
     last_login_time: number;
+    point: number;
 }
 
 export interface UserInfoRequest {

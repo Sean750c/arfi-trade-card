@@ -67,20 +67,20 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-      
+
         {/* Compact Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             {/* Country Display - Always on Left */}
             <View style={styles.locationContainer}>
               {(isAuthenticated && user) ? (
-                <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}15` }]}> 
-                  <Image 
-                    source={{ uri: user.country_logo_image || '' }} 
-                    style={styles.flagImage} 
+                <View style={[styles.countryDisplay, { backgroundColor: `${colors.primary}15` }]}>
+                  <Image
+                    source={{ uri: user.country_logo_image || '' }}
+                    style={styles.flagImage}
                     resizeMode="cover"
                   />
-                  <Text style={[styles.countryText, { color: colors.text }]}> 
+                  <Text style={[styles.countryText, { color: colors.text }]}>
                     {user.country_name || ''}
                   </Text>
                 </View>
@@ -90,12 +90,12 @@ export default function HomeScreen() {
                   onPress={() => setShowCountryPicker(!showCountryPicker)}
                 >
                   <View style={styles.countryInfoContainer}>
-                    <Image 
-                      source={{ uri: selectedCountry?.image || '' }} 
-                      style={styles.flagImage} 
+                    <Image
+                      source={{ uri: selectedCountry?.image || '' }}
+                      style={styles.flagImage}
                       resizeMode="cover"
                     />
-                    <Text style={[styles.countryText, { color: colors.text }]}> 
+                    <Text style={[styles.countryText, { color: colors.text }]}>
                       {selectedCountry?.name || ''}
                     </Text>
                   </View>
@@ -128,10 +128,10 @@ export default function HomeScreen() {
             {/* Country Picker Dropdown */}
             {showCountryPicker && !isAuthenticated && (
               <View style={[
-                styles.countryDropdown, 
+                styles.countryDropdown,
                 { backgroundColor: colors.card, borderColor: colors.border, shadowColor: 'rgba(0, 0, 0, 0.1)' }
               ]}>
-                <ScrollView 
+                <ScrollView
                   style={styles.countryScrollView}
                   showsVerticalScrollIndicator={false}
                   nestedScrollEnabled={true}
@@ -146,9 +146,9 @@ export default function HomeScreen() {
                       onPress={() => handleCountrySelect(country)}
                     >
                       <View style={styles.countryInfoContainer}>
-                        <Image 
-                          source={{ uri: country.image }} 
-                          style={styles.flagImage} 
+                        <Image
+                          source={{ uri: country.image }}
+                          style={styles.flagImage}
                           resizeMode="cover"
                         />
                         <Text style={[styles.countryOptionText, { color: colors.text }]}> {country.name} </Text>
@@ -182,7 +182,7 @@ export default function HomeScreen() {
             >
               <Bell size={18} color={colors.primary} />
               {(initData?.notice_count || 0) > 0 && (
-                <View style={[styles.notificationBadge, { backgroundColor: colors.error }]}> 
+                <View style={[styles.notificationBadge, { backgroundColor: colors.error }]}>
                   <Text style={styles.notificationCount}>
                     {(initData?.notice_count || 0) > 99 ? '99+' : initData?.notice_count}
                   </Text>
@@ -194,9 +194,9 @@ export default function HomeScreen() {
 
         {/* Initialization Error */}
         {initError && (
-          <View style={[styles.errorContainer, { backgroundColor: `${colors.error}10` }]}> 
+          <View style={[styles.errorContainer, { backgroundColor: `${colors.error}10` }]}>
             <Text style={[styles.errorText, { color: colors.error }]}> {initError} </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={handleRefresh}
               style={[styles.retryButton, { backgroundColor: colors.error }]}
             >
@@ -211,13 +211,16 @@ export default function HomeScreen() {
           { backgroundColor: colors.primary, shadowColor: 'rgba(0, 0, 0, 0.1)' }
         ]}>
           <View style={styles.balanceHeader}>
-            <View style={styles.balanceInfo}>
+            <TouchableOpacity
+              style={styles.balanceInfo}
+              onPress={() => router.push('/wallet')}
+            >
               <Text style={styles.balanceLabel}>Total Balance</Text>
               <Text style={styles.balanceAmount}>
                 {(user?.currency_symbol || '₦')}{formatBalance(balanceVisible && user ? user.money ?? '0' : '0')}
               </Text>
-            </View>
-            <TouchableOpacity 
+            </TouchableOpacity>
+            <TouchableOpacity
               style={styles.eyeButton}
               onPress={toggleBalanceVisibility}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -229,9 +232,14 @@ export default function HomeScreen() {
               )}
             </TouchableOpacity>
           </View>
-          <Text style={styles.rebateBalance}>
-            Rebate: {(user?.currency_symbol || '₦')}{formatBalance(balanceVisible && user ? user.rebate_money ?? '0' : '0')}
-          </Text>
+          <View style={styles.rebateHeader}>
+            <Text style={styles.rebateBalance}>
+              Rebate: {(user?.currency_symbol || '₦')}{formatBalance(balanceVisible && user ? user.rebate_money ?? '0' : '0')}
+            </Text>
+            <Text style={styles.rebateBalance}>
+              Points: {(user?.point || '0')}
+            </Text>
+          </View>
         </View>
 
         {/* 公告栏、Banner、PromoBanner、QuickActions等始终渲染 */}
@@ -241,7 +249,7 @@ export default function HomeScreen() {
         {/* <PromoTimer /> */}
         {/* <RecentTransactions /> */}
       </ScrollView>
-      
+
       {/* Floating Customer Service Button */}
       <CustomerServiceButton
         style={styles.customerServiceButton}
@@ -441,6 +449,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.xs,
+  },
+  rebateHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   balanceInfo: {
     flex: 1,
