@@ -12,15 +12,16 @@ import {
   Pressable,
 } from 'react-native';
 import { router } from 'expo-router';
-import { 
-  ChevronLeft, 
-  Phone, 
-  Wifi, 
+import {
+  ChevronLeft,
+  Phone,
+  Wifi,
   Smartphone,
   Globe,
   Zap,
   ChevronDown,
   X,
+  RotateCw,
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
@@ -76,7 +77,7 @@ function MobileRechargeScreenContent() {
 
   const handleRefresh = useCallback(async () => {
     if (!user?.token) return;
-    
+
     setRefreshing(true);
     try {
       await fetchSuppliers(user.token);
@@ -87,10 +88,15 @@ function MobileRechargeScreenContent() {
     }
   }, [user?.token]);
 
+  const isNigerianNumber = (phone: string) => {
+    const regex = /^(?:\+234|0)(7[0-9]|8[0-9]|9[0-1])[0-9]{7}$/;
+    return regex.test(phone);
+  };
+
   const validatePhoneNumber = (phone: string) => {
     // Nigerian phone number validation
     const cleanPhone = phone.replace(/\D/g, '');
-    return cleanPhone.length >= 10 && cleanPhone.length <= 11;
+    return cleanPhone.length >= 10 && cleanPhone.length <= 11 && isNigerianNumber(phone);
   };
 
   const handleAirtimeRecharge = async () => {
@@ -110,15 +116,27 @@ function MobileRechargeScreenContent() {
       return;
     }
 
+    if (amount < 100 || amount > 50000) {
+      Alert.alert('Error', 'Amount must be between ₦100 and ₦50000');
+      return;
+    }
+
+    if (amount > Number(user?.money ?? 0)) {
+      Alert.alert('Error', 'Insufficient balance for this recharge');
+      return;
+    }
+
     try {
       await airtimeRecharge(user.token, selectedSupplier.name, phoneNumber, amount);
       Alert.alert(
         'Recharge Successful! 🎉',
         `Airtime recharge of ₦${amount.toLocaleString()} to ${phoneNumber} was successful!`,
-        [{ text: 'OK', onPress: () => {
-          setPhoneNumber('');
-          setAirtimeAmount('');
-        }}]
+        [{
+          text: 'OK', onPress: () => {
+            setPhoneNumber('');
+            setAirtimeAmount('');
+          }
+        }]
       );
     } catch (error) {
       Alert.alert(
@@ -139,6 +157,12 @@ function MobileRechargeScreenContent() {
       return;
     }
 
+    const amount = selectedDataBundle.servicePrice;
+    if (amount > Number(user?.money ?? 0)) {
+      Alert.alert('Error', 'Insufficient balance for this recharge');
+      return;
+    }
+
     try {
       await dataRecharge(
         user.token,
@@ -150,10 +174,12 @@ function MobileRechargeScreenContent() {
       Alert.alert(
         'Recharge Successful! 🎉',
         `Data recharge of ${selectedDataBundle.serviceName} to ${phoneNumber} was successful!`,
-        [{ text: 'OK', onPress: () => {
-          setPhoneNumber('');
-          setSelectedDataBundle(null);
-        }}]
+        [{
+          text: 'OK', onPress: () => {
+            setPhoneNumber('');
+            setSelectedDataBundle(null);
+          }
+        }]
       );
     } catch (error) {
       Alert.alert(
@@ -169,11 +195,11 @@ function MobileRechargeScreenContent() {
       style={[
         styles.modalOption,
         {
-          backgroundColor: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode 
-            ? `${colors.primary}15` 
+          backgroundColor: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode
+            ? `${colors.primary}15`
             : colors.card,
-          borderColor: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode 
-            ? colors.primary 
+          borderColor: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode
+            ? colors.primary
             : colors.border,
         }
       ]}
@@ -185,10 +211,10 @@ function MobileRechargeScreenContent() {
     >
       <Text style={[
         styles.modalOptionText,
-        { 
-          color: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode 
-            ? colors.primary 
-            : colors.text 
+        {
+          color: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode
+            ? colors.primary
+            : colors.text
         }
       ]}>
         {supplier.name}
@@ -202,11 +228,11 @@ function MobileRechargeScreenContent() {
       style={[
         styles.modalOption,
         {
-          backgroundColor: selectedDataBundle?.serviceId === bundle.serviceId 
-            ? `${colors.primary}15` 
+          backgroundColor: selectedDataBundle?.serviceId === bundle.serviceId
+            ? `${colors.primary}15`
             : colors.card,
-          borderColor: selectedDataBundle?.serviceId === bundle.serviceId 
-            ? colors.primary 
+          borderColor: selectedDataBundle?.serviceId === bundle.serviceId
+            ? colors.primary
             : colors.border,
         }
       ]}
@@ -218,20 +244,20 @@ function MobileRechargeScreenContent() {
       <View style={styles.dataBundleInfo}>
         <Text style={[
           styles.modalOptionText,
-          { 
-            color: selectedDataBundle?.serviceId === bundle.serviceId 
-              ? colors.primary 
-              : colors.text 
+          {
+            color: selectedDataBundle?.serviceId === bundle.serviceId
+              ? colors.primary
+              : colors.text
           }
         ]}>
           {bundle.serviceName}
         </Text>
         <Text style={[
           styles.dataBundlePrice,
-          { 
-            color: selectedDataBundle?.serviceId === bundle.serviceId 
-              ? colors.primary 
-              : colors.textSecondary 
+          {
+            color: selectedDataBundle?.serviceId === bundle.serviceId
+              ? colors.primary
+              : colors.textSecondary
           }
         ]}>
           ₦{bundle.servicePrice.toLocaleString()}
@@ -273,7 +299,16 @@ function MobileRechargeScreenContent() {
         {/* Recharge Form */}
         <Card style={styles.rechargeCard}>
           {/* Service Tabs */}
+          <View style={[styles.summaryCard, { backgroundColor: colors.primary }]}>
+            <Text style={styles.balanceText}>
+              Available Balance
+            </Text>
+            <Text style={styles.balanceText}>
+              {user?.currency_symbol || '₦'}{Number(user?.money ?? 0).toLocaleString()}
+            </Text>
+          </View>
           <View style={styles.serviceTabs}>
+
             <TouchableOpacity
               style={[
                 styles.serviceTab,
@@ -292,7 +327,7 @@ function MobileRechargeScreenContent() {
                 Airtime
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={[
                 styles.serviceTab,
@@ -321,7 +356,7 @@ function MobileRechargeScreenContent() {
             <TouchableOpacity
               style={[
                 styles.selector,
-                { 
+                {
                   backgroundColor: colors.background,
                   borderColor: colors.border,
                 }
@@ -348,8 +383,20 @@ function MobileRechargeScreenContent() {
             onChangeText={setPhoneNumber}
             placeholder="e.g., 08012345678"
             keyboardType="phone-pad"
+            returnKeyType="done"
             maxLength={11}
+            rightElement={
+              user?.phone ? (
+                <TouchableOpacity
+                  style={[styles.useMyNumberButton]}
+                  onPress={() => setPhoneNumber(user.phone)}
+                >
+                  <RotateCw size={20} color={colors.primary} onPress={() => setPhoneNumber(user?.phone)}/>
+                </TouchableOpacity>
+              ) : null
+            }
           />
+
 
           {/* Airtime Tab Content */}
           {activeTab === 'airtime' && (
@@ -364,11 +411,11 @@ function MobileRechargeScreenContent() {
                     style={[
                       styles.amountOption,
                       {
-                        backgroundColor: airtimeAmount === amount.toString() 
-                          ? colors.primary 
+                        backgroundColor: airtimeAmount === amount.toString()
+                          ? colors.primary
                           : colors.background,
-                        borderColor: airtimeAmount === amount.toString() 
-                          ? colors.primary 
+                        borderColor: airtimeAmount === amount.toString()
+                          ? colors.primary
                           : colors.border,
                       }
                     ]}
@@ -376,10 +423,10 @@ function MobileRechargeScreenContent() {
                   >
                     <Text style={[
                       styles.amountText,
-                      { 
-                        color: airtimeAmount === amount.toString() 
-                          ? '#FFFFFF' 
-                          : colors.text 
+                      {
+                        color: airtimeAmount === amount.toString()
+                          ? '#FFFFFF'
+                          : colors.text
                       }
                     ]}>
                       ₦{amount.toLocaleString()}
@@ -394,6 +441,7 @@ function MobileRechargeScreenContent() {
                 onChangeText={setAirtimeAmount}
                 placeholder="Enter custom amount"
                 keyboardType="numeric"
+                returnKeyType="done"
               />
 
               <Button
@@ -417,7 +465,7 @@ function MobileRechargeScreenContent() {
                 <TouchableOpacity
                   style={[
                     styles.selector,
-                    { 
+                    {
                       backgroundColor: colors.background,
                       borderColor: colors.border,
                     }
@@ -431,9 +479,9 @@ function MobileRechargeScreenContent() {
                       styles.selectorText,
                       { color: selectedDataBundle ? colors.text : colors.textSecondary }
                     ]}>
-                      {selectedDataBundle 
+                      {selectedDataBundle
                         ? `${selectedDataBundle.serviceName} - ₦${selectedDataBundle.servicePrice.toLocaleString()}`
-                        : selectedSupplier 
+                        : selectedSupplier
                           ? 'Select Data Bundle'
                           : 'Select Network Provider First'
                       }
@@ -490,7 +538,7 @@ function MobileRechargeScreenContent() {
                 <X size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
-            
+
             <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
               {isLoadingSuppliers ? (
                 <View style={styles.modalLoading}>
@@ -529,7 +577,7 @@ function MobileRechargeScreenContent() {
                 <X size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
-            
+
             <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
               {isLoadingDataBundles ? (
                 <View style={styles.modalLoading}>
@@ -767,5 +815,34 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 14,
     fontFamily: 'Inter-Regular',
+  },
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  useMyNumberButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  balanceText: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  summaryCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    borderRadius: 16,
+    paddingVertical: Spacing.lg,
+    marginBottom: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
 });

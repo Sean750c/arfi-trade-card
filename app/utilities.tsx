@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
+  Alert,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -62,16 +63,16 @@ function UtilitiesScreenContent() {
       isAvailable: false,
       comingSoon: true,
     },
-    {
-      id: 'internet',
-      title: 'Internet Bills',
-      subtitle: 'Broadband payments',
-      icon: <Globe size={32} color="#FFFFFF" />,
-      route: '/utilities/internet',
-      color: '#06B6D4',
-      isAvailable: false,
-      comingSoon: true,
-    },
+    // {
+    //   id: 'internet',
+    //   title: 'Internet Bills',
+    //   subtitle: 'Broadband payments',
+    //   icon: <Globe size={32} color="#FFFFFF" />,
+    //   route: '/utilities/internet',
+    //   color: '#06B6D4',
+    //   isAvailable: false,
+    //   comingSoon: true,
+    // },
   ];
 
   const handleRefresh = useCallback(async () => {
@@ -86,6 +87,12 @@ function UtilitiesScreenContent() {
     if (!service.isAvailable) {
       return;
     }
+
+    if (service.id == 'mobile-recharge' && user?.country_id != 14) {
+      Alert.alert('Error', 'Airtime and data recharge is only available for Nigerian users');
+      return;
+    }
+
     router.push(service.route as any);
   };
 
@@ -94,7 +101,7 @@ function UtilitiesScreenContent() {
       key={service.id}
       style={[
         styles.serviceCard,
-        { 
+        {
           backgroundColor: service.color,
           opacity: service.isAvailable ? 1 : 0.6,
         }
@@ -108,16 +115,16 @@ function UtilitiesScreenContent() {
           <Text style={styles.comingSoonText}>Soon</Text>
         </View>
       )}
-      
+
       <View style={styles.serviceIconContainer}>
         {service.icon}
       </View>
-      
+
       <View style={styles.serviceContent}>
         <Text style={styles.serviceTitle}>{service.title}</Text>
         <Text style={styles.serviceSubtitle}>{service.subtitle}</Text>
       </View>
-      
+
       {service.isAvailable && (
         <View style={styles.serviceArrow}>
           <ArrowRight size={20} color="rgba(255, 255, 255, 0.8)" />
@@ -159,9 +166,9 @@ function UtilitiesScreenContent() {
         {/* Services Grid */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            📱 Available Services
+            Available Services
           </Text>
-          
+
           <View style={styles.servicesGrid}>
             {services.map(renderServiceCard)}
           </View>
@@ -185,7 +192,7 @@ function UtilitiesScreenContent() {
         </Card>
 
         {/* Coming Soon Section */}
-        <Card style={[styles.comingSoonCard, { backgroundColor: `${colors.primary}08` }]}>
+        {/* <Card style={[styles.comingSoonCard, { backgroundColor: `${colors.primary}08` }]}>
           <Text style={[styles.comingSoonTitle, { color: colors.primary }]}>
             🚀 Coming Soon
           </Text>
@@ -193,7 +200,7 @@ function UtilitiesScreenContent() {
             We're working hard to bring you more services including electricity bills, 
             cable TV subscriptions, and internet payments. Stay tuned for updates!
           </Text>
-        </Card>
+        </Card> */}
       </ScrollView>
     </SafeAreaWrapper>
   );
@@ -333,17 +340,17 @@ const styles = StyleSheet.create({
   },
 
   // Coming Soon Card
-  comingSoonCard: {
-    padding: Spacing.lg,
-  },
-  comingSoonTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    marginBottom: Spacing.sm,
-  },
-  comingSoonDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
-  },
+  // comingSoonCard: {
+  //   padding: Spacing.lg,
+  // },
+  // comingSoonTitle: {
+  //   fontSize: 18,
+  //   fontFamily: 'Inter-Bold',
+  //   marginBottom: Spacing.sm,
+  // },
+  // comingSoonDescription: {
+  //   fontSize: 14,
+  //   fontFamily: 'Inter-Regular',
+  //   lineHeight: 20,
+  // },
 });

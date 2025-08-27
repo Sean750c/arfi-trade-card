@@ -30,7 +30,7 @@ const GRID_SIZE = screenWidth - Spacing.lg * 2;
 const CELL_SIZE = (GRID_SIZE - Spacing.sm * 2 - Spacing.xs * 6) / 3;
 
 // 至少转动 3s
-const MIN_SPIN_MS = 8000;
+const MIN_SPIN_MS = 5000;
 
 export default function GridLotteryWheel({
   prizes,
@@ -149,8 +149,8 @@ export default function GridLotteryWheel({
     const startTime = Date.now();
 
     const accelDuration = 1500;  // 加速阶段
-    const steadyDuration = 4000; // 匀速阶段
-    const minSpinTime = MIN_SPIN_MS - 2500; // 至少转够 10s - 减速时间
+    const steadyDuration = 2500; // 匀速阶段
+    const minSpinTime = MIN_SPIN_MS - 1500; // 至少转够 10s - 减速时间
 
     let speed = 250; // 初始慢一点
 

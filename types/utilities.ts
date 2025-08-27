@@ -7,10 +7,8 @@ export interface Supplier {
 }
 
 export interface DataBundle {
-  validityPeriod: string | null;
   mobileOperatorId: number;
   servicePrice: number;
-  dataValue: string | null;
   serviceName: string;
   serviceId: number;
 }
