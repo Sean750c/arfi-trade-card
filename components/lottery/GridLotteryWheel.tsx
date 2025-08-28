@@ -30,7 +30,7 @@ const GRID_SIZE = screenWidth - Spacing.lg * 2;
 const CELL_SIZE = (GRID_SIZE - Spacing.sm * 2 - Spacing.xs * 6) / 3;
 
 // 至少转动 3s
-const MIN_SPIN_MS = 5000;
+const MIN_SPIN_MS = 4000;
 
 export default function GridLotteryWheel({
   prizes,
@@ -148,8 +148,8 @@ export default function GridLotteryWheel({
 
     const startTime = Date.now();
 
-    const accelDuration = 1500;  // 加速阶段
-    const steadyDuration = 2500; // 匀速阶段
+    const accelDuration = 800;  // 加速阶段
+    const steadyDuration = 1200; // 匀速阶段
     const minSpinTime = MIN_SPIN_MS - 1500; // 至少转够 10s - 减速时间
 
     let speed = 250; // 初始慢一点
@@ -203,7 +203,7 @@ export default function GridLotteryWheel({
   // 以“当前序列位”到“目标序列位”收尾，额外多绕1-2圈更自然
   const animateToWinningSeqIndex = (currentSeq: number, targetSeq: number) => {
     stopAnimation();
-    const extraLoops = 2; // 多绕几圈再停
+    const extraLoops = 1; // 多绕几圈再停
     const distance = extraLoops * 8 + ((targetSeq - currentSeq + 8) % 8);
     let steps = 0;
     let seq = currentSeq;
@@ -226,7 +226,7 @@ export default function GridLotteryWheel({
       if (steps < distance) {
         // easeOutCubic 曲线：减速越来越慢
         const t = steps / distance;
-        const ease = 1 - Math.pow(1 - t, 3);
+        const ease = 1 - Math.pow(1 - t, 2);
         const slow = 70 + ease * 500; // 最快70ms → 最慢570ms
         animationRef.current = setTimeout(tick, slow);
       } else {

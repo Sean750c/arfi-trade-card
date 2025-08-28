@@ -213,10 +213,10 @@ function LotteryScreenContent() {
               <Text style={styles.statValue}>{lotteryActivity.point}</Text>
               <Text style={styles.statLabel}>Cost per Spin</Text>
             </View>
-            <View style={styles.statItem}>
+            {/* <View style={styles.statItem}>
               <Text style={styles.statValue}>{lotteryActivity.prizes.length}</Text>
               <Text style={styles.statLabel}>Total Prizes</Text>
-            </View>
+            </View> */}
           </View>
         </LinearGradient>
 

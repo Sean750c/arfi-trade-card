@@ -93,7 +93,9 @@ export default function PrizeResultModal({
 
           <View style={styles.prizeModalContent}>
             <Text style={[styles.prizeDescription, { color: colors.textSecondary }]}>
-              Your prize has been added to your account!
+              {result.prize_type === 4 || result.prize_type === 5
+                ? 'Please contact customer support to claim your prize.'
+                : 'Your prize has been added to your account!'}
             </Text>
 
             <Button

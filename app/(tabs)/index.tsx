@@ -234,10 +234,10 @@ export default function HomeScreen() {
           </View>
           <View style={styles.rebateHeader}>
             <Text style={styles.rebateBalance}>
-              Rebate: {(user?.currency_symbol || '₦')}{formatBalance(balanceVisible && user ? user.rebate_money ?? '0' : '0')}
+              Rebate {(user?.currency_symbol || '₦')}{formatBalance(balanceVisible && user ? user.rebate_money ?? '0' : '0')}
             </Text>
             <Text style={styles.rebateBalance}>
-              Points: {(user?.point || '0')}
+              Points {(user?.point || '0')}
             </Text>
           </View>
         </View>
