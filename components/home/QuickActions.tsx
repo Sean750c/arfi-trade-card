@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { Gift, TrendingUp, Users, CreditCard, Zap, Star, Calendar, Wallet } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
+import { useAppStore } from '@/stores/useAppStore';
 
 type QuickActionItem = {
   id: string;
@@ -19,6 +20,7 @@ type QuickActionItem = {
 export default function QuickActions() {
   const { colors } = useTheme();
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const { initData } = useAppStore();
 
   // 优化脉冲动画，减少频率
   useEffect(() => {
@@ -36,7 +38,7 @@ export default function QuickActions() {
         }),
       ])
     );
-    
+
     // 延迟启动动画，避免页面加载时的性能问题
     const timer = setTimeout(() => {
       pulse.start();
@@ -67,22 +69,46 @@ export default function QuickActions() {
       route: '/rates',
       color: '#10B981',
     },
-    {
-      id: '3',
-      title: 'Daily Check-in',
-      subtitle: 'Earn points',
-      icon: <Calendar size={24} color="#FFFFFF" />,
-      route: '/profile/checkin', // 确保路由正确
-      color: '#8B5CF6',
-    },
-    {
-      id: '4',
-      title: 'Lucky Draw',
-      subtitle: 'Win prizes',
-      icon: <Star size={24} color="#FFFFFF" />,
-      route: '/profile/lottery',
-      color: '#EC4899',
-    },
+    ...(initData?.checkin_enable !== false
+      ? [
+        {
+          id: '3',
+          title: 'Daily Check-in',
+          subtitle: 'Earn points',
+          icon: <Calendar size={24} color="#FFFFFF" />,
+          route: '/profile/checkin',
+          color: '#8B5CF6',
+        } as QuickActionItem,
+      ]
+      : []),
+    // {
+    //   id: '3',
+    //   title: 'Daily Check-in',
+    //   subtitle: 'Earn points',
+    //   icon: <Calendar size={24} color="#FFFFFF" />,
+    //   route: '/profile/checkin', // 确保路由正确
+    //   color: '#8B5CF6',
+    // },
+    ...(initData?.lottery_enable !== false
+      ? [
+        {
+          id: '4',
+          title: 'Lucky Draw',
+          subtitle: 'Win prizes',
+          icon: <Star size={24} color="#FFFFFF" />,
+          route: '/profile/lottery',
+          color: '#EC4899',
+        } as QuickActionItem,
+      ]
+      : []),
+    // {
+    //   id: '4',
+    //   title: 'Lucky Draw',
+    //   subtitle: 'Win prizes',
+    //   icon: <Star size={24} color="#FFFFFF" />,
+    //   route: '/profile/lottery',
+    //   color: '#EC4899',
+    // },
     {
       id: '5',
       title: 'Refer & Earn',
@@ -120,7 +146,7 @@ export default function QuickActions() {
       <TouchableOpacity
         style={[
           styles.primaryActionItem,
-          { 
+          {
             backgroundColor: action.color,
             shadowColor: action.color,
           },
@@ -137,16 +163,16 @@ export default function QuickActions() {
             <Text style={styles.badgeText}>{action.badge}</Text>
           </View>
         )}
-        
+
         <View style={styles.primaryIconContainer}>
           {action.icon}
         </View>
-        
+
         <View style={styles.primaryTextContainer}>
           <Text style={styles.primaryActionTitle}>{action.title}</Text>
           <Text style={styles.primaryActionSubtitle}>{action.subtitle}</Text>
         </View>
-        
+
         <View style={styles.primaryActionIndicator}>
           <Zap size={20} color="rgba(255, 255, 255, 0.8)" />
         </View>
@@ -190,13 +216,13 @@ export default function QuickActions() {
           <Text style={[styles.viewAllText, { color: colors.primary }]}>Fast Trade</Text>
         </TouchableOpacity>
       </View>
-      
+
       {/* Primary Action - Sell Cards */}
       {primaryAction && renderPrimaryAction(primaryAction)}
-      
+
       {/* Divider */}
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
-      
+
       {/* Secondary Actions Grid */}
       <View style={styles.secondaryActionsGrid}>
         {secondaryActions.map(renderSecondaryAction)}
@@ -228,7 +254,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
   },
-  
+
   // Primary Action Styles (Sell Cards)
   primaryActionContainer: {
     marginBottom: Spacing.sm, // Reduced spacing
@@ -297,14 +323,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
+
   // Divider
   divider: {
     height: 1,
     marginVertical: Spacing.sm, // Reduced spacing
     opacity: 0.3,
   },
-  
+
   // Secondary Actions Grid
   secondaryActionsGrid: {
     flexDirection: 'row',

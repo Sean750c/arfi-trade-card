@@ -16,7 +16,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.bsdb.cardking",
-      "googleServicesFile": "./GoogleService-Info.plist",
       "usesAppleSignIn": true,
       "associatedDomains": ["applinks:www.cardking.ng", "applinks:cardking.ng"],
       "infoPlist": {
@@ -86,7 +85,6 @@
     },
     "android": {
       "package": "com.bsdb.cardking",
-      "googleServicesFile": "./google-services.json",
       "intentFilters": [
         {
           "action": "VIEW",

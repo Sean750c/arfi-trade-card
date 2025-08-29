@@ -12,10 +12,8 @@ import { ThemeProvider } from '@/theme/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { usePopupManager } from '@/hooks/usePopupManager';
 import PopupModal from '@/components/UI/PopupModal';
-import { View, ActivityIndicator, Text, Platform, Image } from 'react-native';
+import { ActivityIndicator, Text, Image } from 'react-native';
 import { useTheme } from '@/theme/ThemeContext';
-import Spacing from '@/constants/Spacing';
-import * as Device from 'expo-device';
 import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -56,7 +54,7 @@ function InitializationLoader() {
 export default function RootLayout() {
   const router = useRouter();
   const isMounted = useRef(true);
-  const { initialize } = useAppStore();
+  const { initialize, initData } = useAppStore();
   const { fetchCountries } = useCountryStore();
   const { isAuthenticated, user, initialize: initializeAuth, isInitialized } = useAuthStore();
   const { isVisible: popupVisible, popData, closePopup, checkAppStartPopup } = usePopupManager();
@@ -123,7 +121,7 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" />
       </Stack>
 
-      {!isInitialized && <InitializationLoader />}
+      {(!isInitialized || !initData) && <InitializationLoader />}
 
       <StatusBar style="auto" />
 

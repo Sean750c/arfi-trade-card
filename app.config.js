@@ -18,7 +18,7 @@ export default ({ config }) => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.bsdb.cardking",
-    googleServicesFile: "./GoogleService-Info.plist",
+    // googleServicesFile: "./GoogleService-Info.plist",
     usesAppleSignIn: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
@@ -35,7 +35,7 @@ export default ({ config }) => ({
   },
   android: {
     package: "com.bsdb.cardking",
-    googleServicesFile: "./google-services.json",
+    // googleServicesFile: "./google-services.json",
     config: {
       facebookAppId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "1525365371783998",
       facebookDisplayName: "CardKing"

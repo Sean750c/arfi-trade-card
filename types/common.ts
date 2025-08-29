@@ -71,6 +71,8 @@ export interface InitData {
     facebook_login_enable?: boolean;
     apple_login_enable?: boolean;
     biometric_enable?: boolean;
+    checkin_enable?: boolean;
+    lottery_enable?: boolean;
 }
 
 export interface SocialMediaLink {
