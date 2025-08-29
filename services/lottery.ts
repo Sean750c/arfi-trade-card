@@ -13,7 +13,7 @@ export class LotteryService {
   static async getLotteryActivity(token: string): Promise<LotteryActivity> {
     try {
       const response = await APIRequest.request<LotteryActivityResponse>(
-        '/gc/Lottery/activity',
+        '/gc/lottery/activity',
         'POST',
         { token }
       );

@@ -21,6 +21,7 @@ import {
   Zap,
   ChevronDown,
   X,
+  History,
   RotateCw,
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
@@ -33,6 +34,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
 import type { Supplier, DataBundle } from '@/types/utilities';
+import RechargeLogsModal from '@/components/utilities/RechargeLogsModal';
 
 function MobileRechargeScreenContent() {
   const { colors } = useTheme();
@@ -58,6 +60,8 @@ function MobileRechargeScreenContent() {
   const [selectedDataBundle, setSelectedDataBundle] = useState<DataBundle | null>(null);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showDataBundleModal, setShowDataBundleModal] = useState(false);
+
+  const [showLogsModal, setShowLogsModal] = useState(false);
 
   // Predefined airtime amounts
   const airtimeAmounts = [100, 200, 500, 1000, 2000, 5000];
@@ -89,14 +93,20 @@ function MobileRechargeScreenContent() {
   }, [user?.token]);
 
   const isNigerianNumber = (phone: string) => {
-    const regex = /^(?:\+234|0)(7[0-9]|8[0-9]|9[0-1])[0-9]{7}$/;
+    const regex = /^(?:\+234|234|0)\d{10}$/;
     return regex.test(phone);
   };
 
   const validatePhoneNumber = (phone: string) => {
     // Nigerian phone number validation
-    const cleanPhone = phone.replace(/\D/g, '');
-    return cleanPhone.length >= 10 && cleanPhone.length <= 11 && isNigerianNumber(phone);
+    // 去掉非数字字符，但保留开头的 +
+    let cleanPhone = phone.replace(/[^\d+]/g, '');
+
+    // 如果是纯10位数字，自动加0
+    if (/^\d{10}$/.test(cleanPhone)) {
+      cleanPhone = '0' + cleanPhone;
+    }
+    return cleanPhone.length >= 10 && cleanPhone.length <= 11 && isNigerianNumber(cleanPhone);
   };
 
   const handleAirtimeRecharge = async () => {
@@ -294,6 +304,15 @@ function MobileRechargeScreenContent() {
               Airtime & data top-up services
             </Text>
           </View>
+
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              onPress={() => setShowLogsModal(true)}
+              style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
+            >
+              <History size={20} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Recharge Form */}
@@ -380,7 +399,7 @@ function MobileRechargeScreenContent() {
           <Input
             label="Phone Number"
             value={phoneNumber}
-            onChangeText={setPhoneNumber}
+            onChangeText={text => setPhoneNumber(text)}
             placeholder="e.g., 08012345678"
             keyboardType="phone-pad"
             returnKeyType="done"
@@ -391,7 +410,7 @@ function MobileRechargeScreenContent() {
                   style={[styles.useMyNumberButton]}
                   onPress={() => setPhoneNumber(user.phone)}
                 >
-                  <RotateCw size={20} color={colors.primary} onPress={() => setPhoneNumber(user?.phone)}/>
+                  <RotateCw size={20} color={colors.primary} />
                 </TouchableOpacity>
               ) : null
             }
@@ -597,6 +616,15 @@ function MobileRechargeScreenContent() {
           </View>
         </View>
       </Modal>
+
+
+      {/* Recharge Logs Modal */}
+      <RechargeLogsModal
+        title='Mobile Recharge History'
+        type='phone'
+        visible={showLogsModal}
+        onClose={() => setShowLogsModal(false)}
+      />
     </SafeAreaWrapper>
   );
 }
@@ -844,5 +872,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

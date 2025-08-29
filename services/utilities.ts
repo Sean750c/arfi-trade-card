@@ -8,7 +8,10 @@ import type {
   DataRechargeRequest,
   DataRechargeResponse,
   Supplier,
-  DataBundle
+  DataBundle,
+  RechargeLogsRequest,
+  RechargeLogResponse,
+  RechargeLogEntry
 } from '@/types/utilities';
 
 export class UtilitiesService {
@@ -106,6 +109,32 @@ export class UtilitiesService {
         throw new Error(`Failed to recharge data: ${error.message}`);
       }
       throw new Error('Failed to recharge data');
+    }
+  }
+
+  static async getRechargeLogs(params: RechargeLogsRequest): Promise<RechargeLogEntry[]> {
+    try {
+      const response = await APIRequest.request<RechargeLogResponse>(
+        '/gc/recharge/logList',
+        'POST',
+        params
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to fetch recharge logs');
+      }
+
+      return response.data;
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch recharge logs: ${error.message}`);
+      }
+      throw new Error('Failed to fetch recharge logs');
     }
   }
 }

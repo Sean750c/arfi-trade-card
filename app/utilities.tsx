@@ -9,13 +9,14 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Phone, Wifi, Zap, Tv, ArrowRight, Smartphone, Globe, Chrome as Home } from 'lucide-react-native';
+import { ChevronLeft, Phone, Wifi, Zap, Tv, ArrowRight, Smartphone, History, Chrome as Home } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import AuthGuard from '@/components/UI/AuthGuard';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
+import RechargeLogsModal from '@/components/utilities/RechargeLogsModal';
 
 interface ServiceItem {
   id: string;
@@ -32,6 +33,8 @@ function UtilitiesScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
   const [refreshing, setRefreshing] = useState(false);
+
+  const [showLogsModal, setShowLogsModal] = useState(false);
 
   const services: ServiceItem[] = [
     {
@@ -161,6 +164,14 @@ function UtilitiesScreenContent() {
               Pay bills & top-up services
             </Text>
           </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              onPress={() => setShowLogsModal(true)}
+              style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
+            >
+              <History size={20} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Services Grid */}
@@ -202,6 +213,13 @@ function UtilitiesScreenContent() {
           </Text>
         </Card> */}
       </ScrollView>
+
+      <RechargeLogsModal
+        title='Utilities History'
+        type='all'
+        visible={showLogsModal}
+        onClose={() => setShowLogsModal(false)}
+      />
     </SafeAreaWrapper>
   );
 }
@@ -337,6 +355,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     lineHeight: 20,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Coming Soon Card

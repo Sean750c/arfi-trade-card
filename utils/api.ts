@@ -2,7 +2,7 @@ import md5 from 'crypto-js/md5';
 import { Platform } from 'react-native';
 import { router } from 'expo-router';
 
-// Use environment variable for API host, with fallback to original value
+// Use environment variable for API host, with fallback to original value https://api.cardking.ng
 const API_HOST = process.env.EXPO_PUBLIC_API_URL || 'https://test-giftcard8-api.gcard8.com';
 
 // Platform-specific configurations
@@ -104,7 +104,7 @@ export class APIRequest {
       const requestParams = {
         ...params,
         appid,
-        app_version: '1.0.2',
+        app_version: '1.0.3',
       };
   
       // Generate signature

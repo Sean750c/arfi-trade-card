@@ -4,7 +4,7 @@ export default ({ config }) => ({
   ...config,
   name: "CardKing",
   slug: "cardking",
-  version: "1.0.2",
+  version: "1.0.3",
   orientation: "default",
   icon: "./assets/images/logo.png",
   scheme: "cardking",

@@ -157,6 +157,19 @@ function LotteryScreenContent() {
     );
   }
 
+  if (!lotteryActivity.details) {
+    return (
+      <SafeAreaWrapper backgroundColor={colors.background}>
+        <Header title="Lucky Draw" />
+        <View style={styles.errorContainer}>
+          <Text style={[styles.errorText, { color: colors.textSecondary }]}>
+            Stay tuned! New lottery events are coming soon.
+          </Text>
+        </View>
+      </SafeAreaWrapper>
+    );
+  }
+
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
       <View style={styles.header}>

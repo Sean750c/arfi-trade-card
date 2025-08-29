@@ -1,6 +1,6 @@
 const Settings = {
-    version: '1.0.2',
-    updateDate: '2025-08-31'
+    version: '1.0.3',
+    updateDate: '2025-09-01'
 };
 
 export default Settings;
