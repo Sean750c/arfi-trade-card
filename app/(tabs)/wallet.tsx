@@ -302,7 +302,9 @@ function WalletScreenContent() {
 
 export default function WalletScreen() {
   return (
-    <WalletScreenContent />
+    <AuthGuard>
+      <WalletScreenContent />
+    </AuthGuard>
   );
 }
 

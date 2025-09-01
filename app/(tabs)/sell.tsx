@@ -826,7 +826,9 @@ function SellScreenContent() {
 
 export default function SellScreen() {
   return (
-    <SellScreenContent />
+    <AuthGuard>
+      <SellScreenContent />
+    </AuthGuard>
   );
 }
 

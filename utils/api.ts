@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import { router } from 'expo-router';
 
 // Use environment variable for API host, with fallback to original value https://api.cardking.ng   https://test-giftcard8-api.gcard8.com
-const API_HOST = process.env.EXPO_PUBLIC_API_URL || 'https://test-giftcard8-api.gcard8.com';
+const API_HOST = process.env.EXPO_PUBLIC_API_URL || 'https://api.cardking.ng';
 
 // Platform-specific configurations
 const getAppConfig = () => {

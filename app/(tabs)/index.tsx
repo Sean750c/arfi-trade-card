@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Bell, ChevronDown, Sparkles, Eye, EyeOff, RefreshCw } from 'lucide-react-native';
+import { Bell, ChevronDown, Sparkles, Eye, EyeOff, RefreshCw, Ticket } from 'lucide-react-native';
 import Spacing from '@/constants/Spacing';
 import PromoBanner from '@/components/home/PromoBanner';
 import QuickActions from '@/components/home/QuickActions';
@@ -109,18 +109,36 @@ export default function HomeScreen() {
               {isAuthenticated && user ? (
                 <>
                   <Text style={[styles.welcomeText, { color: colors.textSecondary }]}>Welcome back,</Text>
-                  <View style={styles.userNameRow}>
-                    <Text style={[styles.userName, { color: colors.text }]}> {user.username || ''} </Text>
-                    <View style={styles.vipBadge}>
-                      <Sparkles size={12} color={colors.primary} />
-                      <Text style={[styles.vipText, { color: colors.primary }]}>VIP {user.vip_level || ''}</Text>
+                  <View style={styles.rowStyle}>
+                    <View style={styles.rowLeftStyle}>
+                      <Text style={[styles.userName, { color: colors.text }]}> {user.username || ''} </Text>
+                      <View style={styles.vipBadge}>
+                        <Sparkles size={12} color={colors.primary} />
+                        <Text style={[styles.rowText, { color: colors.primary }]}>VIP {user.vip_level || ''}</Text>
+                      </View>
                     </View>
+                    <TouchableOpacity
+                      style={styles.rowRightStyle}
+                      onPress={() => router.push('/profile/promo-codes')}
+                    >
+                      <Ticket size={12} color={colors.primary} />
+                      <Text style={[styles.rowText, { color: colors.primary }]}>Coupon {initData?.coupon_num || 0}</Text>
+                    </TouchableOpacity>
                   </View>
                 </>
               ) : (
                 <>
                   <Text style={[styles.guestTitle, { color: colors.text }]}>Welcome to CardKing</Text>
-                  <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>Trade gift cards at the best rates</Text>
+                  <View style={styles.rowStyle}>
+                    <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>Trade gift cards at the best rates</Text>
+                    <TouchableOpacity
+                      style={styles.rowRightStyle}
+                      onPress={() => router.push('/profile/promo-codes')}
+                    >
+                      <Ticket size={12} color={colors.primary} />
+                      <Text style={[styles.rowText, { color: colors.primary }]}>Coupon {initData?.coupon_num || 0}</Text>
+                    </TouchableOpacity>
+                  </View>
                 </>
               )}
             </View>
@@ -334,7 +352,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Inter-Regular',
   },
-  userNameRow: {
+  rowStyle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rowLeftStyle: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
@@ -352,7 +374,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 135, 81, 0.1)',
     borderRadius: 4,
   },
-  vipText: {
+  rowRightStyle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    marginLeft: Spacing.lg,
+    backgroundColor: 'rgba(0, 135, 81, 0.1)',
+    borderRadius: 4,
+  },
+  rowText: {
     fontSize: 10,
     fontFamily: 'Inter-SemiBold',
   },
@@ -364,6 +396,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
   },
   guestSubtitle: {
+    flex: 1,
     fontSize: 12,
     fontFamily: 'Inter-Regular',
   },

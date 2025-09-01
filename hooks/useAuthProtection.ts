@@ -60,16 +60,16 @@ export function useAuthProtection() {
     );
 
     // If user is not authenticated and trying to access a protected route
-    if (!isAuthenticated && isProtectedRoute) {
-      console.log(`Redirecting to login from protected route: ${currentPath}`);
-      // Check if component is still mounted before navigation
-      setTimeout(() => {
-        if (isMounted.current) {
-          router.replace('/(auth)/login');
-        }
-      }, 0);
-      return;
-    }
+    // if (!isAuthenticated && isProtectedRoute) {
+    //   console.log(`Redirecting to login from protected route: ${currentPath}`);
+    //   // Check if component is still mounted before navigation
+    //   setTimeout(() => {
+    //     if (isMounted.current) {
+    //       router.replace('/(auth)/login');
+    //     }
+    //   }, 0);
+    //   return;
+    // }
 
     // If user is authenticated and on auth pages, redirect to home
     if (isAuthenticated && currentPath.includes('(auth)')) {
