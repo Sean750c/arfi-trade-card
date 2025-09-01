@@ -204,7 +204,7 @@ export default function HomeScreen() {
                       onPress={() => router.push('/profile/promo-codes')}
                     >
                       <Ticket size={12} color={colors.primary} />
-                      <Text style={[styles.rowText, { color: colors.primary }]}>Coupon {user?.coupon_num ?? 0}</Text>
+                      <Text style={[styles.rowText, { color: colors.primary }]}>Coupon {user?.coupon_num ?? initData?.coupon_num ?? 0}</Text>
                     </TouchableOpacity>
                   </View>
                 </>
@@ -256,9 +256,9 @@ export default function HomeScreen() {
             <Text style={styles.rebateBalance}>
               Rebate {(user?.currency_symbol || '₦')}{formatBalance(balanceVisible && user ? user.rebate_money ?? '0' : '0')}
             </Text>
-            <Text style={styles.rebateBalance}>
+            {/* <Text style={styles.rebateBalance}>
               Points {(user?.point || '0')}
-            </Text>
+            </Text> */}
           </View>
         </View>
 
