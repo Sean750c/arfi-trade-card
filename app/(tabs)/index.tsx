@@ -104,45 +104,6 @@ export default function HomeScreen() {
               )}
             </View>
 
-            {/* User Info - Compact/Guest Welcome 始终渲染 */}
-            <View style={isAuthenticated && user ? styles.userInfoCompact : styles.guestWelcome}>
-              {isAuthenticated && user ? (
-                <>
-                  <Text style={[styles.welcomeText, { color: colors.textSecondary }]}>Welcome back,</Text>
-                  <View style={styles.rowStyle}>
-                    <View style={styles.rowLeftStyle}>
-                      <Text style={[styles.userName, { color: colors.text }]}> {user.username || ''} </Text>
-                      <View style={styles.vipBadge}>
-                        <Sparkles size={12} color={colors.primary} />
-                        <Text style={[styles.rowText, { color: colors.primary }]}>VIP {user.vip_level || ''}</Text>
-                      </View>
-                    </View>
-                    <TouchableOpacity
-                      style={styles.rowRightStyle}
-                      onPress={() => router.push('/profile/promo-codes')}
-                    >
-                      <Ticket size={12} color={colors.primary} />
-                      <Text style={[styles.rowText, { color: colors.primary }]}>Coupon {initData?.coupon_num || 0}</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              ) : (
-                <>
-                  <Text style={[styles.guestTitle, { color: colors.text }]}>Welcome to CardKing</Text>
-                  <View style={styles.rowStyle}>
-                    <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>Trade gift cards at the best rates</Text>
-                    <TouchableOpacity
-                      style={styles.rowRightStyle}
-                      onPress={() => router.push('/profile/promo-codes')}
-                    >
-                      <Ticket size={12} color={colors.primary} />
-                      <Text style={[styles.rowText, { color: colors.primary }]}>Coupon {initData?.coupon_num || 0}</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
-            </View>
-
             {/* Country Picker Dropdown */}
             {showCountryPicker && !isAuthenticated && (
               <View style={[
@@ -208,6 +169,47 @@ export default function HomeScreen() {
               )}
             </TouchableOpacity>
           </View>
+        </View>
+
+        <View style={styles.userInfoContainer}>
+          {/* User Info - Compact/Guest Welcome 始终渲染 */}
+          <View style={isAuthenticated && user ? styles.userInfoCompact : styles.guestWelcome}>
+              {isAuthenticated && user ? (
+                <>
+                  <Text style={[styles.welcomeText, { color: colors.textSecondary }]}>Welcome back,</Text>
+                  <View style={styles.rowStyle}>
+                    <View style={styles.rowLeftStyle}>
+                      <Text style={[styles.userName, { color: colors.text }]}> {user.username || ''} </Text>
+                      <View style={styles.vipBadge}>
+                        <Sparkles size={12} color={colors.primary} />
+                        <Text style={[styles.rowText, { color: colors.primary }]}>VIP {user.vip_level || ''}</Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.rowRightStyle}
+                      onPress={() => router.push('/profile/promo-codes')}
+                    >
+                      <Ticket size={12} color={colors.primary} />
+                      <Text style={[styles.rowText, { color: colors.primary }]}>Coupon {user?.coupon_num ?? initData?.coupon_num ?? 0}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Text style={[styles.guestTitle, { color: colors.text }]}>Welcome to CardKing</Text>
+                  <View style={styles.rowStyle}>
+                    <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>Trade gift cards at the best rates</Text>
+                    <TouchableOpacity
+                      style={styles.rowRightStyle}
+                      onPress={() => router.push('/profile/promo-codes')}
+                    >
+                      <Ticket size={12} color={colors.primary} />
+                      <Text style={[styles.rowText, { color: colors.primary }]}>Coupon {user?.coupon_num ?? 0}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </View>
         </View>
 
         {/* Initialization Error */}
@@ -288,7 +290,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.sm,
   },
   headerLeft: {
     flex: 1,
@@ -345,6 +346,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
+  userInfoContainer: {
+    paddingHorizontal: Spacing.xs,
+    marginBottom: Spacing.xs,
+  },
   userInfoCompact: {
     gap: 2,
   },
@@ -355,6 +360,7 @@ const styles = StyleSheet.create({
   rowStyle: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   rowLeftStyle: {
     flexDirection: 'row',

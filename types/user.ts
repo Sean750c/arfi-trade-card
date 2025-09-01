@@ -32,6 +32,7 @@ export interface User {
     register_time: number;
     last_login_time: number;
     point: number;
+    coupon_num: number;
 }
 
 export interface UserInfoRequest {
