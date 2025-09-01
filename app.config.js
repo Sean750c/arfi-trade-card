@@ -23,7 +23,7 @@ export default ({ config }) => ({
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       UIBackgroundModes: ["fetch", "remote-notification"],
-      UNUserNotificationCenterDelegate: true,
+      // UNUserNotificationCenterDelegate: true,
       FacebookAppID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "1525365371783998",
       FacebookDisplayName: "CardKing",
       CFBundleURLTypes: [
@@ -35,6 +35,11 @@ export default ({ config }) => ({
   },
   android: {
     package: "com.bsdb.cardking",
+    resizeMode: "contain", // 避免大屏拉伸问题
+    adaptiveIcon: {
+      foregroundImage: "./assets/images/icon-foreground.png",
+      backgroundColor: "#ffffff"
+    },
     // googleServicesFile: "./google-services.json",
     config: {
       facebookAppId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "1525365371783998",

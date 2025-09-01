@@ -123,7 +123,7 @@ export default function RootLayout() {
 
       {(!isInitialized || !initData) && <InitializationLoader />}
 
-      <StatusBar style="auto" />
+      <StatusBar style="auto" translucent backgroundColor="transparent"/>
 
       {popupVisible && popData && (
         <PopupModal visible={popupVisible} onClose={closePopup} popData={popData} />

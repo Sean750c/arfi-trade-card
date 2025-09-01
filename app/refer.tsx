@@ -26,7 +26,7 @@ import { Share as RNShare } from 'react-native';
 import MyInvitesList from '@/components/invite/MyInvitesList';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
-function AnimatedNumber({value, style, prefix = ''}: {value: number, style?: any, prefix?: string}) {
+function AnimatedNumber({ value, style, prefix = '' }: { value: number, style?: any, prefix?: string }) {
   const anim = useRef(new Animated.Value(0)).current;
   const [display, setDisplay] = useState(0);
   useEffect(() => {
@@ -35,7 +35,7 @@ function AnimatedNumber({value, style, prefix = ''}: {value: number, style?: any
       duration: 800,
       useNativeDriver: false,
     }).start();
-    const id = anim.addListener(({value}) => setDisplay(value));
+    const id = anim.addListener(({ value }) => setDisplay(value));
     return () => anim.removeListener(id);
   }, [value]);
   return <Text style={style}>{prefix}{Math.round(display)}</Text>;
@@ -109,14 +109,26 @@ function ReferScreenContent() {
         //   queryParams: { recommend_code: inviteInfo.invite_code },
         // });
         const universalLink = `https://www.cardking.ng/register?recommend_code=${inviteInfo.invite_code}`;
-        
+
         // 创建友好的分享消息
-        const shareMessage = `🎁 Join CardKing and get instant rewards!\n\n` +
+        // const shareMessage = `🎁 Join CardKing and get instant rewards!\n\n` +
+        //   `Use my invitation code: ${inviteInfo.invite_code}\n` +
+        //   `Register now: ${universalLink}\n\n` +
+        //   `💰 You'll get ${user?.currency_symbol}${inviteInfo.friend_amount} bonus when you complete your first order!\n` +
+        //   `📱 Download CardKing - The best gift card trading platform in Africa`;
+
+        let shareMessage =
+          "Hey, I recently discovered a super useful gift card redemption app and I'd like to recommend it to you! It really makes money, and the withdrawals are fast!\n" +
+          "Sign up with my invitation code and you'll get a bonus!\n\n" +
           `Use my invitation code: ${inviteInfo.invite_code}\n` +
-          `Register now: ${universalLink}\n\n` +
-          `💰 You'll get ${user?.currency_symbol}${inviteInfo.friend_amount} bonus when you complete your first order!\n` +
-          `📱 Download CardKing - The best gift card trading platform in Africa`;
-        
+          `Register now: ${universalLink}\n\n`;
+
+        if (inviteInfo.friend_amount > 0) {
+          shareMessage += `💰 You'll get ${user?.currency_symbol}${inviteInfo.friend_amount} bonus when you complete your first order!\n`;
+        }
+
+        shareMessage += `📱 Download CardKing - The best gift card trading platform in Africa`;
+
         await RNShare.share({ message: shareMessage });
       } else {
         Alert.alert('Error', 'Invitation code not available.');
@@ -156,7 +168,7 @@ function ReferScreenContent() {
       </LinearGradient>
       {/* Stats Card */}
       <View style={styles.statsCardShadow}>
-        <Card style={[styles.statsCard, { backgroundColor: colors.card }]}> 
+        <Card style={[styles.statsCard, { backgroundColor: colors.card }]}>
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
               <AnimatedNumber value={inviteInfo?.referred_total_bonus ?? 0} style={[styles.statValue, { color: colors.primary }]} prefix={user?.currency_symbol} />
@@ -182,7 +194,7 @@ function ReferScreenContent() {
       </View>
       {/* Progress Bar 横向滚动 */}
       {inviteInfo && (
-        <Card style={[styles.progressCard, { backgroundColor: colors.card }]}> 
+        <Card style={[styles.progressCard, { backgroundColor: colors.card }]}>
           <Text style={[styles.progressTitle, { color: colors.text }]} >Invite Progress</Text>
           <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.progressBarWrap}>
             {inviteInfo.rebate_money_config.map((amount, idx) => {
@@ -219,15 +231,15 @@ function ReferScreenContent() {
         </Card>
       )}
       {/* Referral Link Card */}
-      <Card style={[styles.linkCard, { backgroundColor: colors.card }]}> 
+      <Card style={[styles.linkCard, { backgroundColor: colors.card }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Referral Link</Text>
-        <View style={[styles.linkContainer, { borderColor: colors.border, backgroundColor: colors.background }]}> 
+        <View style={[styles.linkContainer, { borderColor: colors.border, backgroundColor: colors.background }]}>
           <TouchableOpacity style={styles.linkAction} onPress={handleCopyLink}>
             <Copy size={18} color={colors.primary} />
           </TouchableOpacity>
           <TextInput
             style={[styles.linkInput, { color: colors.text }]}
-            value={inviteInfo?.invite_code ? 
+            value={inviteInfo?.invite_code ?
               Linking.createURL('register', {
                 queryParams: { recommend_code: inviteInfo.invite_code },
               }) : ''
@@ -248,7 +260,7 @@ function ReferScreenContent() {
     <>
       {/* Invite Rank */}
       <View><Text style={[styles.listSectionTitle, { color: colors.primary }]}>Top Inviters</Text></View>
-      <Card style={[styles.rankCard, { backgroundColor: colors.card }]}> 
+      <Card style={[styles.rankCard, { backgroundColor: colors.card }]}>
         {inviteRank && Array.isArray(inviteRank.top_list) && inviteRank.top_list.length > 0 ? inviteRank.top_list.map((item, idx) => (
           <React.Fragment key={item.user_id || idx}>
             {typeof item === 'string' ? <Text style={{ color: colors.text }}>{item}</Text> : renderRankItem(item, idx)}
