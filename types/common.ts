@@ -73,6 +73,7 @@ export interface InitData {
     biometric_enable?: boolean;
     checkin_enable?: boolean;
     lottery_enable?: boolean;
+    utility_enable?: boolean;
     coupon_num?: number;
 }
 

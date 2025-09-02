@@ -125,14 +125,18 @@ export default function QuickActions() {
       route: '/(tabs)/wallet',
       color: '#6366F1',
     },
-    {
-      id: '7',
-      title: 'Utilities',           // 名字改为 Utilities
-      subtitle: 'Recharge & Bills', // 简短描述
-      icon: <Wallet size={24} color="#FFFFFF" />, // 钱包图标，teal 风格
-      route: '/utilities',          // 对应页面路径
-      color: '#14B8A6',             // teal 色
-    },
+    ...(initData?.utility_enable !== false
+      ? [
+        {
+          id: '7',
+          title: 'Utilities',           // 名字改为 Utilities
+          subtitle: 'Recharge & Bills', // 简短描述
+          icon: <Wallet size={24} color="#FFFFFF" />, // 钱包图标，teal 风格
+          route: '/utilities',          // 对应页面路径
+          color: '#14B8A6',             // teal 色
+        } as QuickActionItem,
+      ]
+      : []),
   ];
 
   const renderPrimaryAction = (action: QuickActionItem) => (
