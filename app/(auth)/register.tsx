@@ -21,6 +21,7 @@ import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { usePopupManager } from '@/hooks/usePopupManager';
 import { Country } from '@/types';
+import * as Linking from 'expo-linking';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { useAppStore } from '@/stores/useAppStore';
@@ -37,6 +38,7 @@ export default function RegisterScreen() {
   const { register, isLoading } = useAuthStore();
   const { checkRegisterSuccessPopup } = usePopupManager();
   const { initData } = useAppStore();
+  const [referralCode, setReferralCode] = useState('');
 
   const [registrationType, setRegistrationType] = useState<RegistrationType>('email');
   // 新增：根据initData.register_type动态生成可用注册方式
@@ -45,7 +47,17 @@ export default function RegisterScreen() {
     return initData.register_type.split(',').map(type => type.trim()).filter(Boolean);
   }, [initData?.register_type]);
 
-  const urlParams = new URLSearchParams(window.location.search);
+  React.useEffect(() => {
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        const parsed = Linking.parse(url);
+        if (parsed.queryParams?.recommend_code) {
+          setReferralCode(parsed.queryParams.recommend_code as string);
+          setFormData(prev => ({ ...prev, referralCode: referralCode }));
+        }
+      }
+    });
+  }, []);
 
   // 新增：如果当前选中的注册方式不可用，自动切换到第一个可用方式
   React.useEffect(() => {
@@ -60,7 +72,7 @@ export default function RegisterScreen() {
     whatsapp: '',
     password: '',
     confirmPassword: '',
-    referralCode: urlParams.get('recommend_code') || '',
+    referralCode: referralCode || '',
   });
 
   const [termsAccepted, setTermsAccepted] = useState(true);
@@ -355,7 +367,7 @@ export default function RegisterScreen() {
                 ]}
                 onPress={() => setShowCountryPicker(!showCountryPicker)}
               >
-                {selectedCountry ? (
+                {selectedCountry?.image ? (
                   <View style={styles.selectedCountry}>
                     <Image
                       source={{ uri: selectedCountry.image }}
