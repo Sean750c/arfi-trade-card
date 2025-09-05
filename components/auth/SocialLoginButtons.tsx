@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Text,
+  ActivityIndicator,
 } from 'react-native';
 import Spacing from '@/constants/Spacing';
 import { AuthService } from '@/services/auth';
@@ -26,6 +27,13 @@ export default function SocialLoginButtons() {
   const { setUser, appleLogin, facebookLogin, googleLogin, isLoading } = useAuthStore();
   const { initData } = useAppStore();
 
+  // Individual loading states for each social login
+  const [isAuthenticatingGoogle, setIsAuthenticatingGoogle] = React.useState(false);
+  const [isAuthenticatingFacebook, setIsAuthenticatingFacebook] = React.useState(false);
+  const [isAuthenticatingApple, setIsAuthenticatingApple] = React.useState(false);
+
+  // Check if any authentication is in progress
+  const isAnyAuthenticating = isAuthenticatingGoogle || isAuthenticatingFacebook || isAuthenticatingApple || isLoading;
   // Google Auth Hook
   const expoConfig = Constants.expoConfig;
   const androidClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
@@ -47,12 +55,15 @@ export default function SocialLoginButtons() {
 
   // Handle Google Login
   const handleGoogleLogin = async () => {
+    if (isAnyAuthenticating) return;
+    
     try {
       if (!requestGoogle) {
         Alert.alert('Info', 'Google services are not available on this device!');
         return;
       }
       
+      setIsAuthenticatingGoogle(true);
       const result = await promptAsyncGoogle();
       
       if (result.type === 'success' && result.authentication?.code) {
@@ -64,7 +75,8 @@ export default function SocialLoginButtons() {
         
         await googleLogin(requestData);
       } else if (result.type === 'cancel') {
-        Alert.alert('Login Cancelled', 'Google login was cancelled.');
+        // Don't show alert for user cancellation - it's expected behavior
+        console.log('Google login was cancelled by user');
       } else if (result.type === 'error') {
         Alert.alert('Login Error', result.error?.message || 'An unknown error occurred during Google login.');
       } else {
@@ -73,12 +85,17 @@ export default function SocialLoginButtons() {
       }
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Google login failed');
+    } finally {
+      setIsAuthenticatingGoogle(false);
     }
   };
 
   // Handle Facebook Login
   const handleFacebookLogin = async () => {
+    if (isAnyAuthenticating) return;
+    
     try {      
+      setIsAuthenticatingFacebook(true);
       const result = await promptAsyncFacebook();
       
       if (result.type === 'success' && result.authentication?.accessToken) {
@@ -97,7 +114,8 @@ export default function SocialLoginButtons() {
         
         await facebookLogin(requestData);
       } else if (result.type === 'cancel') {
-        Alert.alert('Login Cancelled', 'Facebook login was cancelled.');
+        // Don't show alert for user cancellation - it's expected behavior
+        console.log('Facebook login was cancelled by user');
       } else if (result.type === 'error') {
         Alert.alert('Login Error', result.error?.message || 'An unknown error occurred during Facebook login.');
       } else {
@@ -105,17 +123,22 @@ export default function SocialLoginButtons() {
       }
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Facebook login failed');
+    } finally {
+      setIsAuthenticatingFacebook(false);
     }
   };
 
   // Handle Apple Login
   const handleAppleLogin = async () => {
+    if (isAnyAuthenticating) return;
+    
     if (Platform.OS !== 'ios') {
       Alert.alert('Not Available', 'Apple Sign-In is only available on iOS devices');
       return;
     }
 
     try {    
+      setIsAuthenticatingApple(true);
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -137,10 +160,13 @@ export default function SocialLoginButtons() {
       }
     } catch (e: any) {
       if (e.code === 'ERR_CANCELED') {
-        Alert.alert('Login Cancelled', 'Apple login was cancelled.');
+        // Don't show alert for user cancellation - it's expected behavior
+        console.log('Apple login was cancelled by user');
       } else {
         Alert.alert('Login Error', e.message || 'An unknown error occurred during Apple login.');
       }
+    } finally {
+      setIsAuthenticatingApple(false);
     }
   };
 
@@ -155,16 +181,20 @@ export default function SocialLoginButtons() {
         <TouchableOpacity
           style={[styles.socialButton, { borderColor: colors.border, backgroundColor: colors.card }]}
           onPress={handleGoogleLogin}
-          disabled={isLoading}
+          disabled={isAnyAuthenticating}
           activeOpacity={0.8}
         >
-          <Image
-            source={require('@/assets/images/google.png')} // 请替换为你本地图片的实际路径
-            style={{ width: 24, height: 24, marginRight: 8 }}
-            resizeMode="contain"
-          />
+          {isAuthenticatingGoogle ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
+          ) : (
+            <Image
+              source={require('@/assets/images/google.png')}
+              style={{ width: 24, height: 24, marginRight: 8 }}
+              resizeMode="contain"
+            />
+          )}
           <Text style={[styles.socialButtonText, { color: colors.text }]}>
-            Continue with Google
+            {isAuthenticatingGoogle ? 'Authenticating with Google...' : 'Continue with Google'}
           </Text>
         </TouchableOpacity>
       )}
@@ -173,16 +203,20 @@ export default function SocialLoginButtons() {
         <TouchableOpacity
           style={[styles.socialButton, { borderColor: colors.border, backgroundColor: colors.card }]}
           onPress={handleFacebookLogin}
-          disabled={isLoading}
+          disabled={isAnyAuthenticating}
           activeOpacity={0.8}
         >
-          <Image
-            source={require('@/assets/images/facebook.png')} // 请替换为你本地图片的实际路径
-            style={{ width: 24, height: 24, marginRight: 8 }}
-            resizeMode="contain"
-          />
+          {isAuthenticatingFacebook ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
+          ) : (
+            <Image
+              source={require('@/assets/images/facebook.png')}
+              style={{ width: 24, height: 24, marginRight: 8 }}
+              resizeMode="contain"
+            />
+          )}
           <Text style={[styles.socialButtonText, { color: colors.text }]}>
-            Continue with Facebook
+            {isAuthenticatingFacebook ? 'Authenticating with Facebook...' : 'Continue with Facebook'}
           </Text>
         </TouchableOpacity>
       )}
@@ -191,16 +225,20 @@ export default function SocialLoginButtons() {
         <TouchableOpacity
           style={[styles.socialButton, { borderColor: colors.border, backgroundColor: colors.card }]}
           onPress={handleAppleLogin}
-          disabled={isLoading}
+          disabled={isAnyAuthenticating}
           activeOpacity={0.8}
         >
-          <Image
-            source={require('@/assets/images/apple.png')} // 请替换为你本地图片的实际路径
-            style={{ width: 24, height: 24, marginRight: 8 }}
-            resizeMode="contain"
-          />
+          {isAuthenticatingApple ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
+          ) : (
+            <Image
+              source={require('@/assets/images/apple.png')}
+              style={{ width: 24, height: 24, marginRight: 8 }}
+              resizeMode="contain"
+            />
+          )}
           <Text style={[styles.socialButtonText, { color: colors.text }]}>
-            Continue with Apple
+            {isAuthenticatingApple ? 'Authenticating with Apple...' : 'Continue with Apple'}
           </Text>
         </TouchableOpacity>
       )}
