@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
-  ActivityIndicator,
 } from 'react-native';
 import { Link2, Unlink, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Shield, Facebook as FacebookIcon, Apple } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
@@ -26,14 +25,7 @@ export default function SocialBindingCard() {
   const { colors } = useTheme();
   const { user, reloadUser } = useAuthStore();
   const { initData } = useAppStore();
-  
-  // Individual loading states for each social binding
-  const [isBindingGoogle, setIsBindingGoogle] = useState(false);
-  const [isBindingFacebook, setIsBindingFacebook] = useState(false);
-  const [isBindingApple, setIsBindingApple] = useState(false);
-  
-  // Check if any binding is in progress
-  const isAnyBinding = isBindingGoogle || isBindingFacebook || isBindingApple;
+  const [isLoading, setIsLoading] = useState<string | null>(null);
 
   // Auth hooks
   const expoConfig = Constants.expoConfig;
@@ -61,7 +53,6 @@ export default function SocialBindingCard() {
       color: '#4285F4',
       isConnected: user?.google_bind || false,
       isAvailable: !!requestGoogle && (initData?.google_login_enable !== false),
-      isLoading: isBindingGoogle,
     },
     {
       id: 'facebook',
@@ -70,7 +61,6 @@ export default function SocialBindingCard() {
       color: '#1877F2',
       isConnected: user?.facebook_bind || false,
       isAvailable: !!requestFacebook && (initData?.facebook_login_enable !== false),
-      isLoading: isBindingFacebook,
     },
     {
       id: 'apple',
@@ -79,13 +69,10 @@ export default function SocialBindingCard() {
       color: '#000000',
       isConnected: user?.apple_bind || false,
       isAvailable: Platform.OS === 'ios' && (initData?.apple_login_enable !== false),
-      isLoading: isBindingApple,
     },
   ];
 
   const handleGoogleBind = async () => {
-    if (isAnyBinding) return;
-    
     if (!user?.token) return;
 
     if(!requestGoogle){
@@ -93,7 +80,7 @@ export default function SocialBindingCard() {
       return;
     }
     
-    setIsBindingGoogle(true);
+    setIsLoading('google');
     try {
       const result = await promptAsyncGoogle();
       if (result.type === 'success' && result.authentication?.code) {
@@ -113,23 +100,18 @@ export default function SocialBindingCard() {
 
         await reloadUser();
         Alert.alert('Success', 'Google account bound successfully!');
-      } else if (result.type === 'cancel') {
-        // Don't show alert for user cancellation
-        console.log('Google binding was cancelled by user');
       }
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to bind Google account');
     } finally {
-      setIsBindingGoogle(false);
+      setIsLoading(null);
     }
   };
 
   const handleFacebookBind = async () => {
-    if (isAnyBinding) return;
-    
     if (!user?.token) return;
     
-    setIsBindingFacebook(true);
+    setIsLoading('facebook');
     try {
       const result = await promptAsyncFacebook();
       if (result.type === 'success' && result.authentication?.accessToken) {
@@ -153,23 +135,18 @@ export default function SocialBindingCard() {
 
         await reloadUser();
         Alert.alert('Success', 'Facebook account bound successfully!');
-      } else if (result.type === 'cancel') {
-        // Don't show alert for user cancellation
-        console.log('Facebook binding was cancelled by user');
       }
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to bind Facebook account');
     } finally {
-      setIsBindingFacebook(false);
+      setIsLoading(null);
     }
   };
 
   const handleAppleBind = async () => {
-    if (isAnyBinding) return;
-    
     if (!user?.token || Platform.OS !== 'ios') return;
     
-    setIsBindingApple(true);
+    setIsLoading('apple');
     try {
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
@@ -197,12 +174,9 @@ export default function SocialBindingCard() {
     } catch (error: any) {
       if (error.code !== 'ERR_CANCELED') {
         Alert.alert('Error', error.message || 'Failed to bind Apple account');
-      } else {
-        // Don't show alert for user cancellation
-        console.log('Apple binding was cancelled by user');
       }
     } finally {
-      setIsBindingApple(false);
+      setIsLoading(null);
     }
   };
 
@@ -212,9 +186,6 @@ export default function SocialBindingCard() {
       return;
     }
 
-    if (isAnyBinding) {
-      return; // Prevent multiple simultaneous operations
-    }
     if (account.isConnected) {
       Alert.alert(
         'Unbind Account',
@@ -260,11 +231,7 @@ export default function SocialBindingCard() {
     >
       <View style={styles.socialInfo}>
         <View style={[styles.socialIcon, { backgroundColor: `${account.color}15` }]}>
-          {account.isLoading ? (
-            <ActivityIndicator size="small" color={account.color} />
-          ) : (
-            <Text style={styles.socialEmoji}>{account.icon}</Text>
-          )}
+          <Text style={styles.socialEmoji}>{account.icon}</Text>
         </View>
         <View style={styles.socialContent}>
           <Text style={[styles.socialName, { color: colors.text }]}>
@@ -296,19 +263,15 @@ export default function SocialBindingCard() {
           {
             backgroundColor: account.isConnected ? `${colors.error}15` : `${colors.primary}15`,
             borderColor: account.isConnected ? colors.error : colors.primary,
-            opacity: account.isLoading ? 0.7 : 1,
           }
         ]}
         onPress={() => handleSocialAction(account)}
-        disabled={!account.isAvailable || isAnyBinding}
+        disabled={!account.isAvailable || isLoading === account.id}
       >
-        {account.isLoading ? (
-          <>
-            <ActivityIndicator size="small" color={account.isConnected ? colors.error : colors.primary} />
-            <Text style={[styles.actionButtonText, { color: account.isConnected ? colors.error : colors.primary }]}>
-              {account.isConnected ? 'Unbinding...' : 'Binding...'}
-            </Text>
-          </>
+        {isLoading === account.id ? (
+          <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>
+            Loading...
+          </Text>
         ) : (
           <>
             {account.isConnected ? (
@@ -328,6 +291,9 @@ export default function SocialBindingCard() {
     </View>
   );
 
+  // Close the web browser opened by AuthSession
+  // WebBrowser.maybeCompleteAuthSession();
+
   return (
     <Card style={styles.container}>
       <View style={styles.header}>
@@ -343,21 +309,16 @@ export default function SocialBindingCard() {
         {socialAccounts.filter(account => account.isAvailable).map(renderSocialAccount)}
       </View>
 
-      {/* Security benefits info */}
-      <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
+      {/* <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
         <Text style={[styles.infoTitle, { color: colors.primary }]}>
           🔒 Security Benefits
         </Text>
         <Text style={[styles.infoText, { color: colors.text }]}>
           • Alternative login methods for account recovery{'\n'}
           • Enhanced account security with two-factor authentication{'\n'}
-          • Faster login process with social authentication{'\n'}
-          • Secure data synchronization across devices
-          </Text>
-        ) : (
-          <>
-            {account.isConnected ? (
-      </View>
+          • Faster login process with social authentication
+        </Text>
+      </View> */}
     </Card>
   );
 }
