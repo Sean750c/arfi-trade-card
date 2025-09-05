@@ -35,7 +35,7 @@ export default function SocialLoginButtons() {
     androidClientId,
     iosClientId,
     webClientId,
-    responseType: 'token', // 👈 强制返回 accessToken
+    responseType: 'code', // 👈 修改为请求授权码
     scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
   });
 
@@ -55,18 +55,11 @@ export default function SocialLoginButtons() {
       
       const result = await promptAsyncGoogle();
       
-      if (result.type === 'success' && result.authentication?.accessToken) {
-        const accessToken = result.authentication.accessToken;
-        
-        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        const userInfo = await userInfoResponse.json();
+      if (result.type === 'success' && result.authentication?.code) {
+        const authCode = result.authentication.code;
         
         const requestData: GoogleLoginRequest = {
-          social_id: userInfo.id,
-          social_email: userInfo.email || '',
-          social_name: userInfo.name || '',
+          code: authCode,
         };
         
         await googleLogin(requestData);
