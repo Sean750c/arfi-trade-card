@@ -252,7 +252,7 @@ export class AuthService {
         '/gc/social/googleLogin',
         'POST',
         {
-          ...params,
+          code: params.code,
           ...deviceInfo
         }
       );

@@ -36,6 +36,8 @@ export default function SocialBindingCard() {
     androidClientId,
     iosClientId,
     webClientId,
+    responseType: 'code',
+    scopes: ['openid', 'profile', 'email'],
   });
 
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
@@ -81,22 +83,18 @@ export default function SocialBindingCard() {
     setIsLoading('google');
     try {
       const result = await promptAsyncGoogle();
-      if (result.type === 'success' && result.authentication?.accessToken) {
-        const accessToken = result.authentication.accessToken;
-        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        const userInfo = await userInfoResponse.json();
+      if (result.type === 'success' && result.authentication?.code) {
+        const authCode = result.authentication.code;
 
         await AuthService.socialBind({
           token: user.token,
           social_type: 'google',
           apple_code: '',
           facebook_token: '',
-          social_id: userInfo.id,
-          social_email: userInfo.email || '',
-          social_picture: userInfo.picture || '',
-          social_name: userInfo.name || '',
+          social_id: authCode, // 发送授权码给后端处理
+          social_email: '', // 后端将从Google获取
+          social_picture: '', // 后端将从Google获取
+          social_name: '', // 后端将从Google获取
           version: '1.0',
         });
 

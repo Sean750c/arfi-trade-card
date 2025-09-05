@@ -191,7 +191,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await AuthService.googleLogin(params);
-      response.social_email = params.social_email ?? '';
       response.social_type = 'google';
       await get().socialLoginCallback(response); // Use the new callback
     } catch (error) {

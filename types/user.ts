@@ -118,10 +118,8 @@ export interface SocialLoginResult {
 }
 
 export interface GoogleLoginRequest {
-    // Google specific fields if needed
-    social_id: string;
-    social_name: string;
-    social_email: string;
+    // Google authorization code from OAuth flow
+    code: string;
 }
 
 export interface FacebookLoginRequest {
