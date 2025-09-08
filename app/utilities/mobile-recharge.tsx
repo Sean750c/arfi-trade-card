@@ -78,7 +78,7 @@ function MobileRechargeScreenContent() {
 
   // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
-    return amount * 0.97;
+    return Math.round(amount * 97) / 100;
   };
 
   // 获取当前充值金额
@@ -548,7 +548,7 @@ function MobileRechargeScreenContent() {
                   <View style={styles.calculationHeader}>
                     <Calculator size={16} color={colors.success} />
                     <Text style={[styles.calculationTitle, { color: colors.success }]}>
-                      CardKing专属优惠 3% OFF
+                      Save 3% with CardKing
                     </Text>
                   </View>
                   <View style={styles.calculationDetails}>
@@ -633,7 +633,7 @@ function MobileRechargeScreenContent() {
                   <View style={styles.calculationHeader}>
                     <Calculator size={16} color={colors.success} />
                     <Text style={[styles.calculationTitle, { color: colors.success }]}>
-                      CardKing专属优惠 3% OFF
+                      Save 3% with CardKing
                     </Text>
                   </View>
                   <View style={styles.calculationDetails}>
@@ -1067,7 +1067,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: 12,
     borderWidth: 1,
-    marginBottom: Spacing.md,
   },
   calculationHeader: {
     flexDirection: 'row',
