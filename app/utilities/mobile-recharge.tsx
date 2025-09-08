@@ -175,7 +175,7 @@ function MobileRechargeScreenContent() {
 
     try {
       await dataRecharge(
-        user.token,
+        user.token, 
         selectedSupplier.name,
         phoneNumber,
         selectedDataBundle.servicePrice,
