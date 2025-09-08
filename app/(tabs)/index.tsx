@@ -179,7 +179,7 @@ export default function HomeScreen() {
                   <Text style={[styles.welcomeText, { color: colors.textSecondary }]}>Welcome back,</Text>
                   <View style={styles.rowStyle}>
                     <View style={styles.rowLeftStyle}>
-                      <Text style={[styles.userName, { color: colors.text }]}> {user.username || ''} </Text>
+                      <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1} ellipsizeMode='tail'> {user.username || ''} </Text>
                       <View style={styles.vipBadge}>
                         <Sparkles size={12} color={colors.primary} />
                         <Text style={[styles.rowText, { color: colors.primary }]}>VIP {user.vip_level || ''}</Text>
@@ -363,11 +363,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   rowLeftStyle: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
   userName: {
+    flex: 1,
     fontSize: 18,
     fontFamily: 'Inter-Bold',
   },

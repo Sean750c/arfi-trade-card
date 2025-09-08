@@ -56,7 +56,7 @@ export default function RewardIcon({
         case RewardType.POINTS:
           return `${value}`;
         case RewardType.CASH:
-          return `${currencySymbol}${parseFloat(value as string).toFixed(0)}`;
+          return `$${parseFloat(value as string).toFixed(0)}`;
         case RewardType.COUPON:
           return 'COUPON';
         case RewardType.PHYSICAL_PRODUCT:
@@ -69,7 +69,7 @@ export default function RewardIcon({
         case RewardType.POINTS:
           return `${value} points`;
         case RewardType.CASH:
-          return `${currencySymbol}${parseFloat(value as string).toFixed(2)}`;
+          return `$${parseFloat(value as string).toFixed(2)}`;
         case RewardType.COUPON:
           return formatDiscount(data);
         case RewardType.PHYSICAL_PRODUCT:

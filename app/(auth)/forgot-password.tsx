@@ -11,13 +11,15 @@ import {
   Keyboard,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Mail, MessageCircle, ArrowRight, Shield } from 'lucide-react-native';
+import { ChevronLeft, Mail, MessageCircle, ArrowRight, Shield, Phone } from 'lucide-react-native';
 import Input from '@/components/UI/Input';
 import Button from '@/components/UI/Button';
 import Spacing from '@/constants/Spacing';
 import { AuthService } from '@/services/auth';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import * as Linking from 'expo-linking';
+import { useAppStore } from '@/stores/useAppStore';
 
 type RecoveryMethod = 'email' | 'whatsapp';
 
@@ -25,6 +27,8 @@ export default function ForgotPasswordScreen() {
   // const colorScheme = useColorScheme() ?? 'light';
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
+
+  const { initData } = useAppStore();
   
   const [recoveryMethod, setRecoveryMethod] = useState<RecoveryMethod>('email');
   const [email, setEmail] = useState('');
@@ -147,6 +151,19 @@ export default function ForgotPasswordScreen() {
       setStep('method');
     } else {
       setStep('verify');
+    }
+  };
+
+  // 联系客服，打开 WhatsApp
+  const handleContactPress = () => {
+    const phone = initData?.service_phone;
+    if (phone) {
+      const url = `https://wa.me/${phone.replace(/[^\d]/g, '')}`;
+      Linking.openURL(url).catch(() => {
+        Alert.alert('Unable to open WhatsApp', 'Please check if WhatsApp is installed or if the phone number is correct.');
+      });
+    } else {
+      Alert.alert('Unable to get service phone', 'Please try again later.');
     }
   };
 
@@ -338,6 +355,16 @@ export default function ForgotPasswordScreen() {
           >
             <ChevronLeft size={24} color={colors.text} />
           </TouchableOpacity>
+
+          <View style={styles.headerSpacer} />
+
+          <TouchableOpacity
+              onPress={handleContactPress}
+              style={[styles.contactButton, { backgroundColor: colors.primary }]}
+            >
+              <Phone size={16} color="#FFFFFF" />
+              <Text style={styles.contactText}>Contact</Text>
+            </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -359,6 +386,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.md,
@@ -378,7 +406,6 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xxl,
   },
   content: {
-    flex: 1,
     justifyContent: 'center',
   },
   headerSection: {
@@ -441,5 +468,21 @@ const styles = StyleSheet.create({
   resendLink: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
+  },
+  contactButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: 18,
+    gap: Spacing.xs,
+  },
+  contactText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  headerSpacer: {
+    flex: 1,
   },
 });

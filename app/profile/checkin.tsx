@@ -347,32 +347,52 @@ function CheckinScreenContent() {
               </Text>
             </View>
             <View style={styles.tasksList}>
-              {checkinConfig.task.filter(task => task.enable).map((task, index) => (
-                <View key={index} style={[styles.taskItem, { borderColor: colors.border }]}>
-                  <View style={styles.taskInfo}>
-                    <Text style={[styles.taskName, { color: colors.text }]}>
-                      {capitalizeWords(task.name)}
-                    </Text>
-                    <RewardIcon
-                      type={task.prize_type}
-                      value={task.prize}
-                      currencySymbol={user?.currency_symbol || '₦'}
-                      size={28}
-                      iconSize={16}
-                      fontSize={11}
-                    />
+              {checkinConfig.task.filter(task => task.enable).map((task, index) => {
+                const isDisabled =
+                  (task.code === 'bind_whatsapp' && user?.whatsapp_bind === true) ||
+                  (task.code === 'bind_email' && user?.is_email_bind === true);
+
+                return (
+                  <View key={index} style={[styles.taskItem, { borderColor: colors.border }]}>
+                    <View style={styles.taskInfo}>
+                      <Text style={[styles.taskName, { color: colors.text }]}>
+                        {capitalizeWords(task.name)}
+                      </Text>
+                      <RewardIcon
+                        type={task.prize_type}
+                        value={task.prize}
+                        currencySymbol={user?.currency_symbol || '₦'}
+                        size={28}
+                        iconSize={16}
+                        fontSize={11}
+                      />
+                    </View>
+                    <TouchableOpacity
+                      style={[
+                        styles.taskButton,
+                        { backgroundColor: isDisabled ? colors.border : colors.primary },
+                      ]}
+                      disabled={isDisabled}
+                      onPress={() => {
+                        if (!isDisabled) {
+                          taskRoute(task.code);
+                        }
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.taskButtonText,
+                          { color: isDisabled ? colors.text : '#fff' },
+                        ]}
+                      >
+                        {isDisabled ? 'Done' : 'Go'}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    style={[styles.taskButton, { backgroundColor: colors.primary }]}
-                    onPress={() => {
-                      taskRoute(task.code);
-                    }}
-                  >
-                    <Text style={styles.taskButtonText}>Go</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
+                );
+              })}
             </View>
+
           </View>
         )}
       </ScrollView>
