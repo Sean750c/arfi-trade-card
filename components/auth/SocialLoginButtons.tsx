@@ -21,6 +21,10 @@ import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { AppleLoginRequest, FacebookLoginRequest, GoogleLoginRequest } from '@/types';
 import Constants from 'expo-constants';
+import * as AuthSession from "expo-auth-session";
+
+// 建议在应用启动时调用
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SocialLoginButtons() {
   const { colors } = useTheme();
@@ -53,6 +57,15 @@ export default function SocialLoginButtons() {
     clientId, // Replace with your Facebook App ID
   });
 
+  // 正确的重定向URI生成
+  const redirectUri = React.useMemo(() => {
+    const uri = AuthSession.makeRedirectUri({
+      scheme: undefined, // 确保不会生成 exp://
+    });
+    console.log('Redirect URI:', uri);
+    return uri;
+  }, []);
+
   // Handle Google Login
   const handleGoogleLogin = async () => {
     if (isAnyAuthenticating) return;
@@ -66,11 +79,12 @@ export default function SocialLoginButtons() {
       setIsAuthenticatingGoogle(true);
       const result = await promptAsyncGoogle();
       
-      if (result.type === 'success' && result.authentication?.code) {
-        const authCode = result.authentication.code;
+      if (result.type === 'success' && result.params?.code) {
+        const authCode = result.params.code;
         
         const requestData: GoogleLoginRequest = {
           code: authCode,
+          redirect_uri: redirectUri,
         };
         
         await googleLogin(requestData);

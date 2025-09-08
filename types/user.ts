@@ -120,6 +120,7 @@ export interface SocialLoginResult {
 export interface GoogleLoginRequest {
     // Google authorization code from OAuth flow
     code: string;
+    redirect_uri: string;
 }
 
 export interface FacebookLoginRequest {

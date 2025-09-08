@@ -96,8 +96,8 @@ export default function SocialBindingCard() {
     setIsBindingGoogle(true);
     try {
       const result = await promptAsyncGoogle();
-      if (result.type === 'success' && result.authentication?.code) {
-        const authCode = result.authentication.code;
+      if (result.type === 'success' && result.params?.code) {
+        const authCode = result.params.code;
 
         await AuthService.socialBind({
           token: user.token,
@@ -343,21 +343,17 @@ export default function SocialBindingCard() {
         {socialAccounts.filter(account => account.isAvailable).map(renderSocialAccount)}
       </View>
 
-      {/* Security benefits info */}
-      <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
+      {/* <View style={[styles.infoBox, { backgroundColor: `${colors.primary}10` }]}>
         <Text style={[styles.infoTitle, { color: colors.primary }]}>
           🔒 Security Benefits
         </Text>
         <Text style={[styles.infoText, { color: colors.text }]}>
           • Alternative login methods for account recovery{'\n'}
           • Enhanced account security with two-factor authentication{'\n'}
-          • Faster login process with social authentication{'\n'}
+          • Faster login process with social authentication
           • Secure data synchronization across devices
-          </Text>
-        ) : (
-          <>
-            {account.isConnected ? (
-      </View>
+        </Text>
+      </View> */}
     </Card>
   );
 }
