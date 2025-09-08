@@ -1,4 +1,3 @@
-@@ .. @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
@@ -24,13 +23,10 @@ import {
   X,
   History,
   RotateCw,
-+  Shield,
-+  Calculator,
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
 import Input from '@/components/UI/Input';
-+import SixDigitPasswordInput from '@/components/UI/SixDigitPasswordInput';
 import AuthGuard from '@/components/UI/AuthGuard';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import Spacing from '@/constants/Spacing';
@@ -67,34 +63,8 @@ function MobileRechargeScreenContent() {
 
   const [showLogsModal, setShowLogsModal] = useState(false);
 
-+  // 新增状态
-+  const [showConfirmModal, setShowConfirmModal] = useState(false);
-+  const [showPasswordModal, setShowPasswordModal] = useState(false);
-+  const [paymentPassword, setPaymentPassword] = useState('');
-+  const [passwordError, setPasswordError] = useState('');
-+  const [pendingRechargeData, setPendingRechargeData] = useState<any>(null);
-
   // Predefined airtime amounts
   const airtimeAmounts = [100, 200, 500, 1000, 2000, 5000];
-
-+  // 计算需要支付的金额
-+  const calculatePaymentAmount = (amount: number) => {
-+    return amount * 0.97;
-+  };
-+
-+  // 获取当前充值金额
-+  const getCurrentAmount = () => {
-+    if (activeTab === 'airtime') {
-+      return parseFloat(airtimeAmount) || 0;
-+    } else {
-+      return selectedDataBundle?.servicePrice || 0;
-+    }
-+  };
-+
-+  // 获取支付金额
-+  const getPaymentAmount = () => {
-+    return calculatePaymentAmount(getCurrentAmount());
-+  };
 
   useEffect(() => {
     if (user?.token) {
@@ -139,8 +109,7 @@ function MobileRechargeScreenContent() {
     return cleanPhone.length >= 10 && cleanPhone.length <= 11 && isNigerianNumber(cleanPhone);
   };
 
--  const handleAirtimeRecharge = async () => {
-+  const handleAirtimeRecharge = () => {
+  const handleAirtimeRecharge = async () => {
     if (!user?.token || !selectedSupplier) {
       Alert.alert('Error', 'Please select a network provider');
       return;
@@ -162,44 +131,32 @@ function MobileRechargeScreenContent() {
       return;
     }
 
--    if (amount > Number(user?.money ?? 0)) {
-+    const paymentAmount = calculatePaymentAmount(amount);
-+    if (paymentAmount > Number(user?.money ?? 0)) {
+    if (amount > Number(user?.money ?? 0)) {
       Alert.alert('Error', 'Insufficient balance for this recharge');
       return;
     }
 
--    try {
--      await airtimeRecharge(user.token, selectedSupplier.name, phoneNumber, amount);
--      Alert.alert(
--        'Recharge Successful! 🎉',
--        `Airtime recharge of ₦${amount.toLocaleString()} to ${phoneNumber} was successful!`,
--        [{
--          text: 'OK', onPress: () => {
--            setPhoneNumber('');
--            setAirtimeAmount('');
--          }
--        }]
--      );
--    } catch (error) {
--      Alert.alert(
--        'Recharge Failed',
--        error instanceof Error ? error.message : 'Failed to recharge airtime. Please try again.'
--      );
--    }
-+    // 设置待处理的充值数据并显示确认框
-+    setPendingRechargeData({
-+      type: 'airtime',
-+      supplier: selectedSupplier.name,
-+      phone: phoneNumber,
-+      amount: amount,
-+      paymentAmount: paymentAmount,
-+    });
-+    setShowConfirmModal(true);
+    try {
+      await airtimeRecharge(user.token, selectedSupplier.name, phoneNumber, amount);
+      Alert.alert(
+        'Recharge Successful! 🎉',
+        `Airtime recharge of ₦${amount.toLocaleString()} to ${phoneNumber} was successful!`,
+        [{
+          text: 'OK', onPress: () => {
+            setPhoneNumber('');
+            setAirtimeAmount('');
+          }
+        }]
+      );
+    } catch (error) {
+      Alert.alert(
+        'Recharge Failed',
+        error instanceof Error ? error.message : 'Failed to recharge airtime. Please try again.'
+      );
+    }
   };
 
--  const handleDataRecharge = async () => {
-+  const handleDataRecharge = () => {
+  const handleDataRecharge = async () => {
     if (!user?.token || !selectedSupplier || !selectedDataBundle) {
       Alert.alert('Error', 'Please select a network provider and data bundle');
       return;
@@ -211,119 +168,36 @@ function MobileRechargeScreenContent() {
     }
 
     const amount = selectedDataBundle.servicePrice;
--    if (amount > Number(user?.money ?? 0)) {
-+    const paymentAmount = calculatePaymentAmount(amount);
-+    if (paymentAmount > Number(user?.money ?? 0)) {
+    if (amount > Number(user?.money ?? 0)) {
       Alert.alert('Error', 'Insufficient balance for this recharge');
       return;
     }
 
--    try {
--      await dataRecharge(
--        user.token,
--        selectedSupplier.name,
--        phoneNumber,
--        selectedDataBundle.servicePrice,
--        selectedDataBundle.serviceId
--      );
--      Alert.alert(
--        'Recharge Successful! 🎉',
--        `Data recharge of ${selectedDataBundle.serviceName} to ${phoneNumber} was successful!`,
--        [{
--          text: 'OK', onPress: () => {
--            setPhoneNumber('');
--            setSelectedDataBundle(null);
--          }
--        }]
--      );
--    } catch (error) {
--      Alert.alert(
--        'Recharge Failed',
--        error instanceof Error ? error.message : 'Failed to recharge data. Please try again.'
--      );
--    }
-+    // 设置待处理的充值数据并显示确认框
-+    setPendingRechargeData({
-+      type: 'data',
-+      supplier: selectedSupplier.name,
-+      phone: phoneNumber,
-+      amount: amount,
-+      paymentAmount: paymentAmount,
-+      dataBundle: selectedDataBundle,
-+    });
-+    setShowConfirmModal(true);
-+  };
-+
-+  // 确认充值
-+  const handleConfirmRecharge = () => {
-+    setShowConfirmModal(false);
-+    setShowPasswordModal(true);
-+  };
-+
-+  // 执行充值
-+  const handleExecuteRecharge = async () => {
-+    if (!user?.token || !pendingRechargeData) return;
-+
-+    if (!paymentPassword || paymentPassword.length !== 6) {
-+      setPasswordError('Please enter a valid 6-digit payment password');
-+      return;
-+    }
-+
-+    try {
-+      if (pendingRechargeData.type === 'airtime') {
-+        await airtimeRecharge(
-+          user.token,
-+          pendingRechargeData.supplier,
-+          pendingRechargeData.phone,
-+          pendingRechargeData.amount
-+        );
-+        Alert.alert(
-+          'Recharge Successful! 🎉',
-+          `Airtime recharge of ₦${pendingRechargeData.amount.toLocaleString()} to ${pendingRechargeData.phone} was successful!\n\nPaid: ₦${pendingRechargeData.paymentAmount.toLocaleString()}`,
-+          [{
-+            text: 'OK', onPress: () => {
-+              setPhoneNumber('');
-+              setAirtimeAmount('');
-+              resetModals();
-+            }
-+          }]
-+        );
-+      } else {
-+        await dataRecharge(
-+          user.token,
-+          pendingRechargeData.supplier,
-+          pendingRechargeData.phone,
-+          pendingRechargeData.amount,
-+          pendingRechargeData.dataBundle.serviceId
-+        );
-+        Alert.alert(
-+          'Recharge Successful! 🎉',
-+          `Data recharge of ${pendingRechargeData.dataBundle.serviceName} to ${pendingRechargeData.phone} was successful!\n\nPaid: ₦${pendingRechargeData.paymentAmount.toLocaleString()}`,
-+          [{
-+            text: 'OK', onPress: () => {
-+              setPhoneNumber('');
-+              setSelectedDataBundle(null);
-+              resetModals();
-+            }
-+          }]
-+        );
-+      }
-+    } catch (error) {
-+      Alert.alert(
-+        'Recharge Failed',
-+        error instanceof Error ? error.message : 'Failed to process recharge. Please try again.'
-+      );
-+    }
-+  };
-+
-+  // 重置模态框状态
-+  const resetModals = () => {
-+    setShowConfirmModal(false);
-+    setShowPasswordModal(false);
-+    setPaymentPassword('');
-+    setPasswordError('');
-+    setPendingRechargeData(null);
-+  };
+    try {
+      await dataRecharge(
+        user.token, 
+        selectedSupplier.name,
+        phoneNumber,
+        selectedDataBundle.servicePrice,
+        selectedDataBundle.serviceId
+      );
+      Alert.alert(
+        'Recharge Successful! 🎉',
+        `Data recharge of ${selectedDataBundle.serviceName} to ${phoneNumber} was successful!`,
+        [{
+          text: 'OK', onPress: () => {
+            setPhoneNumber('');
+            setSelectedDataBundle(null);
+          }
+        }]
+      );
+    } catch (error) {
+      Alert.alert(
+        'Recharge Failed',
+        error instanceof Error ? error.message : 'Failed to recharge data. Please try again.'
+      );
+    }
+  };
 
   const renderSupplierOption = (supplier: Supplier) => (
     <TouchableOpacity
@@ -589,44 +463,6 @@ function MobileRechargeScreenContent() {
                 returnKeyType="done"
               />
 
-+              {/* 动态计算支付金额 */}
-+              {airtimeAmount && parseFloat(airtimeAmount) > 0 && (
-+                <View style={[styles.calculationCard, { backgroundColor: `${colors.success}10`, borderColor: colors.success }]}>
-+                  <View style={styles.calculationHeader}>
-+                    <Calculator size={16} color={colors.success} />
-+                    <Text style={[styles.calculationTitle, { color: colors.success }]}>
-+                      CardKing专属优惠 3% OFF
-+                    </Text>
-+                  </View>
-+                  <View style={styles.calculationDetails}>
-+                    <View style={styles.calculationRow}>
-+                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-+                        Recharge Amount:
-+                      </Text>
-+                      <Text style={[styles.calculationValue, { color: colors.text }]}>
-+                        ₦{parseFloat(airtimeAmount).toLocaleString()}
-+                      </Text>
-+                    </View>
-+                    <View style={styles.calculationRow}>
-+                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-+                        You Pay:
-+                      </Text>
-+                      <Text style={[styles.calculationValue, { color: colors.success, fontFamily: 'Inter-Bold' }]}>
-+                        ₦{calculatePaymentAmount(parseFloat(airtimeAmount)).toLocaleString()}
-+                      </Text>
-+                    </View>
-+                    <View style={styles.calculationRow}>
-+                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-+                        You Save:
-+                      </Text>
-+                      <Text style={[styles.calculationValue, { color: colors.success, fontFamily: 'Inter-Bold' }]}>
-+                        ₦{(parseFloat(airtimeAmount) - calculatePaymentAmount(parseFloat(airtimeAmount))).toLocaleString()}
-+                      </Text>
-+                    </View>
-+                  </View>
-+                </View>
-+              )}
-
               <Button
                 title={isRecharging ? 'Processing Recharge...' : 'Recharge Airtime'}
                 onPress={handleAirtimeRecharge}
@@ -673,44 +509,6 @@ function MobileRechargeScreenContent() {
                   <ChevronDown size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
-
-+              {/* 动态计算支付金额 */}
-+              {selectedDataBundle && (
-+                <View style={[styles.calculationCard, { backgroundColor: `${colors.success}10`, borderColor: colors.success }]}>
-+                  <View style={styles.calculationHeader}>
-+                    <Calculator size={16} color={colors.success} />
-+                    <Text style={[styles.calculationTitle, { color: colors.success }]}>
-+                      CardKing专属优惠 3% OFF
-+                    </Text>
-+                  </View>
-+                  <View style={styles.calculationDetails}>
-+                    <View style={styles.calculationRow}>
-+                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-+                        Data Bundle:
-+                      </Text>
-+                      <Text style={[styles.calculationValue, { color: colors.text }]}>
-+                        ₦{selectedDataBundle.servicePrice.toLocaleString()}
-+                      </Text>
-+                    </View>
-+                    <View style={styles.calculationRow}>
-+                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-+                        You Pay:
-+                      </Text>
-+                      <Text style={[styles.calculationValue, { color: colors.success, fontFamily: 'Inter-Bold' }]}>
-+                        ₦{calculatePaymentAmount(selectedDataBundle.servicePrice).toLocaleString()}
-+                      </Text>
-+                    </View>
-+                    <View style={styles.calculationRow}>
-+                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-+                        You Save:
-+                      </Text>
-+                      <Text style={[styles.calculationValue, { color: colors.success, fontFamily: 'Inter-Bold' }]}>
-+                        ₦{(selectedDataBundle.servicePrice - calculatePaymentAmount(selectedDataBundle.servicePrice)).toLocaleString()}
-+                      </Text>
-+                    </View>
-+                  </View>
-+                </View>
-+              )}
 
               <Button
                 title={isRecharging ? 'Processing Recharge...' : 'Recharge Data'}
@@ -819,173 +617,6 @@ function MobileRechargeScreenContent() {
         </View>
       </Modal>
 
-+      {/* 充值确认模态框 */}
-+      <Modal
-+        visible={showConfirmModal}
-+        transparent
-+        animationType="slide"
-+        onRequestClose={() => setShowConfirmModal(false)}
-+      >
-+        <View style={styles.modalOverlay}>
-+          <Pressable style={styles.modalBackdrop} onPress={() => setShowConfirmModal(false)} />
-+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-+            <View style={styles.modalHeader}>
-+              <Text style={[styles.modalTitle, { color: colors.text }]}>
-+                Confirm Recharge
-+              </Text>
-+              <TouchableOpacity onPress={() => setShowConfirmModal(false)}>
-+                <X size={24} color={colors.text} />
-+              </TouchableOpacity>
-+            </View>
-+
-+            <View style={styles.confirmContent}>
-+              {pendingRechargeData && (
-+                <>
-+                  <View style={[styles.confirmCard, { backgroundColor: colors.background }]}>
-+                    <View style={styles.confirmRow}>
-+                      <Text style={[styles.confirmLabel, { color: colors.textSecondary }]}>
-+                        Service Type:
-+                      </Text>
-+                      <Text style={[styles.confirmValue, { color: colors.text }]}>
-+                        {pendingRechargeData.type === 'airtime' ? 'Airtime Recharge' : 'Data Recharge'}
-+                      </Text>
-+                    </View>
-+                    <View style={styles.confirmRow}>
-+                      <Text style={[styles.confirmLabel, { color: colors.textSecondary }]}>
-+                        Network:
-+                      </Text>
-+                      <Text style={[styles.confirmValue, { color: colors.text }]}>
-+                        {pendingRechargeData.supplier}
-+                      </Text>
-+                    </View>
-+                    <View style={styles.confirmRow}>
-+                      <Text style={[styles.confirmLabel, { color: colors.textSecondary }]}>
-+                        Phone Number:
-+                      </Text>
-+                      <Text style={[styles.confirmValue, { color: colors.text }]}>
-+                        {pendingRechargeData.phone}
-+                      </Text>
-+                    </View>
-+                    {pendingRechargeData.dataBundle && (
-+                      <View style={styles.confirmRow}>
-+                        <Text style={[styles.confirmLabel, { color: colors.textSecondary }]}>
-+                          Data Bundle:
-+                        </Text>
-+                        <Text style={[styles.confirmValue, { color: colors.text }]}>
-+                          {pendingRechargeData.dataBundle.serviceName}
-+                        </Text>
-+                      </View>
-+                    )}
-+                  </View>
-+
-+                  <View style={[styles.paymentSummary, { backgroundColor: `${colors.primary}10` }]}>
-+                    <View style={styles.summaryRow}>
-+                      <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-+                        Recharge Amount:
-+                      </Text>
-+                      <Text style={[styles.summaryValue, { color: colors.text }]}>
-+                        ₦{pendingRechargeData.amount.toLocaleString()}
-+                      </Text>
-+                    </View>
-+                    <View style={styles.summaryRow}>
-+                      <Text style={[styles.summaryLabel, { color: colors.success }]}>
-+                        CardKing Discount (3%):
-+                      </Text>
-+                      <Text style={[styles.summaryValue, { color: colors.success }]}>
-+                        -₦{(pendingRechargeData.amount - pendingRechargeData.paymentAmount).toLocaleString()}
-+                      </Text>
-+                    </View>
-+                    <View style={[styles.summaryRow, styles.totalRow]}>
-+                      <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
-+                        Total Payment:
-+                      </Text>
-+                      <Text style={[styles.summaryValue, { color: colors.primary, fontFamily: 'Inter-Bold', fontSize: 18 }]}>
-+                        ₦{pendingRechargeData.paymentAmount.toLocaleString()}
-+                      </Text>
-+                    </View>
-+                  </View>
-+
-+                  <View style={styles.confirmActions}>
-+                    <Button
-+                      title="Cancel"
-+                      variant="outline"
-+                      onPress={() => setShowConfirmModal(false)}
-+                      style={styles.cancelButton}
-+                    />
-+                    <Button
-+                      title="Confirm"
-+                      onPress={handleConfirmRecharge}
-+                      style={styles.confirmButton}
-+                    />
-+                  </View>
-+                </>
-+              )}
-+            </View>
-+          </View>
-+        </View>
-+      </Modal>
-+
-+      {/* 支付密码模态框 */}
-+      <Modal
-+        visible={showPasswordModal}
-+        transparent
-+        animationType="slide"
-+        onRequestClose={() => setShowPasswordModal(false)}
-+      >
-+        <View style={styles.modalOverlay}>
-+          <Pressable style={styles.modalBackdrop} onPress={() => setShowPasswordModal(false)} />
-+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-+            <View style={styles.modalHeader}>
-+              <View style={styles.titleContainer}>
-+                <Shield size={24} color={colors.primary} />
-+                <Text style={[styles.modalTitle, { color: colors.text }]}>
-+                  Enter Payment Password
-+                </Text>
-+              </View>
-+              <TouchableOpacity onPress={() => setShowPasswordModal(false)}>
-+                <X size={24} color={colors.text} />
-+              </TouchableOpacity>
-+            </View>
-+
-+            <View style={styles.passwordContent}>
-+              {pendingRechargeData && (
-+                <View style={[styles.paymentInfo, { backgroundColor: colors.background }]}>
-+                  <Text style={[styles.paymentInfoText, { color: colors.textSecondary }]}>
-+                    You are about to pay ₦{pendingRechargeData.paymentAmount.toLocaleString()} for {pendingRechargeData.type === 'airtime' ? 'airtime' : 'data'} recharge
-+                  </Text>
-+                </View>
-+              )}
-+
-+              <SixDigitPasswordInput
-+                label="Payment Password"
-+                value={paymentPassword}
-+                onChangeText={(text) => {
-+                  setPaymentPassword(text);
-+                  setPasswordError('');
-+                }}
-+                error={passwordError}
-+                autoFocus={true}
-+              />
-+
-+              <View style={styles.passwordActions}>
-+                <Button
-+                  title="Cancel"
-+                  variant="outline"
-+                  onPress={() => setShowPasswordModal(false)}
-+                  style={styles.cancelButton}
-+                />
-+                <Button
-+                  title={isRecharging ? 'Processing...' : 'Pay Now'}
-+                  onPress={handleExecuteRecharge}
-+                  disabled={isRecharging || paymentPassword.length !== 6}
-+                  loading={isRecharging}
-+                  style={styles.payButton}
-+                />
-+              </View>
-+            </View>
-+          </View>
-+        </View>
-+      </Modal>
 
       {/* Recharge Logs Modal */}
       <RechargeLogsModal
@@ -1110,38 +741,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
   },
-+  calculationCard: {
-+    padding: Spacing.md,
-+    borderRadius: 12,
-+    borderWidth: 1,
-+    marginBottom: Spacing.md,
-+  },
-+  calculationHeader: {
-+    flexDirection: 'row',
-+    alignItems: 'center',
-+    gap: Spacing.xs,
-+    marginBottom: Spacing.sm,
-+  },
-+  calculationTitle: {
-+    fontSize: 14,
-+    fontFamily: 'Inter-Bold',
-+  },
-+  calculationDetails: {
-+    gap: Spacing.xs,
-+  },
-+  calculationRow: {
-+    flexDirection: 'row',
-+    justifyContent: 'space-between',
-+    alignItems: 'center',
-+  },
-+  calculationLabel: {
-+    fontSize: 14,
-+    fontFamily: 'Inter-Regular',
-+  },
-+  calculationValue: {
-+    fontSize: 14,
-+    fontFamily: 'Inter-SemiBold',
-+  },
   rechargeButton: {
     height: 48,
     marginTop: Spacing.md,
@@ -1203,11 +802,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0, 0, 0, 0.08)',
   },
-+  titleContainer: {
-+    flexDirection: 'row',
-+    alignItems: 'center',
-+    gap: Spacing.sm,
-+  },
   modalTitle: {
     fontSize: 18,
     fontFamily: 'Inter-Bold',
@@ -1290,82 +884,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-+  // 确认模态框样式
-+  confirmContent: {
-+    gap: Spacing.lg,
-+  },
-+  confirmCard: {
-+    padding: Spacing.md,
-+    borderRadius: 12,
-+    gap: Spacing.sm,
-+  },
-+  confirmRow: {
-+    flexDirection: 'row',
-+    justifyContent: 'space-between',
-+    alignItems: 'center',
-+  },
-+  confirmLabel: {
-+    fontSize: 14,
-+    fontFamily: 'Inter-Regular',
-+  },
-+  confirmValue: {
-+    fontSize: 14,
-+    fontFamily: 'Inter-SemiBold',
-+  },
-+  paymentSummary: {
-+    padding: Spacing.md,
-+    borderRadius: 12,
-+    gap: Spacing.sm,
-+  },
-+  summaryRow: {
-+    flexDirection: 'row',
-+    justifyContent: 'space-between',
-+    alignItems: 'center',
-+  },
-+  summaryLabel: {
-+    fontSize: 14,
-+    fontFamily: 'Inter-Regular',
-+  },
-+  summaryValue: {
-+    fontSize: 14,
-+    fontFamily: 'Inter-SemiBold',
-+  },
-+  totalRow: {
-+    paddingTop: Spacing.sm,
-+    borderTopWidth: 1,
-+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
-+    marginTop: Spacing.sm,
-+  },
-+  confirmActions: {
-+    flexDirection: 'row',
-+    gap: Spacing.md,
-+  },
-+  cancelButton: {
-+    flex: 1,
-+  },
-+  confirmButton: {
-+    flex: 1,
-+  },
-+  // 支付密码模态框样式
-+  passwordContent: {
-+    gap: Spacing.lg,
-+  },
-+  paymentInfo: {
-+    padding: Spacing.md,
-+    borderRadius: 8,
-+    alignItems: 'center',
-+  },
-+  paymentInfoText: {
-+    fontSize: 14,
-+    fontFamily: 'Inter-Regular',
-+    textAlign: 'center',
-+  },
-+  passwordActions: {
-+    flexDirection: 'row',
-+    gap: Spacing.md,
-+    marginTop: Spacing.lg,
-+  },
-+  payButton: {
-+    flex: 1,
-+  },
 });
