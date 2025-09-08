@@ -5,11 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
   RefreshControl,
-  Modal,
-  Pressable,
 } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -20,24 +17,37 @@ import {
   Globe,
   Zap,
   ChevronDown,
-  X,
   History,
   RotateCw,
-  Shield,
   Calculator,
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
 import Input from '@/components/UI/Input';
-import SixDigitPasswordInput from '@/components/UI/SixDigitPasswordInput';
 import AuthGuard from '@/components/UI/AuthGuard';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import SupplierSelectionModal from '@/components/utilities/SupplierSelectionModal';
+import DataBundleSelectionModal from '@/components/utilities/DataBundleSelectionModal';
+import RechargeConfirmationModal from '@/components/utilities/RechargeConfirmationModal';
+import PaymentPasswordModal from '@/components/utilities/PaymentPasswordModal';
+import RechargeLogsModal from '@/components/utilities/RechargeLogsModal';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
 import type { Supplier, DataBundle } from '@/types/utilities';
-import RechargeLogsModal from '@/components/utilities/RechargeLogsModal';
+
+interface PendingRechargeData {
+  type: 'airtime' | 'data';
+  supplier: string;
+  phone: string;
+  amount: number;
+  paymentAmount: number;
+  dataBundle?: {
+    serviceName: string;
+    servicePrice: number;
+  };
+}
 
 function MobileRechargeScreenContent() {
   const { colors } = useTheme();
@@ -63,7 +73,6 @@ function MobileRechargeScreenContent() {
   const [selectedDataBundle, setSelectedDataBundle] = useState<DataBundle | null>(null);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showDataBundleModal, setShowDataBundleModal] = useState(false);
-
   const [showLogsModal, setShowLogsModal] = useState(false);
 
   // 新增状态
@@ -71,7 +80,7 @@ function MobileRechargeScreenContent() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [paymentPassword, setPaymentPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [pendingRechargeData, setPendingRechargeData] = useState<any>(null);
+  const [pendingRechargeData, setPendingRechargeData] = useState<PendingRechargeData | null>(null);
 
   // Predefined airtime amounts
   const airtimeAmounts = [100, 200, 500, 1000, 2000, 5000];
@@ -79,20 +88,6 @@ function MobileRechargeScreenContent() {
   // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
     return Math.round(amount * 97) / 100;
-  };
-
-  // 获取当前充值金额
-  const getCurrentAmount = () => {
-    if (activeTab === 'airtime') {
-      return parseFloat(airtimeAmount) || 0;
-    } else {
-      return selectedDataBundle?.servicePrice || 0;
-    }
-  };
-
-  // 获取支付金额
-  const getPaymentAmount = () => {
-    return calculatePaymentAmount(getCurrentAmount());
   };
 
   useEffect(() => {
@@ -127,11 +122,7 @@ function MobileRechargeScreenContent() {
   };
 
   const validatePhoneNumber = (phone: string) => {
-    // Nigerian phone number validation
-    // 去掉非数字字符，但保留开头的 +
     let cleanPhone = phone.replace(/[^\d+]/g, '');
-
-    // 如果是纯10位数字，自动加0
     if (/^\d{10}$/.test(cleanPhone)) {
       cleanPhone = '0' + cleanPhone;
     }
@@ -166,7 +157,6 @@ function MobileRechargeScreenContent() {
       return;
     }
 
-    // 设置待处理的充值数据并显示确认框
     setPendingRechargeData({
       type: 'airtime',
       supplier: selectedSupplier.name,
@@ -195,7 +185,6 @@ function MobileRechargeScreenContent() {
       return;
     }
 
-    // 设置待处理的充值数据并显示确认框
     setPendingRechargeData({
       type: 'data',
       supplier: selectedSupplier.name,
@@ -210,7 +199,10 @@ function MobileRechargeScreenContent() {
   // 确认充值
   const handleConfirmRecharge = () => {
     setShowConfirmModal(false);
-    setShowPasswordModal(true);
+    // 添加小延迟确保第一个模态框完全关闭
+    setTimeout(() => {
+      setShowPasswordModal(true);
+    }, 100);
   };
 
   // 执行充值
@@ -247,11 +239,11 @@ function MobileRechargeScreenContent() {
           pendingRechargeData.supplier,
           pendingRechargeData.phone,
           pendingRechargeData.amount,
-          pendingRechargeData.dataBundle.serviceId
+          pendingRechargeData.dataBundle!.serviceId
         );
         Alert.alert(
           'Recharge Successful! 🎉',
-          `Data recharge of ${pendingRechargeData.dataBundle.serviceName} to ${pendingRechargeData.phone} was successful!\n\nPaid: ₦${pendingRechargeData.paymentAmount.toLocaleString()}`,
+          `Data recharge of ${pendingRechargeData.dataBundle!.serviceName} to ${pendingRechargeData.phone} was successful!\n\nPaid: ₦${pendingRechargeData.paymentAmount.toLocaleString()}`,
           [{
             text: 'OK', onPress: () => {
               setPhoneNumber('');
@@ -277,83 +269,6 @@ function MobileRechargeScreenContent() {
     setPasswordError('');
     setPendingRechargeData(null);
   };
-
-  const renderSupplierOption = (supplier: Supplier) => (
-    <TouchableOpacity
-      key={supplier.mobileOperatorCode}
-      style={[
-        styles.modalOption,
-        {
-          backgroundColor: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode
-            ? `${colors.primary}15`
-            : colors.card,
-          borderColor: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode
-            ? colors.primary
-            : colors.border,
-        }
-      ]}
-      onPress={() => {
-        setSelectedSupplier(supplier);
-        setShowSupplierModal(false);
-        setSelectedDataBundle(null); // Reset data bundle selection
-      }}
-    >
-      <Text style={[
-        styles.modalOptionText,
-        {
-          color: selectedSupplier?.mobileOperatorCode === supplier.mobileOperatorCode
-            ? colors.primary
-            : colors.text
-        }
-      ]}>
-        {supplier.name}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const renderDataBundleOption = (bundle: DataBundle) => (
-    <TouchableOpacity
-      key={bundle.serviceId}
-      style={[
-        styles.modalOption,
-        {
-          backgroundColor: selectedDataBundle?.serviceId === bundle.serviceId
-            ? `${colors.primary}15`
-            : colors.card,
-          borderColor: selectedDataBundle?.serviceId === bundle.serviceId
-            ? colors.primary
-            : colors.border,
-        }
-      ]}
-      onPress={() => {
-        setSelectedDataBundle(bundle);
-        setShowDataBundleModal(false);
-      }}
-    >
-      <View style={styles.dataBundleInfo}>
-        <Text style={[
-          styles.modalOptionText,
-          {
-            color: selectedDataBundle?.serviceId === bundle.serviceId
-              ? colors.primary
-              : colors.text
-          }
-        ]}>
-          {bundle.serviceName}
-        </Text>
-        <Text style={[
-          styles.dataBundlePrice,
-          {
-            color: selectedDataBundle?.serviceId === bundle.serviceId
-              ? colors.primary
-              : colors.textSecondary
-          }
-        ]}>
-          ₦{bundle.servicePrice.toLocaleString()}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
@@ -396,7 +311,7 @@ function MobileRechargeScreenContent() {
 
         {/* Recharge Form */}
         <Card style={styles.rechargeCard}>
-          {/* Service Tabs */}
+          {/* Balance Display */}
           <View style={[styles.summaryCard, { backgroundColor: colors.primary }]}>
             <Text style={styles.balanceText}>
               Available Balance
@@ -405,8 +320,9 @@ function MobileRechargeScreenContent() {
               {user?.currency_symbol || '₦'}{Number(user?.money ?? 0).toLocaleString()}
             </Text>
           </View>
-          <View style={styles.serviceTabs}>
 
+          {/* Service Tabs */}
+          <View style={styles.serviceTabs}>
             <TouchableOpacity
               style={[
                 styles.serviceTab,
@@ -495,7 +411,6 @@ function MobileRechargeScreenContent() {
             }
           />
 
-
           {/* Airtime Tab Content */}
           {activeTab === 'airtime' && (
             <View style={styles.tabContent}>
@@ -548,7 +463,7 @@ function MobileRechargeScreenContent() {
                   <View style={styles.calculationHeader}>
                     <Calculator size={16} color={colors.success} />
                     <Text style={[styles.calculationTitle, { color: colors.success }]}>
-                      Save 3% with CardKing
+                      CardKing专属优惠 3% OFF
                     </Text>
                   </View>
                   <View style={styles.calculationDetails}>
@@ -633,7 +548,7 @@ function MobileRechargeScreenContent() {
                   <View style={styles.calculationHeader}>
                     <Calculator size={16} color={colors.success} />
                     <Text style={[styles.calculationTitle, { color: colors.success }]}>
-                      Save 3% with CardKing
+                      CardKing专属优惠 3% OFF
                     </Text>
                   </View>
                   <View style={styles.calculationDetails}>
@@ -694,253 +609,50 @@ function MobileRechargeScreenContent() {
         </Card>
       </ScrollView>
 
-      {/* Network Provider Modal */}
-      <Modal
+      {/* Modals */}
+      <SupplierSelectionModal
         visible={showSupplierModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowSupplierModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable style={styles.modalBackdrop} onPress={() => setShowSupplierModal(false)} />
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                Select Network Provider
-              </Text>
-              <TouchableOpacity onPress={() => setShowSupplierModal(false)}>
-                <X size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
+        onClose={() => setShowSupplierModal(false)}
+        suppliers={suppliers}
+        isLoadingSuppliers={isLoadingSuppliers}
+        selectedSupplier={selectedSupplier}
+        onSelectSupplier={(supplier) => {
+          setSelectedSupplier(supplier);
+          setSelectedDataBundle(null); // Reset data bundle selection
+        }}
+      />
 
-            <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
-              {isLoadingSuppliers ? (
-                <View style={styles.modalLoading}>
-                  <ActivityIndicator size="small" color={colors.primary} />
-                  <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                    Loading providers...
-                  </Text>
-                </View>
-              ) : suppliers.length > 0 ? (
-                suppliers.map(renderSupplierOption)
-              ) : (
-                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                  No network providers available
-                </Text>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Data Bundle Modal */}
-      <Modal
+      <DataBundleSelectionModal
         visible={showDataBundleModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowDataBundleModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable style={styles.modalBackdrop} onPress={() => setShowDataBundleModal(false)} />
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                Select Data Bundle
-              </Text>
-              <TouchableOpacity onPress={() => setShowDataBundleModal(false)}>
-                <X size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
+        onClose={() => setShowDataBundleModal(false)}
+        dataBundles={dataBundles}
+        isLoadingDataBundles={isLoadingDataBundles}
+        selectedDataBundle={selectedDataBundle}
+        onSelectDataBundle={setSelectedDataBundle}
+        selectedSupplierName={selectedSupplier?.name}
+      />
 
-            <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
-              {isLoadingDataBundles ? (
-                <View style={styles.modalLoading}>
-                  <ActivityIndicator size="small" color={colors.primary} />
-                  <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                    Loading data bundles...
-                  </Text>
-                </View>
-              ) : dataBundles.length > 0 ? (
-                dataBundles.map(renderDataBundleOption)
-              ) : (
-                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                  No data bundles available for {selectedSupplier?.name}
-                </Text>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* 充值确认模态框 */}
-      <Modal
+      <RechargeConfirmationModal
         visible={showConfirmModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowConfirmModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable style={styles.modalBackdrop} onPress={() => setShowConfirmModal(false)} />
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                Confirm Recharge
-              </Text>
-              <TouchableOpacity onPress={() => setShowConfirmModal(false)}>
-                <X size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
+        onClose={() => setShowConfirmModal(false)}
+        pendingRechargeData={pendingRechargeData}
+        onConfirm={handleConfirmRecharge}
+      />
 
-            <View style={styles.confirmContent}>
-              {pendingRechargeData && (
-                <>
-                  <View style={[styles.confirmCard, { backgroundColor: colors.background }]}>
-                    <View style={styles.confirmRow}>
-                      <Text style={[styles.confirmLabel, { color: colors.textSecondary }]}>
-                        Service Type:
-                      </Text>
-                      <Text style={[styles.confirmValue, { color: colors.text }]}>
-                        {pendingRechargeData.type === 'airtime' ? 'Airtime Recharge' : 'Data Recharge'}
-                      </Text>
-                    </View>
-                    <View style={styles.confirmRow}>
-                      <Text style={[styles.confirmLabel, { color: colors.textSecondary }]}>
-                        Network:
-                      </Text>
-                      <Text style={[styles.confirmValue, { color: colors.text }]}>
-                        {pendingRechargeData.supplier}
-                      </Text>
-                    </View>
-                    <View style={styles.confirmRow}>
-                      <Text style={[styles.confirmLabel, { color: colors.textSecondary }]}>
-                        Phone Number:
-                      </Text>
-                      <Text style={[styles.confirmValue, { color: colors.text }]}>
-                        {pendingRechargeData.phone}
-                      </Text>
-                    </View>
-                    {pendingRechargeData.dataBundle && (
-                      <View style={styles.confirmRow}>
-                        <Text style={[styles.confirmLabel, { color: colors.textSecondary }]}>
-                          Data Bundle:
-                        </Text>
-                        <Text style={[styles.confirmValue, { color: colors.text }]}>
-                          {pendingRechargeData.dataBundle.serviceName}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={[styles.paymentSummary, { backgroundColor: `${colors.primary}10` }]}>
-                    <View style={styles.summaryRow}>
-                      <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                        Recharge Amount:
-                      </Text>
-                      <Text style={[styles.summaryValue, { color: colors.text }]}>
-                        ₦{pendingRechargeData.amount.toLocaleString()}
-                      </Text>
-                    </View>
-                    <View style={styles.summaryRow}>
-                      <Text style={[styles.summaryLabel, { color: colors.success }]}>
-                        CardKing Discount (3%):
-                      </Text>
-                      <Text style={[styles.summaryValue, { color: colors.success }]}>
-                        -₦{(pendingRechargeData.amount - pendingRechargeData.paymentAmount).toLocaleString()}
-                      </Text>
-                    </View>
-                    <View style={[styles.summaryRow, styles.totalRow]}>
-                      <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
-                        Total Payment:
-                      </Text>
-                      <Text style={[styles.summaryValue, { color: colors.primary, fontFamily: 'Inter-Bold', fontSize: 18 }]}>
-                        ₦{pendingRechargeData.paymentAmount.toLocaleString()}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.confirmActions}>
-                    <Button
-                      title="Cancel"
-                      variant="outline"
-                      onPress={() => setShowConfirmModal(false)}
-                      style={styles.cancelButton}
-                    />
-                    <Button
-                      title="Confirm"
-                      onPress={handleConfirmRecharge}
-                      style={styles.confirmButton}
-                    />
-                  </View>
-                </>
-              )}
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* 支付密码模态框 */}
-      <Modal
+      <PaymentPasswordModal
         visible={showPasswordModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowPasswordModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable style={styles.modalBackdrop} onPress={() => setShowPasswordModal(false)} />
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <View style={styles.modalHeader}>
-              <View style={styles.titleContainer}>
-                <Shield size={24} color={colors.primary} />
-                <Text style={[styles.modalTitle, { color: colors.text }]}>
-                  Enter Payment Password
-                </Text>
-              </View>
-              <TouchableOpacity onPress={() => setShowPasswordModal(false)}>
-                <X size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
+        onClose={() => setShowPasswordModal(false)}
+        paymentPassword={paymentPassword}
+        onPaymentPasswordChange={(text) => {
+          setPaymentPassword(text);
+          setPasswordError('');
+        }}
+        passwordError={passwordError}
+        onExecuteRecharge={handleExecuteRecharge}
+        isRecharging={isRecharging}
+        pendingRechargeData={pendingRechargeData}
+      />
 
-            <View style={styles.passwordContent}>
-              {pendingRechargeData && (
-                <View style={[styles.paymentInfo, { backgroundColor: colors.background }]}>
-                  <Text style={[styles.paymentInfoText, { color: colors.textSecondary }]}>
-                    You are about to pay ₦{pendingRechargeData.paymentAmount.toLocaleString()} for {pendingRechargeData.type === 'airtime' ? 'airtime' : 'data'} recharge
-                  </Text>
-                </View>
-              )}
-
-              <SixDigitPasswordInput
-                label="Payment Password"
-                value={paymentPassword}
-                onChangeText={(text) => {
-                  setPaymentPassword(text);
-                  setPasswordError('');
-                }}
-                error={passwordError}
-                autoFocus={true}
-              />
-
-              <View style={styles.passwordActions}>
-                <Button
-                  title="Cancel"
-                  variant="outline"
-                  onPress={() => setShowPasswordModal(false)}
-                  style={styles.cancelButton}
-                />
-                <Button
-                  title={isRecharging ? 'Processing...' : 'Pay Now'}
-                  onPress={handleExecuteRecharge}
-                  disabled={isRecharging || paymentPassword.length !== 6}
-                  loading={isRecharging}
-                  style={styles.payButton}
-                />
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Recharge Logs Modal */}
       <RechargeLogsModal
         title='Mobile Recharge History'
         type='phone'
@@ -989,11 +701,40 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     marginTop: 2,
   },
+  headerActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
   // Recharge Card
   rechargeCard: {
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
+  },
+  summaryCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    borderRadius: 16,
+    paddingVertical: Spacing.lg,
+    marginBottom: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  balanceText: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   serviceTabs: {
     flexDirection: 'row',
@@ -1098,6 +839,11 @@ const styles = StyleSheet.create({
     height: 48,
     marginTop: Spacing.md,
   },
+  useMyNumberButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
 
   // Info Card
   infoCard: {
@@ -1117,207 +863,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     lineHeight: 20,
-  },
-
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: Spacing.lg,
-    maxHeight: '70%',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 16,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.08)',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  modalScrollView: {
-    maxHeight: 300,
-  },
-  modalOption: {
-    padding: Spacing.md,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: Spacing.sm,
-  },
-  modalOptionText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    textAlign: 'center',
-  },
-  dataBundleInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dataBundlePrice: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-  },
-  modalLoading: {
-    padding: Spacing.xl,
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  loadingText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
-  emptyText: {
-    padding: Spacing.xl,
-    textAlign: 'center',
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
-  phoneRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  useMyNumberButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-  },
-  balanceText: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  summaryCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    borderRadius: 16,
-    paddingVertical: Spacing.lg,
-    marginBottom: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // 确认模态框样式
-  confirmContent: {
-    gap: Spacing.lg,
-  },
-  confirmCard: {
-    padding: Spacing.md,
-    borderRadius: 12,
-    gap: Spacing.sm,
-  },
-  confirmRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  confirmLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
-  confirmValue: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  paymentSummary: {
-    padding: Spacing.md,
-    borderRadius: 12,
-    gap: Spacing.sm,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  summaryLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
-  summaryValue: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  totalRow: {
-    paddingTop: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
-    marginTop: Spacing.sm,
-  },
-  confirmActions: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  cancelButton: {
-    flex: 1,
-  },
-  confirmButton: {
-    flex: 1,
-  },
-  // 支付密码模态框样式
-  passwordContent: {
-    gap: Spacing.lg,
-  },
-  paymentInfo: {
-    padding: Spacing.md,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  paymentInfoText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    textAlign: 'center',
-  },
-  passwordActions: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginTop: Spacing.lg,
-  },
-  payButton: {
-    flex: 1,
   },
 });
