@@ -6,6 +6,8 @@ import {
   Modal,
   TouchableOpacity,
   Pressable,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { X, Shield } from 'lucide-react-native';
 import Button from '@/components/UI/Button';
@@ -59,7 +61,11 @@ export default function PaymentPasswordModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // 根据你的Header高度调整
+      >
         <Pressable style={styles.modalBackdrop} onPress={onClose} />
         <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
           <View style={styles.modalHeader}>
@@ -108,7 +114,7 @@ export default function PaymentPasswordModal({
             </View>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -118,6 +124,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+    padding: Spacing.lg,
   },
   modalBackdrop: {
     position: 'absolute',
@@ -127,8 +134,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 12,
     padding: Spacing.lg,
     maxHeight: '70%',
     shadowColor: '#000',
@@ -174,7 +180,6 @@ const styles = StyleSheet.create({
   passwordActions: {
     flexDirection: 'row',
     gap: Spacing.md,
-    marginTop: Spacing.lg,
   },
   cancelButton: {
     flex: 1,

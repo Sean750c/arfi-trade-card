@@ -39,6 +39,7 @@ export interface AirtimeRechargeRequest {
   name: string;
   phone: string;
   amount: number;
+  password: string;
 }
 
 export interface DataRechargeRequest {
@@ -47,6 +48,7 @@ export interface DataRechargeRequest {
   phone: string;
   amount: number;
   service_id: number;
+  password: string;
 }
 
 export interface RechargeLogsRequest {

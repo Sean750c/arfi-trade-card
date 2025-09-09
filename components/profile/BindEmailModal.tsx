@@ -86,7 +86,8 @@ export default function BindEmailModal({
 
     setIsSendingCode(true);
     try {
-      await AuthService.sendEmailVerifyCode(email.trim());
+      if (!user?.token) return;
+      await AuthService.sendEmailBindVerifyCode(email.trim(), user?.token);
       setCodeSent(true);
       startCountdown();
       Alert.alert('Success', 'Verification code sent to your email');

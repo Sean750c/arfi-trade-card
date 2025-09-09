@@ -25,6 +25,7 @@ interface PendingRechargeData {
 }
 
 interface RechargeConfirmationModalProps {
+  chargeDiscount: number;
   visible: boolean;
   onClose: () => void;
   pendingRechargeData: PendingRechargeData | null;
@@ -32,6 +33,7 @@ interface RechargeConfirmationModalProps {
 }
 
 export default function RechargeConfirmationModal({
+  chargeDiscount,
   visible,
   onClose,
   pendingRechargeData,
@@ -102,7 +104,7 @@ export default function RechargeConfirmationModal({
                   <View style={styles.calculationHeader}>
                     <Calculator size={16} color={colors.primary} />
                     <Text style={[styles.calculationTitle, { color: colors.primary }]}>
-                      CardKing专属优惠 3% OFF
+                      Save {chargeDiscount}% with CardKing
                     </Text>
                   </View>
                   <View style={styles.summaryRow}>
@@ -115,7 +117,7 @@ export default function RechargeConfirmationModal({
                   </View>
                   <View style={styles.summaryRow}>
                     <Text style={[styles.summaryLabel, { color: colors.success }]}>
-                      CardKing Discount (3%):
+                      CardKing Discount ({chargeDiscount}%):
                     </Text>
                     <Text style={[styles.summaryValue, { color: colors.success }]}>
                       -₦{(pendingRechargeData.amount - pendingRechargeData.paymentAmount).toLocaleString()}
@@ -158,6 +160,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+    marginBottom: Spacing.lg,
   },
   modalBackdrop: {
     position: 'absolute',

@@ -43,10 +43,7 @@ interface PendingRechargeData {
   phone: string;
   amount: number;
   paymentAmount: number;
-  dataBundle?: {
-    serviceName: string;
-    servicePrice: number;
-  };
+  dataBundle?: DataBundle;
 }
 
 function MobileRechargeScreenContent() {
@@ -85,9 +82,11 @@ function MobileRechargeScreenContent() {
   // Predefined airtime amounts
   const airtimeAmounts = [100, 200, 500, 1000, 2000, 5000];
 
+  let chargeDiscount = user?.charge_discount || 97;
+
   // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
-    return Math.round(amount * 97) / 100;
+    return Math.round(amount * chargeDiscount) / 100;
   };
 
   useEffect(() => {
@@ -220,7 +219,8 @@ function MobileRechargeScreenContent() {
           user.token,
           pendingRechargeData.supplier,
           pendingRechargeData.phone,
-          pendingRechargeData.amount
+          pendingRechargeData.amount,
+          paymentPassword
         );
         Alert.alert(
           'Recharge Successful! 🎉',
@@ -239,7 +239,8 @@ function MobileRechargeScreenContent() {
           pendingRechargeData.supplier,
           pendingRechargeData.phone,
           pendingRechargeData.amount,
-          pendingRechargeData.dataBundle!.serviceId
+          pendingRechargeData.dataBundle!.serviceId,
+          paymentPassword
         );
         Alert.alert(
           'Recharge Successful! 🎉',
@@ -457,43 +458,21 @@ function MobileRechargeScreenContent() {
                 returnKeyType="done"
               />
 
-              {/* 动态计算支付金额 */}
-              {airtimeAmount && parseFloat(airtimeAmount) > 0 && (
-                <View style={[styles.calculationCard, { backgroundColor: `${colors.success}10`, borderColor: colors.success }]}>
-                  <View style={styles.calculationHeader}>
-                    <Calculator size={16} color={colors.success} />
-                    <Text style={[styles.calculationTitle, { color: colors.success }]}>
-                      CardKing专属优惠 3% OFF
-                    </Text>
-                  </View>
-                  <View style={styles.calculationDetails}>
-                    <View style={styles.calculationRow}>
-                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-                        Recharge Amount:
-                      </Text>
-                      <Text style={[styles.calculationValue, { color: colors.text }]}>
-                        ₦{parseFloat(airtimeAmount).toLocaleString()}
-                      </Text>
-                    </View>
-                    <View style={styles.calculationRow}>
-                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-                        You Pay:
-                      </Text>
-                      <Text style={[styles.calculationValue, { color: colors.success, fontFamily: 'Inter-Bold' }]}>
-                        ₦{calculatePaymentAmount(parseFloat(airtimeAmount)).toLocaleString()}
-                      </Text>
-                    </View>
-                    <View style={styles.calculationRow}>
-                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-                        You Save:
-                      </Text>
-                      <Text style={[styles.calculationValue, { color: colors.success, fontFamily: 'Inter-Bold' }]}>
-                        ₦{(parseFloat(airtimeAmount) - calculatePaymentAmount(parseFloat(airtimeAmount))).toLocaleString()}
-                      </Text>
-                    </View>
-                  </View>
+              {/* 折扣金额展示 */}
+              {airtimeAmount ? (
+                <View style={styles.discountContainer}>
+                  <Calculator size={16} color={colors.success} />
+                  <Text style={[styles.calculationTitle, { color: colors.success }]}>
+                    Discount Amount
+                  </Text>
+                  <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
+                    ₦{parseFloat(airtimeAmount || '0').toLocaleString()}
+                  </Text>
+                  <Text style={[styles.discountedPrice, { color: colors.success }]}>
+                    ₦{calculatePaymentAmount(parseFloat(airtimeAmount || '0')).toLocaleString()}
+                  </Text>
                 </View>
-              )}
+              ) : null}
 
               <Button
                 title={isRecharging ? 'Processing Recharge...' : 'Recharge Airtime'}
@@ -543,42 +522,20 @@ function MobileRechargeScreenContent() {
               </View>
 
               {/* 动态计算支付金额 */}
-              {selectedDataBundle && (
-                <View style={[styles.calculationCard, { backgroundColor: `${colors.success}10`, borderColor: colors.success }]}>
-                  <View style={styles.calculationHeader}>
-                    <Calculator size={16} color={colors.success} />
-                    <Text style={[styles.calculationTitle, { color: colors.success }]}>
-                      CardKing专属优惠 3% OFF
-                    </Text>
-                  </View>
-                  <View style={styles.calculationDetails}>
-                    <View style={styles.calculationRow}>
-                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-                        Data Bundle:
-                      </Text>
-                      <Text style={[styles.calculationValue, { color: colors.text }]}>
-                        ₦{selectedDataBundle.servicePrice.toLocaleString()}
-                      </Text>
-                    </View>
-                    <View style={styles.calculationRow}>
-                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-                        You Pay:
-                      </Text>
-                      <Text style={[styles.calculationValue, { color: colors.success, fontFamily: 'Inter-Bold' }]}>
-                        ₦{calculatePaymentAmount(selectedDataBundle.servicePrice).toLocaleString()}
-                      </Text>
-                    </View>
-                    <View style={styles.calculationRow}>
-                      <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>
-                        You Save:
-                      </Text>
-                      <Text style={[styles.calculationValue, { color: colors.success, fontFamily: 'Inter-Bold' }]}>
-                        ₦{(selectedDataBundle.servicePrice - calculatePaymentAmount(selectedDataBundle.servicePrice)).toLocaleString()}
-                      </Text>
-                    </View>
-                  </View>
+              {selectedDataBundle ? (
+                <View style={styles.discountContainer}>
+                  <Calculator size={16} color={colors.success} />
+                  <Text style={[styles.calculationTitle, { color: colors.success }]}>
+                    Discount Amount
+                  </Text>
+                  <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
+                    ₦{selectedDataBundle.servicePrice.toLocaleString() || '0'}
+                  </Text>
+                  <Text style={[styles.discountedPrice, { color: colors.success }]}>
+                    ₦{calculatePaymentAmount(selectedDataBundle.servicePrice).toLocaleString()}
+                  </Text>
                 </View>
-              )}
+              ) : null}
 
               <Button
                 title={isRecharging ? 'Processing Recharge...' : 'Recharge Data'}
@@ -633,6 +590,7 @@ function MobileRechargeScreenContent() {
       />
 
       <RechargeConfirmationModal
+        chargeDiscount={100 - chargeDiscount}
         visible={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         pendingRechargeData={pendingRechargeData}
@@ -804,36 +762,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
   },
-  calculationCard: {
-    padding: Spacing.md,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  calculationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    marginBottom: Spacing.sm,
-  },
   calculationTitle: {
-    fontSize: 14,
+    flex: 1,
+    fontSize: 16,
     fontFamily: 'Inter-Bold',
-  },
-  calculationDetails: {
-    gap: Spacing.xs,
-  },
-  calculationRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  calculationLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
-  calculationValue: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
   },
   rechargeButton: {
     height: 48,
@@ -863,5 +795,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     lineHeight: 20,
+  },
+  discountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginTop: -Spacing.sm,
+  },
+  originalPrice: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    textDecorationLine: 'line-through',
+  },
+  discountedPrice: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
   },
 });

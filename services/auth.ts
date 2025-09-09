@@ -158,6 +158,27 @@ export class AuthService {
     }
   }
 
+  static async sendEmailBindVerifyCode(email: string, token: string) {
+    try {
+      const response = await APIRequest.request<SendResetEmailResponse>(
+        '/gc/user/sendEmailBindVerifyCode',
+        'POST',
+        { email, token }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to send register email');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to send register email: ${error.message}`);
+      }
+      throw new Error('Failed to send register email');
+    }
+  }
+
   // Password Recovery Methods
   static async sendResetPasswordEmail(email: string) {
     try {
