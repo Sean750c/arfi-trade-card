@@ -9,7 +9,7 @@ import {
   Platform,
   Switch,
 } from 'react-native';
-import { Lock, Shield, Phone, Mail, MessageCircle, ChevronRight, Apple, Facebook, Check, X, ToggleLeft as Google, CircleCheck as CheckCircle, Circle as XCircle, Bell, Settings, Fingerprint, } from 'lucide-react-native';
+import { Lock, Shield, Phone, Mail, MessageCircle, ChevronRight, Check, X, Fingerprint, } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Header from '@/components/UI/Header';
 import Card from '@/components/UI/Card';
