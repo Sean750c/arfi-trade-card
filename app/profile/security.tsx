@@ -139,18 +139,6 @@ function SecurityScreenContent() {
     },
   ];
 
-  const handleGoogleBinding = () => {
-    Alert.alert('Google Binding', 'Google account binding functionality would be implemented here');
-  };
-
-  const handleFacebookBinding = () => {
-    Alert.alert('Facebook Binding', 'Facebook account binding functionality would be implemented here');
-  };
-
-  const handleAppleBinding = () => {
-    Alert.alert('Apple Binding', 'Apple ID binding functionality would be implemented here');
-  };
-
   const handleModalClose = async (shouldReload = false) => {
     if (shouldReload) {
       try {
@@ -166,7 +154,12 @@ function SecurityScreenContent() {
     if (item.id === 'biometric-login' && (initData?.biometric_enable === false || Platform.OS === 'web')) {
       return null;
     }
-  
+
+    const isDisabled =
+      (item.id === 'phone' && item.status) ||
+      (item.id === 'email' && item.status) ||
+      (item.id === 'whatsapp' && item.status);
+
     return (
       <TouchableOpacity
         key={item.id}
@@ -177,8 +170,9 @@ function SecurityScreenContent() {
             borderColor: colors.border,
           }
         ]}
-        onPress={item.onPress}
+        onPress={!isDisabled ? item.onPress : undefined}
         activeOpacity={0.7}
+        disabled={isDisabled}
       >
         <View style={styles.securityItemLeft}>
           <View style={[
@@ -199,7 +193,7 @@ function SecurityScreenContent() {
             </Text>
           </View>
         </View>
-  
+
         <View style={styles.securityItemRight}>
           <View style={[
             styles.statusIndicator,
@@ -211,12 +205,16 @@ function SecurityScreenContent() {
               <X size={12} color={colors.textSecondary} />
             )}
           </View>
-          <ChevronRight size={20} color={colors.textSecondary} />
+          {!isDisabled ? (
+            <ChevronRight size={20} color={colors.textSecondary} />
+          ) : (
+            <View style={[{ width: 20 }]}></View>
+          )}
         </View>
       </TouchableOpacity>
     );
   };
-  
+
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
       <Header
