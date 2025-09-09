@@ -141,6 +141,19 @@ export interface AppleLoginRequest {
     version?: number;
 }
 
+// Withdrawal Password Recovery API Types
+export interface SendWithdrawalPasswordResetEmailRequest {
+    email: string;
+    token: string;
+}
+
+export interface ResetWithdrawalPasswordByEmailRequest {
+    email: string;
+    verify_code: string;
+    new_password: string;
+    token: string;
+}
+
 export type UserRegisterResponse = APIResponse<User>;
 export type UserLoginResponse = APIResponse<User>;
 export type UserInfoResponse = APIResponse<User>;
@@ -149,6 +162,10 @@ export type UserInfoResponse = APIResponse<User>;
 export type SendResetEmailResponse = APIResponse<{}>;
 export type SendWhatsAppCodeResponse = APIResponse<{}>;
 export type UpdatePasswordResponse = APIResponse<{}>;
+
+// Withdrawal Password Recovery Response Types
+export type SendWithdrawalPasswordResetEmailResponse = APIResponse<{}>;
+export type ResetWithdrawalPasswordByEmailResponse = APIResponse<{}>;
 
 // Social Login Response Types
 export type SocialLoginResponse = APIResponse<SocialLoginResult>;

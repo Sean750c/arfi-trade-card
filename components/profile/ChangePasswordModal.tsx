@@ -19,6 +19,7 @@ import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UserService } from '@/services/user';
+import { router } from 'expo-router';
 
 interface ChangePasswordModalProps {
   visible: boolean;
@@ -207,6 +208,26 @@ export default function ChangePasswordModal({
                   style={styles.submitButton}
                 />
               </View>
+              
+              {/* Forgot Password Link */}
+              <View style={styles.forgotPasswordContainer}>
+                <Text style={[styles.forgotPasswordText, { color: colors.textSecondary }]}>
+                  Forgot your current password?
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    handleClose();
+                    // Navigate to forgot password screen
+                    setTimeout(() => {
+                      router.push('/(auth)/forgot-password');
+                    }, 100);
+                  }}
+                >
+                  <Text style={[styles.forgotPasswordLink, { color: colors.primary }]}>
+                    Reset via Email
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </ScrollView>
         </View>
@@ -277,5 +298,23 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flex: 1,
+  },
+  forgotPasswordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.08)',
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+  },
+  forgotPasswordLink: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
   },
 });

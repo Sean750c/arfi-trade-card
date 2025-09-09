@@ -20,6 +20,7 @@ import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UserService } from '@/services/user';
+import ForgotWithdrawalPasswordModal from './ForgotWithdrawalPasswordModal';
 
 interface ChangeWithdrawPasswordModalProps {
   visible: boolean;
@@ -43,6 +44,8 @@ export default function ChangeWithdrawPasswordModal({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
   const isFirstTimeSetup = user?.t_password_null;
 
@@ -203,6 +206,24 @@ export default function ChangeWithdrawPasswordModal({
                 />
               </View>
               
+              {/* Forgot Password Link - Only show if not first time setup */}
+              {!isFirstTimeSetup && (
+                <View style={styles.forgotPasswordContainer}>
+                  <Text style={[styles.forgotPasswordText, { color: colors.textSecondary }]}>
+                    Forgot your withdrawal password?
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowForgotPasswordModal(true);
+                    }}
+                  >
+                    <Text style={[styles.forgotPasswordLink, { color: colors.primary }]}>
+                      Reset via Email
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
               <View style={[styles.securityNote, { backgroundColor: `${colors.primary}10` }]}>
                 <Text style={[styles.securityNoteText, { color: colors.text }]}>
                   🔒 Your withdraw password is used to authorize all withdrawal requests and ensure account security.
@@ -212,6 +233,16 @@ export default function ChangeWithdrawPasswordModal({
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
+      
+      {/* Forgot Withdrawal Password Modal */}
+      <ForgotWithdrawalPasswordModal
+        visible={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+        onSuccess={() => {
+          setShowForgotPasswordModal(false);
+          onSuccess();
+        }}
+      />
     </Modal>
   );
 }
@@ -303,5 +334,23 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     lineHeight: 18,
     textAlign: 'center',
+  },
+  forgotPasswordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.08)',
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+  },
+  forgotPasswordLink: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
   },
 });

@@ -250,4 +250,53 @@ export class UserService {
       throw new Error('Failed to bind email');
     }
   }
+
+  // Withdrawal Password Recovery Methods
+  static async sendWithdrawalPasswordResetEmail(params: { email: string; token: string }): Promise<void> {
+    try {
+      const response = await APIRequest.request<any>(
+        '/gc/user/sendWithdrawalPasswordResetEmail',
+        'POST',
+        params
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to send withdrawal password reset email');
+      }
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to send withdrawal password reset email: ${error.message}`);
+      }
+      throw new Error('Failed to send withdrawal password reset email');
+    }
+  }
+
+  static async resetWithdrawalPasswordByEmail(params: { email: string; verify_code: string; new_password: string; token: string }): Promise<void> {
+    try {
+      const response = await APIRequest.request<any>(
+        '/gc/user/resetWithdrawalPasswordByEmail',
+        'POST',
+        params
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to reset withdrawal password');
+      }
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to reset withdrawal password: ${error.message}`);
+      }
+      throw new Error('Failed to reset withdrawal password');
+    }
+  }
 }
