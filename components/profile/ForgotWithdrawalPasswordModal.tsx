@@ -33,7 +33,7 @@ export default function ForgotWithdrawalPasswordModal({
 }: ForgotWithdrawalPasswordModalProps) {
   const { colors } = useTheme();
   const { user } = useAuthStore();
-  
+
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -60,7 +60,7 @@ export default function ForgotWithdrawalPasswordModal({
           newErrors.email = 'Please enter a valid email address';
         }
         break;
-      
+
       case 'verify':
         if (!verificationCode.trim()) {
           newErrors.verificationCode = 'Verification code is required';
@@ -68,7 +68,7 @@ export default function ForgotWithdrawalPasswordModal({
           newErrors.verificationCode = 'Verification code must be 6 digits';
         }
         break;
-      
+
       case 'password':
         if (!newPassword.trim()) {
           newErrors.newPassword = 'New password is required';
@@ -112,7 +112,7 @@ export default function ForgotWithdrawalPasswordModal({
         email: email.trim(),
         token: user.token,
       });
-      
+
       setCurrentStep('verify');
       startCountdown();
       Alert.alert('Success', 'Verification code sent to your email');
@@ -142,13 +142,13 @@ export default function ForgotWithdrawalPasswordModal({
         new_password: newPassword,
         token: user.token,
       });
-      
+
       Alert.alert(
         'Success',
         'Withdrawal password reset successfully',
         [{ text: 'OK', onPress: onSuccess }]
       );
-      
+
       // Reset form
       handleClose();
     } catch (error) {
@@ -190,14 +190,14 @@ export default function ForgotWithdrawalPasswordModal({
         return (
           <>
             <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
-              Enter your registered email address to receive a verification code for resetting your withdrawal password.
+              Enter the email address you have bound to receive a verification code for resetting your withdrawal password.
             </Text>
-            
+
             <Input
               label="Email Address"
               value={email}
               onChangeText={setEmail}
-              placeholder="Enter your registered email"
+              placeholder="Enter your bound email"
               keyboardType="email-address"
               autoCapitalize="none"
               error={errors.email}
@@ -221,7 +221,7 @@ export default function ForgotWithdrawalPasswordModal({
             <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
               We've sent a 6-digit verification code to {email}. Please enter the code below.
             </Text>
-            
+
             <Input
               label="Verification Code"
               value={verificationCode}
@@ -242,7 +242,7 @@ export default function ForgotWithdrawalPasswordModal({
               >
                 <Text style={[
                   styles.resendButton,
-                  { 
+                  {
                     color: countdown > 0 ? colors.textSecondary : colors.primary,
                     opacity: countdown > 0 ? 0.5 : 1,
                   }
@@ -268,7 +268,7 @@ export default function ForgotWithdrawalPasswordModal({
             <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
               Create a new 6-digit withdrawal password. This password will be required for all withdrawal requests.
             </Text>
-            
+
             <SixDigitPasswordInput
               label="New Withdrawal Password"
               value={newPassword}
@@ -276,7 +276,7 @@ export default function ForgotWithdrawalPasswordModal({
               error={errors.newPassword}
               autoFocus={true}
             />
-            
+
             <SixDigitPasswordInput
               label="Confirm New Password"
               value={confirmPassword}
@@ -327,11 +327,11 @@ export default function ForgotWithdrawalPasswordModal({
       onRequestClose={handleClose}
     >
       <Pressable style={styles.modalOverlay} onPress={handleClose} />
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.modalOverlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={[styles.modalContent, { backgroundColor: colors.card }]}> 
+        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
           <View style={styles.modalHeader}>
             <View style={styles.titleContainer}>
               <Shield size={24} color={colors.primary} />
@@ -352,26 +352,26 @@ export default function ForgotWithdrawalPasswordModal({
           {/* Progress Indicator */}
           <View style={styles.progressContainer}>
             <View style={styles.progressBar}>
-              <View 
+              <View
                 style={[
-                  styles.progressFill, 
-                  { 
+                  styles.progressFill,
+                  {
                     backgroundColor: colors.primary,
                     width: currentStep === 'email' ? '33%' : currentStep === 'verify' ? '66%' : '100%'
                   }
-                ]} 
+                ]}
               />
             </View>
           </View>
-          
-          <ScrollView 
+
+          <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.form}>
               {renderStepContent()}
-              
+
               {/* Back Button for steps 2 and 3 */}
               {currentStep !== 'email' && (
                 <Button
@@ -383,15 +383,15 @@ export default function ForgotWithdrawalPasswordModal({
                 />
               )}
             </View>
-          </ScrollView>
 
-          {/* Security Note */}
-          <View style={[styles.securityNote, { backgroundColor: `${colors.primary}10` }]}>
-            <Text style={[styles.securityNoteText, { color: colors.text }]}>
-              🔒 For your security, withdrawal password reset requires email verification. 
-              Make sure to use the email address associated with your account.
-            </Text>
-          </View>
+            {/* Security Note */}
+            <View style={[styles.securityNote, { backgroundColor: `${colors.primary}10` }]}>
+              <Text style={[styles.securityNoteText, { color: colors.text }]}>
+                🔒 For your security, withdrawal password reset requires email verification.
+                Make sure to use the email address associated with your account.
+              </Text>
+            </View>
+          </ScrollView>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: Spacing.lg,
     maxHeight: '90%',
-    minHeight: 500,
+    minHeight: 450,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -447,7 +447,6 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 2,
-    transition: 'width 0.3s ease',
   },
   scrollView: {
     flex: 1,
@@ -490,7 +489,6 @@ const styles = StyleSheet.create({
   securityNote: {
     padding: Spacing.md,
     borderRadius: 12,
-    marginTop: Spacing.md,
   },
   securityNoteText: {
     fontSize: 12,

@@ -189,10 +189,31 @@ export default function ChangePasswordModal({
                   </TouchableOpacity>
                 }
               />
-              <View style={styles.passwordTips}>
+
+              {/* Forgot Password Link */}
+              <View style={styles.forgotPasswordContainer}>
+                <Text style={[styles.forgotPasswordText, { color: colors.textSecondary }]}>
+                  Forgot your current password?
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    handleClose();
+                    // Navigate to forgot password screen
+                    setTimeout(() => {
+                      router.push('/forgot-password');
+                    }, 100);
+                  }}
+                >
+                  <Text style={[styles.forgotPasswordLink, { color: colors.primary }]}>
+                    Reset via Email
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* <View style={styles.passwordTips}>
                 <Text style={[styles.tipsTitle, { color: colors.text }]}>Password Requirements:</Text>
                 <Text style={[styles.tipsText, { color: colors.textSecondary }]}>• At least 6 characters long{`\n`}• Different from your current password{`\n`}• Use a combination of letters and numbers for better security</Text>
-              </View>
+              </View> */}
               <View style={styles.buttonContainer}>
                 <Button
                   title="Cancel"
@@ -207,26 +228,6 @@ export default function ChangePasswordModal({
                   loading={isLoading}
                   style={styles.submitButton}
                 />
-              </View>
-              
-              {/* Forgot Password Link */}
-              <View style={styles.forgotPasswordContainer}>
-                <Text style={[styles.forgotPasswordText, { color: colors.textSecondary }]}>
-                  Forgot your current password?
-                </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    handleClose();
-                    // Navigate to forgot password screen
-                    setTimeout(() => {
-                      router.push('/(auth)/forgot-password');
-                    }, 100);
-                  }}
-                >
-                  <Text style={[styles.forgotPasswordLink, { color: colors.primary }]}>
-                    Reset via Email
-                  </Text>
-                </TouchableOpacity>
               </View>
             </View>
           </ScrollView>
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: Spacing.lg,
     maxHeight: '85%',
-    minHeight: 560,
+    minHeight: 520,
   },
   modalHeader: {
     flexDirection: 'row',

@@ -154,12 +154,12 @@ export default function SixDigitPasswordInput({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   label: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   inputContainer: {
     alignItems: 'center',
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   },
   digitBox: {
     width: boxWidth,
-    height: 56,
+    height: 50,
     borderRadius: 12,
     borderWidth: 2,
     justifyContent: 'center',
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Spacing.md,
+    marginTop: Spacing.sm,
     paddingHorizontal: Spacing.sm,
   },
   hintText: {

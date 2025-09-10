@@ -35,7 +35,7 @@ export default function ChangeWithdrawPasswordModal({
 }: ChangeWithdrawPasswordModalProps) {
   const { colors } = useTheme();
   const { user } = useAuthStore();
-  
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -98,15 +98,15 @@ export default function ChangeWithdrawPasswordModal({
         // Change existing password
         await UserService.changeWithdrawPassword(user.token, currentPassword, newPassword);
       }
-      
+
       Alert.alert(
         'Success',
-        isFirstTimeSetup 
-          ? 'Withdraw password set successfully' 
+        isFirstTimeSetup
+          ? 'Withdraw password set successfully'
           : 'Withdraw password changed successfully',
         [{ text: 'OK', onPress: onSuccess }]
       );
-      
+
       // Reset form
       setCurrentPassword('');
       setNewPassword('');
@@ -131,109 +131,111 @@ export default function ChangeWithdrawPasswordModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={handleClose}
-    >
-      <Pressable style={styles.modalOverlay} onPress={handleClose} />
-      <KeyboardAvoidingView 
-        style={styles.modalOverlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <>
+      <Modal
+        visible={visible}
+        transparent
+        animationType="slide"
+        onRequestClose={handleClose}
       >
-        <View style={[styles.modalContent, { backgroundColor: colors.card }]}> 
-          <View style={styles.modalHeader}>
-            <View style={styles.titleContainer}>
-              <Shield size={24} color={colors.primary} />
-              <Text style={[styles.modalTitle, { color: colors.text }]}> 
-                {isFirstTimeSetup ? 'Set Withdraw Password' : 'Change Withdraw Password'}
-              </Text>
+        <Pressable style={styles.modalOverlay} onPress={handleClose} />
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHeader}>
+              <View style={styles.titleContainer}>
+                <Shield size={24} color={colors.primary} />
+                <Text style={[styles.modalTitle, { color: colors.text }]}>
+                  {isFirstTimeSetup ? 'Set Withdraw Password' : 'Change Withdraw Password'}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={handleClose}>
+                <X size={24} color={colors.text} />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={handleClose}>
-              <X size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-          <ScrollView 
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.form}>
-              {!isFirstTimeSetup && (
+            <ScrollView
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.form}>
+                {!isFirstTimeSetup && (
+                  <SixDigitPasswordInput
+                    label="Current Withdraw Password"
+                    value={currentPassword}
+                    onChangeText={setCurrentPassword}
+                    error={errors.currentPassword}
+                  />
+                )}
+
                 <SixDigitPasswordInput
-                  label="Current Withdraw Password"
-                  value={currentPassword}
-                  onChangeText={setCurrentPassword}
-                  error={errors.currentPassword}
-                  autoFocus={!isFirstTimeSetup}
+                  label="New Withdraw Password"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  error={errors.newPassword}
                 />
-              )}
-              
-              <SixDigitPasswordInput
-                label="New Withdraw Password"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                error={errors.newPassword}
-                autoFocus={isFirstTimeSetup}
-              />
-              
-              <SixDigitPasswordInput
-                label="Confirm New Password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                error={errors.confirmPassword}
-              />
-              
-              <View style={styles.passwordTips}>
+
+                <SixDigitPasswordInput
+                  label="Confirm New Password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  error={errors.confirmPassword}
+                />
+
+                {/* <View style={styles.passwordTips}>
                 <Text style={[styles.tipsTitle, { color: colors.text }]}>Password Requirements:</Text>
                 <Text style={[styles.tipsText, { color: colors.textSecondary }]}>• Must be exactly 6 digits{`\n`}• Only numbers are allowed{`\n`}• Easy to remember but secure</Text>
-              </View>
-              
-              <View style={styles.buttonContainer}>
-                <Button
-                  title="Cancel"
-                  variant="outline"
-                  onPress={handleClose}
-                  style={styles.cancelButton}
-                />
-                <Button
-                  title={isLoading ? (isFirstTimeSetup ? 'Setting...' : 'Changing...') : (isFirstTimeSetup ? 'Set Password' : 'Change Password')}
-                  onPress={handleSubmit}
-                  disabled={isLoading}
-                  loading={isLoading}
-                  style={styles.submitButton}
-                />
-              </View>
-              
-              {/* Forgot Password Link - Only show if not first time setup */}
-              {!isFirstTimeSetup && (
-                <View style={styles.forgotPasswordContainer}>
-                  <Text style={[styles.forgotPasswordText, { color: colors.textSecondary }]}>
-                    Forgot your withdrawal password?
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setShowForgotPasswordModal(true);
-                    }}
-                  >
-                    <Text style={[styles.forgotPasswordLink, { color: colors.primary }]}>
-                      Reset via Email
+              </View> */}
+
+                {/* Forgot Password Link - Only show if not first time setup */}
+                {!isFirstTimeSetup && (
+                  <View style={styles.forgotPasswordContainer}>
+                    <Text style={[styles.forgotPasswordText, { color: colors.textSecondary }]}>
+                      Forgot your withdrawal password?
                     </Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        onClose();
+                        setShowForgotPasswordModal(true);
+                      }}
+                    >
+                      <Text style={[styles.forgotPasswordLink, { color: colors.primary }]}>
+                        Reset via Email
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                <View style={styles.buttonContainer}>
+                  <Button
+                    title="Cancel"
+                    variant="outline"
+                    onPress={handleClose}
+                    style={styles.cancelButton}
+                  />
+                  <Button
+                    title={isLoading ? (isFirstTimeSetup ? 'Setting...' : 'Changing...') : (isFirstTimeSetup ? 'Set Password' : 'Change Password')}
+                    onPress={handleSubmit}
+                    disabled={isLoading}
+                    loading={isLoading}
+                    style={styles.submitButton}
+                  />
                 </View>
-              )}
-              
-              <View style={[styles.securityNote, { backgroundColor: `${colors.primary}10` }]}>
+
+                {/* <View style={[styles.securityNote, { backgroundColor: `${colors.primary}10` }]}>
                 <Text style={[styles.securityNoteText, { color: colors.text }]}>
                   🔒 Your withdraw password is used to authorize all withdrawal requests and ensure account security.
                 </Text>
+              </View> */}
               </View>
-            </View>
-          </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
-      
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+
+      </Modal>
+
       {/* Forgot Withdrawal Password Modal */}
       <ForgotWithdrawalPasswordModal
         visible={showForgotPasswordModal}
@@ -243,7 +245,7 @@ export default function ChangeWithdrawPasswordModal({
           onSuccess();
         }}
       />
-    </Modal>
+    </>
   );
 }
 
@@ -280,8 +282,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
   },
   form: {
-    gap: Spacing.md,
-    paddingBottom: Spacing.xl,
+    gap: Spacing.sm,
   },
   infoBox: {
     padding: Spacing.md,
@@ -340,7 +341,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.xs,
-    marginTop: Spacing.lg,
     paddingTop: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.08)',

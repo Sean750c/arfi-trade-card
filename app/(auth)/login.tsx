@@ -84,7 +84,7 @@ export default function LoginScreen() {
   };
 
   const handleForgotPassword = () => {
-    router.push('/(auth)/forgot-password');
+    router.push('/forgot-password');
   };
 
   const handleBiometricSuccess = () => {
