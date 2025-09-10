@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, RefreshCw, ArrowRight } from 'lucide-react-native';
+import { ChevronLeft, RefreshCw, ArrowRight, Tag, ChevronDown } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import Button from '@/components/UI/Button';
 import TwoLevelCardSelector from '@/components/calculator/TwoLevelCardSelector';
@@ -16,12 +16,14 @@ import CompactAmountSelector from '@/components/calculator/CompactAmountSelector
 import CompactCurrencySelector from '@/components/calculator/CompactCurrencySelector';
 import VIPBenefits from '@/components/calculator/VIPBenefits';
 import BonusInfo from '@/components/calculator/BonusInfo';
+import DiscountCodeModal from '@/components/sell/DiscountCodeModal';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAppStore } from '@/stores/useAppStore';
+import { useCouponStore } from '@/stores/useCouponStore';
 import { CalculatorService } from '@/services/calculator';
-import type { CalculatorData, CardItem } from '@/types';
+import type { CalculatorData, CardItem, Coupon } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { useLocalSearchParams } from 'expo-router';
@@ -41,6 +43,8 @@ export default function CalculatorScreen() {
   const [calculatedAmount, setCalculatedAmount] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [amountVisible, setAmountVisible] = useState(true);
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
+  const [showCouponModal, setShowCouponModal] = useState(false);
   const { cardId, categoryName } = useLocalSearchParams();
 
   const denominations = ['25', '50', '100', '200', '500'];
@@ -55,6 +59,16 @@ export default function CalculatorScreen() {
   // Fetch calculator data on component mount
   useEffect(() => {
     fetchCalculatorData();
+    // Load coupon data when user is authenticated
+    if (user?.token) {
+      const couponWalletType = selectedCurrency === 'USDT' ? 2 : 1;
+      useCouponStore.getState().fetchCoupons(couponWalletType, user.token, true);
+    }
+    
+    // Cleanup coupon data on unmount
+    return () => {
+      useCouponStore.getState().clearCouponData();
+    };
   }, [user, selectedCountry]);
 
   // Calculate amount when inputs change
@@ -62,7 +76,17 @@ export default function CalculatorScreen() {
     if (selectedCard) {
       calculateAmount();
     }
-  }, [selectedCard, selectedDenomination, customAmount, selectedCurrency, calculatorData]);
+  }, [selectedCard, selectedDenomination, customAmount, selectedCurrency, calculatorData, selectedCoupon]);
+
+  // Reload coupons when currency changes
+  useEffect(() => {
+    if (user?.token) {
+      const couponWalletType = selectedCurrency === 'USDT' ? 2 : 1;
+      useCouponStore.getState().fetchCoupons(couponWalletType, user.token, true);
+      // Clear selected coupon when currency changes
+      setSelectedCoupon(null);
+    }
+  }, [selectedCurrency, user?.token]);
 
   const fetchCalculatorData = async () => {
     setLoading(true);
@@ -117,9 +141,36 @@ export default function CalculatorScreen() {
 
     // Apply VIP bonus
     const vipBonus = calculatorData.vip_detail.rate ? parseFloat(calculatorData.vip_detail.rate) / 100 : 0;
-    const finalRate = baseRate * (1 + vipBonus);
 
-    setCalculatedAmount(amount * finalRate);
+    // Apply coupon adjustments
+    let couponRateAdjustment = 0; // Rate increase type coupon
+    let fixedCouponDiscount = 0;  // Fixed amount discount
+    let percentageCouponMultiplier = 1; // Percentage discount multiplier
+
+    if (selectedCoupon) {
+      if (selectedCoupon.discount_type === 1) { // Percentage discount (e.g., 5% Off)
+        percentageCouponMultiplier = 1 - parseFloat(selectedCoupon.discount_value);
+      } else if (selectedCoupon.discount_type === 2) { // Amount discount or rate increase
+        if (selectedCoupon.type === 1) { // Fixed amount discount (e.g., ₦500 Off)
+          fixedCouponDiscount = parseFloat(selectedCoupon.discount_value);
+        } else if (selectedCoupon.type === 2) { // Rate increase (e.g., Rate +0.02)
+          couponRateAdjustment = parseFloat(selectedCoupon.discount_value);
+        }
+      }
+    }
+
+    // Calculate effective rate (base rate + VIP bonus + coupon rate adjustment)
+    const effectiveRate = baseRate * (1 + vipBonus + couponRateAdjustment);
+    let finalCalculatedAmount = amount * effectiveRate;
+
+    // Apply percentage discount (after base calculation)
+    finalCalculatedAmount *= percentageCouponMultiplier;
+
+    // Apply fixed amount discount (after all calculations)
+    finalCalculatedAmount -= fixedCouponDiscount;
+
+    // Ensure result is not negative
+    setCalculatedAmount(Math.max(0, finalCalculatedAmount));
   };
 
   const refreshRates = () => {
@@ -136,6 +187,24 @@ export default function CalculatorScreen() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
+  };
+
+  const formatCouponDisplay = (coupon: Coupon) => {
+    const discountValue = parseFloat(coupon.discount_value);
+
+    if (coupon.discount_type === 1) {
+      return `${coupon.code} (${(discountValue * 100).toFixed(1)}% Off)`;
+    }
+
+    if (coupon.discount_type === 2) {
+      if (coupon.type === 1) {
+        return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
+      }
+      if (coupon.type === 2) {
+        return `${coupon.code} (Rate +${discountValue.toFixed(2)})`;
+      }
+    }
+    return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
   };
 
   if (loading) {
@@ -228,6 +297,29 @@ export default function CalculatorScreen() {
               selectedCurrency={selectedCurrency}
               onSelectCurrency={setSelectedCurrency}
             />
+          )}
+
+          {/* Discount Code Section */}
+          {user?.token && (
+            <TouchableOpacity
+              style={[styles.discountSection, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={() => setShowCouponModal(true)}
+            >
+              <View style={styles.discountContent}>
+                <Tag size={20} color={colors.primary} />
+                <View style={styles.discountTextContainer}>
+                  <Text style={[styles.discountText, { color: colors.text }]}>
+                    {selectedCoupon ? formatCouponDisplay(selectedCoupon) : 'Select Discount Code'}
+                  </Text>
+                  {selectedCoupon && (
+                    <Text style={[styles.discountDescription, { color: colors.textSecondary }]}>
+                      Expires: {new Date(selectedCoupon.valid_end_time * 1000).toLocaleDateString()}
+                    </Text>
+                  )}
+                </View>
+              </View>
+              <ChevronDown size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
           )}
 
           {/* VIP Benefits - Collapsible */}
