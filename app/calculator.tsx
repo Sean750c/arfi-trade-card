@@ -553,4 +553,33 @@ const styles = StyleSheet.create({
   ratesButton: {
     height: 48,
   },
+
+  // Discount Section Styles
+  discountSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: Spacing.lg,
+  },
+  discountContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: Spacing.sm,
+  },
+  discountTextContainer: {
+    flex: 1,
+  },
+  discountText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+  },
+  discountDescription: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    marginTop: 2,
+  },
 });
