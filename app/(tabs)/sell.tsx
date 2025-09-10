@@ -439,18 +439,18 @@ function SellScreenContent() {
     const discountValue = parseFloat(coupon.discount_value);
 
     if (coupon.discount_type === 1) {
-      return `${coupon.code} (${(discountValue * 100).toFixed(1)}% Off)`;
+      return `${coupon.code} (Rate +${(discountValue * 100).toFixed(1)}%)`;
     }
 
     if (coupon.discount_type === 2) {
       if (coupon.type === 1) {
-        return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
+        return `${coupon.code} (+${coupon.symbol}${discountValue.toFixed(2)})`;
       }
       if (coupon.type === 2) {
         return `${coupon.code} (Rate +${discountValue.toFixed(2)})`;
       }
     }
-    return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
+    return `${coupon.code} (+${coupon.symbol}${discountValue.toFixed(2)})`;
   };
 
   // 优化图片预览组件，使用 React.memo 减少重渲染

@@ -21,7 +21,6 @@ import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAppStore } from '@/stores/useAppStore';
-import { useCouponStore } from '@/stores/useCouponStore';
 import { CalculatorService } from '@/services/calculator';
 import type { CalculatorData, CardItem, Coupon } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
@@ -59,16 +58,6 @@ export default function CalculatorScreen() {
   // Fetch calculator data on component mount
   useEffect(() => {
     fetchCalculatorData();
-    // Load coupon data when user is authenticated
-    if (user?.token) {
-      const couponWalletType = selectedCurrency === 'USDT' ? 2 : 1;
-      useCouponStore.getState().fetchCoupons(couponWalletType, user.token, true);
-    }
-    
-    // Cleanup coupon data on unmount
-    return () => {
-      useCouponStore.getState().clearCouponData();
-    };
   }, [user, selectedCountry]);
 
   // Calculate amount when inputs change
@@ -78,15 +67,6 @@ export default function CalculatorScreen() {
     }
   }, [selectedCard, selectedDenomination, customAmount, selectedCurrency, calculatorData, selectedCoupon]);
 
-  // Reload coupons when currency changes
-  useEffect(() => {
-    if (user?.token) {
-      const couponWalletType = selectedCurrency === 'USDT' ? 2 : 1;
-      useCouponStore.getState().fetchCoupons(couponWalletType, user.token, true);
-      // Clear selected coupon when currency changes
-      setSelectedCoupon(null);
-    }
-  }, [selectedCurrency, user?.token]);
 
   const fetchCalculatorData = async () => {
     setLoading(true);
@@ -148,10 +128,10 @@ export default function CalculatorScreen() {
     let percentageCouponMultiplier = 1; // Percentage discount multiplier
 
     if (selectedCoupon) {
-      if (selectedCoupon.discount_type === 1) { // Percentage discount (e.g., 5% Off)
-        percentageCouponMultiplier = 1 - parseFloat(selectedCoupon.discount_value);
+      if (selectedCoupon.discount_type === 1) { // Percentage discount (e.g., 5%)
+        percentageCouponMultiplier = 1 + parseFloat(selectedCoupon.discount_value);
       } else if (selectedCoupon.discount_type === 2) { // Amount discount or rate increase
-        if (selectedCoupon.type === 1) { // Fixed amount discount (e.g., ₦500 Off)
+        if (selectedCoupon.type === 1) { // Fixed amount discount (e.g., ₦500)
           fixedCouponDiscount = parseFloat(selectedCoupon.discount_value);
         } else if (selectedCoupon.type === 2) { // Rate increase (e.g., Rate +0.02)
           couponRateAdjustment = parseFloat(selectedCoupon.discount_value);
@@ -160,17 +140,30 @@ export default function CalculatorScreen() {
     }
 
     // Calculate effective rate (base rate + VIP bonus + coupon rate adjustment)
-    const effectiveRate = baseRate * (1 + vipBonus + couponRateAdjustment);
-    let finalCalculatedAmount = amount * effectiveRate;
-
-    // Apply percentage discount (after base calculation)
-    finalCalculatedAmount *= percentageCouponMultiplier;
+    const effectiveRate = baseRate * (1 + vipBonus + percentageCouponMultiplier);
+    let finalCalculatedAmount = amount * (effectiveRate + couponRateAdjustment);
 
     // Apply fixed amount discount (after all calculations)
-    finalCalculatedAmount -= fixedCouponDiscount;
+    finalCalculatedAmount += fixedCouponDiscount;
 
     // Ensure result is not negative
     setCalculatedAmount(Math.max(0, finalCalculatedAmount));
+  };
+
+  const couponBonus = () => {
+    if (selectedCoupon) {
+      const discountValue = parseFloat(selectedCoupon.discount_value);
+      if (selectedCoupon.discount_type === 1) { // Percentage discount (e.g., 5%)
+        return `+${(discountValue * 100).toFixed(1)}%`;
+      } else if (selectedCoupon.discount_type === 2) { // Amount discount or rate increase
+        if (selectedCoupon.type === 1) { // Fixed amount discount (e.g., ₦500)
+          return `+${selectedCoupon.symbol}${discountValue.toFixed(2)}`;
+        } else if (selectedCoupon.type === 2) { // Rate increase (e.g., Rate +0.02)
+          return `Rate +${discountValue.toFixed(2)}`;
+        }
+      }
+    }
+    return '';
   };
 
   const refreshRates = () => {
@@ -193,18 +186,18 @@ export default function CalculatorScreen() {
     const discountValue = parseFloat(coupon.discount_value);
 
     if (coupon.discount_type === 1) {
-      return `${coupon.code} (${(discountValue * 100).toFixed(1)}% Off)`;
+      return `${coupon.code} (Rate +${(discountValue * 100).toFixed(1)}%)`;
     }
 
     if (coupon.discount_type === 2) {
       if (coupon.type === 1) {
-        return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
+        return `${coupon.code} (+${coupon.symbol}${discountValue.toFixed(2)})`;
       }
       if (coupon.type === 2) {
         return `${coupon.code} (Rate +${discountValue.toFixed(2)})`;
       }
     }
-    return `${coupon.code} (${coupon.symbol}${discountValue.toFixed(2)} Off)`;
+    return `${coupon.code} (+${coupon.symbol}${discountValue.toFixed(2)})`;
   };
 
   if (loading) {
@@ -375,6 +368,17 @@ export default function CalculatorScreen() {
                   </View>
                 )}
 
+                {selectedCoupon && (
+                  <View style={styles.rateDetailRow}>
+                    <Text style={[styles.rateDetailLabel, { color: colors.textSecondary }]}>
+                      Coupon Bonus:
+                    </Text>
+                    <Text style={[styles.rateDetailValue, { color: colors.success }]}>
+                      {couponBonus()}
+                    </Text>
+                  </View>
+                )}
+
                 <View style={styles.rateDetailRow}>
                   <Text style={[styles.rateDetailLabel, { color: colors.textSecondary }]}>
                     Processing:
@@ -385,6 +389,21 @@ export default function CalculatorScreen() {
                 </View>
               </View>
             </Card>
+          )}
+
+          {/* Modals */}
+          {showCouponModal && (
+            <DiscountCodeModal
+              visible={showCouponModal}
+              onClose={() => setShowCouponModal(false)}
+              onSelect={(coupon) => {
+                setSelectedCoupon(coupon);
+                setShowCouponModal(false);
+              }}
+              selectedCoupon={selectedCoupon}
+              userToken={user?.token || ''}
+              walletType={selectedCurrency || ''}
+            />
           )}
 
           {/* Action Buttons */}

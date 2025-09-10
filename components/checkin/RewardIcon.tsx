@@ -85,7 +85,7 @@ export default function RewardIcon({
     const discountValue = parseFloat(coupon.discount_value);
 
     // 百分比类型优惠,抽奖的都是百分比类型的
-    return `${coupon.code}(${(discountValue * 100).toFixed(1)}% Off)`;
+    return `${coupon.code}(Rate +${(discountValue * 100).toFixed(1)}%)`;
   };
 
   return (

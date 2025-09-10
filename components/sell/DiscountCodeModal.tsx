@@ -90,14 +90,14 @@ export default function DiscountCodeModal({
 
     // 百分比类型优惠
     if (coupon.discount_type === 1) {
-      return `${(discountValue * 100).toFixed(1)}% Off`;
+      return `Rate +${(discountValue * 100).toFixed(1)}%`;
     }
 
     // 数值类型优惠
     if (coupon.discount_type === 2) {
       // 成交返利类型
       if (coupon.type === 1) {
-        return `${coupon.symbol}${discountValue.toFixed(2)} Off`;
+        return `+${coupon.symbol}${discountValue.toFixed(2)}`;
       }
       // 汇率提高类型
       if (coupon.type === 2) {
@@ -106,7 +106,7 @@ export default function DiscountCodeModal({
     }
 
     // 默认情况
-    return `${coupon.symbol}${discountValue.toFixed(2)} Off`;
+    return `+${coupon.symbol}${discountValue.toFixed(2)}`;
   };
 
   const renderCouponItem = ({ item }: { item: Coupon }) => {
