@@ -110,19 +110,52 @@ function CheckinScreenContent() {
     [user?.token, checkinConfig, performCheckin, checkinError, currentDisplayDate, reloadUser]
   );
 
-  // Handle calendar navigation
   const handleCalendarDateChange = useCallback(
     (direction: string) => {
       const date = parseYMD(currentDisplayDate);
-      if (direction === 'prev') {
-        date.setDate(date.getDate() - 7); // Go back one week
-      } else {
-        date.setDate(date.getDate() + 7); // Go forward one week
+      
+      switch (checkinConfig?.cycle) {
+        case 1: // 单周
+          date.setDate(date.getDate() + (direction === 'prev' ? -7 : 7));
+          break;
+        case 2: // 双周
+          date.setDate(date.getDate() + (direction === 'prev' ? -14 : 14));
+          break;
+        case 3: // 月
+          if (direction === 'prev') {
+            date.setMonth(date.getMonth() - 1);
+          } else {
+            date.setMonth(date.getMonth() + 1);
+          }
+          date.setDate(1); // 设置为该月1号
+          break;
+        case 4: // 根据 rule 长度
+          const step = checkinConfig?.rule.length;
+          date.setDate(date.getDate() + (direction === 'prev' ? -step : step));
+          break;
+        default:
+          // 默认按单周处理
+          date.setDate(date.getDate() + (direction === 'prev' ? -7 : 7));
       }
+  
       setCurrentDisplayDate(formatLocalDate(date));
     },
     [currentDisplayDate]
   );
+
+  // Handle calendar navigation
+  // const handleCalendarDateChange = useCallback(
+  //   (direction: string) => {
+  //     const date = parseYMD(currentDisplayDate);
+  //     if (direction === 'prev') {
+  //       date.setDate(date.getDate() - 7); // Go back one week
+  //     } else {
+  //       date.setDate(date.getDate() + 7); // Go forward one week
+  //     }
+  //     setCurrentDisplayDate(formatLocalDate(date));
+  //   },
+  //   [currentDisplayDate]
+  // );
 
   const totalSignedDays = useMemo(() => {
     return checkinConfig?.rule.filter((rule) => rule.is_checkin).length || 0;

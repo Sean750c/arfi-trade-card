@@ -104,7 +104,7 @@ export class APIRequest {
       const requestParams = {
         ...params,
         appid,
-        app_version: '1.0.3',
+        app_version: '1.0.4',
       };
   
       // Generate signature
