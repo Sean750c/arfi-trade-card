@@ -48,6 +48,7 @@ export interface DataRechargeRequest {
   phone: string;
   amount: number;
   service_id: number;
+  service_name: string;
   password: string;
 }
 

@@ -82,7 +82,7 @@ function MobileRechargeScreenContent() {
   // Predefined airtime amounts
   const airtimeAmounts = [100, 200, 500, 1000, 2000, 5000];
 
-  let chargeDiscount = user?.charge_discount || 97;
+  let chargeDiscount = user?.charge_discount || 98;
 
   // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
@@ -240,6 +240,7 @@ function MobileRechargeScreenContent() {
           pendingRechargeData.phone,
           pendingRechargeData.amount,
           pendingRechargeData.dataBundle!.serviceId,
+          pendingRechargeData.dataBundle!.serviceName,
           paymentPassword
         );
         Alert.alert(

@@ -69,7 +69,7 @@ export default function QuickActions() {
       route: '/rates',
       color: '#10B981',
     },
-    ...(initData?.checkin_enable !== false
+    ...(initData?.checkin_enable !== false && initData?.hidden_flag !== '1'
       ? [
         {
           id: '3',
@@ -89,7 +89,7 @@ export default function QuickActions() {
     //   route: '/profile/checkin', // 确保路由正确
     //   color: '#8B5CF6',
     // },
-    ...(initData?.lottery_enable !== false
+    ...(initData?.lottery_enable !== false && initData?.hidden_flag !== '1'
       ? [
         {
           id: '4',

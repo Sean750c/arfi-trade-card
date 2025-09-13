@@ -29,7 +29,7 @@ interface UtilitiesState {
   fetchSuppliers: (token: string) => Promise<void>;
   fetchDataBundles: (token: string, supplyCode: string) => Promise<void>;
   airtimeRecharge: (token: string, name: string, phone: string, amount: number, password: string) => Promise<void>;
-  dataRecharge: (token: string, name: string, phone: string, amount: number, serviceId: number, password: string) => Promise<void>;
+  dataRecharge: (token: string, name: string, phone: string, amount: number, serviceId: number, serviceName: string, password: string) => Promise<void>;
   setSelectedSupplier: (supplier: Supplier | null) => void;
   fetchRechargeLogs: (token: string, type: string, refresh?: boolean) => Promise<void>;
   loadMoreRechargeLogs: (token: string, type: string) => Promise<void>;
@@ -130,7 +130,7 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
     }
   },
 
-  dataRecharge: async (token: string, name: string, phone: string, amount: number, serviceId: number, password: string) => {
+  dataRecharge: async (token: string, name: string, phone: string, amount: number, service_id: number, service_name: string, password: string) => {
     set({ isRecharging: true, rechargeError: null });
     
     try {
@@ -139,7 +139,8 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
         name,
         phone,
         amount,
-        service_id: serviceId,
+        service_id,
+        service_name,
         password,
       });
       
