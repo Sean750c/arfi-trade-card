@@ -167,9 +167,9 @@ export default function RechargeLogsModal({ title, visible, onClose, type }: Rec
           </View>
 
           {/* 运营商 */}
-          {(log.operator || log.phone) && (
+          {(log.merchant_name || log.account_no) && (
             <Text style={[styles.cardSub, { color: colors.textSecondary }]} numberOfLines={1}>
-              {log.operator} {log.phone}
+              {log.merchant_name} {log.account_no}
             </Text>
           )}
 
@@ -179,9 +179,9 @@ export default function RechargeLogsModal({ title, visible, onClose, type }: Rec
             </Text>
           )}
 
-          {log.order_no && (
+          {log.reference_no && (
             <Text style={[styles.cardSub, { color: colors.textSecondary }]} numberOfLines={1}>
-              {log.order_no}
+              {log.reference_no}
             </Text>
           )}
 

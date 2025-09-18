@@ -1,5 +1,5 @@
 import { APIRequest } from '@/utils/api';
-import type { 
+import type {
   SuppliersResponse,
   DataBundlesRequest,
   DataBundlesResponse,
@@ -11,7 +11,15 @@ import type {
   DataBundle,
   RechargeLogsRequest,
   RechargeLogResponse,
-  RechargeLogEntry
+  RechargeLogEntry,
+  MerchantListResponse,
+  MerchantEntry,
+  MerchantServiceResponse,
+  MerchantServiceEntry,
+  MerchantAccountEntry,
+  MerchantAccountResponse,
+  MerchantPaymentResponse,
+  MerchantPaymentRequest,
 } from '@/types/utilities';
 
 export class UtilitiesService {
@@ -33,7 +41,7 @@ export class UtilitiesService {
       if (error instanceof Error && error.message.includes('Session expired')) {
         throw error;
       }
-      
+
       if (error instanceof Error) {
         throw new Error(`Failed to fetch suppliers: ${error.message}`);
       }
@@ -58,7 +66,7 @@ export class UtilitiesService {
       if (error instanceof Error && error.message.includes('Session expired')) {
         throw error;
       }
-      
+
       if (error instanceof Error) {
         throw new Error(`Failed to fetch data bundles: ${error.message}`);
       }
@@ -81,7 +89,7 @@ export class UtilitiesService {
       if (error instanceof Error && error.message.includes('Session expired')) {
         throw error;
       }
-      
+
       if (error instanceof Error) {
         throw new Error(`Failed to recharge airtime: ${error.message}`);
       }
@@ -104,7 +112,7 @@ export class UtilitiesService {
       if (error instanceof Error && error.message.includes('Session expired')) {
         throw error;
       }
-      
+
       if (error instanceof Error) {
         throw new Error(`Failed to recharge data: ${error.message}`);
       }
@@ -130,11 +138,114 @@ export class UtilitiesService {
       if (error instanceof Error && error.message.includes('Session expired')) {
         throw error; // Re-throw token expiration errors
       }
-      
+
       if (error instanceof Error) {
         throw new Error(`Failed to fetch recharge logs: ${error.message}`);
       }
       throw new Error('Failed to fetch recharge logs');
     }
   }
+
+  static async getMerchants(token: string, type: number): Promise<MerchantEntry[]> {
+    try {
+      const response = await APIRequest.request<MerchantListResponse>(
+        '/gc/recharge/getMerchants',
+        'POST',
+        { token, type }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to fetch merchant list');
+      }
+
+      return response.data;
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch merchant list: ${error.message}`);
+      }
+      throw new Error('Failed to fetch merchant list');
+    }
+  }
+
+  static async getMerchantServices(token: string, merchant_id: string): Promise<MerchantServiceEntry[]> {
+    try {
+      const response = await APIRequest.request<MerchantServiceResponse>(
+        '/gc/recharge/getMerchantServices',
+        'POST',
+        { token, merchant_id }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to fetch merchant services');
+      }
+
+      return response.data;
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch merchant services: ${error.message}`);
+      }
+      throw new Error('Failed to fetch merchant services');
+    }
+  }
+
+  static async getMerchantAccountDetails(token: string, merchant_id: string, customer_no: string, product_code: string): Promise<MerchantAccountEntry> {
+    try {
+      const response = await APIRequest.request<MerchantAccountResponse>(
+        '/gc/recharge/getMerchantAccountDetails',
+        'POST',
+        { token, merchant_id, customer_no, product_code }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to fetch merchant account details');
+      }
+
+      return response.data;
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch merchant account details: ${error.message}`);
+      }
+      throw new Error('Failed to fetch merchant account details');
+    }
+  }
+
+  static async merchantPayment(params: MerchantPaymentRequest): Promise<void> {
+    try {
+      const response = await APIRequest.request<MerchantPaymentResponse>(
+        '/gc/recharge/merchantPayment',
+        'POST',
+        params
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to fetch merchant account details');
+      }
+    } catch (error) {
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch merchant account details: ${error.message}`);
+      }
+      throw new Error('Failed to fetch merchant account details');
+    }
+  }
+  
 }
