@@ -47,6 +47,64 @@ export interface MerchantAccountEntry {
   details: string;
 }
 
+// Service Types Enum
+export enum ServiceType {
+  AIRTIME = 1,
+  DATA = 2,
+  CABLE_TV = 3,
+  ELECTRICITY = 4,
+  INTERNET = 5,
+  LOTTERY = 6,
+}
+
+// Cable TV Types
+export interface CableTVPackage extends MerchantServiceEntry {
+  duration: string; // e.g., "1 Month", "3 Months"
+  description?: string;
+}
+
+// Electricity Types
+export interface ElectricityService extends MerchantServiceEntry {
+  minimum_amount: number;
+  maximum_amount: number;
+  unit_type: string; // e.g., "kWh", "Units"
+}
+
+// Internet Service Types
+export interface InternetService extends MerchantServiceEntry {
+  speed: string; // e.g., "10 Mbps", "50 Mbps"
+  data_limit?: string; // e.g., "Unlimited", "100GB"
+  duration: string; // e.g., "1 Month"
+}
+
+// Lottery Types
+export interface LotteryGame extends MerchantEntry {
+  game_type: string; // e.g., "Lotto", "Scratch Card"
+  draw_time?: string;
+  jackpot_amount?: number;
+}
+
+// Account Verification Types
+export interface AccountVerificationRequest {
+  token: string;
+  merchant_id: string;
+  customer_no: string;
+  product_code: string;
+}
+
+// Payment Request Types
+export interface ServicePaymentRequest {
+  token: string;
+  merchant_id: string;
+  merchant_name: string;
+  customer_no: string;
+  product_code: string;
+  amount: number;
+  password: string;
+  service_type: ServiceType;
+  additional_info?: Record<string, any>;
+}
+
 export interface SuppliersRequest {
   token: string;
 }
@@ -88,6 +146,7 @@ export interface MerchantPaymentRequest {
   customer_no: string;
   product_code: string;
   amount: number;
+  password: string;
 }
 
 export type SuppliersResponse = APIResponse<Supplier[]>;
@@ -101,3 +160,9 @@ export type MerchantListResponse = APIResponse<MerchantEntry[]>;
 export type MerchantServiceResponse = APIResponse<MerchantServiceEntry[]>;
 export type MerchantAccountResponse = APIResponse<MerchantAccountEntry>;
 export type MerchantPaymentResponse = APIResponse<{}>;
+
+// Extended response types for new services
+export type CableTVPackagesResponse = APIResponse<CableTVPackage[]>;
+export type ElectricityServicesResponse = APIResponse<ElectricityService[]>;
+export type InternetServicesResponse = APIResponse<InternetService[]>;
+export type LotteryGamesResponse = APIResponse<LotteryGame[]>;

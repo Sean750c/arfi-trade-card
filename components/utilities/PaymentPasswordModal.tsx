@@ -27,15 +27,27 @@ interface PendingRechargeData {
   };
 }
 
+interface PendingPaymentData {
+  type: string;
+  merchant: string;
+  customerNo: string;
+  service: string;
+  amount: number;
+  paymentAmount: number;
+}
+
 interface PaymentPasswordModalProps {
   visible: boolean;
   onClose: () => void;
   paymentPassword: string;
   onPaymentPasswordChange: (password: string) => void;
   passwordError: string;
-  onExecuteRecharge: () => void;
-  isRecharging: boolean;
-  pendingRechargeData: PendingRechargeData | null;
+  onExecutePayment?: () => void;
+  onExecuteRecharge?: () => void;
+  isRecharging?: boolean;
+  isProcessing?: boolean;
+  pendingRechargeData?: PendingRechargeData | null;
+  pendingPaymentData?: PendingPaymentData | null;
 }
 
 export default function PaymentPasswordModal({
@@ -44,15 +56,39 @@ export default function PaymentPasswordModal({
   paymentPassword,
   onPaymentPasswordChange,
   passwordError,
+  onExecutePayment,
   onExecuteRecharge,
   isRecharging,
+  isProcessing,
   pendingRechargeData,
+  pendingPaymentData,
 }: PaymentPasswordModalProps) {
   const { colors } = useTheme();
 
   const handlePasswordChange = (text: string) => {
     onPaymentPasswordChange(text);
   };
+
+  const handleExecute = () => {
+    if (onExecutePayment) {
+      onExecutePayment();
+    } else if (onExecuteRecharge) {
+      onExecuteRecharge();
+    }
+  };
+
+  const getPaymentInfo = () => {
+    if (pendingRechargeData) {
+      return `You are about to pay ₦${pendingRechargeData.paymentAmount.toLocaleString()} for ${pendingRechargeData.type === 'airtime' ? 'airtime' : 'data'} recharge`;
+    }
+    if (pendingPaymentData) {
+      return `You are about to pay ₦${pendingPaymentData.paymentAmount.toLocaleString()} for ${pendingPaymentData.service}`;
+    }
+    return '';
+  };
+
+  const isLoading = isRecharging || isProcessing;
+  const buttonTitle = isLoading ? 'Processing...' : 'Pay Now';
 
   return (
     <Modal
@@ -81,10 +117,10 @@ export default function PaymentPasswordModal({
           </View>
 
           <View style={styles.passwordContent}>
-            {pendingRechargeData && (
+            {(pendingRechargeData || pendingPaymentData) && (
               <View style={[styles.paymentInfo, { backgroundColor: colors.background }]}>
                 <Text style={[styles.paymentInfoText, { color: colors.textSecondary }]}>
-                  You are about to pay ₦{pendingRechargeData.paymentAmount.toLocaleString()} for {pendingRechargeData.type === 'airtime' ? 'airtime' : 'data'} recharge
+                  {getPaymentInfo()}
                 </Text>
               </View>
             )}
@@ -105,10 +141,10 @@ export default function PaymentPasswordModal({
                 style={styles.cancelButton}
               />
               <Button
-                title={isRecharging ? 'Processing...' : 'Pay Now'}
-                onPress={onExecuteRecharge}
-                disabled={isRecharging || paymentPassword.length !== 6}
-                loading={isRecharging}
+                title={buttonTitle}
+                onPress={handleExecute}
+                disabled={isLoading || paymentPassword.length !== 6}
+                loading={isLoading}
                 style={styles.payButton}
               />
             </View>

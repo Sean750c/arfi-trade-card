@@ -9,7 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Phone, Wifi, Zap, Tv, ArrowRight, Smartphone, History, Chrome as Home } from 'lucide-react-native';
+import { ChevronLeft, Phone, Wifi, Zap, Tv, ArrowRight, Smartphone, History, Chrome as Home, Globe, DollarSign } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
 import AuthGuard from '@/components/UI/AuthGuard';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
@@ -47,35 +47,41 @@ function UtilitiesScreenContent() {
       isAvailable: true,
     },
     {
-      id: 'electricity',
-      title: 'Electricity Bills',
-      subtitle: 'Pay your power bills',
-      icon: <Zap size={32} color="#FFFFFF" />,
-      route: '/utilities/electricity',
-      color: '#F59E0B',
-      isAvailable: false,
-      comingSoon: true,
-    },
-    {
       id: 'cable-tv',
       title: 'Cable TV',
       subtitle: 'DSTV, GOtv & more',
       icon: <Tv size={32} color="#FFFFFF" />,
       route: '/utilities/cable-tv',
       color: '#8B5CF6',
-      isAvailable: false,
-      comingSoon: true,
+      isAvailable: true,
     },
-    // {
-    //   id: 'internet',
-    //   title: 'Internet Bills',
-    //   subtitle: 'Broadband payments',
-    //   icon: <Globe size={32} color="#FFFFFF" />,
-    //   route: '/utilities/internet',
-    //   color: '#06B6D4',
-    //   isAvailable: false,
-    //   comingSoon: true,
-    // },
+    {
+      id: 'electricity',
+      title: 'Electricity Bills',
+      subtitle: 'Pay your power bills',
+      icon: <Zap size={32} color="#FFFFFF" />,
+      route: '/utilities/electricity',
+      color: '#F59E0B',
+      isAvailable: true,
+    },
+    {
+      id: 'internet',
+      title: 'Internet Bills',
+      subtitle: 'Broadband payments',
+      icon: <Globe size={32} color="#FFFFFF" />,
+      route: '/utilities/internet',
+      color: '#06B6D4',
+      isAvailable: true,
+    },
+    {
+      id: 'lottery',
+      title: 'Lottery & Gaming',
+      subtitle: 'Sports betting & lotto',
+      icon: <DollarSign size={32} color="#FFFFFF" />,
+      route: '/utilities/lottery',
+      color: '#EF4444',
+      isAvailable: true,
+    },
   ];
 
   const handleRefresh = useCallback(async () => {
@@ -93,6 +99,12 @@ function UtilitiesScreenContent() {
 
     if (service.id == 'mobile-recharge' && user?.country_id != 14) {
       Alert.alert('Error', 'Airtime and data recharge is only available for Nigerian users');
+      return;
+    }
+
+    // Check for Nigerian users for certain services
+    if (['cable-tv', 'electricity', 'internet', 'lottery'].includes(service.id) && user?.country_id != 14) {
+      Alert.alert('Error', `${service.title} is only available for Nigerian users`);
       return;
     }
 

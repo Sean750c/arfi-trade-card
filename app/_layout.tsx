@@ -118,6 +118,10 @@ export default function RootLayout() {
         <Stack.Screen name="profile/lottery" />
         <Stack.Screen name="utilities" />
         <Stack.Screen name="utilities/mobile-recharge" />
+        <Stack.Screen name="utilities/cable-tv" />
+        <Stack.Screen name="utilities/electricity" />
+        <Stack.Screen name="utilities/internet" />
+        <Stack.Screen name="utilities/lottery" />
         <Stack.Screen name="+not-found" />
       </Stack>
 
