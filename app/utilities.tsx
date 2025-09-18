@@ -78,7 +78,7 @@ function UtilitiesScreenContent() {
       title: 'Lottery & Gaming',
       subtitle: 'Sports betting & lotto',
       icon: <DollarSign size={32} color="#FFFFFF" />,
-      route: '/utilities/lottery',
+      route: '/utilities/betting',
       color: '#EF4444',
       isAvailable: true,
     },
