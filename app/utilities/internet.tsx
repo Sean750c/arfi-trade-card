@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -139,6 +139,14 @@ function InternetScreenContent() {
 
     return true;
   };
+
+  const isFormReadyForSubmission = useMemo(() => {
+    // Basic checks without alerts for button disabled state
+    if (!currentMerchant) return false;
+    if (!customerNumber.trim()) return false;
+    if (!currentSelectedService && !customAmount.trim()) return false;
+    return true;
+  }, [currentMerchant, customerNumber, currentSelectedService, customAmount]);
 
   const handleVerifyAccount = async () => {
     if (!validateForm() || !user?.token || !currentMerchant) return;
@@ -420,7 +428,7 @@ function InternetScreenContent() {
           <Button
             title={isLoadingAccountDetails ? 'Verifying Account...' : 'Verify & Pay'}
             onPress={handleVerifyAccount}
-            disabled={isLoadingAccountDetails || !validateForm()}
+            disabled={isLoadingAccountDetails || !isFormReadyForSubmission}
             loading={isLoadingAccountDetails}
             style={styles.payButton}
             fullWidth

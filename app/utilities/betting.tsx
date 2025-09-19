@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -128,6 +128,14 @@ function LotteryScreenContent() {
 
     return true;
   };
+
+  const isFormReadyForSubmission = useMemo(() => {
+    // Basic checks without alerts for button disabled state
+    if (!currentMerchant) return false;
+    if (!customerNumber.trim()) return false;
+    if (!amount.trim()) return false;
+    return true;
+  }, [currentMerchant, customerNumber, amount]);
 
   const handleVerifyAccount = async () => {
     if (!validateForm() || !user?.token || !currentMerchant) return;
@@ -410,7 +418,7 @@ function LotteryScreenContent() {
           <Button
             title={isLoadingAccountDetails ? 'Verifying Account...' : 'Fund Wallet'}
             onPress={handleVerifyAccount}
-            disabled={isLoadingAccountDetails || !validateForm()}
+            disabled={isLoadingAccountDetails || !isFormReadyForSubmission}
             loading={isLoadingAccountDetails}
             style={styles.payButton}
             fullWidth

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -143,6 +143,14 @@ function ElectricityScreenContent() {
 
     return true;
   };
+
+  const isFormReadyForSubmission = useMemo(() => {
+    // Basic checks without alerts for button disabled state
+    if (!currentMerchant) return false;
+    if (!meterNumber.trim()) return false;
+    if (!amount.trim()) return false;
+    return true;
+  }, [currentMerchant, meterNumber, amount]);
 
   const handleVerifyMeter = async () => {
     if (!validateForm() || !user?.token || !currentMerchant) return;
@@ -460,7 +468,7 @@ function ElectricityScreenContent() {
           <Button
             title={isLoadingAccountDetails ? 'Verifying Meter...' : 'Verify & Pay'}
             onPress={handleVerifyMeter}
-            disabled={isLoadingAccountDetails || !validateForm()}
+            disabled={isLoadingAccountDetails || !isFormReadyForSubmission}
             loading={isLoadingAccountDetails}
             style={styles.payButton}
             fullWidth
