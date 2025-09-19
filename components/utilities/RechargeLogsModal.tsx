@@ -30,7 +30,7 @@ interface RechargeLogsModalProps {
   title: string;
   visible: boolean;
   onClose: () => void;
-  type: 'phone' | 'logistics' | 'electricity' | 'cable' | 'all';
+  type: 'phone' | 'cable' | 'electricity' | 'internet' | 'lottery' | 'all';
 }
 
 export default function RechargeLogsModal({ title, visible, onClose, type }: RechargeLogsModalProps) {

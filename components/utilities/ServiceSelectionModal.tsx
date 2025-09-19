@@ -73,16 +73,18 @@ export default function ServiceSelectionModal({
           ]}>
             {service.name}
           </Text>
-          <Text style={[
-            styles.servicePrice,
-            {
-              color: selectedService?.code === service.code
-                ? colors.primary
-                : colors.textSecondary
-            }
-          ]}>
-            ₦{service.price.toLocaleString()}
-          </Text>
+          {service.price > 0 && (
+            <Text style={[
+              styles.servicePrice,
+              {
+                color: selectedService?.code === service.code
+                  ? colors.primary
+                  : colors.textSecondary
+              }
+            ]}>
+              ₦{service.price.toLocaleString()}
+            </Text>
+          )}
         </View>
       </View>
     </TouchableOpacity>

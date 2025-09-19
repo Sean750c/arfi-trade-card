@@ -50,7 +50,7 @@ interface UtilitiesState {
   fetchAccountDetails: (token: string, merchantId: string, customerNo: string, productCode: string) => Promise<void>;
   airtimeRecharge: (token: string, name: string, phone: string, amount: number, password: string) => Promise<void>;
   dataRecharge: (token: string, name: string, phone: string, amount: number, serviceId: number, serviceName: string, password: string) => Promise<void>;
-  merchantPayment: (token: string, merchantId: string, merchantName: string, customerNo: string, productCode: string, amount: number, password: string) => Promise<void>;
+  merchantPayment: (token: string, merchantId: string, merchantName: string, customerNo: string, productCode: string, amount: number, type: number, password: string) => Promise<void>;
   setSelectedSupplier: (supplier: Supplier | null) => void;
   setSelectedMerchant: (serviceType: ServiceType, merchant: MerchantEntry | null) => void;
   setSelectedService: (merchantId: string, service: MerchantServiceEntry | null) => void;
@@ -286,7 +286,7 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
     }
   },
 
-  merchantPayment: async (token: string, merchantId: string, merchantName: string, customerNo: string, productCode: string, amount: number, password: string) => {
+  merchantPayment: async (token: string, merchantId: string, merchantName: string, customerNo: string, productCode: string, amount: number, type: number, password: string) => {
     set({ isProcessingPayment: true, paymentError: null });
     
     try {
@@ -297,6 +297,7 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
         customer_no: customerNo,
         product_code: productCode,
         amount,
+        type,
         password,
       });
       

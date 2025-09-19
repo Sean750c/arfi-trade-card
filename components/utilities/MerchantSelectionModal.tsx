@@ -44,14 +44,14 @@ export default function MerchantSelectionModal({
 
   const renderMerchantOption = (merchant: MerchantEntry) => (
     <TouchableOpacity
-      key={merchant.id}
+      key={merchant.uuid}
       style={[
         styles.modalOption,
         {
-          backgroundColor: selectedMerchant?.id === merchant.id
+          backgroundColor: selectedMerchant?.uuid === merchant.uuid
             ? `${colors.primary}15`
             : colors.card,
-          borderColor: selectedMerchant?.id === merchant.id
+          borderColor: selectedMerchant?.uuid === merchant.uuid
             ? colors.primary
             : colors.border,
         }
@@ -66,7 +66,7 @@ export default function MerchantSelectionModal({
           <Text style={[
             styles.merchantName,
             {
-              color: selectedMerchant?.id === merchant.id
+              color: selectedMerchant?.uuid === merchant.uuid
                 ? colors.primary
                 : colors.text
             }

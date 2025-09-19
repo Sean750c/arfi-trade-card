@@ -81,11 +81,8 @@ function ElectricityScreenContent() {
 
   const electricityMerchants = merchants[ServiceType.ELECTRICITY] || [];
   const currentMerchant = selectedMerchant[ServiceType.ELECTRICITY];
-  const currentServices = currentMerchant ? merchantServices[currentMerchant.id.toString()] || [] : [];
-  const currentSelectedService = currentMerchant ? selectedService[currentMerchant.id.toString()] : null;
-
-  // Predefined amounts for electricity
-  const electricityAmounts = [1000, 2000, 5000, 10000, 20000, 50000];
+  const currentServices = currentMerchant ? merchantServices[currentMerchant.uuid] || [] : [];
+  const currentSelectedService = currentMerchant ? selectedService[currentMerchant.uuid] : null;
 
   let chargeDiscount = user?.charge_discount || 98;
 
@@ -102,7 +99,7 @@ function ElectricityScreenContent() {
   // Fetch services when merchant is selected
   useEffect(() => {
     if (user?.token && currentMerchant) {
-      fetchMerchantServices(user.token, currentMerchant.id.toString());
+      fetchMerchantServices(user.token, currentMerchant.uuid);
     }
   }, [user?.token, currentMerchant]);
 
@@ -156,18 +153,18 @@ function ElectricityScreenContent() {
     if (!validateForm() || !user?.token || !currentMerchant) return;
 
     const productCode = currentSelectedService?.code || 'prepaid';
-    
+
     try {
       await fetchAccountDetails(
         user.token,
-        currentMerchant.id.toString(),
+        currentMerchant.uuid,
         meterNumber.trim(),
         productCode
       );
 
-      const key = `${currentMerchant.id}_${meterNumber.trim()}_${productCode}`;
+      const key = `${currentMerchant.uuid}_${meterNumber.trim()}_${productCode}`;
       const details = accountDetails[key];
-      
+
       if (details) {
         Alert.alert(
           'Meter Verified',
@@ -225,14 +222,15 @@ function ElectricityScreenContent() {
 
     try {
       const productCode = currentSelectedService?.code || 'prepaid';
-      
+
       await merchantPayment(
         user.token,
-        currentMerchant.id.toString(),
+        currentMerchant.uuid,
         currentMerchant.name,
         meterNumber.trim(),
         productCode,
         pendingPaymentData.amount,
+        ServiceType.ELECTRICITY,
         paymentPassword
       );
 
@@ -243,7 +241,7 @@ function ElectricityScreenContent() {
           text: 'OK', onPress: () => {
             setMeterNumber('');
             setAmount('');
-            currentMerchant && setSelectedService(currentMerchant.id.toString(), null);
+            currentMerchant && setSelectedService(currentMerchant.uuid, null);
             resetModals();
           }
         }]
@@ -340,94 +338,46 @@ function ElectricityScreenContent() {
             </TouchableOpacity>
           </View>
 
-          {/* Meter Number Input */}
-          <Input
-            label="Meter Number"
-            value={meterNumber}
-            onChangeText={setMeterNumber}
-            placeholder="Enter your meter number"
-            keyboardType="default"
-            returnKeyType="done"
-          />
-
           {/* Service Type Selection (if available) */}
-          {currentMerchant && currentServices.length > 0 && (
-            <View style={styles.formGroup}>
-              <Text style={[styles.formLabel, { color: colors.text }]}>
-                Service Type
-              </Text>
-              <TouchableOpacity
-                style={[
-                  styles.selector,
-                  {
-                    backgroundColor: colors.background,
-                    borderColor: colors.border,
-                  }
-                ]}
-                onPress={() => setShowServiceModal(true)}
-              >
-                <View style={styles.selectorContent}>
-                  <Lightbulb size={20} color={colors.primary} />
-                  <Text style={[
-                    styles.selectorText,
-                    { color: currentSelectedService ? colors.text : colors.textSecondary }
-                  ]}>
-                    {currentSelectedService 
-                      ? currentSelectedService.name
-                      : 'Select Service Type (Optional)'
-                    }
-                  </Text>
-                </View>
-                <ChevronDown size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Amount Selection */}
           <View style={styles.formGroup}>
             <Text style={[styles.formLabel, { color: colors.text }]}>
-              Select Amount
+              Service Type
             </Text>
-            <View style={styles.amountGrid}>
-              {electricityAmounts.map((presetAmount) => (
-                <TouchableOpacity
-                  key={presetAmount}
-                  style={[
-                    styles.amountOption,
-                    {
-                      backgroundColor: amount === presetAmount.toString()
-                        ? colors.primary
-                        : colors.background,
-                      borderColor: amount === presetAmount.toString()
-                        ? colors.primary
-                        : colors.border,
-                    }
-                  ]}
-                  onPress={() => setAmount(presetAmount.toString())}
-                >
-                  <Text style={[
-                    styles.amountText,
-                    {
-                      color: amount === presetAmount.toString()
-                        ? '#FFFFFF'
-                        : colors.text
-                    }
-                  ]}>
-                    ₦{presetAmount.toLocaleString()}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Input
-              label="Custom Amount"
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="Enter custom amount"
-              keyboardType="numeric"
-              returnKeyType="done"
-            />
+            <TouchableOpacity
+              style={[
+                styles.selector,
+                {
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                }
+              ]}
+              onPress={() => setShowServiceModal(true)}
+            >
+              <View style={styles.selectorContent}>
+                <Lightbulb size={20} color={colors.primary} />
+                <Text style={[
+                  styles.selectorText,
+                  { color: currentSelectedService ? colors.text : colors.textSecondary }
+                ]}>
+                  {currentSelectedService
+                    ? currentSelectedService.name
+                    : 'Select Service Type'
+                  }
+                </Text>
+              </View>
+              <ChevronDown size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
           </View>
+
+          {/* Amount Selection */}
+          <Input
+            label="Amount"
+            value={amount}
+            onChangeText={setAmount}
+            placeholder="Enter amount"
+            keyboardType="numeric"
+            returnKeyType="done"
+          />
 
           {/* Payment Summary */}
           {amount && (
@@ -464,6 +414,16 @@ function ElectricityScreenContent() {
               </View>
             </View>
           )}
+
+          {/* Meter Number Input */}
+          <Input
+            label="Meter Number"
+            value={meterNumber}
+            onChangeText={setMeterNumber}
+            placeholder="Enter your meter number"
+            keyboardType="default"
+            returnKeyType="done"
+          />
 
           <Button
             title={isLoadingAccountDetails ? 'Verifying Meter...' : 'Verify & Pay'}
@@ -511,7 +471,7 @@ function ElectricityScreenContent() {
         services={currentServices}
         isLoadingServices={isLoadingServices}
         selectedService={currentSelectedService}
-        onSelectService={(service) => currentMerchant && setSelectedService(currentMerchant.id.toString(), service)}
+        onSelectService={(service) => currentMerchant && setSelectedService(currentMerchant.uuid, service)}
         title="Select Service Type"
         merchantName={currentMerchant?.name}
       />
@@ -653,25 +613,6 @@ const styles = StyleSheet.create({
   selectorText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-  },
-  amountGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  amountOption: {
-    flex: 1,
-    minWidth: '30%',
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  amountText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
   },
   paymentSummary: {
     backgroundColor: 'rgba(16, 185, 129, 0.1)',

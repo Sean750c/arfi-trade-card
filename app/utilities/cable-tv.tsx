@@ -32,7 +32,7 @@ import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
-import { ServiceType, MerchantEntry, MerchantServiceEntry } from '@/types/utilities';
+import { ServiceType } from '@/types/utilities';
 
 interface PendingPaymentData {
   type: 'cable-tv';
@@ -66,7 +66,6 @@ function CableTVScreenContent() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [customerNumber, setCustomerNumber] = useState('');
-  const [customAmount, setCustomAmount] = useState('');
   const [showMerchantModal, setShowMerchantModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
@@ -80,8 +79,8 @@ function CableTVScreenContent() {
 
   const cableTVMerchants = merchants[ServiceType.CABLE_TV] || [];
   const currentMerchant = selectedMerchant[ServiceType.CABLE_TV];
-  const currentServices = currentMerchant ? merchantServices[currentMerchant.id.toString()] || [] : [];
-  const currentSelectedService = currentMerchant ? selectedService[currentMerchant.id.toString()] : null;
+  const currentServices = currentMerchant ? merchantServices[currentMerchant.uuid] || [] : [];
+  const currentSelectedService = currentMerchant ? selectedService[currentMerchant.uuid] : null;
 
   let chargeDiscount = user?.charge_discount || 98;
 
@@ -98,7 +97,7 @@ function CableTVScreenContent() {
   // Fetch services when merchant is selected
   useEffect(() => {
     if (user?.token && currentMerchant) {
-      fetchMerchantServices(user.token, currentMerchant.id.toString());
+      fetchMerchantServices(user.token, currentMerchant.uuid);
     }
   }, [user?.token, currentMerchant]);
 
@@ -126,13 +125,8 @@ function CableTVScreenContent() {
       return false;
     }
 
-    if (!currentSelectedService && !customAmount) {
+    if (!currentSelectedService) {
       Alert.alert('Error', 'Please select a package or enter custom amount');
-      return false;
-    }
-
-    if (customAmount && (parseFloat(customAmount) <= 0 || parseFloat(customAmount) > 100000)) {
-      Alert.alert('Error', 'Amount must be between ₦1 and ₦100,000');
       return false;
     }
 
@@ -143,9 +137,9 @@ function CableTVScreenContent() {
     // Basic checks without alerts for button disabled state
     if (!currentMerchant) return false;
     if (!customerNumber.trim()) return false;
-    if (!currentSelectedService && !customAmount.trim()) return false;
+    if (!currentSelectedService) return false;
     return true;
-  }, [currentMerchant, customerNumber, currentSelectedService, customAmount]);
+  }, [currentMerchant, customerNumber, currentSelectedService]);
 
   const handleVerifyAccount = async () => {
     if (!validateForm() || !user?.token || !currentMerchant) return;
@@ -155,12 +149,12 @@ function CableTVScreenContent() {
     try {
       await fetchAccountDetails(
         user.token,
-        currentMerchant.id.toString(),
+        currentMerchant.uuid,
         customerNumber.trim(),
         productCode
       );
 
-      const key = `${currentMerchant.id}_${customerNumber.trim()}_${productCode}`;
+      const key = `${currentMerchant.uuid}_${customerNumber.trim()}_${productCode}`;
       const details = accountDetails[key];
       
       if (details) {
@@ -182,9 +176,9 @@ function CableTVScreenContent() {
   };
 
   const handleProceedPayment = () => {
-    if (!currentMerchant || !user?.token) return;
+    if (!currentMerchant || !user?.token || !currentSelectedService) return;
 
-    const amount = currentSelectedService ? currentSelectedService.price : parseFloat(customAmount);
+    const amount = currentSelectedService.price;
     const paymentAmount = calculatePaymentAmount(amount);
 
     if (paymentAmount > Number(user?.money ?? 0)) {
@@ -223,11 +217,12 @@ function CableTVScreenContent() {
       
       await merchantPayment(
         user.token,
-        currentMerchant.id.toString(),
+        currentMerchant.uuid,
         currentMerchant.name,
         customerNumber.trim(),
         productCode,
         pendingPaymentData.amount,
+        ServiceType.CABLE_TV,
         paymentPassword
       );
 
@@ -237,8 +232,7 @@ function CableTVScreenContent() {
         [{
           text: 'OK', onPress: () => {
             setCustomerNumber('');
-            setCustomAmount('');
-            setSelectedService(currentMerchant.id.toString(), null);
+            setSelectedService(currentMerchant.uuid, null);
             resetModals();
           }
         }]
@@ -335,61 +329,39 @@ function CableTVScreenContent() {
             </TouchableOpacity>
           </View>
 
-          {/* Customer Number Input */}
-          <Input
-            label="Customer Number / Smartcard Number"
-            value={customerNumber}
-            onChangeText={setCustomerNumber}
-            placeholder="Enter your customer/smartcard number"
-            keyboardType="default"
-            returnKeyType="done"
-          />
-
           {/* Service Package Selection */}
-          {currentMerchant && (
-            <View style={styles.formGroup}>
-              <Text style={[styles.formLabel, { color: colors.text }]}>
-                Select Package
-              </Text>
-              <TouchableOpacity
-                style={[
-                  styles.selector,
-                  {
-                    backgroundColor: colors.background,
-                    borderColor: colors.border,
+          <View style={styles.formGroup}>
+            <Text style={[styles.formLabel, { color: colors.text }]}>
+              Select Package
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.selector,
+                {
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                }
+              ]}
+              onPress={() => setShowServiceModal(true)}
+            >
+              <View style={styles.selectorContent}>
+                <CreditCard size={20} color={colors.primary} />
+                <Text style={[
+                  styles.selectorText,
+                  { color: currentSelectedService ? colors.text : colors.textSecondary }
+                ]}>
+                  {currentSelectedService 
+                    ? `${currentSelectedService.name} - ₦${currentSelectedService.price.toLocaleString()}`
+                    : 'Select Package'
                   }
-                ]}
-                onPress={() => setShowServiceModal(true)}
-              >
-                <View style={styles.selectorContent}>
-                  <CreditCard size={20} color={colors.primary} />
-                  <Text style={[
-                    styles.selectorText,
-                    { color: currentSelectedService ? colors.text : colors.textSecondary }
-                  ]}>
-                    {currentSelectedService 
-                      ? `${currentSelectedService.name} - ₦${currentSelectedService.price.toLocaleString()}`
-                      : 'Select Package'
-                    }
-                  </Text>
-                </View>
-                <ChevronDown size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Custom Amount Input */}
-          <Input
-            label="Custom Amount (Optional)"
-            value={customAmount}
-            onChangeText={setCustomAmount}
-            placeholder="Enter custom amount"
-            keyboardType="numeric"
-            returnKeyType="done"
-          />
+                </Text>
+              </View>
+              <ChevronDown size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
 
           {/* Payment Summary */}
-          {(currentSelectedService || customAmount) && (
+          {(currentSelectedService) && (
             <View style={styles.paymentSummary}>
               <View style={styles.calculationHeader}>
                 <Calculator size={16} color={colors.primary} />
@@ -402,7 +374,7 @@ function CableTVScreenContent() {
                   Service Amount:
                 </Text>
                 <Text style={[styles.summaryValue, { color: colors.text }]}>
-                  ₦{(currentSelectedService ? currentSelectedService.price : parseFloat(customAmount || '0')).toLocaleString()}
+                  ₦{currentSelectedService.price.toLocaleString()}
                 </Text>
               </View>
               <View style={styles.summaryRow}>
@@ -410,7 +382,7 @@ function CableTVScreenContent() {
                   CardKing Discount ({100 - chargeDiscount}%):
                 </Text>
                 <Text style={[styles.summaryValue, { color: colors.success }]}>
-                  -₦{((currentSelectedService ? currentSelectedService.price : parseFloat(customAmount || '0')) - calculatePaymentAmount(currentSelectedService ? currentSelectedService.price : parseFloat(customAmount || '0'))).toLocaleString()}
+                  -₦{(currentSelectedService.price - calculatePaymentAmount(currentSelectedService.price)).toLocaleString()}
                 </Text>
               </View>
               <View style={[styles.summaryRow, styles.totalRow]}>
@@ -418,11 +390,21 @@ function CableTVScreenContent() {
                   Total Payment:
                 </Text>
                 <Text style={[styles.summaryValue, { color: colors.primary, fontFamily: 'Inter-Bold', fontSize: 18 }]}>
-                  ₦{calculatePaymentAmount(currentSelectedService ? currentSelectedService.price : parseFloat(customAmount || '0')).toLocaleString()}
+                  ₦{calculatePaymentAmount(currentSelectedService.price).toLocaleString()}
                 </Text>
               </View>
             </View>
           )}
+
+           {/* Customer Number Input */}
+           <Input
+            label="Customer Number"
+            value={customerNumber}
+            onChangeText={setCustomerNumber}
+            placeholder="Enter your customer number"
+            keyboardType="default"
+            returnKeyType="done"
+          />
 
           <Button
             title={isLoadingAccountDetails ? 'Verifying Account...' : 'Verify & Pay'}
@@ -470,7 +452,7 @@ function CableTVScreenContent() {
         services={currentServices}
         isLoadingServices={isLoadingServices}
         selectedService={currentSelectedService}
-        onSelectService={(service) => currentMerchant && setSelectedService(currentMerchant.id.toString(), service)}
+        onSelectService={(service) => currentMerchant && setSelectedService(currentMerchant.uuid, service)}
         title="Select Package"
         merchantName={currentMerchant?.name}
       />

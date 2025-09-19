@@ -141,18 +141,18 @@ function LotteryScreenContent() {
     if (!validateForm() || !user?.token || !currentMerchant) return;
 
     const productCode = 'wallet_funding'; // Default product code for lottery/betting
-    
+
     try {
       await fetchAccountDetails(
         user.token,
-        currentMerchant.id.toString(),
+        currentMerchant.uuid,
         customerNumber.trim(),
         productCode
       );
 
-      const key = `${currentMerchant.id}_${customerNumber.trim()}_${productCode}`;
+      const key = `${currentMerchant.uuid}_${customerNumber.trim()}_${productCode}`;
       const details = accountDetails[key];
-      
+
       if (details) {
         Alert.alert(
           'Account Verified',
@@ -209,14 +209,15 @@ function LotteryScreenContent() {
 
     try {
       const productCode = 'wallet_funding';
-      
+
       await merchantPayment(
         user.token,
-        currentMerchant.id.toString(),
+        currentMerchant.uuid,
         currentMerchant.name,
         customerNumber.trim(),
         productCode,
         pendingPaymentData.amount,
+        ServiceType.LOTTERY,
         paymentPassword
       );
 
@@ -323,61 +324,15 @@ function LotteryScreenContent() {
             </TouchableOpacity>
           </View>
 
-          {/* Account Number Input */}
+          {/* Amount Selection */}
           <Input
-            label="Account Number / Username"
-            value={customerNumber}
-            onChangeText={setCustomerNumber}
-            placeholder="Enter your account number or username"
-            keyboardType="default"
+            label="Custom Amount"
+            value={amount}
+            onChangeText={setAmount}
+            placeholder="Enter custom amount"
+            keyboardType="numeric"
             returnKeyType="done"
           />
-
-          {/* Amount Selection */}
-          <View style={styles.formGroup}>
-            <Text style={[styles.formLabel, { color: colors.text }]}>
-              Select Amount
-            </Text>
-            <View style={styles.amountGrid}>
-              {lotteryAmounts.map((presetAmount) => (
-                <TouchableOpacity
-                  key={presetAmount}
-                  style={[
-                    styles.amountOption,
-                    {
-                      backgroundColor: amount === presetAmount.toString()
-                        ? colors.primary
-                        : colors.background,
-                      borderColor: amount === presetAmount.toString()
-                        ? colors.primary
-                        : colors.border,
-                    }
-                  ]}
-                  onPress={() => setAmount(presetAmount.toString())}
-                >
-                  <Text style={[
-                    styles.amountText,
-                    {
-                      color: amount === presetAmount.toString()
-                        ? '#FFFFFF'
-                        : colors.text
-                    }
-                  ]}>
-                    ₦{presetAmount.toLocaleString()}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Input
-              label="Custom Amount"
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="Enter custom amount"
-              keyboardType="numeric"
-              returnKeyType="done"
-            />
-          </View>
 
           {/* Payment Summary */}
           {amount && (
@@ -415,6 +370,16 @@ function LotteryScreenContent() {
             </View>
           )}
 
+          {/* Account Number Input */}
+          <Input
+            label="Account Number / Username"
+            value={customerNumber}
+            onChangeText={setCustomerNumber}
+            placeholder="Enter your account number or username"
+            keyboardType="default"
+            returnKeyType="done"
+          />
+
           <Button
             title={isLoadingAccountDetails ? 'Verifying Account...' : 'Fund Wallet'}
             onPress={handleVerifyAccount}
@@ -442,21 +407,6 @@ function LotteryScreenContent() {
           </Text>
         </Card>
 
-        {/* Warning Section */}
-        <Card style={[styles.warningCard, { backgroundColor: `${colors.warning}10` }]}>
-          <View style={styles.warningHeader}>
-            <Dice6 size={20} color={colors.warning} />
-            <Text style={[styles.warningTitle, { color: colors.warning }]}>
-              Responsible Gaming
-            </Text>
-          </View>
-          <Text style={[styles.warningText, { color: colors.text }]}>
-            • Only bet what you can afford to lose{'\n'}
-            • Set limits for yourself and stick to them{'\n'}
-            • Gambling should be for entertainment only{'\n'}
-            • Seek help if gambling becomes a problem
-          </Text>
-        </Card>
       </ScrollView>
 
       {/* Modals */}
@@ -609,25 +559,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Regular',
   },
-  amountGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  amountOption: {
-    flex: 1,
-    minWidth: '30%',
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  amountText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
   paymentSummary: {
     backgroundColor: 'rgba(16, 185, 129, 0.1)',
     padding: Spacing.md,
@@ -685,26 +616,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
   },
   infoText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
-  },
-
-  // Warning Card
-  warningCard: {
-    padding: Spacing.lg,
-  },
-  warningHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  warningTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-  },
-  warningText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     lineHeight: 20,

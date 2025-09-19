@@ -4,6 +4,10 @@ import type { APIResponse } from './api';
 export interface Supplier {
   name: string;
   mobileOperatorCode: string;
+  min: number;
+  max: number;
+  discount: number;
+  fee: number;
 }
 
 export interface DataBundle {
@@ -29,11 +33,12 @@ export interface RechargeLogEntry {
 }
 
 export interface MerchantEntry {
-  id: number;
-  name: string;
   uuid: string;
+  name: string;
   discount: number;
   fee: number;
+  min: number;
+  max: number;
 }
 
 export interface MerchantServiceEntry {
@@ -146,6 +151,7 @@ export interface MerchantPaymentRequest {
   customer_no: string;
   product_code: string;
   amount: number;
+  type: number;
   password: string;
 }
 
