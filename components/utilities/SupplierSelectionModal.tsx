@@ -64,6 +64,11 @@ export default function SupplierSelectionModal({
       ]}>
         {supplier.name}
       </Text>
+      {supplier.discount > 0 && (
+        <Text style={[styles.modalDiscount, { color: colors.success }]}>
+          Enjoy {100 - supplier.discount}% discount
+        </Text>
+      )}
     </TouchableOpacity>
   );
 
@@ -160,6 +165,12 @@ const styles = StyleSheet.create({
   modalOptionText: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
+    textAlign: 'center',
+  },
+  modalDiscount: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    marginBottom: 2,
     textAlign: 'center',
   },
   modalLoading: {

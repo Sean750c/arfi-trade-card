@@ -32,7 +32,7 @@ import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
-import { ServiceType } from '@/types/utilities';
+import { MerchantEntry, ServiceType } from '@/types/utilities';
 
 interface PendingPaymentData {
   type: 'cable-tv';
@@ -89,12 +89,21 @@ function CableTVScreenContent() {
   const actualDiscountPercentage = 100 - currentMerchantDiscount;
   // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
-    return Math.round(amount * (currentMerchantDiscount / 100)) + currentMerchantFee;
+    const fee = Number(currentMerchantFee);
+    const total = amount * (currentMerchantDiscount / 100) + fee;
+    return Math.round(total * 100) / 100;
+  };
+
+  const calculateDiscountAmount = (amount: number) => {
+    return Math.round(amount * (actualDiscountPercentage / 100) * 100) / 100;
   };
 
   useEffect(() => {
     if (user?.token) {
       fetchMerchants(user.token, ServiceType.CABLE_TV);
+      if (merchants) {
+        setSelectedMerchant(ServiceType.CABLE_TV, merchants[ServiceType.CABLE_TV][0]);
+      }
     }
   }, [user?.token]);
 
@@ -154,7 +163,7 @@ function CableTVScreenContent() {
     if (!validateForm() || !user?.token || !currentMerchant) return;
 
     const productCode = currentSelectedService?.code || 'custom';
-    
+
     try {
       await fetchAccountDetails(
         user.token,
@@ -165,7 +174,7 @@ function CableTVScreenContent() {
 
       const key = `${currentMerchant.uuid}_${customerNumber.trim()}_${productCode}`;
       const details = accountDetails[key];
-      
+
       if (details) {
         Alert.alert(
           'Account Verified',
@@ -228,7 +237,7 @@ function CableTVScreenContent() {
 
     try {
       const productCode = currentSelectedService?.code || 'custom';
-      
+
       await merchantPayment(
         user.token,
         currentMerchant.uuid,
@@ -364,7 +373,7 @@ function CableTVScreenContent() {
                   styles.selectorText,
                   { color: currentSelectedService ? colors.text : colors.textSecondary }
                 ]}>
-                  {currentSelectedService 
+                  {currentSelectedService
                     ? `${currentSelectedService.name} - ₦${currentSelectedService.price.toLocaleString()}`
                     : 'Select Package'
                   }
@@ -396,7 +405,7 @@ function CableTVScreenContent() {
                   CardKing Discount ({actualDiscountPercentage}%):
                 </Text>
                 <Text style={[styles.summaryValue, { color: colors.success }]}>
-                  -₦{(currentSelectedService.price - calculatePaymentAmount(currentSelectedService.price)).toLocaleString()}
+                  -₦{(calculateDiscountAmount(currentSelectedService.price)).toLocaleString()}
                 </Text>
               </View>
               }
@@ -420,8 +429,8 @@ function CableTVScreenContent() {
               </View>
             </View>
           )}
-           {/* Customer Number Input */}
-           <Input
+          {/* Customer Number Input */}
+          <Input
             label="Customer Number"
             value={customerNumber}
             onChangeText={setCustomerNumber}

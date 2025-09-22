@@ -81,23 +81,22 @@ function MobileRechargeScreenContent() {
   // Predefined airtime amounts
   const airtimeAmounts = [100, 200, 500, 1000, 2000, 5000];
   // 获取当前选择供应商的折扣和费用
-  const currentSupplierDiscount = selectedSupplier?.discount ?? 100; // 默认100%支付
+  const currentSupplierDiscount = selectedSupplier?.discount ?? 100; // 默认0折扣
   const currentSupplierFee = selectedSupplier?.fee ?? 0;
   // 计算实际折扣百分比
   const actualDiscountPercentage = 100 - currentSupplierDiscount;
   // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
-    return Math.round(amount * (currentSupplierDiscount / 100)) + currentSupplierFee;
-  };
-
-  // 计算需要支付的金额
-  const calculatePaymentAmount = (amount: number) => {
-    return Math.round(amount * chargeDiscount) / 100;
+    const fee = Number(currentSupplierFee);  // 强制转换为数字
+    return Math.round(amount * (currentSupplierDiscount / 100) + fee);
   };
 
   useEffect(() => {
     if (user?.token) {
       fetchSuppliers(user.token);
+      if (suppliers) {
+        setSelectedSupplier(suppliers[0]);
+      }
     }
   }, [user?.token]);
 
@@ -145,12 +144,12 @@ function MobileRechargeScreenContent() {
       return;
     }
 
-    const amountValue = parseFloat(airtimeAmount);
-    if (isNaN(amountValue) || amountValue <= 0) {
+    const amount = parseFloat(airtimeAmount);
+    if (isNaN(amount) || amount <= 0) {
       Alert.alert('Error', 'Please enter a valid amount');
       return;
     }
-    if (selectedSupplier && (amountValue < selectedSupplier.min || amountValue > selectedSupplier.max)) {
+    if (selectedSupplier && (amount < selectedSupplier.min || amount > selectedSupplier.max)) {
       Alert.alert('Error', `Amount must be between ₦${selectedSupplier.min} and ₦${selectedSupplier.max}`);
       return;
     }
@@ -165,7 +164,7 @@ function MobileRechargeScreenContent() {
       type: 'airtime',
       supplier: selectedSupplier.name,
       phone: phoneNumber.trim(),
-      amount: amountValue,
+      amount: amount,
       paymentAmount: paymentAmount,
     });
     setShowConfirmModal(true);
@@ -395,7 +394,7 @@ function MobileRechargeScreenContent() {
                   styles.selectorText,
                   { color: selectedSupplier ? colors.text : colors.textSecondary }
                 ]}>
-                  {selectedSupplier ? selectedSupplier.name : 'Select Network Provider'}
+                  {selectedSupplier ? `${selectedSupplier.name} (${actualDiscountPercentage}% off)` : 'Select Network Provider'}
                 </Text>
               </View>
               <ChevronDown size={20} color={colors.textSecondary} />
@@ -824,6 +823,11 @@ const styles = StyleSheet.create({
     marginTop: -Spacing.sm,
   },
   originalPrice: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    textDecorationLine: 'line-through',
+  },
+  feeText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     textDecorationLine: 'line-through',

@@ -73,9 +73,9 @@ export default function MerchantSelectionModal({
           ]}>
             {merchant.name}
           </Text>
-          {merchant.discount > 0 && (
+          {(merchant.discount > 0 && (100 - merchant.discount) > 0) && (
             <Text style={[styles.merchantDiscount, { color: colors.success }]}>
-              {merchant.discount}% discount available
+              Enjoy {100 - merchant.discount}% discount
             </Text>
           )}
           {merchant.fee > 0 && (

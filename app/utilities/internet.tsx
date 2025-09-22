@@ -90,12 +90,21 @@ function InternetScreenContent() {
   const actualDiscountPercentage = 100 - currentMerchantDiscount;
   // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
-    return Math.round(amount * (currentMerchantDiscount / 100)) + currentMerchantFee;
+    const fee = Number(currentMerchantFee);
+    const total = amount * (currentMerchantDiscount / 100) + fee;
+    return Math.round(total * 100) / 100;
+  };
+
+  const calculateDiscountAmount = (amount: number) => {
+    return Math.round(amount * (actualDiscountPercentage / 100) * 100) / 100;
   };
 
   useEffect(() => {
     if (user?.token) {
       fetchMerchants(user.token, ServiceType.INTERNET);
+      if (merchants) {
+        setSelectedMerchant(ServiceType.INTERNET, merchants[ServiceType.INTERNET][0]);
+      }
     }
   }, [user?.token]);
 
@@ -397,7 +406,7 @@ function InternetScreenContent() {
                   CardKing Discount ({actualDiscountPercentage}%):
                 </Text>
                 <Text style={[styles.summaryValue, { color: colors.success }]}>
-                  -₦{(currentSelectedService.price - calculatePaymentAmount(currentSelectedService.price)).toLocaleString()}
+                  -₦{(calculateDiscountAmount(currentSelectedService.price)).toLocaleString()}
                 </Text>
               </View>
               }

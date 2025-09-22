@@ -48,7 +48,7 @@ function UtilitiesScreenContent() {
     },
     {
       id: 'cable-tv',
-      title: 'Cable TV',
+      title: 'TV Bills',
       subtitle: 'DSTV, GOtv & more',
       icon: <Tv size={32} color="#FFFFFF" />,
       route: '/utilities/cable-tv',
@@ -75,7 +75,7 @@ function UtilitiesScreenContent() {
     },
     {
       id: 'lottery',
-      title: 'Lottery & Gaming',
+      title: 'Betting',
       subtitle: 'Sports betting & lotto',
       icon: <DollarSign size={32} color="#FFFFFF" />,
       route: '/utilities/betting',
@@ -213,17 +213,6 @@ function UtilitiesScreenContent() {
             • Competitive rates and no hidden fees
           </Text>
         </Card>
-
-        {/* Coming Soon Section */}
-        {/* <Card style={[styles.comingSoonCard, { backgroundColor: `${colors.primary}08` }]}>
-          <Text style={[styles.comingSoonTitle, { color: colors.primary }]}>
-            🚀 Coming Soon
-          </Text>
-          <Text style={[styles.comingSoonDescription, { color: colors.text }]}>
-            We're working hard to bring you more services including electricity bills, 
-            cable TV subscriptions, and internet payments. Stay tuned for updates!
-          </Text>
-        </Card> */}
       </ScrollView>
 
       <RechargeLogsModal

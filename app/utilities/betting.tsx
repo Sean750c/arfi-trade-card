@@ -15,9 +15,6 @@ import {
   ChevronDown,
   History,
   Calculator,
-  User,
-  CreditCard,
-  Dice6,
   Trophy,
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
@@ -33,7 +30,7 @@ import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
-import { ServiceType, MerchantEntry } from '@/types/utilities';
+import { ServiceType } from '@/types/utilities';
 
 interface PendingPaymentData {
   type: 'lottery';
@@ -76,18 +73,28 @@ function LotteryScreenContent() {
   const lotteryMerchants = merchants[ServiceType.LOTTERY] || [];
   const currentMerchant = selectedMerchant[ServiceType.LOTTERY];
 
-  // Predefined amounts for lottery/betting
-  const lotteryAmounts = [100, 200, 500, 1000, 2000, 5000, 10000];
-
-  let chargeDiscount = user?.charge_discount || 98;
-
+  // 获取当前选择商户的折扣和费用
+  const currentMerchantDiscount = currentMerchant?.discount ?? 100; // 默认100%支付
+  const currentMerchantFee = currentMerchant?.fee ?? 0;
+  // 计算实际折扣百分比
+  const actualDiscountPercentage = 100 - currentMerchantDiscount;
+  // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
-    return Math.round(amount * chargeDiscount) / 100;
+    const fee = Number(currentMerchantFee);
+    const total = amount * (currentMerchantDiscount / 100) + fee;
+    return Math.round(total * 100) / 100;
+  };
+
+  const calculateDiscountAmount = (amount: number) => {
+    return Math.round(amount * (actualDiscountPercentage / 100) * 100) / 100;
   };
 
   useEffect(() => {
     if (user?.token) {
       fetchMerchants(user.token, ServiceType.LOTTERY);
+      if (merchants) {
+        setSelectedMerchant(ServiceType.LOTTERY, merchants[ServiceType.LOTTERY][0]);
+      }
     }
   }, [user?.token]);
 
@@ -106,23 +113,23 @@ function LotteryScreenContent() {
 
   const validateForm = () => {
     if (!currentMerchant) {
-      Alert.alert('Error', 'Please select a lottery/betting provider');
+      Alert.alert('Error', 'Please select a betting provider');
       return false;
     }
 
     if (!customerNumber.trim()) {
-      Alert.alert('Error', 'Please enter your account number/username');
+      Alert.alert('Error', 'Please enter your account number');
       return false;
     }
 
-    if (!amount.trim()) {
+    if (!amount.trim() || parseFloat(amount) <= 0) {
       Alert.alert('Error', 'Please enter the amount');
       return false;
     }
 
     const amountValue = parseFloat(amount);
-    if (amountValue < 100 || amountValue > 1000000) {
-      Alert.alert('Error', 'Amount must be between ₦100 and ₦1,000,000');
+    if (amountValue < currentMerchant.min || amountValue > currentMerchant.max) {
+      Alert.alert('Error', `Amount must be between ₦${currentMerchant.min} and ₦${currentMerchant.max}`);
       return false;
     }
 
@@ -140,7 +147,7 @@ function LotteryScreenContent() {
   const handleVerifyAccount = async () => {
     if (!validateForm() || !user?.token || !currentMerchant) return;
 
-    const productCode = 'wallet_funding'; // Default product code for lottery/betting
+    const productCode = '';
 
     try {
       await fetchAccountDetails(
@@ -174,6 +181,14 @@ function LotteryScreenContent() {
     if (!currentMerchant || !user?.token) return;
 
     const amountValue = parseFloat(amount);
+    if (isNaN(amountValue) || amountValue <= 0) {
+      Alert.alert('Error', 'Please enter a valid amount');
+      return;
+    }
+    if (currentMerchant && (amountValue < currentMerchant.min || amountValue > currentMerchant.max)) {
+      Alert.alert('Error', `Amount must be between ₦${currentMerchant.min} and ₦${currentMerchant.max}`);
+      return;
+    }
     const paymentAmount = calculatePaymentAmount(amountValue);
 
     if (paymentAmount > Number(user?.money ?? 0)) {
@@ -299,7 +314,7 @@ function LotteryScreenContent() {
           {/* Provider Selection */}
           <View style={styles.formGroup}>
             <Text style={[styles.formLabel, { color: colors.text }]}>
-              Betting/Lottery Provider
+              Betting Provider
             </Text>
             <TouchableOpacity
               style={[
@@ -340,7 +355,7 @@ function LotteryScreenContent() {
               <View style={styles.calculationHeader}>
                 <Calculator size={16} color={colors.primary} />
                 <Text style={[styles.calculationTitle, { color: colors.primary }]}>
-                  Save {100 - chargeDiscount}% with CardKing
+                  Save {actualDiscountPercentage}% with CardKing
                 </Text>
               </View>
               <View style={styles.summaryRow}>
@@ -353,12 +368,22 @@ function LotteryScreenContent() {
               </View>
               <View style={styles.summaryRow}>
                 <Text style={[styles.summaryLabel, { color: colors.success }]}>
-                  CardKing Discount ({100 - chargeDiscount}%):
+                  CardKing Discount ({actualDiscountPercentage}%):
                 </Text>
                 <Text style={[styles.summaryValue, { color: colors.success }]}>
-                  -₦{(parseFloat(amount || '0') - calculatePaymentAmount(parseFloat(amount || '0'))).toLocaleString()}
+                  -₦{(calculateDiscountAmount(parseFloat(amount || '0'))).toLocaleString()}
                 </Text>
               </View>
+              {currentMerchantFee > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                    Service Fee:
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: colors.text }]}>
+                    +₦{currentMerchantFee.toLocaleString()}
+                  </Text>
+                </View>
+              )}
               <View style={[styles.summaryRow, styles.totalRow]}>
                 <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
                   Total Payment:
@@ -372,10 +397,10 @@ function LotteryScreenContent() {
 
           {/* Account Number Input */}
           <Input
-            label="Account Number / Username"
+            label="Account Number"
             value={customerNumber}
             onChangeText={setCustomerNumber}
-            placeholder="Enter your account number or username"
+            placeholder="Enter your account number"
             keyboardType="default"
             returnKeyType="done"
           />
@@ -422,7 +447,7 @@ function LotteryScreenContent() {
       />
 
       <PaymentConfirmationModal
-        chargeDiscount={100 - chargeDiscount}
+        chargeDiscount={actualDiscountPercentage}
         visible={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         pendingPaymentData={pendingPaymentData}

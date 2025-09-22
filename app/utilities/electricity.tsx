@@ -91,12 +91,21 @@ function ElectricityScreenContent() {
   const actualDiscountPercentage = 100 - currentMerchantDiscount;
   // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
-    return Math.round(amount * (currentMerchantDiscount / 100)) + currentMerchantFee;
+    const fee = Number(currentMerchantFee);
+    const total = amount * (currentMerchantDiscount / 100) + fee;
+    return Math.round(total * 100) / 100;
+  };
+
+  const calculateDiscountAmount = (amount: number) => {
+    return Math.round(amount * (actualDiscountPercentage / 100) * 100) / 100;
   };
 
   useEffect(() => {
     if (user?.token) {
       fetchMerchants(user.token, ServiceType.ELECTRICITY);
+      if (merchants) {
+        setSelectedMerchant(ServiceType.ELECTRICITY, merchants[ServiceType.ELECTRICITY][0]);
+      }
     }
   }, [user?.token]);
 
@@ -418,7 +427,7 @@ function ElectricityScreenContent() {
                   CardKing Discount ({actualDiscountPercentage}%):
                 </Text>
                 <Text style={[styles.summaryValue, { color: colors.success }]}>
-                  -₦{(parseFloat(amount || '0') - calculatePaymentAmount(parseFloat(amount || '0'))).toLocaleString()}
+                  -₦{(calculateDiscountAmount(parseFloat(amount || '0'))).toLocaleString()}
                 </Text>
               </View>
               }
