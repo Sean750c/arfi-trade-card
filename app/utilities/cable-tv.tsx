@@ -82,10 +82,14 @@ function CableTVScreenContent() {
   const currentServices = currentMerchant ? merchantServices[currentMerchant.uuid] || [] : [];
   const currentSelectedService = currentMerchant ? selectedService[currentMerchant.uuid] : null;
 
-  let chargeDiscount = user?.charge_discount || 98;
-
+  // 获取当前选择商户的折扣和费用
+  const currentMerchantDiscount = currentMerchant?.discount ?? 100; // 默认100%支付
+  const currentMerchantFee = currentMerchant?.fee ?? 0;
+  // 计算实际折扣百分比
+  const actualDiscountPercentage = 100 - currentMerchantDiscount;
+  // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
-    return Math.round(amount * chargeDiscount) / 100;
+    return Math.round(amount * (currentMerchantDiscount / 100)) + currentMerchantFee;
   };
 
   useEffect(() => {
@@ -120,12 +124,12 @@ function CableTVScreenContent() {
       return false;
     }
 
-    if (!customerNumber.trim()) {
+    if (!customerNumber.trim() || customerNumber.trim().length < 5) { // 假设客户号码至少5位
       Alert.alert('Error', 'Please enter your customer number/smartcard number');
       return false;
     }
 
-    if (!currentSelectedService) {
+    if (!currentSelectedService || currentSelectedService.price <= 0) {
       Alert.alert('Error', 'Please select a package or enter custom amount');
       return false;
     }
@@ -139,6 +143,11 @@ function CableTVScreenContent() {
     if (!customerNumber.trim()) return false;
     if (!currentSelectedService) return false;
     return true;
+  }, [currentMerchant, customerNumber, currentSelectedService]);
+
+  const isAmountValid = useMemo(() => {
+    if (!currentSelectedService || !currentMerchant) return false;
+    return currentSelectedService.price >= currentMerchant.min && currentSelectedService.price <= currentMerchant.max;
   }, [currentMerchant, customerNumber, currentSelectedService]);
 
   const handleVerifyAccount = async () => {
@@ -178,6 +187,11 @@ function CableTVScreenContent() {
   const handleProceedPayment = () => {
     if (!currentMerchant || !user?.token || !currentSelectedService) return;
 
+    if (!isAmountValid) {
+      Alert.alert('Error', `Selected package price must be between ₦${currentMerchant.min} and ₦${currentMerchant.max}`);
+      return;
+    }
+
     const amount = currentSelectedService.price;
     const paymentAmount = calculatePaymentAmount(amount);
 
@@ -189,7 +203,7 @@ function CableTVScreenContent() {
     setPendingPaymentData({
       type: 'cable-tv',
       merchant: currentMerchant.name,
-      customerNo: customerNumber.trim(),
+      customerNo: customerNumber.trim(), // 确保传递的是trim后的值
       service: currentSelectedService ? currentSelectedService.name : `Custom Payment - ₦${amount}`,
       amount: amount,
       paymentAmount: paymentAmount,
@@ -218,7 +232,7 @@ function CableTVScreenContent() {
       await merchantPayment(
         user.token,
         currentMerchant.uuid,
-        currentMerchant.name,
+        currentMerchant.name, // 确保传递的是trim后的值
         customerNumber.trim(),
         productCode,
         pendingPaymentData.amount,
@@ -363,12 +377,12 @@ function CableTVScreenContent() {
           {/* Payment Summary */}
           {(currentSelectedService) && (
             <View style={styles.paymentSummary}>
-              <View style={styles.calculationHeader}>
+              {currentMerchant && <View style={styles.calculationHeader}>
                 <Calculator size={16} color={colors.primary} />
                 <Text style={[styles.calculationTitle, { color: colors.primary }]}>
-                  Save {100 - chargeDiscount}% with CardKing
+                  Save {actualDiscountPercentage}% with CardKing
                 </Text>
-              </View>
+              </View>}
               <View style={styles.summaryRow}>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
                   Service Amount:
@@ -377,14 +391,25 @@ function CableTVScreenContent() {
                   ₦{currentSelectedService.price.toLocaleString()}
                 </Text>
               </View>
-              <View style={styles.summaryRow}>
+              {currentMerchant && <View style={styles.summaryRow}>
                 <Text style={[styles.summaryLabel, { color: colors.success }]}>
-                  CardKing Discount ({100 - chargeDiscount}%):
+                  CardKing Discount ({actualDiscountPercentage}%):
                 </Text>
                 <Text style={[styles.summaryValue, { color: colors.success }]}>
                   -₦{(currentSelectedService.price - calculatePaymentAmount(currentSelectedService.price)).toLocaleString()}
                 </Text>
               </View>
+              }
+              {currentMerchantFee > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                    Service Fee:
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: colors.text }]}>
+                    +₦{currentMerchantFee.toLocaleString()}
+                  </Text>
+                </View>
+              )}
               <View style={[styles.summaryRow, styles.totalRow]}>
                 <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
                   Total Payment:
@@ -395,7 +420,6 @@ function CableTVScreenContent() {
               </View>
             </View>
           )}
-
            {/* Customer Number Input */}
            <Input
             label="Customer Number"
@@ -409,7 +433,7 @@ function CableTVScreenContent() {
           <Button
             title={isLoadingAccountDetails ? 'Verifying Account...' : 'Verify & Pay'}
             onPress={handleVerifyAccount}
-            disabled={isLoadingAccountDetails || !isFormReadyForSubmission}
+            disabled={isLoadingAccountDetails || !isFormReadyForSubmission || !isAmountValid}
             loading={isLoadingAccountDetails}
             style={styles.payButton}
             fullWidth
@@ -458,7 +482,7 @@ function CableTVScreenContent() {
       />
 
       <PaymentConfirmationModal
-        chargeDiscount={100 - chargeDiscount}
+        chargeDiscount={actualDiscountPercentage}
         visible={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         pendingPaymentData={pendingPaymentData}

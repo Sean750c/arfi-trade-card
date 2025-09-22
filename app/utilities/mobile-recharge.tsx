@@ -78,11 +78,17 @@ function MobileRechargeScreenContent() {
   const [paymentPassword, setPaymentPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [pendingRechargeData, setPendingRechargeData] = useState<PendingRechargeData | null>(null);
-
   // Predefined airtime amounts
   const airtimeAmounts = [100, 200, 500, 1000, 2000, 5000];
-
-  let chargeDiscount = user?.charge_discount || 98;
+  // 获取当前选择供应商的折扣和费用
+  const currentSupplierDiscount = selectedSupplier?.discount ?? 100; // 默认100%支付
+  const currentSupplierFee = selectedSupplier?.fee ?? 0;
+  // 计算实际折扣百分比
+  const actualDiscountPercentage = 100 - currentSupplierDiscount;
+  // 计算需要支付的金额
+  const calculatePaymentAmount = (amount: number) => {
+    return Math.round(amount * (currentSupplierDiscount / 100)) + currentSupplierFee;
+  };
 
   // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
@@ -139,14 +145,13 @@ function MobileRechargeScreenContent() {
       return;
     }
 
-    const amount = parseFloat(airtimeAmount);
-    if (!amount || amount <= 0) {
+    const amountValue = parseFloat(airtimeAmount);
+    if (isNaN(amountValue) || amountValue <= 0) {
       Alert.alert('Error', 'Please enter a valid amount');
       return;
     }
-
-    if (amount < 100 || amount > 50000) {
-      Alert.alert('Error', 'Amount must be between ₦100 and ₦50000');
+    if (selectedSupplier && (amountValue < selectedSupplier.min || amountValue > selectedSupplier.max)) {
+      Alert.alert('Error', `Amount must be between ₦${selectedSupplier.min} and ₦${selectedSupplier.max}`);
       return;
     }
 
@@ -159,8 +164,8 @@ function MobileRechargeScreenContent() {
     setPendingRechargeData({
       type: 'airtime',
       supplier: selectedSupplier.name,
-      phone: phoneNumber,
-      amount: amount,
+      phone: phoneNumber.trim(),
+      amount: amountValue,
       paymentAmount: paymentAmount,
     });
     setShowConfirmModal(true);
@@ -177,6 +182,11 @@ function MobileRechargeScreenContent() {
       return;
     }
 
+    if (selectedSupplier && (selectedDataBundle.servicePrice < selectedSupplier.min || selectedDataBundle.servicePrice > selectedSupplier.max)) {
+      Alert.alert('Error', `Data bundle price must be between ₦${selectedSupplier.min} and ₦${selectedSupplier.max}`);
+      return;
+    }
+
     const amount = selectedDataBundle.servicePrice;
     const paymentAmount = calculatePaymentAmount(amount);
     if (paymentAmount > Number(user?.money ?? 0)) {
@@ -187,7 +197,7 @@ function MobileRechargeScreenContent() {
     setPendingRechargeData({
       type: 'data',
       supplier: selectedSupplier.name,
-      phone: phoneNumber,
+      phone: phoneNumber.trim(),
       amount: amount,
       paymentAmount: paymentAmount,
       dataBundle: selectedDataBundle,
@@ -218,7 +228,7 @@ function MobileRechargeScreenContent() {
         await airtimeRecharge(
           user.token,
           pendingRechargeData.supplier,
-          pendingRechargeData.phone,
+          pendingRechargeData.phone.trim(),
           pendingRechargeData.amount,
           paymentPassword
         );
@@ -460,15 +470,20 @@ function MobileRechargeScreenContent() {
               />
 
               {/* 折扣金额展示 */}
-              {airtimeAmount ? (
+              {airtimeAmount && selectedSupplier ? (
                 <View style={styles.discountContainer}>
                   <Calculator size={16} color={colors.success} />
                   <Text style={[styles.calculationTitle, { color: colors.success }]}>
                     Discount Amount
                   </Text>
                   <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
-                    ₦{parseFloat(airtimeAmount || '0').toLocaleString()}
+                    ₦{parseFloat(airtimeAmount).toLocaleString()}
                   </Text>
+                  {currentSupplierFee > 0 && (
+                    <Text style={[styles.feeText, { color: colors.textSecondary }]}>
+                      + ₦{currentSupplierFee.toLocaleString()} Fee
+                    </Text>
+                  )}
                   <Text style={[styles.discountedPrice, { color: colors.success }]}>
                     ₦{calculatePaymentAmount(parseFloat(airtimeAmount || '0')).toLocaleString()}
                   </Text>
@@ -523,15 +538,20 @@ function MobileRechargeScreenContent() {
               </View>
 
               {/* 动态计算支付金额 */}
-              {selectedDataBundle ? (
+              {selectedDataBundle && selectedSupplier ? (
                 <View style={styles.discountContainer}>
                   <Calculator size={16} color={colors.success} />
                   <Text style={[styles.calculationTitle, { color: colors.success }]}>
                     Discount Amount
                   </Text>
                   <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
-                    ₦{selectedDataBundle.servicePrice.toLocaleString() || '0'}
+                    ₦{selectedDataBundle.servicePrice.toLocaleString()}
                   </Text>
+                  {currentSupplierFee > 0 && (
+                    <Text style={[styles.feeText, { color: colors.textSecondary }]}>
+                      + ₦{currentSupplierFee.toLocaleString()} Fee
+                    </Text>
+                  )}
                   <Text style={[styles.discountedPrice, { color: colors.success }]}>
                     ₦{calculatePaymentAmount(selectedDataBundle.servicePrice).toLocaleString()}
                   </Text>
@@ -591,7 +611,7 @@ function MobileRechargeScreenContent() {
       />
 
       <RechargeConfirmationModal
-        chargeDiscount={100 - chargeDiscount}
+        chargeDiscount={actualDiscountPercentage}
         visible={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         pendingRechargeData={pendingRechargeData}

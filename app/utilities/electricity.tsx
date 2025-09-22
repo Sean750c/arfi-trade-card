@@ -84,10 +84,14 @@ function ElectricityScreenContent() {
   const currentServices = currentMerchant ? merchantServices[currentMerchant.uuid] || [] : [];
   const currentSelectedService = currentMerchant ? selectedService[currentMerchant.uuid] : null;
 
-  let chargeDiscount = user?.charge_discount || 98;
-
+  // 获取当前选择商户的折扣和费用
+  const currentMerchantDiscount = currentMerchant?.discount ?? 100; // 默认100%支付
+  const currentMerchantFee = currentMerchant?.fee ?? 0;
+  // 计算实际折扣百分比
+  const actualDiscountPercentage = 100 - currentMerchantDiscount;
+  // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
-    return Math.round(amount * chargeDiscount) / 100;
+    return Math.round(amount * (currentMerchantDiscount / 100)) + currentMerchantFee;
   };
 
   useEffect(() => {
@@ -122,12 +126,12 @@ function ElectricityScreenContent() {
       return false;
     }
 
-    if (!meterNumber.trim()) {
+    if (!meterNumber.trim() || meterNumber.trim().length < 5) { // 假设电表号码至少5位
       Alert.alert('Error', 'Please enter your meter number');
       return false;
     }
 
-    if (!amount.trim()) {
+    if (!amount.trim() || parseFloat(amount) <= 0) {
       Alert.alert('Error', 'Please enter the amount');
       return false;
     }
@@ -135,7 +139,7 @@ function ElectricityScreenContent() {
     const amountValue = parseFloat(amount);
     if (amountValue <= 0 || amountValue > 500000) {
       Alert.alert('Error', 'Amount must be between ₦1 and ₦500,000');
-      return false;
+      return false; // 这里的验证逻辑应该使用 merchant.min 和 merchant.max
     }
 
     return true;
@@ -146,6 +150,11 @@ function ElectricityScreenContent() {
     if (!currentMerchant) return false;
     if (!meterNumber.trim()) return false;
     if (!amount.trim()) return false;
+    return true;
+  }, [currentMerchant, meterNumber, amount]);
+
+  const isAmountValid = useMemo(() => {
+    if (!currentMerchant || !amount.trim()) return false;
     return true;
   }, [currentMerchant, meterNumber, amount]);
 
@@ -187,6 +196,14 @@ function ElectricityScreenContent() {
     if (!currentMerchant || !user?.token) return;
 
     const amountValue = parseFloat(amount);
+    if (isNaN(amountValue) || amountValue <= 0) {
+      Alert.alert('Error', 'Please enter a valid amount');
+      return;
+    }
+    if (currentMerchant && (amountValue < currentMerchant.min || amountValue > currentMerchant.max)) {
+      Alert.alert('Error', `Amount must be between ₦${currentMerchant.min} and ₦${currentMerchant.max}`);
+      return;
+    }
     const paymentAmount = calculatePaymentAmount(amountValue);
 
     if (paymentAmount > Number(user?.money ?? 0)) {
@@ -197,7 +214,7 @@ function ElectricityScreenContent() {
     setPendingPaymentData({
       type: 'electricity',
       merchant: currentMerchant.name,
-      customerNo: meterNumber.trim(),
+      customerNo: meterNumber.trim(), // 确保传递的是trim后的值
       service: currentSelectedService ? currentSelectedService.name : `Electricity Units - ₦${amountValue}`,
       amount: amountValue,
       paymentAmount: paymentAmount,
@@ -226,7 +243,7 @@ function ElectricityScreenContent() {
       await merchantPayment(
         user.token,
         currentMerchant.uuid,
-        currentMerchant.name,
+        currentMerchant.name, // 确保传递的是trim后的值
         meterNumber.trim(),
         productCode,
         pendingPaymentData.amount,
@@ -382,12 +399,12 @@ function ElectricityScreenContent() {
           {/* Payment Summary */}
           {amount && (
             <View style={styles.paymentSummary}>
-              <View style={styles.calculationHeader}>
+              {currentMerchant && <View style={styles.calculationHeader}>
                 <Calculator size={16} color={colors.primary} />
                 <Text style={[styles.calculationTitle, { color: colors.primary }]}>
-                  Save {100 - chargeDiscount}% with CardKing
+                  Save {actualDiscountPercentage}% with CardKing
                 </Text>
-              </View>
+              </View>}
               <View style={styles.summaryRow}>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
                   Electricity Units:
@@ -396,14 +413,25 @@ function ElectricityScreenContent() {
                   ₦{parseFloat(amount || '0').toLocaleString()}
                 </Text>
               </View>
-              <View style={styles.summaryRow}>
+              {currentMerchant && <View style={styles.summaryRow}>
                 <Text style={[styles.summaryLabel, { color: colors.success }]}>
-                  CardKing Discount ({100 - chargeDiscount}%):
+                  CardKing Discount ({actualDiscountPercentage}%):
                 </Text>
                 <Text style={[styles.summaryValue, { color: colors.success }]}>
                   -₦{(parseFloat(amount || '0') - calculatePaymentAmount(parseFloat(amount || '0'))).toLocaleString()}
                 </Text>
               </View>
+              }
+              {currentMerchantFee > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                    Service Fee:
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: colors.text }]}>
+                    +₦{currentMerchantFee.toLocaleString()}
+                  </Text>
+                </View>
+              )}
               <View style={[styles.summaryRow, styles.totalRow]}>
                 <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
                   Total Payment:
@@ -414,7 +442,6 @@ function ElectricityScreenContent() {
               </View>
             </View>
           )}
-
           {/* Meter Number Input */}
           <Input
             label="Meter Number"
@@ -428,7 +455,7 @@ function ElectricityScreenContent() {
           <Button
             title={isLoadingAccountDetails ? 'Verifying Meter...' : 'Verify & Pay'}
             onPress={handleVerifyMeter}
-            disabled={isLoadingAccountDetails || !isFormReadyForSubmission}
+            disabled={isLoadingAccountDetails || !isFormReadyForSubmission || !isAmountValid}
             loading={isLoadingAccountDetails}
             style={styles.payButton}
             fullWidth
@@ -477,7 +504,7 @@ function ElectricityScreenContent() {
       />
 
       <PaymentConfirmationModal
-        chargeDiscount={100 - chargeDiscount}
+        chargeDiscount={actualDiscountPercentage}
         visible={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         pendingPaymentData={pendingPaymentData}
