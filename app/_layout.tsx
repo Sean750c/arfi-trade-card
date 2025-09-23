@@ -16,6 +16,7 @@ import { ActivityIndicator, Text, Image } from 'react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Updates from 'expo-updates'; // Import expo-updates
 
 function InitializationLoader() {
   const { colors } = useTheme();
@@ -83,6 +84,29 @@ export default function RootLayout() {
         await initializeAuth();
         await Promise.all([fetchCountries()]);
         const userToken = isAuthenticated && user?.token ? user.token : undefined;
+
+        // --- Start Silent Update Logic ---
+        if (__DEV__) { // Only check for updates in production builds
+          console.log('Skipping update check in development mode.');
+        } else {
+          try {
+            const update = await Updates.checkForUpdateAsync();
+            if (update.isAvailable) {
+              console.log('Update available, fetching...');
+              await Updates.fetchUpdateAsync();
+              console.log('Update fetched successfully. Will apply on next app launch.');
+              // Do NOT call Updates.reloadAsync() here for silent updates.
+              // The update will be applied automatically on the next app launch.
+            } else {
+              console.log('No update available.');
+            }
+          } catch (error) {
+            console.error('Error checking or fetching update:', error);
+            // Handle update error gracefully, e.g., log it or show a non-blocking message
+          }
+        }
+        // --- End Silent Update Logic ---
+
         await initialize(userToken);
         checkAppStartPopup();
 
