@@ -173,14 +173,24 @@ function InternetScreenContent() {
       const details = accountDetails[key];
 
       if (details) {
-        Alert.alert(
-          'Account Verified',
-          `Customer: ${details.name}\nAccount Details: ${details.details}`,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Proceed', onPress: handleProceedPayment },
-          ]
-        );
+        // Check verification result based on code
+        if (details.code === 0) {
+          // Verification successful
+          Alert.alert(
+            'Account Verified',
+            `Customer: ${details.name}\nAccount Details: ${details.details}`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Proceed', onPress: handleProceedPayment },
+            ]
+          );
+        } else {
+          // Verification failed
+          Alert.alert(
+            'Verification Failed',
+            details.message || 'Account verification failed. Please check your customer number and try again.'
+          );
+        }
       }
     } catch (error) {
       Alert.alert(

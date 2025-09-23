@@ -162,19 +162,30 @@ function LotteryScreenContent() {
       const details = accountDetails[key];
 
       if (details) {
-        Alert.alert(
-          'Account Verified',
-          `Account: ${details.name}\nDetails: ${details.details}`,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Proceed', onPress: handleProceedPayment },
-          ]
-        );
+        // Check verification result based on code
+        if (details.code === 0) {
+          // Verification successful
+          Alert.alert(
+            'Account Verified',
+            `Account: ${details.name}\nDetails: ${details.details}`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Proceed', onPress: handleProceedPayment },
+            ]
+          );
+        } else {
+          // Verification failed
+          Alert.alert(
+            'Verification Failed',
+            details.message || 'Account verification failed. Please check your account number and try again.'
+          );
+        }
       }
     } catch (error) {
-      // For lottery, account verification might not be required
-      // Proceed directly to payment
-      handleProceedPayment();
+      Alert.alert(
+        'Verification Failed',
+        error instanceof Error ? error.message : 'Failed to verify account'
+      );
     }
   };
 

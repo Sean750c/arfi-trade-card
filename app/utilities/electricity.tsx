@@ -180,14 +180,24 @@ function ElectricityScreenContent() {
       const details = accountDetails[key];
 
       if (details) {
-        Alert.alert(
-          'Meter Verified',
-          `Customer: ${details.name}\nMeter Details: ${details.details}`,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Proceed', onPress: handleProceedPayment },
-          ]
-        );
+        // Check verification result based on code
+        if (details.code === 0) {
+          // Verification successful
+          Alert.alert(
+            'Meter Verified',
+            `Customer: ${details.name}\nMeter Details: ${details.details}`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Proceed', onPress: handleProceedPayment },
+            ]
+          );
+        } else {
+          // Verification failed
+          Alert.alert(
+            'Verification Failed',
+            details.message || 'Meter verification failed. Please check your meter number and try again.'
+          );
+        }
       }
     } catch (error) {
       Alert.alert(

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,8 @@ import {
   ActivityIndicator,
   Pressable,
 } from 'react-native';
-import { X, CreditCard } from 'lucide-react-native';
+import { X, CreditCard, Search } from 'lucide-react-native';
+import Input from '@/components/UI/Input';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import type { MerchantServiceEntry } from '@/types/utilities';
@@ -36,6 +37,24 @@ export default function ServiceSelectionModal({
   merchantName,
 }: ServiceSelectionModalProps) {
   const { colors } = useTheme();
+  const [filterText, setFilterText] = useState('');
+
+  // Filter services based on search text
+  const filteredServices = useMemo(() => {
+    if (!filterText.trim()) {
+      return services;
+    }
+    return services.filter(service =>
+      service.name.toLowerCase().includes(filterText.toLowerCase())
+    );
+  }, [services, filterText]);
+
+  // Reset filter when modal closes
+  React.useEffect(() => {
+    if (!visible) {
+      setFilterText('');
+    }
+  }, [visible]);
 
   const handleSelectService = (service: MerchantServiceEntry) => {
     onSelectService(service);
@@ -116,6 +135,19 @@ export default function ServiceSelectionModal({
             </TouchableOpacity>
           </View>
 
+          {/* Search Filter */}
+          <View style={styles.searchContainer}>
+            <Input
+              value={filterText}
+              onChangeText={setFilterText}
+              placeholder="Search services..."
+              containerStyle={styles.searchInput}
+              rightElement={
+                <Search size={20} color={colors.textSecondary} />
+              }
+            />
+          </View>
+
           <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
             {isLoadingServices ? (
               <View style={styles.modalLoading}>
@@ -124,12 +156,25 @@ export default function ServiceSelectionModal({
                   Loading services...
                 </Text>
               </View>
-            ) : services.length > 0 ? (
-              services.map(renderServiceOption)
+            ) : filteredServices.length > 0 ? (
+              filteredServices.map(renderServiceOption)
             ) : (
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                No services available for {merchantName}
-              </Text>
+              <View style={styles.emptyContainer}>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                  {filterText.trim() 
+                    ? `No services found matching "${filterText}"`
+                    : `No services available for ${merchantName}`
+                  }
+                </Text>
+                {filterText.trim() && (
+                  <TouchableOpacity
+                    style={[styles.clearFilterButton, { backgroundColor: colors.primary }]}
+                    onPress={() => setFilterText('')}
+                  >
+                    <Text style={styles.clearFilterText}>Clear Filter</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             )}
           </ScrollView>
         </View>
@@ -233,5 +278,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 14,
     fontFamily: 'Inter-Regular',
+  },
+  searchContainer: {
+    marginBottom: Spacing.md,
+  },
+  searchInput: {
+    marginBottom: 0,
+  },
+  emptyContainer: {
+    padding: Spacing.xl,
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  clearFilterButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: 8,
+  },
+  clearFilterText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
   },
 });
