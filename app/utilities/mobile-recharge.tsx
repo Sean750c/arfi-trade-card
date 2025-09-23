@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Alert,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -288,344 +290,351 @@ function MobileRechargeScreenContent() {
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={[styles.backButton, { backgroundColor: `${colors.primary}15` }]}
-          >
-            <ChevronLeft size={24} color={colors.primary} />
-          </TouchableOpacity>
-          <View style={styles.headerContent}>
-            <Text style={[styles.title, { color: colors.text }]}>Mobile Recharge</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Airtime & data top-up services
-            </Text>
-          </View>
-
-          <View style={styles.headerActions}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+            />
+          }
+        >
+          {/* Header */}
+          <View style={styles.header}>
             <TouchableOpacity
-              onPress={() => setShowLogsModal(true)}
-              style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
+              onPress={() => router.back()}
+              style={[styles.backButton, { backgroundColor: `${colors.primary}15` }]}
             >
-              <History size={20} color={colors.primary} />
+              <ChevronLeft size={24} color={colors.primary} />
             </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Recharge Form */}
-        <Card style={styles.rechargeCard}>
-          {/* Balance Display */}
-          <View style={[styles.summaryCard, { backgroundColor: colors.primary }]}>
-            <Text style={styles.balanceText}>
-              Available Balance
-            </Text>
-            <Text style={styles.balanceText}>
-              {user?.currency_symbol || '₦'}{Number(user?.money ?? 0).toLocaleString()}
-            </Text>
-          </View>
-
-          {/* Service Tabs */}
-          <View style={styles.serviceTabs}>
-            <TouchableOpacity
-              style={[
-                styles.serviceTab,
-                {
-                  backgroundColor: activeTab === 'airtime' ? colors.primary : 'transparent',
-                  borderColor: colors.primary,
-                }
-              ]}
-              onPress={() => setActiveTab('airtime')}
-            >
-              <Phone size={20} color={activeTab === 'airtime' ? '#FFFFFF' : colors.primary} />
-              <Text style={[
-                styles.serviceTabText,
-                { color: activeTab === 'airtime' ? '#FFFFFF' : colors.primary }
-              ]}>
-                Airtime
+            <View style={styles.headerContent}>
+              <Text style={[styles.title, { color: colors.text }]}>Mobile Recharge</Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+                Airtime & data top-up services
               </Text>
-            </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity
-              style={[
-                styles.serviceTab,
-                {
-                  backgroundColor: activeTab === 'data' ? colors.primary : 'transparent',
-                  borderColor: colors.primary,
-                }
-              ]}
-              onPress={() => setActiveTab('data')}
-            >
-              <Wifi size={20} color={activeTab === 'data' ? '#FFFFFF' : colors.primary} />
-              <Text style={[
-                styles.serviceTabText,
-                { color: activeTab === 'data' ? '#FFFFFF' : colors.primary }
-              ]}>
-                Data
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                onPress={() => setShowLogsModal(true)}
+                style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
+              >
+                <History size={20} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Network Provider Selection */}
-          <View style={styles.formGroup}>
-            <Text style={[styles.formLabel, { color: colors.text }]}>
-              Network Provider
-            </Text>
-            <TouchableOpacity
-              style={[
-                styles.selector,
-                {
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                }
-              ]}
-              onPress={() => setShowSupplierModal(true)}
-            >
-              <View style={styles.selectorContent}>
-                <Smartphone size={20} color={colors.primary} />
+          {/* Recharge Form */}
+          <Card style={styles.rechargeCard}>
+            {/* Balance Display */}
+            <View style={[styles.summaryCard, { backgroundColor: colors.primary }]}>
+              <Text style={styles.balanceText}>
+                Available Balance
+              </Text>
+              <Text style={styles.balanceText}>
+                {user?.currency_symbol || '₦'}{Number(user?.money ?? 0).toLocaleString()}
+              </Text>
+            </View>
+
+            {/* Service Tabs */}
+            <View style={styles.serviceTabs}>
+              <TouchableOpacity
+                style={[
+                  styles.serviceTab,
+                  {
+                    backgroundColor: activeTab === 'airtime' ? colors.primary : 'transparent',
+                    borderColor: colors.primary,
+                  }
+                ]}
+                onPress={() => setActiveTab('airtime')}
+              >
+                <Phone size={20} color={activeTab === 'airtime' ? '#FFFFFF' : colors.primary} />
                 <Text style={[
-                  styles.selectorText,
-                  { color: selectedSupplier ? colors.text : colors.textSecondary }
+                  styles.serviceTabText,
+                  { color: activeTab === 'airtime' ? '#FFFFFF' : colors.primary }
                 ]}>
-                  {selectedSupplier ? `${selectedSupplier.name} (${actualDiscountPercentage}% off)` : 'Select Network Provider'}
+                  Airtime
                 </Text>
-              </View>
-              <ChevronDown size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
+              </TouchableOpacity>
 
-          {/* Phone Number Input */}
-          <Input
-            label="Phone Number"
-            value={phoneNumber}
-            onChangeText={text => setPhoneNumber(text)}
-            placeholder="e.g., 08012345678"
-            keyboardType="phone-pad"
-            returnKeyType="done"
-            maxLength={11}
-            rightElement={
-              user?.phone ? (
-                <TouchableOpacity
-                  style={[styles.useMyNumberButton]}
-                  onPress={() => setPhoneNumber(user.phone)}
-                >
-                  <RotateCw size={20} color={colors.primary} />
-                </TouchableOpacity>
-              ) : null
-            }
-          />
+              <TouchableOpacity
+                style={[
+                  styles.serviceTab,
+                  {
+                    backgroundColor: activeTab === 'data' ? colors.primary : 'transparent',
+                    borderColor: colors.primary,
+                  }
+                ]}
+                onPress={() => setActiveTab('data')}
+              >
+                <Wifi size={20} color={activeTab === 'data' ? '#FFFFFF' : colors.primary} />
+                <Text style={[
+                  styles.serviceTabText,
+                  { color: activeTab === 'data' ? '#FFFFFF' : colors.primary }
+                ]}>
+                  Data
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-          {/* Airtime Tab Content */}
-          {activeTab === 'airtime' && (
-            <View style={styles.tabContent}>
+            {/* Network Provider Selection */}
+            <View style={styles.formGroup}>
               <Text style={[styles.formLabel, { color: colors.text }]}>
-                Select Amount
+                Network Provider
               </Text>
-              <View style={styles.amountGrid}>
-                {airtimeAmounts.map((amount) => (
+              <TouchableOpacity
+                style={[
+                  styles.selector,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                  }
+                ]}
+                onPress={() => setShowSupplierModal(true)}
+              >
+                <View style={styles.selectorContent}>
+                  <Smartphone size={20} color={colors.primary} />
+                  <Text style={[
+                    styles.selectorText,
+                    { color: selectedSupplier ? colors.text : colors.textSecondary }
+                  ]}>
+                    {selectedSupplier ? `${selectedSupplier.name} (${actualDiscountPercentage}% off)` : 'Select Network Provider'}
+                  </Text>
+                </View>
+                <ChevronDown size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Phone Number Input */}
+            <Input
+              label="Phone Number"
+              value={phoneNumber}
+              onChangeText={text => setPhoneNumber(text)}
+              placeholder="e.g., 08012345678"
+              keyboardType="phone-pad"
+              returnKeyType="done"
+              maxLength={11}
+              rightElement={
+                user?.phone ? (
                   <TouchableOpacity
-                    key={amount}
+                    style={[styles.useMyNumberButton]}
+                    onPress={() => setPhoneNumber(user.phone)}
+                  >
+                    <RotateCw size={20} color={colors.primary} />
+                  </TouchableOpacity>
+                ) : null
+              }
+            />
+
+            {/* Airtime Tab Content */}
+            {activeTab === 'airtime' && (
+              <View style={styles.tabContent}>
+                <Text style={[styles.formLabel, { color: colors.text }]}>
+                  Select Amount
+                </Text>
+                <View style={styles.amountGrid}>
+                  {airtimeAmounts.map((amount) => (
+                    <TouchableOpacity
+                      key={amount}
+                      style={[
+                        styles.amountOption,
+                        {
+                          backgroundColor: airtimeAmount === amount.toString()
+                            ? colors.primary
+                            : colors.background,
+                          borderColor: airtimeAmount === amount.toString()
+                            ? colors.primary
+                            : colors.border,
+                        }
+                      ]}
+                      onPress={() => setAirtimeAmount(amount.toString())}
+                    >
+                      <Text style={[
+                        styles.amountText,
+                        {
+                          color: airtimeAmount === amount.toString()
+                            ? '#FFFFFF'
+                            : colors.text
+                        }
+                      ]}>
+                        ₦{amount.toLocaleString()}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Input
+                  label="Custom Amount"
+                  value={airtimeAmount}
+                  onChangeText={setAirtimeAmount}
+                  placeholder="Enter custom amount"
+                  keyboardType="numeric"
+                  returnKeyType="done"
+                />
+
+                {/* 折扣金额展示 */}
+                {(airtimeAmount && selectedSupplier) && (
+                  <View style={styles.paymentSummary}>
+                    {selectedSupplier && <View style={styles.calculationHeader}>
+                      <Calculator size={16} color={colors.primary} />
+                      <Text style={[styles.calculationTitle, { color: colors.primary }]}>
+                        Save {actualDiscountPercentage}% with CardKing
+                      </Text>
+                    </View>}
+                    <View style={styles.summaryRow}>
+                      <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                        Service Amount:
+                      </Text>
+                      <Text style={[styles.originalPrice, { color: colors.text }]}>
+                        ₦{parseFloat(airtimeAmount).toLocaleString()}
+                      </Text>
+                    </View>
+                    {selectedSupplier && <View style={styles.summaryRow}>
+                      <Text style={[styles.summaryLabel, { color: colors.success }]}>
+                        CardKing Discount ({actualDiscountPercentage}%):
+                      </Text>
+                      <Text style={[styles.summaryValue, { color: colors.success }]}>
+                        -₦{(calculateDiscountAmount(parseFloat(airtimeAmount || '0'))).toLocaleString()}
+                      </Text>
+                    </View>
+                    }
+                    {currentSupplierFee > 0 && (
+                      <View style={styles.summaryRow}>
+                        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                          Service Fee:
+                        </Text>
+                        <Text style={[styles.summaryValue, { color: colors.text }]}>
+                          +₦{currentSupplierFee.toLocaleString()}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={[styles.summaryRow, styles.totalRow]}>
+                      <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
+                        Total Payment:
+                      </Text>
+                      <Text style={[styles.summaryValue, { color: colors.primary, fontFamily: 'Inter-Bold', fontSize: 18 }]}>
+                        ₦{calculatePaymentAmount(parseFloat(airtimeAmount || '0')).toLocaleString()}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
+                <Button
+                  title={isRecharging ? 'Processing Recharge...' : 'Recharge Airtime'}
+                  onPress={handleAirtimeRecharge}
+                  disabled={isRecharging || !selectedSupplier || !phoneNumber || !airtimeAmount}
+                  loading={isRecharging}
+                  style={styles.rechargeButton}
+                  fullWidth
+                />
+              </View>
+            )}
+
+            {/* Data Tab Content */}
+            {activeTab === 'data' && (
+              <View style={styles.tabContent}>
+                <View style={styles.formGroup}>
+                  <Text style={[styles.formLabel, { color: colors.text }]}>
+                    Data Bundle
+                  </Text>
+                  <TouchableOpacity
                     style={[
-                      styles.amountOption,
+                      styles.selector,
                       {
-                        backgroundColor: airtimeAmount === amount.toString()
-                          ? colors.primary
-                          : colors.background,
-                        borderColor: airtimeAmount === amount.toString()
-                          ? colors.primary
-                          : colors.border,
+                        backgroundColor: colors.background,
+                        borderColor: colors.border,
                       }
                     ]}
-                    onPress={() => setAirtimeAmount(amount.toString())}
+                    onPress={() => setShowDataBundleModal(true)}
+                    disabled={!selectedSupplier}
                   >
-                    <Text style={[
-                      styles.amountText,
-                      {
-                        color: airtimeAmount === amount.toString()
-                          ? '#FFFFFF'
-                          : colors.text
-                      }
-                    ]}>
-                      ₦{amount.toLocaleString()}
-                    </Text>
+                    <View style={styles.selectorContent}>
+                      <Globe size={20} color={colors.primary} />
+                      <Text style={[
+                        styles.selectorText,
+                        { color: selectedDataBundle ? colors.text : colors.textSecondary }
+                      ]}>
+                        {selectedDataBundle
+                          ? `${selectedDataBundle.serviceName} - ₦${selectedDataBundle.servicePrice.toLocaleString()}`
+                          : selectedSupplier
+                            ? 'Select Data Bundle'
+                            : 'Select Network Provider First'
+                        }
+                      </Text>
+                    </View>
+                    <ChevronDown size={20} color={colors.textSecondary} />
                   </TouchableOpacity>
-                ))}
-              </View>
+                </View>
 
-              <Input
-                label="Custom Amount"
-                value={airtimeAmount}
-                onChangeText={setAirtimeAmount}
-                placeholder="Enter custom amount"
-                keyboardType="numeric"
-                returnKeyType="done"
-              />
-
-              {/* 折扣金额展示 */}
-              {(airtimeAmount && selectedSupplier) && (
-                <View style={styles.paymentSummary}>
-                  {selectedSupplier && <View style={styles.calculationHeader}>
-                    <Calculator size={16} color={colors.primary} />
-                    <Text style={[styles.calculationTitle, { color: colors.primary }]}>
-                      Save {actualDiscountPercentage}% with CardKing
-                    </Text>
-                  </View>}
-                  <View style={styles.summaryRow}>
-                    <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                      Service Amount:
-                    </Text>
-                    <Text style={[styles.originalPrice, { color: colors.text }]}>
-                      ₦{parseFloat(airtimeAmount).toLocaleString()}
-                    </Text>
-                  </View>
-                  {selectedSupplier && <View style={styles.summaryRow}>
-                    <Text style={[styles.summaryLabel, { color: colors.success }]}>
-                      CardKing Discount ({actualDiscountPercentage}%):
-                    </Text>
-                    <Text style={[styles.summaryValue, { color: colors.success }]}>
-                      -₦{(calculateDiscountAmount(parseFloat(airtimeAmount || '0'))).toLocaleString()}
-                    </Text>
-                  </View>
-                  }
-                  {currentSupplierFee > 0 && (
+                {/* 动态计算支付金额 */}
+                {(selectedDataBundle && selectedSupplier) && (
+                  <View style={styles.paymentSummary}>
+                    {selectedSupplier && <View style={styles.calculationHeader}>
+                      <Calculator size={16} color={colors.primary} />
+                      <Text style={[styles.calculationTitle, { color: colors.primary }]}>
+                        Save {actualDiscountPercentage}% with CardKing
+                      </Text>
+                    </View>}
                     <View style={styles.summaryRow}>
                       <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                        Service Fee:
+                        Service Amount:
                       </Text>
-                      <Text style={[styles.summaryValue, { color: colors.text }]}>
-                        +₦{currentSupplierFee.toLocaleString()}
+                      <Text style={[styles.originalPrice, { color: colors.text }]}>
+                        ₦{selectedDataBundle.servicePrice.toLocaleString()}
                       </Text>
                     </View>
-                  )}
-                  <View style={[styles.summaryRow, styles.totalRow]}>
-                    <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
-                      Total Payment:
-                    </Text>
-                    <Text style={[styles.summaryValue, { color: colors.primary, fontFamily: 'Inter-Bold', fontSize: 18 }]}>
-                      ₦{calculatePaymentAmount(parseFloat(airtimeAmount || '0')).toLocaleString()}
-                    </Text>
-                  </View>
-                </View>
-              )}
-
-              <Button
-                title={isRecharging ? 'Processing Recharge...' : 'Recharge Airtime'}
-                onPress={handleAirtimeRecharge}
-                disabled={isRecharging || !selectedSupplier || !phoneNumber || !airtimeAmount}
-                loading={isRecharging}
-                style={styles.rechargeButton}
-                fullWidth
-              />
-            </View>
-          )}
-
-          {/* Data Tab Content */}
-          {activeTab === 'data' && (
-            <View style={styles.tabContent}>
-              <View style={styles.formGroup}>
-                <Text style={[styles.formLabel, { color: colors.text }]}>
-                  Data Bundle
-                </Text>
-                <TouchableOpacity
-                  style={[
-                    styles.selector,
-                    {
-                      backgroundColor: colors.background,
-                      borderColor: colors.border,
+                    {selectedSupplier && <View style={styles.summaryRow}>
+                      <Text style={[styles.summaryLabel, { color: colors.success }]}>
+                        CardKing Discount ({actualDiscountPercentage}%):
+                      </Text>
+                      <Text style={[styles.summaryValue, { color: colors.success }]}>
+                        -₦{(calculateDiscountAmount(selectedDataBundle.servicePrice)).toLocaleString()}
+                      </Text>
+                    </View>
                     }
-                  ]}
-                  onPress={() => setShowDataBundleModal(true)}
-                  disabled={!selectedSupplier}
-                >
-                  <View style={styles.selectorContent}>
-                    <Globe size={20} color={colors.primary} />
-                    <Text style={[
-                      styles.selectorText,
-                      { color: selectedDataBundle ? colors.text : colors.textSecondary }
-                    ]}>
-                      {selectedDataBundle
-                        ? `${selectedDataBundle.serviceName} - ₦${selectedDataBundle.servicePrice.toLocaleString()}`
-                        : selectedSupplier
-                          ? 'Select Data Bundle'
-                          : 'Select Network Provider First'
-                      }
-                    </Text>
-                  </View>
-                  <ChevronDown size={20} color={colors.textSecondary} />
-                </TouchableOpacity>
-              </View>
-
-              {/* 动态计算支付金额 */}
-              {(selectedDataBundle && selectedSupplier) && (
-                <View style={styles.paymentSummary}>
-                  {selectedSupplier && <View style={styles.calculationHeader}>
-                    <Calculator size={16} color={colors.primary} />
-                    <Text style={[styles.calculationTitle, { color: colors.primary }]}>
-                      Save {actualDiscountPercentage}% with CardKing
-                    </Text>
-                  </View>}
-                  <View style={styles.summaryRow}>
-                    <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                      Service Amount:
-                    </Text>
-                    <Text style={[styles.originalPrice, { color: colors.text }]}>
-                      ₦{selectedDataBundle.servicePrice.toLocaleString()}
-                    </Text>
-                  </View>
-                  {selectedSupplier && <View style={styles.summaryRow}>
-                    <Text style={[styles.summaryLabel, { color: colors.success }]}>
-                      CardKing Discount ({actualDiscountPercentage}%):
-                    </Text>
-                    <Text style={[styles.summaryValue, { color: colors.success }]}>
-                      -₦{(calculateDiscountAmount(selectedDataBundle.servicePrice)).toLocaleString()}
-                    </Text>
-                  </View>
-                  }
-                  {currentSupplierFee > 0 && (
-                    <View style={styles.summaryRow}>
-                      <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                        Service Fee:
+                    {currentSupplierFee > 0 && (
+                      <View style={styles.summaryRow}>
+                        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                          Service Fee:
+                        </Text>
+                        <Text style={[styles.summaryValue, { color: colors.text }]}>
+                          +₦{currentSupplierFee.toLocaleString()}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={[styles.summaryRow, styles.totalRow]}>
+                      <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
+                        Total Payment:
                       </Text>
-                      <Text style={[styles.summaryValue, { color: colors.text }]}>
-                        +₦{currentSupplierFee.toLocaleString()}
+                      <Text style={[styles.summaryValue, { color: colors.primary, fontFamily: 'Inter-Bold', fontSize: 18 }]}>
+                        ₦{calculatePaymentAmount(selectedDataBundle.servicePrice).toLocaleString()}
                       </Text>
                     </View>
-                  )}
-                  <View style={[styles.summaryRow, styles.totalRow]}>
-                    <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
-                      Total Payment:
-                    </Text>
-                    <Text style={[styles.summaryValue, { color: colors.primary, fontFamily: 'Inter-Bold', fontSize: 18 }]}>
-                      ₦{calculatePaymentAmount(selectedDataBundle.servicePrice).toLocaleString()}
-                    </Text>
                   </View>
-                </View>
-              )}
+                )}
 
-              <Button
-                title={isRecharging ? 'Processing Recharge...' : 'Recharge Data'}
-                onPress={handleDataRecharge}
-                disabled={isRecharging || !selectedSupplier || !phoneNumber || !selectedDataBundle}
-                loading={isRecharging}
-                style={styles.rechargeButton}
-                fullWidth
-              />
-            </View>
-          )}
-        </Card>
-      </ScrollView>
+                <Button
+                  title={isRecharging ? 'Processing Recharge...' : 'Recharge Data'}
+                  onPress={handleDataRecharge}
+                  disabled={isRecharging || !selectedSupplier || !phoneNumber || !selectedDataBundle}
+                  loading={isRecharging}
+                  style={styles.rechargeButton}
+                  fullWidth
+                />
+              </View>
+            )}
+          </Card>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Modals */}
       <SupplierSelectionModal

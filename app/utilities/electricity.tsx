@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Alert,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -296,187 +298,194 @@ function ElectricityScreenContent() {
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={[styles.backButton, { backgroundColor: `${colors.primary}15` }]}
-          >
-            <ChevronLeft size={24} color={colors.primary} />
-          </TouchableOpacity>
-          <View style={styles.headerContent}>
-            <Text style={[styles.title, { color: colors.text }]}>Electricity Bills</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Pay your electricity bills instantly
-            </Text>
-          </View>
-          <View style={styles.headerActions}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+            />
+          }
+        >
+          {/* Header */}
+          <View style={styles.header}>
             <TouchableOpacity
-              onPress={() => setShowLogsModal(true)}
-              style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
+              onPress={() => router.back()}
+              style={[styles.backButton, { backgroundColor: `${colors.primary}15` }]}
             >
-              <History size={20} color={colors.primary} />
+              <ChevronLeft size={24} color={colors.primary} />
             </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Payment Form */}
-        <Card style={styles.paymentCard}>
-          {/* Balance Display */}
-          <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
-            <Text style={styles.balanceText}>Available Balance</Text>
-            <Text style={styles.balanceAmount}>
-              {user?.currency_symbol || '₦'}{Number(user?.money ?? 0).toLocaleString()}
-            </Text>
-          </View>
-
-          {/* Provider Selection */}
-          <View style={styles.formGroup}>
-            <Text style={[styles.formLabel, { color: colors.text }]}>
-              Electricity Provider
-            </Text>
-            <TouchableOpacity
-              style={[
-                styles.selector,
-                {
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                }
-              ]}
-              onPress={() => setShowMerchantModal(true)}
-            >
-              <View style={styles.selectorContent}>
-                <Zap size={20} color={colors.primary} />
-                <Text style={[
-                  styles.selectorText,
-                  { color: currentMerchant ? colors.text : colors.textSecondary }
-                ]}>
-                  {currentMerchant ? currentMerchant.name : 'Select Electricity Provider'}
-                </Text>
-              </View>
-              <ChevronDown size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
+            <View style={styles.headerContent}>
+              <Text style={[styles.title, { color: colors.text }]}>Electricity Bills</Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+                Pay your electricity bills instantly
+              </Text>
+            </View>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                onPress={() => setShowLogsModal(true)}
+                style={[styles.actionButton, { backgroundColor: `${colors.primary}15` }]}
+              >
+                <History size={20} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Service Type Selection (if available) */}
-          <View style={styles.formGroup}>
-            <Text style={[styles.formLabel, { color: colors.text }]}>
-              Service Type
-            </Text>
-            <TouchableOpacity
-              style={[
-                styles.selector,
-                {
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                }
-              ]}
-              onPress={() => setShowServiceModal(true)}
-            >
-              <View style={styles.selectorContent}>
-                <Lightbulb size={20} color={colors.primary} />
-                <Text style={[
-                  styles.selectorText,
-                  { color: currentSelectedService ? colors.text : colors.textSecondary }
-                ]}>
-                  {currentSelectedService
-                    ? currentSelectedService.name
-                    : 'Select Service Type'
+          {/* Payment Form */}
+          <Card style={styles.paymentCard}>
+            {/* Balance Display */}
+            <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
+              <Text style={styles.balanceText}>Available Balance</Text>
+              <Text style={styles.balanceAmount}>
+                {user?.currency_symbol || '₦'}{Number(user?.money ?? 0).toLocaleString()}
+              </Text>
+            </View>
+
+            {/* Provider Selection */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>
+                Electricity Provider
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.selector,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
                   }
-                </Text>
-              </View>
-              <ChevronDown size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Amount Selection */}
-          <Input
-            label="Amount"
-            value={amount}
-            onChangeText={setAmount}
-            placeholder="Enter amount"
-            keyboardType="numeric"
-            returnKeyType="done"
-          />
-
-          {/* Payment Summary */}
-          {amount && (
-            <View style={styles.paymentSummary}>
-              {currentMerchant && <View style={styles.calculationHeader}>
-                <Calculator size={16} color={colors.primary} />
-                <Text style={[styles.calculationTitle, { color: colors.primary }]}>
-                  Save {actualDiscountPercentage}% with CardKing
-                </Text>
-              </View>}
-              <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                  Electricity Units:
-                </Text>
-                <Text style={[styles.summaryValue, { color: colors.text }]}>
-                  ₦{parseFloat(amount || '0').toLocaleString()}
-                </Text>
-              </View>
-              {currentMerchant && <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: colors.success }]}>
-                  CardKing Discount ({actualDiscountPercentage}%):
-                </Text>
-                <Text style={[styles.summaryValue, { color: colors.success }]}>
-                  -₦{(calculateDiscountAmount(parseFloat(amount || '0'))).toLocaleString()}
-                </Text>
-              </View>
-              }
-              {currentMerchantFee > 0 && (
-                <View style={styles.summaryRow}>
-                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                    Service Fee:
-                  </Text>
-                  <Text style={[styles.summaryValue, { color: colors.text }]}>
-                    +₦{currentMerchantFee.toLocaleString()}
+                ]}
+                onPress={() => setShowMerchantModal(true)}
+              >
+                <View style={styles.selectorContent}>
+                  <Zap size={20} color={colors.primary} />
+                  <Text style={[
+                    styles.selectorText,
+                    { color: currentMerchant ? colors.text : colors.textSecondary }
+                  ]}>
+                    {currentMerchant ? currentMerchant.name : 'Select Electricity Provider'}
                   </Text>
                 </View>
-              )}
-              <View style={[styles.summaryRow, styles.totalRow]}>
-                <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
-                  Total Payment:
-                </Text>
-                <Text style={[styles.summaryValue, { color: colors.primary, fontFamily: 'Inter-Bold', fontSize: 18 }]}>
-                  ₦{calculatePaymentAmount(parseFloat(amount || '0')).toLocaleString()}
-                </Text>
-              </View>
+                <ChevronDown size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
             </View>
-          )}
-          {/* Meter Number Input */}
-          <Input
-            label="Meter Number"
-            value={meterNumber}
-            onChangeText={setMeterNumber}
-            placeholder="Enter your meter number"
-            keyboardType="default"
-            returnKeyType="done"
-          />
 
-          <Button
-            title={isLoadingAccountDetails ? 'Verifying Meter...' : 'Verify & Pay'}
-            onPress={handleVerifyMeter}
-            disabled={isLoadingAccountDetails || !isFormReadyForSubmission}
-            loading={isLoadingAccountDetails}
-            style={styles.payButton}
-            fullWidth
-          />
-        </Card>
-      </ScrollView>
+            {/* Service Type Selection (if available) */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>
+                Service Type
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.selector,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                  }
+                ]}
+                onPress={() => setShowServiceModal(true)}
+              >
+                <View style={styles.selectorContent}>
+                  <Lightbulb size={20} color={colors.primary} />
+                  <Text style={[
+                    styles.selectorText,
+                    { color: currentSelectedService ? colors.text : colors.textSecondary }
+                  ]}>
+                    {currentSelectedService
+                      ? currentSelectedService.name
+                      : 'Select Service Type'
+                    }
+                  </Text>
+                </View>
+                <ChevronDown size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Amount Selection */}
+            <Input
+              label="Amount"
+              value={amount}
+              onChangeText={setAmount}
+              placeholder="Enter amount"
+              keyboardType="numeric"
+              returnKeyType="done"
+            />
+
+            {/* Payment Summary */}
+            {amount && (
+              <View style={styles.paymentSummary}>
+                {currentMerchant && <View style={styles.calculationHeader}>
+                  <Calculator size={16} color={colors.primary} />
+                  <Text style={[styles.calculationTitle, { color: colors.primary }]}>
+                    Save {actualDiscountPercentage}% with CardKing
+                  </Text>
+                </View>}
+                <View style={styles.summaryRow}>
+                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                    Electricity Units:
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: colors.text }]}>
+                    ₦{parseFloat(amount || '0').toLocaleString()}
+                  </Text>
+                </View>
+                {currentMerchant && <View style={styles.summaryRow}>
+                  <Text style={[styles.summaryLabel, { color: colors.success }]}>
+                    CardKing Discount ({actualDiscountPercentage}%):
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: colors.success }]}>
+                    -₦{(calculateDiscountAmount(parseFloat(amount || '0'))).toLocaleString()}
+                  </Text>
+                </View>
+                }
+                {currentMerchantFee > 0 && (
+                  <View style={styles.summaryRow}>
+                    <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                      Service Fee:
+                    </Text>
+                    <Text style={[styles.summaryValue, { color: colors.text }]}>
+                      +₦{currentMerchantFee.toLocaleString()}
+                    </Text>
+                  </View>
+                )}
+                <View style={[styles.summaryRow, styles.totalRow]}>
+                  <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
+                    Total Payment:
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: colors.primary, fontFamily: 'Inter-Bold', fontSize: 18 }]}>
+                    ₦{calculatePaymentAmount(parseFloat(amount || '0')).toLocaleString()}
+                  </Text>
+                </View>
+              </View>
+            )}
+            {/* Meter Number Input */}
+            <Input
+              label="Meter Number"
+              value={meterNumber}
+              onChangeText={setMeterNumber}
+              placeholder="Enter your meter number"
+              keyboardType="default"
+              returnKeyType="done"
+            />
+
+            <Button
+              title={isLoadingAccountDetails ? 'Verifying Meter...' : 'Verify & Pay'}
+              onPress={handleVerifyMeter}
+              disabled={isLoadingAccountDetails || !isFormReadyForSubmission}
+              loading={isLoadingAccountDetails}
+              style={styles.payButton}
+              fullWidth
+            />
+          </Card>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Modals */}
       <MerchantSelectionModal
