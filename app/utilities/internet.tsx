@@ -105,9 +105,6 @@ function InternetScreenContent() {
   useEffect(() => {
     if (user?.token) {
       fetchMerchants(user.token, ServiceType.INTERNET);
-      if (merchants) {
-        setSelectedMerchant(ServiceType.INTERNET, merchants[ServiceType.INTERNET][0]);
-      }
     }
   }, [user?.token]);
 
@@ -116,7 +113,7 @@ function InternetScreenContent() {
     if (user?.token && currentMerchant) {
       fetchMerchantServices(user.token, currentMerchant.uuid);
     }
-  }, [user?.token, currentMerchant]);
+  }, [currentMerchant]);
 
   const handleRefresh = useCallback(async () => {
     if (!user?.token) return;

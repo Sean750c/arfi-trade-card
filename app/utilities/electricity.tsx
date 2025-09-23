@@ -106,9 +106,6 @@ function ElectricityScreenContent() {
   useEffect(() => {
     if (user?.token) {
       fetchMerchants(user.token, ServiceType.ELECTRICITY);
-      if (merchants) {
-        setSelectedMerchant(ServiceType.ELECTRICITY, merchants[ServiceType.ELECTRICITY][0]);
-      }
     }
   }, [user?.token]);
 
@@ -117,7 +114,7 @@ function ElectricityScreenContent() {
     if (user?.token && currentMerchant) {
       fetchMerchantServices(user.token, currentMerchant.uuid);
     }
-  }, [user?.token, currentMerchant]);
+  }, [currentMerchant]);
 
   const handleRefresh = useCallback(async () => {
     if (!user?.token) return;

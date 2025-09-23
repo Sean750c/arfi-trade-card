@@ -103,9 +103,6 @@ function CableTVScreenContent() {
   useEffect(() => {
     if (user?.token) {
       fetchMerchants(user.token, ServiceType.CABLE_TV);
-      if (merchants) {
-        setSelectedMerchant(ServiceType.CABLE_TV, merchants[ServiceType.CABLE_TV][0]);
-      }
     }
   }, [user?.token]);
 
@@ -114,7 +111,7 @@ function CableTVScreenContent() {
     if (user?.token && currentMerchant) {
       fetchMerchantServices(user.token, currentMerchant.uuid);
     }
-  }, [user?.token, currentMerchant]);
+  }, [currentMerchant]);
 
   const handleRefresh = useCallback(async () => {
     if (!user?.token) return;

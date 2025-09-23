@@ -95,9 +95,6 @@ function LotteryScreenContent() {
   useEffect(() => {
     if (user?.token) {
       fetchMerchants(user.token, ServiceType.LOTTERY);
-      if (merchants) {
-        setSelectedMerchant(ServiceType.LOTTERY, merchants[ServiceType.LOTTERY][0]);
-      }
     }
   }, [user?.token]);
 
