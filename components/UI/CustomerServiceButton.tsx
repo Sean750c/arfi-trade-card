@@ -5,8 +5,7 @@ import {
   Dimensions,
   PanResponder,
   PanResponderInstance,
-  Animated,
-  View
+  Animated
 } from 'react-native';
 import { MessageCircle } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
@@ -33,12 +32,12 @@ export default function CustomerServiceButton({
 
   // 拖动相关状态
   const [buttonPosition, setButtonPosition] = useState({
-    x: screenWidth - size / 2,
+    x: screenWidth - size / 1.8,
     y: screenHeight - 200,
   });
 
   const pan = useRef(new Animated.ValueXY({
-    x: screenWidth - size / 2,
+    x: screenWidth - size / 1.8,
     y: screenHeight - 200,
   })).current;
 
@@ -59,7 +58,7 @@ export default function CustomerServiceButton({
 
         // 如果按钮只露一半，自动展开到完全显示
         const currentX = (pan.x as any)._value;
-        if (currentX > screenWidth - size / 2 - 5) {
+        if (currentX > screenWidth - size / 1.8 - 5) {
           Animated.spring(pan, {
             toValue: { x: screenWidth - size - 20, y: (pan.y as any)._value },
             useNativeDriver: false,
@@ -92,7 +91,7 @@ export default function CustomerServiceButton({
         // 动画到约束位置
         Animated.spring(pan, {
           toValue: {
-            x: screenWidth - size / 2, // 👈 重新收起
+            x: screenWidth - size / 1.8, // 👈 重新收起
             y: constrainedY,
           },
           useNativeDriver: false,

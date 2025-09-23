@@ -31,6 +31,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
 import { ServiceType } from '@/types/utilities';
+import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 
 interface PendingPaymentData {
   type: 'lottery';
@@ -415,23 +416,6 @@ function LotteryScreenContent() {
           />
         </Card>
 
-        {/* Info Section */}
-        <Card style={styles.infoCard}>
-          <View style={styles.infoHeader}>
-            <Trophy size={24} color={colors.primary} />
-            <Text style={[styles.infoTitle, { color: colors.text }]}>
-              Lottery & Gaming Services
-            </Text>
-          </View>
-          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            • Fund your betting and lottery accounts{'\n'}
-            • Support for sports betting platforms{'\n'}
-            • Instant wallet funding{'\n'}
-            • Support for major Nigerian gaming platforms{'\n'}
-            • Secure payment from your wallet balance
-          </Text>
-        </Card>
-
       </ScrollView>
 
       {/* Modals */}
@@ -473,6 +457,10 @@ function LotteryScreenContent() {
         type='lottery'
         visible={showLogsModal}
         onClose={() => setShowLogsModal(false)}
+      />
+
+      <CustomerServiceButton
+        style={styles.customerServiceButton}
       />
     </SafeAreaWrapper>
   );
@@ -624,25 +612,10 @@ const styles = StyleSheet.create({
     height: 48,
     marginTop: Spacing.md,
   },
-
-  // Info Card
-  infoCard: {
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  infoText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
+  customerServiceButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    zIndex: 1000,
   },
 });

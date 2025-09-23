@@ -9,14 +9,14 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Phone, Wifi, Zap, Tv, ArrowRight, Smartphone, History, Chrome as Home, Globe, DollarSign } from 'lucide-react-native';
-import Card from '@/components/UI/Card';
+import { ChevronLeft, Zap, Tv, ArrowRight, Smartphone, History, Globe, DollarSign } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import RechargeLogsModal from '@/components/utilities/RechargeLogsModal';
+import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 
 interface ServiceItem {
   id: string;
@@ -171,7 +171,7 @@ function UtilitiesScreenContent() {
             <ChevronLeft size={24} color={colors.primary} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={[styles.title, { color: colors.text }]}>Life Services</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Bill Services</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               Pay bills & top-up services
             </Text>
@@ -196,23 +196,6 @@ function UtilitiesScreenContent() {
             {services.map(renderServiceCard)}
           </View>
         </View>
-
-        {/* Info Section */}
-        <Card style={styles.infoCard}>
-          <View style={styles.infoHeader}>
-            <Home size={24} color={colors.primary} />
-            <Text style={[styles.infoTitle, { color: colors.text }]}>
-              Why Choose Our Services?
-            </Text>
-          </View>
-          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            • Instant processing for all transactions{'\n'}
-            • Secure payment with your wallet balance{'\n'}
-            • Support for all major Nigerian service providers{'\n'}
-            • 24/7 customer support for any issues{'\n'}
-            • Competitive rates and no hidden fees
-          </Text>
-        </Card>
       </ScrollView>
 
       <RechargeLogsModal
@@ -220,6 +203,10 @@ function UtilitiesScreenContent() {
         type='all'
         visible={showLogsModal}
         onClose={() => setShowLogsModal(false)}
+      />
+
+      <CustomerServiceButton
+        style={styles.customerServiceButton}
       />
     </SafeAreaWrapper>
   );
@@ -337,26 +324,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Info Card
-  infoCard: {
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  infoText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
-  },
   headerActions: {
     flexDirection: 'row',
     gap: Spacing.sm,
@@ -368,19 +335,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  // Coming Soon Card
-  // comingSoonCard: {
-  //   padding: Spacing.lg,
-  // },
-  // comingSoonTitle: {
-  //   fontSize: 18,
-  //   fontFamily: 'Inter-Bold',
-  //   marginBottom: Spacing.sm,
-  // },
-  // comingSoonDescription: {
-  //   fontSize: 14,
-  //   fontFamily: 'Inter-Regular',
-  //   lineHeight: 20,
-  // },
+  customerServiceButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    zIndex: 1000,
+  },
 });

@@ -34,6 +34,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
 import { ServiceType } from '@/types/utilities';
+import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 
 interface PendingPaymentData {
   type: 'internet';
@@ -155,11 +156,6 @@ function InternetScreenContent() {
     return true;
   }, [currentMerchant, customerNumber, currentSelectedService]);
 
-  const isAmountValid = useMemo(() => {
-    if (!currentSelectedService || !currentMerchant) return false;
-    return currentSelectedService.price >= currentMerchant.min && currentSelectedService.price <= currentMerchant.max;
-  }, [currentMerchant, customerNumber, currentSelectedService]);
-
   const handleVerifyAccount = async () => {
     if (!validateForm() || !user?.token || !currentMerchant) return;
 
@@ -198,10 +194,6 @@ function InternetScreenContent() {
     if (!currentMerchant || !user?.token || !currentSelectedService) return;
 
     const amount = currentSelectedService.price;
-    if (!isAmountValid) {
-      Alert.alert('Error', `Selected plan price must be between ₦${currentMerchant.min} and ₦${currentMerchant.max}`);
-      return;
-    }
 
     const paymentAmount = calculatePaymentAmount(amount);
 
@@ -443,28 +435,11 @@ function InternetScreenContent() {
           <Button
             title={isLoadingAccountDetails ? 'Verifying Account...' : 'Verify & Pay'}
             onPress={handleVerifyAccount}
-            disabled={isLoadingAccountDetails || !isFormReadyForSubmission || !isAmountValid}
+            disabled={isLoadingAccountDetails || !isFormReadyForSubmission}
             loading={isLoadingAccountDetails}
             style={styles.payButton}
             fullWidth
           />
-        </Card>
-
-        {/* Info Section */}
-        <Card style={styles.infoCard}>
-          <View style={styles.infoHeader}>
-            <Globe size={24} color={colors.primary} />
-            <Text style={[styles.infoTitle, { color: colors.text }]}>
-              Internet Service Payment
-            </Text>
-          </View>
-          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            • Pay for broadband and internet services{'\n'}
-            • Support for fiber, wireless, and satellite internet{'\n'}
-            • Instant service activation{'\n'}
-            • Support for all major Nigerian ISPs{'\n'}
-            • Secure payment from your wallet balance
-          </Text>
         </Card>
       </ScrollView>
 
@@ -518,6 +493,10 @@ function InternetScreenContent() {
         type='internet'
         visible={showLogsModal}
         onClose={() => setShowLogsModal(false)}
+      />
+
+      <CustomerServiceButton
+        style={styles.customerServiceButton}
       />
     </SafeAreaWrapper>
   );
@@ -669,24 +648,10 @@ const styles = StyleSheet.create({
     height: 48,
     marginTop: Spacing.md,
   },
-
-  // Info Card
-  infoCard: {
-    padding: Spacing.lg,
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  infoText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
+  customerServiceButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    zIndex: 1000,
   },
 });

@@ -14,7 +14,6 @@ import { Bell, ChevronDown, Sparkles, Eye, EyeOff, RefreshCw, Ticket } from 'luc
 import Spacing from '@/constants/Spacing';
 import PromoBanner from '@/components/home/PromoBanner';
 import QuickActions from '@/components/home/QuickActions';
-import PromoTimer from '@/components/home/PromoTimer';
 import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 import { useCountryStore } from '@/stores/useCountryStore';
 import { useAuthStore } from '@/stores/useAuthStore';

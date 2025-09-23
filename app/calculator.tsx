@@ -125,11 +125,11 @@ export default function CalculatorScreen() {
     // Apply coupon adjustments
     let couponRateAdjustment = 0; // Rate increase type coupon
     let fixedCouponDiscount = 0;  // Fixed amount discount
-    let percentageCouponMultiplier = 1; // Percentage discount multiplier
+    let percentageCouponMultiplier = 0; // Percentage discount multiplier
 
     if (selectedCoupon) {
       if (selectedCoupon.discount_type === 1) { // Percentage discount (e.g., 5%)
-        percentageCouponMultiplier = 1 + parseFloat(selectedCoupon.discount_value);
+        percentageCouponMultiplier = parseFloat(selectedCoupon.discount_value);
       } else if (selectedCoupon.discount_type === 2) { // Amount discount or rate increase
         if (selectedCoupon.type === 1) { // Fixed amount discount (e.g., ₦500)
           fixedCouponDiscount = parseFloat(selectedCoupon.discount_value);
@@ -141,6 +141,7 @@ export default function CalculatorScreen() {
 
     // Calculate effective rate (base rate + VIP bonus + coupon rate adjustment)
     const effectiveRate = baseRate * (1 + vipBonus + percentageCouponMultiplier);
+
     let finalCalculatedAmount = amount * (effectiveRate + couponRateAdjustment);
 
     // Apply fixed amount discount (after all calculations)

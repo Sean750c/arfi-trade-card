@@ -34,6 +34,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
 import { ServiceType, MerchantEntry, MerchantServiceEntry } from '@/types/utilities';
+import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 
 interface PendingPaymentData {
   type: 'electricity';
@@ -146,8 +147,8 @@ function ElectricityScreenContent() {
     }
 
     const amountValue = parseFloat(amount);
-    if (amountValue <= 0 || amountValue > 500000) {
-      Alert.alert('Error', 'Amount must be between ₦1 and ₦500,000');
+    if (amountValue < currentMerchant.min || amountValue > currentMerchant.max) {
+      Alert.alert('Error', `Amount must be between ₦${currentMerchant.min} and ₦${currentMerchant.max}`);
       return false; // 这里的验证逻辑应该使用 merchant.min 和 merchant.max
     }
 
@@ -159,11 +160,6 @@ function ElectricityScreenContent() {
     if (!currentMerchant) return false;
     if (!meterNumber.trim()) return false;
     if (!amount.trim()) return false;
-    return true;
-  }, [currentMerchant, meterNumber, amount]);
-
-  const isAmountValid = useMemo(() => {
-    if (!currentMerchant || !amount.trim()) return false;
     return true;
   }, [currentMerchant, meterNumber, amount]);
 
@@ -464,28 +460,11 @@ function ElectricityScreenContent() {
           <Button
             title={isLoadingAccountDetails ? 'Verifying Meter...' : 'Verify & Pay'}
             onPress={handleVerifyMeter}
-            disabled={isLoadingAccountDetails || !isFormReadyForSubmission || !isAmountValid}
+            disabled={isLoadingAccountDetails || !isFormReadyForSubmission}
             loading={isLoadingAccountDetails}
             style={styles.payButton}
             fullWidth
           />
-        </Card>
-
-        {/* Info Section */}
-        <Card style={styles.infoCard}>
-          <View style={styles.infoHeader}>
-            <Zap size={24} color={colors.primary} />
-            <Text style={[styles.infoTitle, { color: colors.text }]}>
-              Electricity Bill Payment
-            </Text>
-          </View>
-          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            • Pay for prepaid and postpaid electricity{'\n'}
-            • Instant token delivery for prepaid meters{'\n'}
-            • Support for all major Nigerian electricity providers{'\n'}
-            • Secure payment from your wallet balance{'\n'}
-            • 24/7 customer support available
-          </Text>
         </Card>
       </ScrollView>
 
@@ -539,6 +518,10 @@ function ElectricityScreenContent() {
         type='electricity'
         visible={showLogsModal}
         onClose={() => setShowLogsModal(false)}
+      />
+
+      <CustomerServiceButton
+        style={styles.customerServiceButton}
       />
     </SafeAreaWrapper>
   );
@@ -690,24 +673,10 @@ const styles = StyleSheet.create({
     height: 48,
     marginTop: Spacing.md,
   },
-
-  // Info Card
-  infoCard: {
-    padding: Spacing.lg,
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  infoText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
+  customerServiceButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    zIndex: 1000,
   },
 });

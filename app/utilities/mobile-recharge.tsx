@@ -15,7 +15,6 @@ import {
   Wifi,
   Smartphone,
   Globe,
-  Zap,
   ChevronDown,
   History,
   RotateCw,
@@ -35,7 +34,8 @@ import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
-import type { Supplier, DataBundle } from '@/types/utilities';
+import type { DataBundle } from '@/types/utilities';
+import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 
 interface PendingRechargeData {
   type: 'airtime' | 'data';
@@ -87,8 +87,13 @@ function MobileRechargeScreenContent() {
   const actualDiscountPercentage = 100 - currentSupplierDiscount;
   // 计算需要支付的金额
   const calculatePaymentAmount = (amount: number) => {
-    const fee = Number(currentSupplierFee);  // 强制转换为数字
-    return Math.round(amount * (currentSupplierDiscount / 100) + fee);
+    const fee = Number(currentSupplierFee);
+    const total = amount * (currentSupplierDiscount / 100) + fee;
+    return Math.round(total * 100) / 100;
+  };
+
+  const calculateDiscountAmount = (amount: number) => {
+    return Math.round(amount * (actualDiscountPercentage / 100) * 100) / 100;
   };
 
   useEffect(() => {
@@ -469,25 +474,51 @@ function MobileRechargeScreenContent() {
               />
 
               {/* 折扣金额展示 */}
-              {airtimeAmount && selectedSupplier ? (
-                <View style={styles.discountContainer}>
-                  <Calculator size={16} color={colors.success} />
-                  <Text style={[styles.calculationTitle, { color: colors.success }]}>
-                    Discount Amount
-                  </Text>
-                  <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
-                    ₦{parseFloat(airtimeAmount).toLocaleString()}
-                  </Text>
-                  {currentSupplierFee > 0 && (
-                    <Text style={[styles.feeText, { color: colors.textSecondary }]}>
-                      + ₦{currentSupplierFee.toLocaleString()} Fee
+              {(airtimeAmount && selectedSupplier) && (
+                <View style={styles.paymentSummary}>
+                  {selectedSupplier && <View style={styles.calculationHeader}>
+                    <Calculator size={16} color={colors.primary} />
+                    <Text style={[styles.calculationTitle, { color: colors.primary }]}>
+                      Save {actualDiscountPercentage}% with CardKing
                     </Text>
+                  </View>}
+                  <View style={styles.summaryRow}>
+                    <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                      Service Amount:
+                    </Text>
+                    <Text style={[styles.originalPrice, { color: colors.text }]}>
+                      ₦{parseFloat(airtimeAmount).toLocaleString()}
+                    </Text>
+                  </View>
+                  {selectedSupplier && <View style={styles.summaryRow}>
+                    <Text style={[styles.summaryLabel, { color: colors.success }]}>
+                      CardKing Discount ({actualDiscountPercentage}%):
+                    </Text>
+                    <Text style={[styles.summaryValue, { color: colors.success }]}>
+                      -₦{(calculateDiscountAmount(parseFloat(airtimeAmount || '0'))).toLocaleString()}
+                    </Text>
+                  </View>
+                  }
+                  {currentSupplierFee > 0 && (
+                    <View style={styles.summaryRow}>
+                      <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                        Service Fee:
+                      </Text>
+                      <Text style={[styles.summaryValue, { color: colors.text }]}>
+                        +₦{currentSupplierFee.toLocaleString()}
+                      </Text>
+                    </View>
                   )}
-                  <Text style={[styles.discountedPrice, { color: colors.success }]}>
-                    ₦{calculatePaymentAmount(parseFloat(airtimeAmount || '0')).toLocaleString()}
-                  </Text>
+                  <View style={[styles.summaryRow, styles.totalRow]}>
+                    <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
+                      Total Payment:
+                    </Text>
+                    <Text style={[styles.summaryValue, { color: colors.primary, fontFamily: 'Inter-Bold', fontSize: 18 }]}>
+                      ₦{calculatePaymentAmount(parseFloat(airtimeAmount || '0')).toLocaleString()}
+                    </Text>
+                  </View>
                 </View>
-              ) : null}
+              )}
 
               <Button
                 title={isRecharging ? 'Processing Recharge...' : 'Recharge Airtime'}
@@ -537,25 +568,51 @@ function MobileRechargeScreenContent() {
               </View>
 
               {/* 动态计算支付金额 */}
-              {selectedDataBundle && selectedSupplier ? (
-                <View style={styles.discountContainer}>
-                  <Calculator size={16} color={colors.success} />
-                  <Text style={[styles.calculationTitle, { color: colors.success }]}>
-                    Discount Amount
-                  </Text>
-                  <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
-                    ₦{selectedDataBundle.servicePrice.toLocaleString()}
-                  </Text>
-                  {currentSupplierFee > 0 && (
-                    <Text style={[styles.feeText, { color: colors.textSecondary }]}>
-                      + ₦{currentSupplierFee.toLocaleString()} Fee
+              {(selectedDataBundle && selectedSupplier) && (
+                <View style={styles.paymentSummary}>
+                  {selectedSupplier && <View style={styles.calculationHeader}>
+                    <Calculator size={16} color={colors.primary} />
+                    <Text style={[styles.calculationTitle, { color: colors.primary }]}>
+                      Save {actualDiscountPercentage}% with CardKing
                     </Text>
+                  </View>}
+                  <View style={styles.summaryRow}>
+                    <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                      Service Amount:
+                    </Text>
+                    <Text style={[styles.originalPrice, { color: colors.text }]}>
+                      ₦{selectedDataBundle.servicePrice.toLocaleString()}
+                    </Text>
+                  </View>
+                  {selectedSupplier && <View style={styles.summaryRow}>
+                    <Text style={[styles.summaryLabel, { color: colors.success }]}>
+                      CardKing Discount ({actualDiscountPercentage}%):
+                    </Text>
+                    <Text style={[styles.summaryValue, { color: colors.success }]}>
+                      -₦{(calculateDiscountAmount(selectedDataBundle.servicePrice)).toLocaleString()}
+                    </Text>
+                  </View>
+                  }
+                  {currentSupplierFee > 0 && (
+                    <View style={styles.summaryRow}>
+                      <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                        Service Fee:
+                      </Text>
+                      <Text style={[styles.summaryValue, { color: colors.text }]}>
+                        +₦{currentSupplierFee.toLocaleString()}
+                      </Text>
+                    </View>
                   )}
-                  <Text style={[styles.discountedPrice, { color: colors.success }]}>
-                    ₦{calculatePaymentAmount(selectedDataBundle.servicePrice).toLocaleString()}
-                  </Text>
+                  <View style={[styles.summaryRow, styles.totalRow]}>
+                    <Text style={[styles.summaryLabel, { color: colors.primary, fontFamily: 'Inter-Bold' }]}>
+                      Total Payment:
+                    </Text>
+                    <Text style={[styles.summaryValue, { color: colors.primary, fontFamily: 'Inter-Bold', fontSize: 18 }]}>
+                      ₦{calculatePaymentAmount(selectedDataBundle.servicePrice).toLocaleString()}
+                    </Text>
+                  </View>
                 </View>
-              ) : null}
+              )}
 
               <Button
                 title={isRecharging ? 'Processing Recharge...' : 'Recharge Data'}
@@ -567,22 +624,6 @@ function MobileRechargeScreenContent() {
               />
             </View>
           )}
-        </Card>
-
-        {/* Info Section */}
-        <Card style={styles.infoCard}>
-          <View style={styles.infoHeader}>
-            <Zap size={24} color={colors.primary} />
-            <Text style={[styles.infoTitle, { color: colors.text }]}>
-              Quick & Secure Recharge
-            </Text>
-          </View>
-          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            • Instant airtime and data top-up{'\n'}
-            • Support for all major Nigerian networks{'\n'}
-            • Secure payment from your wallet balance{'\n'}
-            • 24/7 customer support available
-          </Text>
         </Card>
       </ScrollView>
 
@@ -636,6 +677,10 @@ function MobileRechargeScreenContent() {
         type='phone'
         visible={showLogsModal}
         onClose={() => setShowLogsModal(false)}
+      />
+
+      <CustomerServiceButton
+        style={styles.customerServiceButton}
       />
     </SafeAreaWrapper>
   );
@@ -761,7 +806,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
   },
   tabContent: {
-    gap: Spacing.md,
+    gap: Spacing.xxs,
   },
   amountGrid: {
     flexDirection: 'row',
@@ -797,43 +842,46 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
 
-  // Info Card
-  infoCard: {
-    padding: Spacing.lg,
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  infoText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
-  },
-  discountContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    marginTop: -Spacing.sm,
-  },
   originalPrice: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     textDecorationLine: 'line-through',
   },
-  feeText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    textDecorationLine: 'line-through',
+  paymentSummary: {
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    padding: Spacing.md,
+    borderRadius: 12,
   },
-  discountedPrice: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
+  calculationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+  },
+  totalRow: {
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+    marginTop: Spacing.sm,
+  },
+  customerServiceButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    zIndex: 1000,
   },
 });

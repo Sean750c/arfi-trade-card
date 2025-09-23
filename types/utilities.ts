@@ -48,8 +48,10 @@ export interface MerchantServiceEntry {
 }
 
 export interface MerchantAccountEntry {
+  code: number;
   name: string;
   details: string;
+  message: string;
 }
 
 // Service Types Enum

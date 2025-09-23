@@ -15,7 +15,6 @@ import {
   ChevronDown,
   History,
   Calculator,
-  User,
   CreditCard,
 } from 'lucide-react-native';
 import Card from '@/components/UI/Card';
@@ -32,7 +31,8 @@ import Spacing from '@/constants/Spacing';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUtilitiesStore } from '@/stores/useUtilitiesStore';
-import { MerchantEntry, ServiceType } from '@/types/utilities';
+import { ServiceType } from '@/types/utilities';
+import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
 
 interface PendingPaymentData {
   type: 'cable-tv';
@@ -154,11 +154,6 @@ function CableTVScreenContent() {
     return true;
   }, [currentMerchant, customerNumber, currentSelectedService]);
 
-  const isAmountValid = useMemo(() => {
-    if (!currentSelectedService || !currentMerchant) return false;
-    return currentSelectedService.price >= currentMerchant.min && currentSelectedService.price <= currentMerchant.max;
-  }, [currentMerchant, customerNumber, currentSelectedService]);
-
   const handleVerifyAccount = async () => {
     if (!validateForm() || !user?.token || !currentMerchant) return;
 
@@ -195,11 +190,6 @@ function CableTVScreenContent() {
 
   const handleProceedPayment = () => {
     if (!currentMerchant || !user?.token || !currentSelectedService) return;
-
-    if (!isAmountValid) {
-      Alert.alert('Error', `Selected package price must be between ₦${currentMerchant.min} and ₦${currentMerchant.max}`);
-      return;
-    }
 
     const amount = currentSelectedService.price;
     const paymentAmount = calculatePaymentAmount(amount);
@@ -396,7 +386,7 @@ function CableTVScreenContent() {
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
                   Service Amount:
                 </Text>
-                <Text style={[styles.summaryValue, { color: colors.text }]}>
+                <Text style={[styles.originalPrice, { color: colors.text }]}>
                   ₦{currentSelectedService.price.toLocaleString()}
                 </Text>
               </View>
@@ -442,28 +432,11 @@ function CableTVScreenContent() {
           <Button
             title={isLoadingAccountDetails ? 'Verifying Account...' : 'Verify & Pay'}
             onPress={handleVerifyAccount}
-            disabled={isLoadingAccountDetails || !isFormReadyForSubmission || !isAmountValid}
+            disabled={isLoadingAccountDetails || !isFormReadyForSubmission}
             loading={isLoadingAccountDetails}
             style={styles.payButton}
             fullWidth
           />
-        </Card>
-
-        {/* Info Section */}
-        <Card style={styles.infoCard}>
-          <View style={styles.infoHeader}>
-            <Tv size={24} color={colors.primary} />
-            <Text style={[styles.infoTitle, { color: colors.text }]}>
-              Cable TV Subscriptions
-            </Text>
-          </View>
-          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            • Pay for DSTV, GOtv, and other cable TV services{'\n'}
-            • Instant activation after successful payment{'\n'}
-            • Support for all major Nigerian cable providers{'\n'}
-            • Secure payment from your wallet balance{'\n'}
-            • 24/7 customer support available
-          </Text>
         </Card>
       </ScrollView>
 
@@ -517,6 +490,10 @@ function CableTVScreenContent() {
         type='cable'
         visible={showLogsModal}
         onClose={() => setShowLogsModal(false)}
+      />
+
+      <CustomerServiceButton
+        style={styles.customerServiceButton}
       />
     </SafeAreaWrapper>
   );
@@ -654,6 +631,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
   },
+  originalPrice: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    textDecorationLine: 'line-through',
+  },
   summaryValue: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
@@ -668,24 +650,10 @@ const styles = StyleSheet.create({
     height: 48,
     marginTop: Spacing.md,
   },
-
-  // Info Card
-  infoCard: {
-    padding: Spacing.lg,
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-  },
-  infoText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
+  customerServiceButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    zIndex: 1000,
   },
 });
