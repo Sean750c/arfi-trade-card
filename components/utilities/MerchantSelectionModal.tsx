@@ -79,7 +79,7 @@ export default function MerchantSelectionModal({
             </Text>
           )}
           {merchant.fee > 0 && (
-            <Text style={[styles.merchantFee, { color: colors.textSecondary }]}>
+            <Text style={[styles.merchantFee, { color: colors.error }]}>
               Service fee: ₦{merchant.fee.toLocaleString()}
             </Text>
           )}

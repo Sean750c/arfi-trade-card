@@ -352,7 +352,12 @@ function LotteryScreenContent() {
                     styles.selectorText,
                     { color: currentMerchant ? colors.text : colors.textSecondary }
                   ]}>
-                    {currentMerchant ? currentMerchant.name : 'Select Provider'}
+                    {currentMerchant
+                      ? `${currentMerchant.name}${actualDiscountPercentage > 0
+                        ? ` (${actualDiscountPercentage}% off)`
+                        : ''
+                      }`
+                      : 'Select Provider'}
                   </Text>
                 </View>
                 <ChevronDown size={20} color={colors.textSecondary} />
@@ -399,7 +404,7 @@ function LotteryScreenContent() {
                     <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
                       Service Fee:
                     </Text>
-                    <Text style={[styles.summaryValue, { color: colors.text }]}>
+                    <Text style={[styles.summaryValue, { color: colors.error }]}>
                       +₦{currentMerchantFee.toLocaleString()}
                     </Text>
                   </View>
@@ -421,7 +426,7 @@ function LotteryScreenContent() {
               value={customerNumber}
               onChangeText={setCustomerNumber}
               placeholder="Enter your account number"
-              keyboardType="default"
+              keyboardType="numeric"
               returnKeyType="done"
             />
 

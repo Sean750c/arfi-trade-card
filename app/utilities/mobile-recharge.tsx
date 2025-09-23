@@ -407,7 +407,12 @@ function MobileRechargeScreenContent() {
                     styles.selectorText,
                     { color: selectedSupplier ? colors.text : colors.textSecondary }
                   ]}>
-                    {selectedSupplier ? `${selectedSupplier.name} (${actualDiscountPercentage}% off)` : 'Select Network Provider'}
+                    {selectedSupplier
+                      ? `${selectedSupplier.name}${actualDiscountPercentage > 0
+                        ? ` (${actualDiscountPercentage}% off)`
+                        : ''
+                      }`
+                      : 'Select Network Provider'}
                   </Text>
                 </View>
                 <ChevronDown size={20} color={colors.textSecondary} />
@@ -512,7 +517,7 @@ function MobileRechargeScreenContent() {
                         <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
                           Service Fee:
                         </Text>
-                        <Text style={[styles.summaryValue, { color: colors.text }]}>
+                        <Text style={[styles.summaryValue, { color: colors.error }]}>
                           +₦{currentSupplierFee.toLocaleString()}
                         </Text>
                       </View>
@@ -606,7 +611,7 @@ function MobileRechargeScreenContent() {
                         <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
                           Service Fee:
                         </Text>
-                        <Text style={[styles.summaryValue, { color: colors.text }]}>
+                        <Text style={[styles.summaryValue, { color: colors.error }]}>
                           +₦{currentSupplierFee.toLocaleString()}
                         </Text>
                       </View>

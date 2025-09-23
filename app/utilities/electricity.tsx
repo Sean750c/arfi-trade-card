@@ -371,7 +371,12 @@ function ElectricityScreenContent() {
                     styles.selectorText,
                     { color: currentMerchant ? colors.text : colors.textSecondary }
                   ]}>
-                    {currentMerchant ? currentMerchant.name : 'Select Electricity Provider'}
+                    {currentMerchant
+                      ? `${currentMerchant.name}${actualDiscountPercentage > 0
+                        ? ` (${actualDiscountPercentage}% off)`
+                        : ''
+                      }`
+                      : 'Select Electricity Provider'}
                   </Text>
                 </View>
                 <ChevronDown size={20} color={colors.textSecondary} />
@@ -401,7 +406,8 @@ function ElectricityScreenContent() {
                   ]}>
                     {currentSelectedService
                       ? currentSelectedService.name
-                      : 'Select Service Type'
+                      : currentMerchant ? 'Select Service Type'
+                        : 'Select Provider First'
                     }
                   </Text>
                 </View>
@@ -450,7 +456,7 @@ function ElectricityScreenContent() {
                     <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
                       Service Fee:
                     </Text>
-                    <Text style={[styles.summaryValue, { color: colors.text }]}>
+                    <Text style={[styles.summaryValue, { color: colors.error }]}>
                       +₦{currentMerchantFee.toLocaleString()}
                     </Text>
                   </View>
@@ -471,7 +477,7 @@ function ElectricityScreenContent() {
               value={meterNumber}
               onChangeText={setMeterNumber}
               placeholder="Enter your meter number"
-              keyboardType="default"
+              keyboardType="numeric"
               returnKeyType="done"
             />
 

@@ -353,7 +353,12 @@ function CableTVScreenContent() {
                     styles.selectorText,
                     { color: currentMerchant ? colors.text : colors.textSecondary }
                   ]}>
-                    {currentMerchant ? currentMerchant.name : 'Select Cable TV Provider'}
+                    {currentMerchant
+                      ? `${currentMerchant.name}${actualDiscountPercentage > 0
+                        ? ` (${actualDiscountPercentage}% off)`
+                        : ''
+                      }`
+                      : 'Select Cable TV Provider'}
                   </Text>
                 </View>
                 <ChevronDown size={20} color={colors.textSecondary} />
@@ -383,7 +388,8 @@ function CableTVScreenContent() {
                   ]}>
                     {currentSelectedService
                       ? `${currentSelectedService.name} - ₦${currentSelectedService.price.toLocaleString()}`
-                      : 'Select Package'
+                      : currentMerchant ? 'Select Package'
+                        : 'Select Provider First'
                     }
                   </Text>
                 </View>
@@ -422,7 +428,7 @@ function CableTVScreenContent() {
                     <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
                       Service Fee:
                     </Text>
-                    <Text style={[styles.summaryValue, { color: colors.text }]}>
+                    <Text style={[styles.summaryValue, { color: colors.error }]}>
                       +₦{currentMerchantFee.toLocaleString()}
                     </Text>
                   </View>
@@ -443,7 +449,7 @@ function CableTVScreenContent() {
               value={customerNumber}
               onChangeText={setCustomerNumber}
               placeholder="Enter your customer number"
-              keyboardType="default"
+              keyboardType="numeric"
               returnKeyType="done"
             />
 
