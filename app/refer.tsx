@@ -23,7 +23,6 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { ScrollView as RNScrollView } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Share as RNShare } from 'react-native';
-import { useCustomAlertStore } from '@/stores/useCustomAlertStore';
 import MyInvitesList from '@/components/invite/MyInvitesList';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
@@ -53,7 +52,6 @@ function ReferScreenContent() {
     isReceivingInviteRebate,
   } = useInviteStore();
 
-  const { showCustomAlert } = useCustomAlertStore();
   const [showInvitesModal, setShowInvitesModal] = useState(false);
 
   // 新增Animated.Value用于奖励数字
@@ -96,17 +94,9 @@ function ReferScreenContent() {
       // });
       const universalLink = `https://www.cardking.ng/register?recommend_code=${inviteInfo.invite_code}`;
       await Clipboard.setStringAsync(universalLink); // Keep Clipboard for actual copy
-      showCustomAlert({
-        title: 'Copied!',
-        message: 'Referral link copied to clipboard.',
-        buttons: [{ text: 'OK' }],
-      });
+      Alert.alert('Copied', 'Referral link copied!');
     } else {
-      showCustomAlert({
-        title: 'Error',
-        message: 'Invitation code not available.',
-        buttons: [{ text: 'OK' }],
-      });
+      Alert.alert('Error', 'Invitation code not available.');
     }
   };
 
@@ -141,18 +131,10 @@ function ReferScreenContent() {
 
         await RNShare.share({ message: shareMessage });
       } else {
-        showCustomAlert({
-          title: 'Error',
-          message: 'Invitation code not available.',
-          buttons: [{ text: 'OK' }],
-        });
+        Alert.alert('Error', 'Invitation code not available.');
       }
     } catch (error) {
-      showCustomAlert({
-        title: 'Error',
-        message: 'Something went wrong during sharing.',
-        buttons: [{ text: 'OK' }],
-      });
+      Alert.alert('Error', 'Something went wrong during sharing.');
     }
   };
 

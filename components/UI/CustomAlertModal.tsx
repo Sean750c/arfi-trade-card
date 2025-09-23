@@ -104,7 +104,7 @@ export default function CustomAlertModal({
                     button.style === 'destructive' && { backgroundColor: colors.error },
                     button.style === 'cancel' && { borderColor: colors.border },
                   ]}
-                  textStyle={button.style === 'cancel' && { color: colors.textSecondary }}
+                  textStyle={button.style === 'cancel' && { color: colors.textSecondary } || undefined}
                   fullWidth={buttons.length === 1}
                 />
               ))

@@ -12,8 +12,6 @@ import { ThemeProvider } from '@/theme/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { usePopupManager } from '@/hooks/usePopupManager';
 import PopupModal from '@/components/UI/PopupModal';
-import CustomAlertModal from '@/components/UI/CustomAlertModal';
-import { useCustomAlertStore } from '@/stores/useCustomAlertStore';
 import { ActivityIndicator, Text, Image } from 'react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import * as WebBrowser from 'expo-web-browser';
@@ -61,7 +59,6 @@ export default function RootLayout() {
   const { fetchCountries } = useCountryStore();
   const { isAuthenticated, user, initialize: initializeAuth, isInitialized } = useAuthStore();
   const { isVisible: popupVisible, popData, closePopup, checkAppStartPopup } = usePopupManager();
-  const { isVisible: customAlertVisible, options: customAlertOptions, hideCustomAlert } = useCustomAlertStore();
 
   useFrameworkReady();
   useAuthProtection();
@@ -158,13 +155,7 @@ export default function RootLayout() {
       {popupVisible && popData && (
         <PopupModal visible={popupVisible} onClose={closePopup} popData={popData} />
       )}
-
-      {/* Custom Alert Modal */}
-      <CustomAlertModal
-        visible={customAlertVisible}
-        onClose={hideCustomAlert}
-        {...customAlertOptions}
-      />
+      
     </ThemeProvider>
   );
 }
