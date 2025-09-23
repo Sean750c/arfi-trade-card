@@ -16,7 +16,7 @@ import { ActivityIndicator, Text, Image } from 'react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Updates from 'expo-updates'; // Import expo-updates
+import * as Updates from 'expo-updates';
 
 function InitializationLoader() {
   const { colors } = useTheme();
@@ -85,27 +85,26 @@ export default function RootLayout() {
         await Promise.all([fetchCountries()]);
         const userToken = isAuthenticated && user?.token ? user.token : undefined;
 
-        // --- Start Silent Update Logic ---
-        if (__DEV__) { // Only check for updates in production builds
+        // Silent Update Logic - Only in production builds
+        if (__DEV__) {
           console.log('Skipping update check in development mode.');
         } else {
           try {
             const update = await Updates.checkForUpdateAsync();
             if (update.isAvailable) {
-              console.log('Update available, fetching...');
+              console.log('Silent update available, downloading in background...');
               await Updates.fetchUpdateAsync();
-              console.log('Update fetched successfully. Will apply on next app launch.');
-              // Do NOT call Updates.reloadAsync() here for silent updates.
-              // The update will be applied automatically on the next app launch.
+              console.log('Silent update downloaded successfully. Will apply on next app restart.');
+              // Note: We don't call Updates.reloadAsync() for silent updates
+              // The update will be applied when the user next restarts the app
             } else {
-              console.log('No update available.');
+              console.log('No silent update available.');
             }
           } catch (error) {
-            console.error('Error checking or fetching update:', error);
-            // Handle update error gracefully, e.g., log it or show a non-blocking message
+            console.error('Silent update check failed:', error);
+            // Silently handle update errors - don't interrupt user experience
           }
         }
-        // --- End Silent Update Logic ---
 
         await initialize(userToken);
         checkAppStartPopup();
