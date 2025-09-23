@@ -10,6 +10,11 @@ export default ({ config }) => ({
   scheme: "cardking",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
+  updates: {
+    enabled: true,              // 启用 OTA 更新
+    checkAutomatically: "ON_LOAD", // App 启动时检查更新
+    fallbackToCacheTimeout: 0,  // 启动时立即加载本地缓存，后台拉取更新
+  },
   splash: {
     image: "./assets/images/logo.png",
     resizeMode: "cover",
