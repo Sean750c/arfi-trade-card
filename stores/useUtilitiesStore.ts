@@ -6,12 +6,12 @@ interface UtilitiesState {
   // Recharge data
   suppliers: Supplier[];
   dataBundles: DataBundle[];
-  
+
   // New services data
   merchants: Record<ServiceType, MerchantEntry[]>;
   merchantServices: Record<string, MerchantServiceEntry[]>; // key: merchant_id
   accountDetails: Record<string, MerchantAccountEntry>; // key: merchant_id_customer_no_product_code
-  
+
   isLoadingSuppliers: boolean;
   isLoadingDataBundles: boolean;
   isLoadingMerchants: boolean;
@@ -19,7 +19,7 @@ interface UtilitiesState {
   isLoadingAccountDetails: boolean;
   isRecharging: boolean;
   isProcessingPayment: boolean;
-  
+
   suppliersError: string | null;
   dataBundlesError: string | null;
   merchantsError: string | null;
@@ -27,7 +27,7 @@ interface UtilitiesState {
   accountDetailsError: string | null;
   rechargeError: string | null;
   paymentError: string | null;
-  
+
   // Selected states
   selectedSupplier: Supplier | null;
   selectedMerchant: Record<ServiceType, MerchantEntry | null>;
@@ -41,13 +41,13 @@ interface UtilitiesState {
   isLoadingRechargeLogs: boolean;
   isLoadingMoreRechargeLogs: boolean;
   rechargeLogsError: string | null;
-  
+
   // Actions
-  fetchSuppliers: (token: string) => Promise<void>;
+  fetchSuppliers: (token: string, type: string) => Promise<void>;
   fetchDataBundles: (token: string, supplyCode: string) => Promise<void>;
   fetchMerchants: (token: string, serviceType: ServiceType) => Promise<void>;
   fetchMerchantServices: (token: string, merchantId: string) => Promise<void>;
-  fetchAccountDetails: (token: string, merchantId: string, customerNo: string, productCode: string) => Promise<void>;
+  fetchAccountDetails: (token: string, merchantId: string, customerNo: string, productCode: string) => Promise<MerchantAccountEntry | undefined>;
   airtimeRecharge: (token: string, name: string, phone: string, amount: number, password: string) => Promise<void>;
   dataRecharge: (token: string, name: string, phone: string, amount: number, serviceId: number, serviceName: string, password: string) => Promise<void>;
   merchantPayment: (token: string, merchantId: string, merchantName: string, customerNo: string, productCode: string, amount: number, type: number, password: string) => Promise<void>;
@@ -104,21 +104,21 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
   isLoadingMoreRechargeLogs: false,
   rechargeLogsError: null,
 
-  fetchSuppliers: async (token: string) => {
+  fetchSuppliers: async (token: string, type: string) => {
     set({ isLoadingSuppliers: true, suppliersError: null });
-    
+
     try {
-      const suppliers = await UtilitiesService.getSuppliers(token);
-      set({ 
+      const suppliers = await UtilitiesService.getSuppliers(token, type);
+      set({
         suppliers,
-        isLoadingSuppliers: false 
+        isLoadingSuppliers: false
       });
     } catch (error) {
       if (error instanceof Error && error.message.includes('Session expired')) {
         set({ isLoadingSuppliers: false });
         return;
       }
-      
+
       set({
         suppliersError: error instanceof Error ? error.message : 'Failed to fetch suppliers',
         isLoadingSuppliers: false,
@@ -128,23 +128,23 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
 
   fetchDataBundles: async (token: string, supplyCode: string) => {
     set({ isLoadingDataBundles: true, dataBundlesError: null });
-    
+
     try {
       const dataBundles = await UtilitiesService.getDataBundles({
         token,
         supply_code: supplyCode,
       });
-      
-      set({ 
+
+      set({
         dataBundles,
-        isLoadingDataBundles: false 
+        isLoadingDataBundles: false
       });
     } catch (error) {
       if (error instanceof Error && error.message.includes('Session expired')) {
         set({ isLoadingDataBundles: false });
         return;
       }
-      
+
       set({
         dataBundlesError: error instanceof Error ? error.message : 'Failed to fetch data bundles',
         isLoadingDataBundles: false,
@@ -154,22 +154,22 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
 
   fetchMerchants: async (token: string, serviceType: ServiceType) => {
     set({ isLoadingMerchants: true, merchantsError: null });
-    
+
     try {
       const merchants = await UtilitiesService.getMerchants(token, serviceType);
-      set(state => ({ 
+      set(state => ({
         merchants: {
           ...state.merchants,
           [serviceType]: merchants,
         },
-        isLoadingMerchants: false 
+        isLoadingMerchants: false
       }));
     } catch (error) {
       if (error instanceof Error && error.message.includes('Session expired')) {
         set({ isLoadingMerchants: false });
         return;
       }
-      
+
       set({
         merchantsError: error instanceof Error ? error.message : 'Failed to fetch merchants',
         isLoadingMerchants: false,
@@ -179,22 +179,22 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
 
   fetchMerchantServices: async (token: string, merchantId: string) => {
     set({ isLoadingServices: true, servicesError: null });
-    
+
     try {
       const services = await UtilitiesService.getMerchantServices(token, merchantId);
-      set(state => ({ 
+      set(state => ({
         merchantServices: {
           ...state.merchantServices,
           [merchantId]: services,
         },
-        isLoadingServices: false 
+        isLoadingServices: false
       }));
     } catch (error) {
       if (error instanceof Error && error.message.includes('Session expired')) {
         set({ isLoadingServices: false });
         return;
       }
-      
+
       set({
         servicesError: error instanceof Error ? error.message : 'Failed to fetch merchant services',
         isLoadingServices: false,
@@ -203,24 +203,32 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
   },
 
   fetchAccountDetails: async (token: string, merchantId: string, customerNo: string, productCode: string) => {
+    const key = `${merchantId}_${customerNo}_${productCode}`;
+    const state = get();
+
+    // 先查缓存
+    // if (state.accountDetails[key]) {
+    //   return state.accountDetails[key]; // 已经有了就不用再请求
+    // }
+
     set({ isLoadingAccountDetails: true, accountDetailsError: null });
-    
+
     try {
       const details = await UtilitiesService.getMerchantAccountDetails(token, merchantId, customerNo, productCode);
-      const key = `${merchantId}_${customerNo}_${productCode}`;
-      set(state => ({ 
+      set(state => ({
         accountDetails: {
           ...state.accountDetails,
           [key]: details,
         },
-        isLoadingAccountDetails: false 
+        isLoadingAccountDetails: false
       }));
+      return details; // ✅ 返回新结果
     } catch (error) {
       if (error instanceof Error && error.message.includes('Session expired')) {
         set({ isLoadingAccountDetails: false });
         return;
       }
-      
+
       set({
         accountDetailsError: error instanceof Error ? error.message : 'Failed to fetch account details',
         isLoadingAccountDetails: false,
@@ -230,7 +238,7 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
 
   airtimeRecharge: async (token: string, name: string, phone: string, amount: number, password: string) => {
     set({ isRecharging: true, rechargeError: null });
-    
+
     try {
       await UtilitiesService.airtimeRecharge({
         token,
@@ -239,14 +247,14 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
         amount,
         password,
       });
-      
+
       set({ isRecharging: false });
     } catch (error) {
       if (error instanceof Error && error.message.includes('Session expired')) {
         set({ isRecharging: false });
         throw error;
       }
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Failed to recharge airtime';
       set({
         rechargeError: errorMessage,
@@ -258,7 +266,7 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
 
   dataRecharge: async (token: string, name: string, phone: string, amount: number, service_id: number, service_name: string, password: string) => {
     set({ isRecharging: true, rechargeError: null });
-    
+
     try {
       await UtilitiesService.dataRecharge({
         token,
@@ -269,14 +277,14 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
         service_name,
         password,
       });
-      
+
       set({ isRecharging: false });
     } catch (error) {
       if (error instanceof Error && error.message.includes('Session expired')) {
         set({ isRecharging: false });
         throw error;
       }
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Failed to recharge data';
       set({
         rechargeError: errorMessage,
@@ -288,7 +296,7 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
 
   merchantPayment: async (token: string, merchantId: string, merchantName: string, customerNo: string, productCode: string, amount: number, type: number, password: string) => {
     set({ isProcessingPayment: true, paymentError: null });
-    
+
     try {
       await UtilitiesService.merchantPayment({
         token,
@@ -300,14 +308,14 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
         type,
         password,
       });
-      
+
       set({ isProcessingPayment: false });
     } catch (error) {
       if (error instanceof Error && error.message.includes('Session expired')) {
         set({ isProcessingPayment: false });
         throw error;
       }
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Failed to process payment';
       set({
         paymentError: errorMessage,
@@ -318,14 +326,14 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
   },
 
   setSelectedSupplier: (supplier: Supplier | null) => {
-    set({ 
+    set({
       selectedSupplier: supplier,
       dataBundles: [], // Clear data bundles when supplier changes
     });
   },
 
   setSelectedMerchant: (serviceType: ServiceType, merchant: MerchantEntry | null) => {
-    set(state => ({ 
+    set(state => ({
       selectedMerchant: {
         ...state.selectedMerchant,
         [serviceType]: merchant,
@@ -337,7 +345,7 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
   },
 
   setSelectedService: (merchantId: string, service: MerchantServiceEntry | null) => {
-    set(state => ({ 
+    set(state => ({
       selectedService: {
         ...state.selectedService,
         [merchantId]: service,
@@ -347,10 +355,10 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
 
   fetchRechargeLogs: async (token: string, type: string, refresh = false) => {
     const state = get();
-    
+
     if (refresh) {
-      set({ 
-        isLoadingRechargeLogs: true, 
+      set({
+        isLoadingRechargeLogs: true,
         rechargeLogsError: null,
         rechargeLogs: [],
         currentRechargeLogsPage: 0,
@@ -380,7 +388,7 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
         set({ isLoadingRechargeLogs: false });
         return;
       }
-      
+
       set({
         rechargeLogsError: error instanceof Error ? error.message : 'Failed to fetch recharge logs',
         isLoadingRechargeLogs: false,
@@ -390,11 +398,11 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
 
   loadMoreRechargeLogs: async (token: string, type: string) => {
     const state = get();
-    
+
     if (state.isLoadingMoreRechargeLogs || !state.hasMoreRechargeLogs) return;
-    
+
     const nextPage = state.currentRechargeLogsPage + 1;
-    
+
     set({ isLoadingMoreRechargeLogs: true, rechargeLogsError: null });
 
     try {
@@ -416,14 +424,14 @@ export const useUtilitiesStore = create<UtilitiesState>((set, get) => ({
         hasMoreRechargeLogs: logsData.length >= 10,
         isLoadingMoreRechargeLogs: false,
       }));
-      
+
     } catch (error) {
       // Handle token expiration errors specifically
       if (error instanceof Error && error.message.includes('Session expired')) {
         set({ isLoadingMoreRechargeLogs: false });
         return;
       }
-      
+
       set({
         rechargeLogsError: error instanceof Error ? error.message : 'Failed to load more recharge logs',
         isLoadingMoreRechargeLogs: false,

@@ -168,15 +168,12 @@ function ElectricityScreenContent() {
     const productCode = currentSelectedService?.code || 'prepaid';
 
     try {
-      await fetchAccountDetails(
+      const details = await fetchAccountDetails(
         user.token,
         currentMerchant.uuid,
         meterNumber.trim(),
         productCode
       );
-
-      const key = `${currentMerchant.uuid}_${meterNumber.trim()}_${productCode}`;
-      const details = accountDetails[key];
 
       if (details) {
         // Check verification result based on code
@@ -184,7 +181,7 @@ function ElectricityScreenContent() {
           // Verification successful
           Alert.alert(
             'Meter Verified',
-            `Customer: ${details.name}\nMeter Details: ${details.details}`,
+            `Customer: ${details.name}`,
             [
               { text: 'Cancel', style: 'cancel' },
               { text: 'Proceed', onPress: handleProceedPayment },
@@ -267,7 +264,7 @@ function ElectricityScreenContent() {
 
       Alert.alert(
         'Payment Successful! ⚡',
-        `Electricity payment of ₦${pendingPaymentData.amount.toLocaleString()} was successful!\n\nMeter: ${pendingPaymentData.customerNo}\nProvider: ${pendingPaymentData.merchant}\nPaid: ₦${pendingPaymentData.paymentAmount.toLocaleString()}`,
+        `Your payment of ₦${pendingPaymentData.paymentAmount.toLocaleString()} for ₦${pendingPaymentData.amount.toLocaleString()} electricity to meter ${pendingPaymentData.customerNo} (Provider: ${pendingPaymentData.merchant}) was successful.\n\nThe payment is being processed and will be confirmed shortly.`,
         [{
           text: 'OK', onPress: () => {
             setMeterNumber('');
@@ -276,7 +273,7 @@ function ElectricityScreenContent() {
             resetModals();
           }
         }]
-      );
+      );      
     } catch (error) {
       Alert.alert(
         'Payment Failed',
@@ -423,7 +420,7 @@ function ElectricityScreenContent() {
             />
 
             {/* Payment Summary */}
-            {amount && (
+            {(amount && actualDiscountPercentage > 0) && (
               <View style={styles.paymentSummary}>
                 {currentMerchant && <View style={styles.calculationHeader}>
                   <Calculator size={16} color={colors.primary} />

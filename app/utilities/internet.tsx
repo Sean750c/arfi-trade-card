@@ -161,15 +161,12 @@ function InternetScreenContent() {
     const productCode = currentSelectedService?.code || 'custom';
 
     try {
-      await fetchAccountDetails(
+      const details = await fetchAccountDetails(
         user.token,
         currentMerchant.uuid,
         customerNumber.trim(),
         productCode
       );
-
-      const key = `${currentMerchant.uuid}_${customerNumber.trim()}_${productCode}`;
-      const details = accountDetails[key];
 
       if (details) {
         // Check verification result based on code
@@ -177,7 +174,7 @@ function InternetScreenContent() {
           // Verification successful
           Alert.alert(
             'Account Verified',
-            `Customer: ${details.name}\nAccount Details: ${details.details}`,
+            `Customer: ${details.name}`,
             [
               { text: 'Cancel', style: 'cancel' },
               { text: 'Proceed', onPress: handleProceedPayment },
@@ -253,7 +250,7 @@ function InternetScreenContent() {
 
       Alert.alert(
         'Payment Successful! 🌐',
-        `Internet service payment of ₦${pendingPaymentData.amount.toLocaleString()} was successful!\n\nAccount: ${pendingPaymentData.customerNo}\nService: ${pendingPaymentData.service}\nPaid: ₦${pendingPaymentData.paymentAmount.toLocaleString()}`,
+        `Your payment of ₦${pendingPaymentData.paymentAmount.toLocaleString()} for ₦${pendingPaymentData.amount.toLocaleString()} Internet service to account ${pendingPaymentData.customerNo} (Service: ${pendingPaymentData.service}) was successful.\n\nThe payment is being processed and will be confirmed shortly.`,
         [{
           text: 'OK', onPress: () => {
             setCustomerNumber('');
@@ -261,7 +258,7 @@ function InternetScreenContent() {
             resetModals();
           }
         }]
-      );
+      );      
     } catch (error) {
       Alert.alert(
         'Payment Failed',
@@ -398,7 +395,7 @@ function InternetScreenContent() {
             </View>
 
             {/* Payment Summary */}
-            {(currentSelectedService) && (
+            {(currentSelectedService && actualDiscountPercentage > 0) && (
               <View style={styles.paymentSummary}>
                 {currentMerchant && <View style={styles.calculationHeader}>
                   <Calculator size={16} color={colors.primary} />

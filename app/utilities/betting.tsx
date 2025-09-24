@@ -150,15 +150,12 @@ function LotteryScreenContent() {
     const productCode = '';
 
     try {
-      await fetchAccountDetails(
+      const details = await fetchAccountDetails(
         user.token,
         currentMerchant.uuid,
         customerNumber.trim(),
         productCode
       );
-
-      const key = `${currentMerchant.uuid}_${customerNumber.trim()}_${productCode}`;
-      const details = accountDetails[key];
 
       if (details) {
         // Check verification result based on code
@@ -166,7 +163,7 @@ function LotteryScreenContent() {
           // Verification successful
           Alert.alert(
             'Account Verified',
-            `Account: ${details.name}\nDetails: ${details.details}`,
+            `Account: ${details.name}`,
             [
               { text: 'Cancel', style: 'cancel' },
               { text: 'Proceed', onPress: handleProceedPayment },
@@ -249,7 +246,7 @@ function LotteryScreenContent() {
 
       Alert.alert(
         'Payment Successful! 🎲',
-        `Wallet funding of ₦${pendingPaymentData.amount.toLocaleString()} was successful!\n\nAccount: ${pendingPaymentData.customerNo}\nProvider: ${pendingPaymentData.merchant}\nPaid: ₦${pendingPaymentData.paymentAmount.toLocaleString()}`,
+        `Your payment of ₦${pendingPaymentData.paymentAmount.toLocaleString()} for ₦${pendingPaymentData.amount.toLocaleString()} wallet funding to account ${pendingPaymentData.customerNo} (Provider: ${pendingPaymentData.merchant}) was successful.\n\nThe funding is being processed and will be confirmed shortly.`,
         [{
           text: 'OK', onPress: () => {
             setCustomerNumber('');
@@ -257,7 +254,7 @@ function LotteryScreenContent() {
             resetModals();
           }
         }]
-      );
+      );      
     } catch (error) {
       Alert.alert(
         'Payment Failed',
@@ -372,7 +369,7 @@ function LotteryScreenContent() {
             />
 
             {/* Payment Summary */}
-            {amount && (
+            {(amount && actualDiscountPercentage > 0) && (
               <View style={styles.paymentSummary}>
                 <View style={styles.calculationHeader}>
                   <Calculator size={16} color={colors.primary} />

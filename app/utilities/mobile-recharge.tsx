@@ -100,12 +100,9 @@ function MobileRechargeScreenContent() {
 
   useEffect(() => {
     if (user?.token) {
-      fetchSuppliers(user.token);
-      if (suppliers) {
-        setSelectedSupplier(suppliers[0]);
-      }
+      fetchSuppliers(user.token, activeTab);
     }
-  }, [user?.token]);
+  }, [user?.token, activeTab]);
 
   // Fetch data bundles when supplier is selected
   useEffect(() => {
@@ -119,13 +116,13 @@ function MobileRechargeScreenContent() {
 
     setRefreshing(true);
     try {
-      await fetchSuppliers(user.token);
+      await fetchSuppliers(user.token, activeTab);
     } catch (error) {
       console.error('Refresh error:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [user?.token]);
+  }, [user?.token, activeTab]);
 
   const isNigerianNumber = (phone: string) => {
     const regex = /^(?:\+234|234|0)\d{10}$/;
@@ -139,6 +136,11 @@ function MobileRechargeScreenContent() {
     }
     return cleanPhone.length >= 10 && cleanPhone.length <= 11 && isNigerianNumber(cleanPhone);
   };
+
+  const handleTabSelect = (type: "airtime" | "data") => {
+    setActiveTab(type);
+    setSelectedSupplier(null);
+  }
 
   const handleAirtimeRecharge = () => {
     if (!user?.token || !selectedSupplier) {
@@ -239,8 +241,8 @@ function MobileRechargeScreenContent() {
           paymentPassword
         );
         Alert.alert(
-          'Recharge Successful! 🎉',
-          `Airtime recharge of ₦${pendingRechargeData.amount.toLocaleString()} to ${pendingRechargeData.phone} was successful!\n\nPaid: ₦${pendingRechargeData.paymentAmount.toLocaleString()}`,
+          'Payment Successful! 💳',
+          `Your payment of ₦${pendingRechargeData.paymentAmount.toLocaleString()} for ₦${pendingRechargeData.amount.toLocaleString()} airtime to ${pendingRechargeData.phone} was successful.\n\nThe recharge is being processed and will be confirmed shortly.`,
           [{
             text: 'OK', onPress: () => {
               setPhoneNumber('');
@@ -249,6 +251,7 @@ function MobileRechargeScreenContent() {
             }
           }]
         );
+        
       } else {
         await dataRecharge(
           user.token,
@@ -260,8 +263,8 @@ function MobileRechargeScreenContent() {
           paymentPassword
         );
         Alert.alert(
-          'Recharge Successful! 🎉',
-          `Data recharge of ${pendingRechargeData.dataBundle!.serviceName} to ${pendingRechargeData.phone} was successful!\n\nPaid: ₦${pendingRechargeData.paymentAmount.toLocaleString()}`,
+          'Payment Successful! 💳',
+          `Your payment of ₦${pendingRechargeData.paymentAmount.toLocaleString()} for ${pendingRechargeData.dataBundle!.serviceName} to ${pendingRechargeData.phone} was successful.\n\nThe data recharge is being processed and will be confirmed shortly.`,
           [{
             text: 'OK', onPress: () => {
               setPhoneNumber('');
@@ -269,7 +272,7 @@ function MobileRechargeScreenContent() {
               resetModals();
             }
           }]
-        );
+        );        
       }
     } catch (error) {
       Alert.alert(
@@ -355,7 +358,7 @@ function MobileRechargeScreenContent() {
                     borderColor: colors.primary,
                   }
                 ]}
-                onPress={() => setActiveTab('airtime')}
+                onPress={() => handleTabSelect('airtime')}
               >
                 <Phone size={20} color={activeTab === 'airtime' ? '#FFFFFF' : colors.primary} />
                 <Text style={[
@@ -374,7 +377,7 @@ function MobileRechargeScreenContent() {
                     borderColor: colors.primary,
                   }
                 ]}
-                onPress={() => setActiveTab('data')}
+                onPress={() => handleTabSelect('data')}
               >
                 <Wifi size={20} color={activeTab === 'data' ? '#FFFFFF' : colors.primary} />
                 <Text style={[
@@ -487,7 +490,7 @@ function MobileRechargeScreenContent() {
                 />
 
                 {/* 折扣金额展示 */}
-                {(airtimeAmount && selectedSupplier) && (
+                {(airtimeAmount && selectedSupplier && actualDiscountPercentage > 0) && (
                   <View style={styles.paymentSummary}>
                     {selectedSupplier && <View style={styles.calculationHeader}>
                       <Calculator size={16} color={colors.primary} />
@@ -581,7 +584,7 @@ function MobileRechargeScreenContent() {
                 </View>
 
                 {/* 动态计算支付金额 */}
-                {(selectedDataBundle && selectedSupplier) && (
+                {(selectedDataBundle && selectedSupplier && actualDiscountPercentage > 0) && (
                   <View style={styles.paymentSummary}>
                     {selectedSupplier && <View style={styles.calculationHeader}>
                       <Calculator size={16} color={colors.primary} />

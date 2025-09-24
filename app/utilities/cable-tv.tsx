@@ -159,15 +159,12 @@ function CableTVScreenContent() {
     const productCode = currentSelectedService?.code || 'custom';
 
     try {
-      await fetchAccountDetails(
+      const details = await fetchAccountDetails(
         user.token,
         currentMerchant.uuid,
         customerNumber.trim(),
         productCode
       );
-
-      const key = `${currentMerchant.uuid}_${customerNumber.trim()}_${productCode}`;
-      const details = accountDetails[key];
 
       if (details) {
         // Check verification result based on code
@@ -175,7 +172,7 @@ function CableTVScreenContent() {
           // Verification successful
           Alert.alert(
             'Account Verified',
-            `Customer: ${details.name}\nDetails: ${details.details}`,
+            `Customer: ${details.name}`,
             [
               { text: 'Cancel', style: 'cancel' },
               { text: 'Proceed', onPress: handleProceedPayment },
@@ -250,7 +247,7 @@ function CableTVScreenContent() {
 
       Alert.alert(
         'Payment Successful! 🎉',
-        `Cable TV payment of ₦${pendingPaymentData.amount.toLocaleString()} was successful!\n\nCustomer: ${pendingPaymentData.customerNo}\nService: ${pendingPaymentData.service}\nPaid: ₦${pendingPaymentData.paymentAmount.toLocaleString()}`,
+        `Your payment of ₦${pendingPaymentData.paymentAmount.toLocaleString()} for ₦${pendingPaymentData.amount.toLocaleString()} Cable TV to customer ${pendingPaymentData.customerNo} (Service: ${pendingPaymentData.service}) was successful.\n\nThe payment is being processed and will be confirmed shortly.`,
         [{
           text: 'OK', onPress: () => {
             setCustomerNumber('');
@@ -259,6 +256,7 @@ function CableTVScreenContent() {
           }
         }]
       );
+      
     } catch (error) {
       Alert.alert(
         'Payment Failed',
@@ -395,7 +393,7 @@ function CableTVScreenContent() {
             </View>
 
             {/* Payment Summary */}
-            {(currentSelectedService) && (
+            {(currentSelectedService && actualDiscountPercentage > 0) && (
               <View style={styles.paymentSummary}>
                 {currentMerchant && <View style={styles.calculationHeader}>
                   <Calculator size={16} color={colors.primary} />

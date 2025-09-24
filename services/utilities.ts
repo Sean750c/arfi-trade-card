@@ -24,12 +24,12 @@ import type {
 
 export class UtilitiesService {
 
-  static async getSuppliers(token: string): Promise<Supplier[]> {
+  static async getSuppliers(token: string, type: string): Promise<Supplier[]> {
     try {
       const response = await APIRequest.request<SuppliersResponse>(
         '/gc/recharge/getSuppliers',
         'POST',
-        { token }
+        { token, type }
       );
 
       if (!response.success) {
@@ -233,7 +233,7 @@ export class UtilitiesService {
       );
 
       if (!response.success) {
-        throw new Error(response.msg || 'Failed to fetch merchant account details');
+        throw new Error(response.msg || 'Unknown error.');
       }
     } catch (error) {
       // Handle token expiration errors specifically
@@ -242,9 +242,9 @@ export class UtilitiesService {
       }
 
       if (error instanceof Error) {
-        throw new Error(`Failed to fetch merchant account details: ${error.message}`);
+        throw new Error(`Error details: ${error.message}`);
       }
-      throw new Error('Failed to fetch merchant account details');
+      throw new Error('Failed to process payment. Please try again later.');
     }
   }
   
