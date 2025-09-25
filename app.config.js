@@ -32,6 +32,8 @@ export default ({ config }) => ({
       ITSAppUsesNonExemptEncryption: false,
       UIBackgroundModes: ["fetch", "remote-notification"],
       UNUserNotificationCenterDelegate: true,
+      FacebookAppID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "1525365371783998",
+      FacebookDisplayName: "CardKing",
       CFBundleURLTypes: [
         {
           CFBundleURLSchemes: [process.env.EXPO_PUBLIC_FACEBOOK_APP_SCHEMES || 'fb1525365371783998']
@@ -46,7 +48,11 @@ export default ({ config }) => ({
     //   foregroundImage: "./assets/images/icon-foreground.png",
     //   backgroundColor: "#ffffff"
     // },
-    googleServicesFile: "./google-services.json"
+    googleServicesFile: "./google-services.json",
+    config: {
+      facebookAppId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "1525365371783998",
+      facebookDisplayName: "CardKing"
+    }
   },
   web: {
     bundler: "metro",
@@ -83,13 +89,6 @@ export default ({ config }) => ({
         appleAuthUrl: "https://appleid.apple.com/auth/authorize",
         appleAuthRedirectUrl: "https://appleid.apple.com/auth/callback",
         appleAuthClientId: "com.bsdb.cardking.auth"
-      }
-    ],
-    [
-      "expo-facebook",
-      {
-        appId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "1525365371783998",
-        displayName: "CardKing"
       }
     ]
   ],
