@@ -270,10 +270,11 @@ export class AuthService {
 
     try {
       const response = await APIRequest.request<SocialLoginResponse>(
-        '/gc/social/googleLogin',
+        '/gc/social/googleLoginByCode',
         'POST',
         {
           code: params.code,
+          redirect_uri: params.redirect_uri,
           ...deviceInfo
         }
       );
