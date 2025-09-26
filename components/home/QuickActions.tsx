@@ -129,7 +129,7 @@ export default function QuickActions() {
       ? [
         {
           id: '7',
-          title: 'Utilities',           // 名字改为 Utilities
+          title: 'Bill Payment',           // 名字改为 Utilities
           subtitle: 'Recharge & Bills', // 简短描述
           icon: <Wallet size={24} color="#FFFFFF" />, // 钱包图标，teal 风格
           route: '/utilities',          // 对应页面路径
