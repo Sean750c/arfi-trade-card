@@ -17,6 +17,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import RechargeLogsModal from '@/components/utilities/RechargeLogsModal';
 import CustomerServiceButton from '@/components/UI/CustomerServiceButton';
+import { useAppStore } from '@/stores/useAppStore';
 
 interface ServiceItem {
   id: string;
@@ -36,6 +37,8 @@ function UtilitiesScreenContent() {
 
   const [showLogsModal, setShowLogsModal] = useState(false);
 
+  const { initData } = useAppStore();
+
   const services: ServiceItem[] = [
     {
       id: 'mobile-recharge',
@@ -46,42 +49,58 @@ function UtilitiesScreenContent() {
       color: '#10B981',
       isAvailable: true,
     },
-    {
-      id: 'cable-tv',
-      title: 'TV Bills',
-      subtitle: 'DSTV, GOtv & more',
-      icon: <Tv size={32} color="#FFFFFF" />,
-      route: '/utilities/cable-tv',
-      color: '#8B5CF6',
-      isAvailable: true,
-    },
-    {
-      id: 'electricity',
-      title: 'Electricity Bills',
-      subtitle: 'Pay your power bills',
-      icon: <Zap size={32} color="#FFFFFF" />,
-      route: '/utilities/electricity',
-      color: '#F59E0B',
-      isAvailable: true,
-    },
-    {
-      id: 'internet',
-      title: 'Internet Bills',
-      subtitle: 'Broadband payments',
-      icon: <Globe size={32} color="#FFFFFF" />,
-      route: '/utilities/internet',
-      color: '#06B6D4',
-      isAvailable: true,
-    },
-    {
-      id: 'lottery',
-      title: 'Betting',
-      subtitle: 'Sports betting & lotto',
-      icon: <DollarSign size={32} color="#FFFFFF" />,
-      route: '/utilities/betting',
-      color: '#EF4444',
-      isAvailable: true,
-    },
+    ...(initData?.recharge_tv !== false
+      ? [
+        {
+          id: 'cable-tv',
+          title: 'TV Bills',
+          subtitle: 'DSTV, GOtv & more',
+          icon: <Tv size={32} color="#FFFFFF" />,
+          route: '/utilities/cable-tv',
+          color: '#8B5CF6',
+          isAvailable: true,
+        } as ServiceItem,
+      ]
+      : []),
+    ...(initData?.recharge_electrity !== false
+      ? [
+        {
+          id: 'electricity',
+          title: 'Electricity Bills',
+          subtitle: 'Pay your power bills',
+          icon: <Zap size={32} color="#FFFFFF" />,
+          route: '/utilities/electricity',
+          color: '#F59E0B',
+          isAvailable: true,
+        } as ServiceItem,
+      ]
+      : []),
+    ...(initData?.recharge_network !== false
+      ? [
+        {
+          id: 'internet',
+          title: 'Internet Bills',
+          subtitle: 'Broadband payments',
+          icon: <Globe size={32} color="#FFFFFF" />,
+          route: '/utilities/internet',
+          color: '#06B6D4',
+          isAvailable: true,
+        } as ServiceItem,
+      ]
+      : []),
+    ...(initData?.recharge_betting !== false && initData?.hidden_flag !== '1'
+      ? [
+        {
+          id: 'lottery',
+          title: 'Betting',
+          subtitle: 'Sports betting & lotto',
+          icon: <DollarSign size={32} color="#FFFFFF" />,
+          route: '/utilities/betting',
+          color: '#EF4444',
+          isAvailable: true,
+        } as ServiceItem,
+      ]
+      : []),
   ];
 
   const handleRefresh = useCallback(async () => {

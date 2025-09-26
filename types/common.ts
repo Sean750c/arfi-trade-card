@@ -74,6 +74,10 @@ export interface InitData {
     checkin_enable?: boolean;
     lottery_enable?: boolean;
     utility_enable?: boolean;
+    recharge_tv?: boolean;
+    recharge_electrity?: boolean;
+    recharge_network?: boolean;
+    recharge_betting?: boolean;
     coupon_num?: number;
 }
 
