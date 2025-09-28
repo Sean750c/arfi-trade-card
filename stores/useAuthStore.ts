@@ -5,6 +5,7 @@ import { AuthService } from '@/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserService } from '@/services/user';
 import { router } from 'expo-router';
+import { KochavaTracker } from '@/utils/kochava';
 
 interface AuthState {
   isAuthenticated: boolean;

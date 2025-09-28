@@ -18,6 +18,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Updates from 'expo-updates';
 import { KochavaMeasurement, KochavaMeasurementEventType } from 'react-native-kochava-measurement';
+import { KochavaTracker } from '@/utils/kochava';
 
 function InitializationLoader() {
   const { colors } = useTheme();
@@ -113,6 +114,13 @@ export default function RootLayout() {
         KochavaMeasurement.instance.registerAndroidAppGuid("kocardking-android-cwnjsaz");
         KochavaMeasurement.instance.registerIosAppGuid("kocardking-ios-s1der");
         KochavaMeasurement.instance.start();
+
+        // 追踪APP首次打开
+        const hasTrackedFirstOpen = await AsyncStorage.getItem('hasTrackedFirstOpen');
+        if (!hasTrackedFirstOpen) {
+          KochavaTracker.trackAppFirstOpen();
+          await AsyncStorage.setItem('hasTrackedFirstOpen', 'true');
+        }
 
         const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
         if (!hasCompletedOnboarding) { // Only redirect if onboarding hasn't been completed
