@@ -209,6 +209,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       response.social_email = params.social_email ?? '';
       response.social_type = 'facebook';
       await get().socialLoginCallback(response); // Use the new callback
+      
+      // 追踪Facebook登录成功
+      if (response.token) {
+        KochavaTracker.trackSocialLoginSuccess({
+          user_id: response.username ? parseInt(response.username) : 0,
+          username: response.username,
+          social_type: 'facebook',
+          is_new_user: !response.is_social_bind,
+        });
+      }
       set({
         isLoading: false,
         error: null,
@@ -228,6 +238,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       response.social_email = params.social_email ?? '';
       response.social_type = 'apple';
       await get().socialLoginCallback(response); // Use the new callback
+      
+      // 追踪Apple登录成功
+      if (response.token) {
+        KochavaTracker.trackSocialLoginSuccess({
+          user_id: response.username ? parseInt(response.username) : 0,
+          username: response.username,
+          social_type: 'apple',
+          is_new_user: !response.is_social_bind,
+        });
+      }
       set({
         isLoading: false,
         error: null,

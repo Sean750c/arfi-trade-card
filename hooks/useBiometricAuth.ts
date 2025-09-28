@@ -156,6 +156,19 @@ export function useBiometricAuth() {
         const credentials = await getSavedCredentials();
         if (credentials) {
           await login(credentials.username, credentials.password);
+          
+          // 追踪生物识别登录成功
+          const { user } = useAuthStore.getState();
+          if (user) {
+            KochavaTracker.trackLoginSuccess({
+              user_id: user.user_id,
+              username: user.username,
+              country_name: user.country_name,
+              vip_level: user.vip_level,
+              login_method: 'biometric',
+            });
+          }
+          
           setState(prev => ({ ...prev, isLoading: false }));
           return true;
         } else {

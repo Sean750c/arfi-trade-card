@@ -19,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Updates from 'expo-updates';
 import { KochavaMeasurement, KochavaMeasurementEventType } from 'react-native-kochava-measurement';
 import { KochavaTracker } from '@/utils/kochava';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function InitializationLoader() {
   const { colors } = useTheme();
