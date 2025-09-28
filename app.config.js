@@ -89,7 +89,8 @@ export default ({ config }) => ({
         appleAuthUrl: "https://appleid.apple.com/auth/authorize",
         appleAuthRedirectUrl: "https://appleid.apple.com/auth/callback",
         appleAuthClientId: "com.bsdb.cardking.auth"
-      }
+      },
+      "react-native-kochava-measurement/expo-kochava"
     ]
   ],
   experiments: {

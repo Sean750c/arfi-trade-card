@@ -17,6 +17,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Updates from 'expo-updates';
+import { KochavaMeasurement, KochavaMeasurementEventType } from 'react-native-kochava-measurement';
 
 function InitializationLoader() {
   const { colors } = useTheme();
@@ -108,6 +109,10 @@ export default function RootLayout() {
 
         await initialize(userToken);
         checkAppStartPopup();
+
+        KochavaMeasurement.instance.registerAndroidAppGuid("kocardking-android-cwnjsaz");
+        KochavaMeasurement.instance.registerIosAppGuid("kocardking-ios-s1der");
+        KochavaMeasurement.instance.start();
 
         const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
         if (!hasCompletedOnboarding) { // Only redirect if onboarding hasn't been completed
