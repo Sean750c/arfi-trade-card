@@ -21,6 +21,8 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Constants from 'expo-constants';
+import * as AuthSession from "expo-auth-session";
+
 
 export default function SocialBindingCard() {
   const { colors } = useTheme();
@@ -40,13 +42,24 @@ export default function SocialBindingCard() {
   const androidClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
   const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
   const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
-  const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
-    androidClientId,
-    iosClientId,
-    webClientId,
-    responseType: 'code',
-    scopes: ['openid', 'profile', 'email'],
-  });
+  // const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
+  //   androidClientId,
+  //   iosClientId,
+  //   webClientId,
+  //   responseType: 'code',
+  //   scopes: ['openid', 'profile', 'email'],
+  // });
+
+  const discovery = AuthSession.useAutoDiscovery("https://accounts.google.com");
+  const [requestGoogle, responseGoogle, promptAsyncGoogle] = AuthSession.useAuthRequest(
+    {
+      clientId: webClientId,
+      scopes: ["openid", "email", "profile"],
+      redirectUri: AuthSession.makeRedirectUri({ scheme: "cardking" }), 
+      // 注意：scheme 是你在 app.json 里配置的自定义 scheme
+    },
+    discovery
+  );
 
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
   const [requestFacebook, responseFacebook, promptAsyncFacebook] = Facebook.useAuthRequest({
@@ -96,15 +109,17 @@ export default function SocialBindingCard() {
     setIsBindingGoogle(true);
     try {
       const result = await promptAsyncGoogle();
-      if (result.type === 'success' && result.params?.code) {
-        const authCode = result.params.code;
+      if (result.type === 'success') {
+        const { id_token } = result.params;
+
+        const googleInfo = await AuthService.getGoogleInfoByToken(id_token);
 
         await AuthService.socialBind({
           token: user.token,
           social_type: 'google',
           apple_code: '',
           facebook_token: '',
-          social_id: authCode, // 发送授权码给后端处理
+          social_id: googleInfo.social_id, // 发送授权码给后端处理
           social_email: '', // 后端将从Google获取
           social_picture: '', // 后端将从Google获取
           social_name: '', // 后端将从Google获取

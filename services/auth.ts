@@ -18,7 +18,8 @@ import type {
   SocialLoginResponse,
   SocialBindResponse,
   SocialBindRequest,
-  SocialBindResult
+  SocialBindResult,
+  GoogleInfoResponse
 } from '@/types';
 import { Platform } from 'react-native';
 
@@ -264,17 +265,44 @@ export class AuthService {
     }
   }
 
+  static async getGoogleInfoByToken(idToken: string) {
+    const deviceInfo = await getDeviceInfo();
+
+    try {
+      const response = await APIRequest.request<GoogleInfoResponse>(
+        '/gc/social/getGoogleInfoByToken',
+        'POST',
+        {
+          id_token: idToken,
+          ...deviceInfo
+        }
+      );
+
+      if (!response.success) {
+        throw new Error(response.msg || 'Google login failed');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Google login failed: ${error.message}`);
+      }
+      throw new Error('Google login failed');
+    }
+  }
+
   // Social Login Methods
   static async googleLogin(params: GoogleLoginRequest) {
     const deviceInfo = await getDeviceInfo();
 
     try {
       const response = await APIRequest.request<SocialLoginResponse>(
-        '/gc/social/googleLoginByCode',
+        '/gc/social/googleLogin',
         'POST',
         {
-          code: params.code,
-          redirect_uri: params.redirect_uri,
+          social_id: params.social_id,
+          social_email: params.social_email,
+          social_name: params.social_name,
           ...deviceInfo
         }
       );

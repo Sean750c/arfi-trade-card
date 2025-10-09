@@ -37,6 +37,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import * as Linking from 'expo-linking';
 import { CommonService } from '@/services/common';
 import { usePopupManager } from '@/hooks/usePopupManager';
+import { KochavaTracker } from '@/utils/kochava';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -392,14 +393,7 @@ function SellScreenContent() {
         .map(card => card.uploadUrl!);
 
       // 追踪订单提交
-      KochavaTracker.trackOrderSubmit({
-        user_id: user.user_id,
-        wallet_type: selectedWallet === 'USDT' ? 2 : 1,
-        images_count: uploadedImages.length,
-        has_memo: cardInfo.trim() !== '',
-        has_coupon: !!selectedCoupon,
-        coupon_code: selectedCoupon?.code,
-      });
+      KochavaTracker.trackOrderSubmit(uploadedImages.length);
       // Create sell order
       const orderResult = await OrderService.sellOrder({
         token: user.token,
@@ -411,15 +405,7 @@ function SellScreenContent() {
       });
 
       // 追踪订单创建成功
-      KochavaTracker.trackOrderSuccess({
-        user_id: user.user_id,
-        order_no: orderResult.order_no,
-        wallet_type: selectedWallet === 'USDT' ? 2 : 1,
-        images_count: uploadedImages.length,
-        has_coupon: !!selectedCoupon,
-        coupon_code: selectedCoupon?.code,
-        is_first_order: orderResult.is_firstorder,
-      });
+      KochavaTracker.trackOrderSuccess(orderResult.order_no);
 
       // Show success message with order details
       Alert.alert(

@@ -22,6 +22,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { AppleLoginRequest, FacebookLoginRequest, GoogleLoginRequest } from '@/types';
 import Constants from 'expo-constants';
 import * as AuthSession from "expo-auth-session";
+import { KochavaTracker } from '@/utils/kochava';
 
 // 建议在应用启动时调用
 WebBrowser.maybeCompleteAuthSession();
@@ -43,13 +44,24 @@ export default function SocialLoginButtons() {
   const androidClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
   const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
   const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
-  const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
-    androidClientId,
-    iosClientId,
-    webClientId,
-    responseType: 'code', // 👈 修改为请求授权码
-    scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
-  });
+  // const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
+  //   androidClientId,
+  //   iosClientId,
+  //   webClientId,
+  //   responseType: 'code', // 👈 修改为请求授权码
+  //   scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
+  // });
+
+  const discovery = AuthSession.useAutoDiscovery("https://accounts.google.com");
+  const [requestGoogle, responseGoogle, promptAsyncGoogle] = AuthSession.useAuthRequest(
+    {
+      clientId: webClientId,
+      scopes: ["openid", "email", "profile"],
+      redirectUri: AuthSession.makeRedirectUri({ scheme: "cardking" }), 
+      // 注意：scheme 是你在 app.json 里配置的自定义 scheme
+    },
+    discovery
+  );
 
   // Facebook Auth Hook
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
@@ -75,16 +87,19 @@ export default function SocialLoginButtons() {
         Alert.alert('Info', 'Google services are not available on this device!');
         return;
       }
-      
+      KochavaTracker.trackLoginSubmit('google');
       setIsAuthenticatingGoogle(true);
       const result = await promptAsyncGoogle();
       
-      if (result.type === 'success' && result.params?.code) {
-        const authCode = result.params.code;
-        
+      if (result.type === 'success') {
+        const { id_token } = result.params;
+
+        const googleInfo = await AuthService.getGoogleInfoByToken(id_token);
+
         const requestData: GoogleLoginRequest = {
-          code: authCode,
-          redirect_uri: redirectUri,
+          social_id: googleInfo.social_id,
+          social_email: googleInfo.social_email,
+          social_name: googleInfo.social_name,
         };
         
         await googleLogin(requestData);
@@ -109,6 +124,7 @@ export default function SocialLoginButtons() {
     if (isAnyAuthenticating) return;
     
     try {      
+      KochavaTracker.trackLoginSubmit('facebook');
       setIsAuthenticatingFacebook(true);
       const result = await promptAsyncFacebook();
       
@@ -152,6 +168,7 @@ export default function SocialLoginButtons() {
     }
 
     try {    
+      KochavaTracker.trackLoginSubmit('apple');
       setIsAuthenticatingApple(true);
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [

@@ -118,10 +118,17 @@ export interface SocialLoginResult {
     token: string;
 }
 
+export interface GoogleInfoResult {
+    social_id: string;
+    social_email: string;
+    social_name: string;
+}
+
 export interface GoogleLoginRequest {
     // Google authorization code from OAuth flow
-    code: string;
-    redirect_uri: string;
+    social_id: string;
+    social_name?: string;
+    social_email?: string;
 }
 
 export interface FacebookLoginRequest {
@@ -170,3 +177,5 @@ export type ResetWithdrawalPasswordByEmailResponse = APIResponse<{}>;
 // Social Login Response Types
 export type SocialLoginResponse = APIResponse<SocialLoginResult>;
 export type SocialBindResponse = APIResponse<SocialBindResult>;
+
+export type GoogleInfoResponse = APIResponse<GoogleInfoResult>;

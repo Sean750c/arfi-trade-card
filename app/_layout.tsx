@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useAuthProtection } from '@/hooks/useAuthProtection';

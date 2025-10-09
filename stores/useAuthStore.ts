@@ -47,6 +47,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (username: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
+      KochavaTracker.trackLoginSubmit(username);
       const response = await AuthService.login(username, password);
       set({
         isAuthenticated: true,
@@ -56,6 +57,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         error: null,
       });
+
+      if (response.token) {
+        KochavaTracker.trackLoginSuccess('password');
+      }
+
       await AsyncStorage.setItem('user', JSON.stringify(response));
     } catch (error) {
       set({
@@ -137,6 +143,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (params) => {
     set({ isLoading: true, error: null });
     try {
+      KochavaTracker.trackRegisterSubmit({
+        "register_type": params.register_type,
+        "recommend_code": params.code
+      });
+      
       const response = await AuthService.register(params);
       set({
         isAuthenticated: true,
@@ -147,6 +158,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         error: null,
       });
       await AsyncStorage.setItem('user', JSON.stringify(response));
+
+      if (response.token) {
+        KochavaTracker.trackRegisterSuccess(params.register_type);
+      }
     } catch (error) {
       set({
         isLoading: false,
@@ -194,6 +209,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await AuthService.googleLogin(params);
       response.social_type = 'google';
       await get().socialLoginCallback(response); // Use the new callback
+      if (response.token) {
+        KochavaTracker.trackLoginSuccess('google');
+      }
+      set({
+        isLoading: false,
+        error: null,
+      });
     } catch (error) {
       set({
         isLoading: false,
@@ -212,12 +234,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       // 追踪Facebook登录成功
       if (response.token) {
-        KochavaTracker.trackSocialLoginSuccess({
-          user_id: response.username ? parseInt(response.username) : 0,
-          username: response.username,
-          social_type: 'facebook',
-          is_new_user: !response.is_social_bind,
-        });
+        KochavaTracker.trackLoginSuccess('facebook');
       }
       set({
         isLoading: false,
@@ -234,6 +251,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   appleLogin: async (params) => {
     set({ isLoading: true, error: null });
     try {
+      KochavaTracker.trackLoginSubmit(params.social_name || '');
       const response = await AuthService.appleLogin(params);
       response.social_email = params.social_email ?? '';
       response.social_type = 'apple';
@@ -241,12 +259,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       // 追踪Apple登录成功
       if (response.token) {
-        KochavaTracker.trackSocialLoginSuccess({
-          user_id: response.username ? parseInt(response.username) : 0,
-          username: response.username,
-          social_type: 'apple',
-          is_new_user: !response.is_social_bind,
-        });
+        KochavaTracker.trackLoginSuccess('apple');
       }
       set({
         isLoading: false,
