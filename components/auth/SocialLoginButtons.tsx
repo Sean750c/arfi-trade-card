@@ -79,25 +79,38 @@ export default function SocialLoginButtons() {
       setIsAuthenticatingGoogle(true);
       const result = await promptAsyncGoogle();
 
-      let googleInfo = {
-        social_id: '',
-        social_email: '',
-        social_name: '',
-      };
+      const rt = JSON.stringify(result);
+      Alert.alert('Debug Info', `result: ${rt}.`);
       if (result.type === 'success') {
-        // 如果 id_token 为空，尝试使用 access_token
-        let id_token = result.params?.id_token || result.authentication?.idToken || '';
+        // 方法1: 优先从 params 获取 id_token
+        let id_token = result.params?.id_token;
+      
+        // 方法2: 从 authentication 获取
+        if (!id_token && result.authentication?.idToken) {
+          id_token = result.authentication.idToken;
+        }
+      
+        // 方法3: 检查 access_token 位置
+        const accessToken = result.params?.access_token || result.authentication?.accessToken;
 
-        // 如果还是没有 id_token，使用 access_token 调用 Google API
-        if (!id_token && result.authentication?.accessToken) {
-          const userInfo = await fetchGoogleUserInfo(result.authentication.accessToken);
+        let googleInfo = {
+          social_id: '',
+          social_email: '',
+          social_name: '',
+        };
+        if (id_token) {
+          // 使用 id_token 获取用户信息
+          googleInfo = await AuthService.getGoogleInfoByToken(id_token);
+        } else if (accessToken) {
+          // 使用 access_token 获取用户信息
+          const userInfo = await fetchGoogleUserInfo(accessToken);
           googleInfo = {
             social_id: userInfo.id,
             social_email: userInfo.email,
             social_name: userInfo.name,
           };
         } else {
-          googleInfo = await AuthService.getGoogleInfoByToken(id_token);
+          throw new Error('No authentication tokens received from Google');
         }
 
         const requestData: GoogleLoginRequest = {
