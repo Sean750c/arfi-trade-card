@@ -44,24 +44,24 @@ export default function SocialLoginButtons() {
   const androidClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
   const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
   const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
-  // const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
-  //   androidClientId,
-  //   iosClientId,
-  //   webClientId,
-  //   responseType: 'code', // 👈 修改为请求授权码
-  //   scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
-  // });
+  const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
+    androidClientId,
+    iosClientId,
+    webClientId,
+    responseType: 'code', // 👈 修改为请求授权码
+    scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
+  });
 
-  const discovery = AuthSession.useAutoDiscovery("https://accounts.google.com");
-  const [requestGoogle, responseGoogle, promptAsyncGoogle] = AuthSession.useAuthRequest(
-    {
-      clientId: webClientId,
-      scopes: ["openid", "email", "profile"],
-      redirectUri: AuthSession.makeRedirectUri({ scheme: "cardking" }), 
-      // 注意：scheme 是你在 app.json 里配置的自定义 scheme
-    },
-    discovery
-  );
+  // const discovery = AuthSession.useAutoDiscovery("https://accounts.google.com");
+  // const [requestGoogle, responseGoogle, promptAsyncGoogle] = AuthSession.useAuthRequest(
+  //   {
+  //     clientId: webClientId,
+  //     scopes: ["openid", "email", "profile"],
+  //     redirectUri: AuthSession.makeRedirectUri({ scheme: "cardking" }), 
+  //     // 注意：scheme 是你在 app.json 里配置的自定义 scheme
+  //   },
+  //   discovery
+  // );
 
   // Facebook Auth Hook
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
