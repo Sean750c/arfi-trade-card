@@ -48,7 +48,7 @@ export default function SocialLoginButtons() {
     androidClientId,
     iosClientId,
     webClientId,
-    responseType: 'code', // 👈 修改为请求授权码
+    responseType: 'id_token', // 👈 修改为请求授权码
     scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
   });
 

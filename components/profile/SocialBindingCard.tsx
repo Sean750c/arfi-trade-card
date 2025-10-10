@@ -46,7 +46,7 @@ export default function SocialBindingCard() {
     androidClientId,
     iosClientId,
     webClientId,
-    responseType: 'code',
+    responseType: 'id_token',
     scopes: ['openid', 'profile', 'email'],
   });
 
