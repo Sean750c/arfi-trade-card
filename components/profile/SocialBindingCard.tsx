@@ -46,20 +46,8 @@ export default function SocialBindingCard() {
     androidClientId,
     iosClientId,
     webClientId,
-    responseType: 'id_token',
     scopes: ['openid', 'profile', 'email'],
   });
-
-  // const discovery = AuthSession.useAutoDiscovery("https://accounts.google.com");
-  // const [requestGoogle, responseGoogle, promptAsyncGoogle] = AuthSession.useAuthRequest(
-  //   {
-  //     clientId: webClientId,
-  //     scopes: ["openid", "email", "profile"],
-  //     redirectUri: AuthSession.makeRedirectUri({ scheme: "cardking" }), 
-  //     // 注意：scheme 是你在 app.json 里配置的自定义 scheme
-  //   },
-  //   discovery
-  // );
 
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
   const [requestFacebook, responseFacebook, promptAsyncFacebook] = Facebook.useAuthRequest({
@@ -110,8 +98,7 @@ export default function SocialBindingCard() {
     try {
       const result = await promptAsyncGoogle();
       if (result.type === 'success') {
-        const { id_token } = result.params;
-
+        const id_token = result.authentication?.idToken || '';
         const googleInfo = await AuthService.getGoogleInfoByToken(id_token);
 
         await AuthService.socialBind({
