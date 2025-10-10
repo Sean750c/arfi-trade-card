@@ -97,16 +97,26 @@ export default function SocialBindingCard() {
     setIsBindingGoogle(true);
     try {
       const result = await promptAsyncGoogle();
+      let socialId = '';
       if (result.type === 'success') {
-        const id_token = result.authentication?.idToken || '';
-        const googleInfo = await AuthService.getGoogleInfoByToken(id_token);
+        // 如果 id_token 为空，尝试使用 access_token
+        let id_token = result.params?.id_token || result.authentication?.idToken || '';
+
+        // 如果还是没有 id_token，使用 access_token 调用 Google API
+        if (!id_token && result.authentication?.accessToken) {
+          const userInfo = await fetchGoogleUserInfo(result.authentication.accessToken);
+          socialId = userInfo.id;
+        } else {
+          const googleInfo = await AuthService.getGoogleInfoByToken(id_token);
+          socialId = googleInfo.social_id;
+        }
 
         await AuthService.socialBind({
           token: user.token,
           social_type: 'google',
           apple_code: '',
           facebook_token: '',
-          social_id: googleInfo.social_id, // 发送授权码给后端处理
+          social_id: socialId, // 发送授权码给后端处理
           social_email: '', // 后端将从Google获取
           social_picture: '', // 后端将从Google获取
           social_name: '', // 后端将从Google获取
@@ -124,6 +134,21 @@ export default function SocialBindingCard() {
     } finally {
       setIsBindingGoogle(false);
     }
+  };
+  
+  // 使用 access_token 获取用户信息的函数
+  const fetchGoogleUserInfo = async (accessToken: string) => {
+    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user info from Google');
+    }
+
+    return await response.json();
   };
 
   const handleFacebookBind = async () => {

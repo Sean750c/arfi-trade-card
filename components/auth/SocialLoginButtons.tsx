@@ -69,7 +69,7 @@ export default function SocialLoginButtons() {
   // Handle Google Login
   const handleGoogleLogin = async () => {
     if (isAnyAuthenticating) return;
-    
+
     try {
       if (!requestGoogle) {
         Alert.alert('Info', 'Google services are not available on this device!');
@@ -78,18 +78,34 @@ export default function SocialLoginButtons() {
       KochavaTracker.trackLoginSubmit('google');
       setIsAuthenticatingGoogle(true);
       const result = await promptAsyncGoogle();
-      
-      if (result.type === 'success') {
-        const id_token = result.authentication?.idToken || '';
 
-        const googleInfo = await AuthService.getGoogleInfoByToken(id_token);
+      let googleInfo = {
+        social_id: '',
+        social_email: '',
+        social_name: '',
+      };
+      if (result.type === 'success') {
+        // 如果 id_token 为空，尝试使用 access_token
+        let id_token = result.params?.id_token || result.authentication?.idToken || '';
+
+        // 如果还是没有 id_token，使用 access_token 调用 Google API
+        if (!id_token && result.authentication?.accessToken) {
+          const userInfo = await fetchGoogleUserInfo(result.authentication.accessToken);
+          googleInfo = {
+            social_id: userInfo.id,
+            social_email: userInfo.email,
+            social_name: userInfo.name,
+          };
+        } else {
+          googleInfo = await AuthService.getGoogleInfoByToken(id_token);
+        }
 
         const requestData: GoogleLoginRequest = {
           social_id: googleInfo.social_id,
           social_email: googleInfo.social_email,
           social_name: googleInfo.social_name,
         };
-        
+
         await googleLogin(requestData);
       } else if (result.type === 'cancel') {
         // Don't show alert for user cancellation - it's expected behavior
@@ -107,29 +123,44 @@ export default function SocialLoginButtons() {
     }
   };
 
+  // 使用 access_token 获取用户信息的函数
+  const fetchGoogleUserInfo = async (accessToken: string) => {
+    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user info from Google');
+    }
+
+    return await response.json();
+  };
+
   // Handle Facebook Login
   const handleFacebookLogin = async () => {
     if (isAnyAuthenticating) return;
-    
-    try {      
+
+    try {
       KochavaTracker.trackLoginSubmit('facebook');
       setIsAuthenticatingFacebook(true);
       const result = await promptAsyncFacebook();
-      
+
       if (result.type === 'success' && result.authentication?.accessToken) {
         const accessToken = result.authentication.accessToken;
         const userInfoResponse = await fetch(
           `https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`
         );
         const userInfo = await userInfoResponse.json();
-        
+
         const requestData: FacebookLoginRequest = {
           facebook_token: accessToken,
           social_id: userInfo.id,
           social_email: userInfo.email || '', // 有些用户可能没有公开 email
           social_name: userInfo.name || '',
         };
-        
+
         await facebookLogin(requestData);
       } else if (result.type === 'cancel') {
         // Don't show alert for user cancellation - it's expected behavior
@@ -149,13 +180,13 @@ export default function SocialLoginButtons() {
   // Handle Apple Login
   const handleAppleLogin = async () => {
     if (isAnyAuthenticating) return;
-    
+
     if (Platform.OS !== 'ios') {
       Alert.alert('Not Available', 'Apple Sign-In is only available on iOS devices');
       return;
     }
 
-    try {    
+    try {
       KochavaTracker.trackLoginSubmit('apple');
       setIsAuthenticatingApple(true);
       const credential = await AppleAuthentication.signInAsync({
@@ -164,15 +195,15 @@ export default function SocialLoginButtons() {
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       });
-      
-      if (credential.authorizationCode) {        
+
+      if (credential.authorizationCode) {
         const requestData: AppleLoginRequest = {
           social_id: credential.user,
           social_email: credential.email || '',
           social_name: credential.fullName?.givenName || '',
           social_code: credential.authorizationCode,
         };
-        
+
         await appleLogin(requestData);
       } else {
         Alert.alert('Login Error', 'Apple identity token not found.');
