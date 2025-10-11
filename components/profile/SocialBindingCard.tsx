@@ -28,12 +28,12 @@ export default function SocialBindingCard() {
   const { colors } = useTheme();
   const { user, reloadUser } = useAuthStore();
   const { initData } = useAppStore();
-  
+
   // Individual loading states for each social binding
   const [isBindingGoogle, setIsBindingGoogle] = useState(false);
   const [isBindingFacebook, setIsBindingFacebook] = useState(false);
   const [isBindingApple, setIsBindingApple] = useState(false);
-  
+
   // Check if any binding is in progress
   const isAnyBinding = isBindingGoogle || isBindingFacebook || isBindingApple;
 
@@ -42,11 +42,20 @@ export default function SocialBindingCard() {
   const androidClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
   const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
   const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
+  // 正确的重定向URI生成
+  const redirectUri = React.useMemo(() => {
+    const uri = AuthSession.makeRedirectUri({
+      scheme: 'cardking', // 确保不会生成 exp://
+    });
+    return uri;
+  }, []);
   const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
     androidClientId,
     iosClientId,
     webClientId,
     scopes: ['openid', 'profile', 'email'],
+    responseType: 'code', // 使用授权码流程
+    redirectUri: redirectUri
   });
 
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
@@ -86,45 +95,40 @@ export default function SocialBindingCard() {
 
   const handleGoogleBind = async () => {
     if (isAnyBinding) return;
-    
+
     if (!user?.token) return;
 
-    if(!requestGoogle){
+    if (!requestGoogle) {
       Alert.alert('Info', 'Google services are not available on this device!');
       return;
     }
-    
+
     setIsBindingGoogle(true);
     try {
       const result = await promptAsyncGoogle();
-      let socialId = '';
-      if (result.type === 'success') {
-        // 如果 id_token 为空，尝试使用 access_token
-        let id_token = result.params?.id_token || result.authentication?.idToken || '';
+      if (result.type === 'success' && result.params?.code) {
+        const authCode = result.params.code;
+        if (authCode) {
+          // 使用 id_token 获取用户信息
+          const googleInfo = await AuthService.getGoogleInfoByToken(authCode, redirectUri);
 
-        // 如果还是没有 id_token，使用 access_token 调用 Google API
-        if (!id_token && result.authentication?.accessToken) {
-          const userInfo = await fetchGoogleUserInfo(result.authentication.accessToken);
-          socialId = userInfo.id;
+          await AuthService.socialBind({
+            token: user.token,
+            social_type: 'google',
+            apple_code: '',
+            facebook_token: '',
+            social_id: googleInfo.social_id, // 发送授权码给后端处理
+            social_email: googleInfo.social_email, // 后端将从Google获取
+            social_picture: '', // 后端将从Google获取
+            social_name: googleInfo.social_name, // 后端将从Google获取
+            version: '1.0',
+          });
+  
+          await reloadUser();
+          Alert.alert('Success', 'Google account bound successfully!');
         } else {
-          const googleInfo = await AuthService.getGoogleInfoByToken(id_token);
-          socialId = googleInfo.social_id;
+          throw new Error('No authentication tokens received from Google');
         }
-
-        await AuthService.socialBind({
-          token: user.token,
-          social_type: 'google',
-          apple_code: '',
-          facebook_token: '',
-          social_id: socialId, // 发送授权码给后端处理
-          social_email: '', // 后端将从Google获取
-          social_picture: '', // 后端将从Google获取
-          social_name: '', // 后端将从Google获取
-          version: '1.0',
-        });
-
-        await reloadUser();
-        Alert.alert('Success', 'Google account bound successfully!');
       } else if (result.type === 'cancel') {
         // Don't show alert for user cancellation
         console.log('Google binding was cancelled by user');
@@ -135,7 +139,7 @@ export default function SocialBindingCard() {
       setIsBindingGoogle(false);
     }
   };
-  
+
   // 使用 access_token 获取用户信息的函数
   const fetchGoogleUserInfo = async (accessToken: string) => {
     const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -153,9 +157,9 @@ export default function SocialBindingCard() {
 
   const handleFacebookBind = async () => {
     if (isAnyBinding) return;
-    
+
     if (!user?.token) return;
-    
+
     setIsBindingFacebook(true);
     try {
       const result = await promptAsyncFacebook();
@@ -193,9 +197,9 @@ export default function SocialBindingCard() {
 
   const handleAppleBind = async () => {
     if (isAnyBinding) return;
-    
+
     if (!user?.token || Platform.OS !== 'ios') return;
-    
+
     setIsBindingApple(true);
     try {
       const credential = await AppleAuthentication.signInAsync({
@@ -248,8 +252,8 @@ export default function SocialBindingCard() {
         `Are you sure you want to unbind your ${account.name} account?`,
         [
           { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Unbind', 
+          {
+            text: 'Unbind',
             style: 'destructive',
             onPress: () => {
               // TODO: Implement unbind functionality
@@ -278,7 +282,7 @@ export default function SocialBindingCard() {
       key={account.id}
       style={[
         styles.socialItem,
-        { 
+        {
           backgroundColor: colors.card,
           borderColor: account.isConnected ? colors.success : colors.border,
           opacity: account.isAvailable ? 1 : 0.6,
@@ -316,7 +320,7 @@ export default function SocialBindingCard() {
           </View>
         </View>
       </View>
-      
+
       <TouchableOpacity
         style={[
           styles.actionButton,

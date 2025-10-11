@@ -44,11 +44,21 @@ export default function SocialLoginButtons() {
   const androidClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
   const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
   const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
+
+  // 正确的重定向URI生成
+  const redirectUri = React.useMemo(() => {
+    const uri = AuthSession.makeRedirectUri({
+      scheme: 'cardking', // 确保不会生成 exp://
+    });
+    return uri;
+  }, []);
   const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
     androidClientId,
     iosClientId,
     webClientId,
     scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
+    responseType: 'code', // 使用授权码流程
+    redirectUri: redirectUri
   });
 
   // Facebook Auth Hook
@@ -57,14 +67,7 @@ export default function SocialLoginButtons() {
     clientId, // Replace with your Facebook App ID
   });
 
-  // 正确的重定向URI生成
-  const redirectUri = React.useMemo(() => {
-    const uri = AuthSession.makeRedirectUri({
-      scheme: undefined, // 确保不会生成 exp://
-    });
-    console.log('Redirect URI:', uri);
-    return uri;
-  }, []);
+  
 
   // Handle Google Login
   const handleGoogleLogin = async () => {
@@ -79,47 +82,21 @@ export default function SocialLoginButtons() {
       setIsAuthenticatingGoogle(true);
       const result = await promptAsyncGoogle();
 
-      const rt = JSON.stringify(result);
-      Alert.alert('Debug Info', `result: ${rt}.`);
-      if (result.type === 'success') {
-        // 方法1: 优先从 params 获取 id_token
-        let id_token = result.params?.id_token;
-      
-        // 方法2: 从 authentication 获取
-        if (!id_token && result.authentication?.idToken) {
-          id_token = result.authentication.idToken;
-        }
-      
-        // 方法3: 检查 access_token 位置
-        const accessToken = result.params?.access_token || result.authentication?.accessToken;
-
-        let googleInfo = {
-          social_id: '',
-          social_email: '',
-          social_name: '',
-        };
-        if (id_token) {
+      if (result.type === 'success' && result.params?.code) {
+        const authCode = result.params.code;
+        if (authCode) {
           // 使用 id_token 获取用户信息
-          googleInfo = await AuthService.getGoogleInfoByToken(id_token);
-        } else if (accessToken) {
-          // 使用 access_token 获取用户信息
-          const userInfo = await fetchGoogleUserInfo(accessToken);
-          googleInfo = {
-            social_id: userInfo.id,
-            social_email: userInfo.email,
-            social_name: userInfo.name,
+          const googleInfo = await AuthService.getGoogleInfoByToken(authCode, redirectUri);
+          const requestData: GoogleLoginRequest = {
+            social_id: googleInfo.social_id,
+            social_email: googleInfo.social_email,
+            social_name: googleInfo.social_name,
           };
+  
+          await googleLogin(requestData);
         } else {
           throw new Error('No authentication tokens received from Google');
         }
-
-        const requestData: GoogleLoginRequest = {
-          social_id: googleInfo.social_id,
-          social_email: googleInfo.social_email,
-          social_name: googleInfo.social_name,
-        };
-
-        await googleLogin(requestData);
       } else if (result.type === 'cancel') {
         // Don't show alert for user cancellation - it's expected behavior
         console.log('Google login was cancelled by user');
@@ -134,21 +111,6 @@ export default function SocialLoginButtons() {
     } finally {
       setIsAuthenticatingGoogle(false);
     }
-  };
-
-  // 使用 access_token 获取用户信息的函数
-  const fetchGoogleUserInfo = async (accessToken: string) => {
-    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch user info from Google');
-    }
-
-    return await response.json();
   };
 
   // Handle Facebook Login
