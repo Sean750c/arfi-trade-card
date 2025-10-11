@@ -46,11 +46,9 @@ export default function SocialLoginButtons() {
   const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
 
   const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
-    androidClientId,
-    iosClientId,
-    webClientId,
-    scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
-    responseType: 'code', // 使用授权码流程
+    clientId: expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    responseType: "code",
+    scopes: ["openid", "profile", "email"],
   });
 
   // Facebook Auth Hook
@@ -58,8 +56,6 @@ export default function SocialLoginButtons() {
   const [requestFacebook, responseFacebook, promptAsyncFacebook] = Facebook.useAuthRequest({
     clientId, // Replace with your Facebook App ID
   });
-
-  
 
   // Handle Google Login
   const handleGoogleLogin = async () => {

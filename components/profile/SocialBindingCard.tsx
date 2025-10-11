@@ -43,11 +43,9 @@ export default function SocialBindingCard() {
   const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
   const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
   const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
-    androidClientId,
-    iosClientId,
-    webClientId,
-    scopes: ['openid', 'profile', 'email'],
-    responseType: 'code', // 使用授权码流程
+    clientId: expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    responseType: "code",
+    scopes: ["openid", "profile", "email"],
   });
 
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
