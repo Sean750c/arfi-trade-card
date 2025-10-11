@@ -42,20 +42,12 @@ export default function SocialBindingCard() {
   const androidClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
   const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
   const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
-  // 正确的重定向URI生成
-  const redirectUri = React.useMemo(() => {
-    const uri = AuthSession.makeRedirectUri({
-      scheme: 'cardking', // 确保不会生成 exp://
-    });
-    return uri;
-  }, []);
   const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
     androidClientId,
     iosClientId,
     webClientId,
     scopes: ['openid', 'profile', 'email'],
     responseType: 'code', // 使用授权码流程
-    redirectUri: redirectUri
   });
 
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
@@ -110,7 +102,7 @@ export default function SocialBindingCard() {
         const authCode = result.params.code;
         if (authCode) {
           // 使用 id_token 获取用户信息
-          const googleInfo = await AuthService.getGoogleInfoByToken(authCode, redirectUri);
+          const googleInfo = await AuthService.getGoogleInfoByToken(authCode, requestGoogle?.redirectUri);
 
           await AuthService.socialBind({
             token: user.token,

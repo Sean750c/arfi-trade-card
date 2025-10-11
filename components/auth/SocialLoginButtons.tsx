@@ -45,20 +45,12 @@ export default function SocialLoginButtons() {
   const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
   const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
 
-  // 正确的重定向URI生成
-  const redirectUri = React.useMemo(() => {
-    const uri = AuthSession.makeRedirectUri({
-      scheme: 'cardking', // 确保不会生成 exp://
-    });
-    return uri;
-  }, []);
   const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
     androidClientId,
     iosClientId,
     webClientId,
     scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
     responseType: 'code', // 使用授权码流程
-    redirectUri: redirectUri
   });
 
   // Facebook Auth Hook
@@ -86,7 +78,7 @@ export default function SocialLoginButtons() {
         const authCode = result.params.code;
         if (authCode) {
           // 使用 id_token 获取用户信息
-          const googleInfo = await AuthService.getGoogleInfoByToken(authCode, redirectUri);
+          const googleInfo = await AuthService.getGoogleInfoByToken(authCode, requestGoogle?.redirectUri);
           const requestData: GoogleLoginRequest = {
             social_id: googleInfo.social_id,
             social_email: googleInfo.social_email,
