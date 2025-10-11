@@ -44,9 +44,10 @@ export default function SocialLoginButtons() {
   const androidClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
   const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
   const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
-
+  const redirectUri = 'https://auth.expo.io/@chaoqunz/cardking';
   const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
     clientId: expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    redirectUri,
     responseType: "code",
     scopes: ["openid", "profile", "email"],
   });
@@ -69,7 +70,7 @@ export default function SocialLoginButtons() {
       KochavaTracker.trackLoginSubmit('google');
       setIsAuthenticatingGoogle(true);
       const result = await promptAsyncGoogle();
-
+      Alert.alert('Info', JSON.stringify(result));
       if (result.type === 'success' && result.params?.code) {
         const authCode = result.params.code;
         if (authCode) {
