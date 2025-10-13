@@ -21,8 +21,9 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Constants from 'expo-constants';
-import * as AuthSession from "expo-auth-session";
 
+// 建议在应用启动时调用
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SocialBindingCard() {
   const { colors } = useTheme();
@@ -39,12 +40,15 @@ export default function SocialBindingCard() {
 
   // Auth hooks
   const expoConfig = Constants.expoConfig;
+  const androidClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
+  const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
+  const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
   const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
-    iosClientId: expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    webClientId: expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    responseType: 'id_token',
-    scopes: ['openid', 'profile', 'email'],
+    androidClientId,
+    iosClientId,
+    webClientId,
+    scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
+    responseType: 'code', // 使用授权码流程
   });
 
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
@@ -95,7 +99,6 @@ export default function SocialBindingCard() {
     setIsBindingGoogle(true);
     try {
       const result = await promptAsyncGoogle();
-      Alert.alert('Info', JSON.stringify(result));
       if (result.type === 'success' && result.params?.code) {
         const authCode = result.params.code;
         if (authCode) {

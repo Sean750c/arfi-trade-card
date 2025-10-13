@@ -44,13 +44,13 @@ export default function SocialLoginButtons() {
   const androidClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
   const iosClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
   const webClientId = expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
-  const redirectUri = AuthSession.makeRedirectUri();
   const [requestGoogle, responseGoogle, promptAsyncGoogle] = Google.useAuthRequest({
-    clientId: expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    responseType: "code",
-    scopes: ["openid", "profile", "email"],
+    androidClientId,
+    iosClientId,
+    webClientId,
+    scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
+    responseType: 'code', // 使用授权码流程
   });
-  Alert.alert('Info', redirectUri);
   // Facebook Auth Hook
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
   const [requestFacebook, responseFacebook, promptAsyncFacebook] = Facebook.useAuthRequest({
@@ -69,8 +69,6 @@ export default function SocialLoginButtons() {
       KochavaTracker.trackLoginSubmit('google');
       setIsAuthenticatingGoogle(true);
       const result = await promptAsyncGoogle();
-      Alert.alert('Info', JSON.stringify(result));
-      Alert.alert('Info', requestGoogle?.redirectUri);
       if (result.type === 'success' && result.params?.code) {
         const authCode = result.params.code;
         if (authCode) {
