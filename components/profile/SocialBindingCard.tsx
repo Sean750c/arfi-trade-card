@@ -48,7 +48,7 @@ export default function SocialBindingCard() {
     iosClientId,
     webClientId,
     scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
-    responseType: 'code', // 使用授权码流程
+    responseType: 'id_token', // 使用授权码流程
   });
 
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
@@ -100,20 +100,20 @@ export default function SocialBindingCard() {
     try {
       const result = await promptAsyncGoogle();
       if (result.type === 'success' && result.params?.code) {
-        const authCode = result.params.code;
-        if (authCode) {
-          // 使用 id_token 获取用户信息
-          const googleInfo = await AuthService.getGoogleInfoByToken(authCode, requestGoogle?.redirectUri);
+        const idToken = result.params.id_token;
+        // 可以解析 JWT 得到用户信息
+        const payload = JSON.parse(atob(idToken.split('.')[1]));
 
+        if (payload) {
           await AuthService.socialBind({
             token: user.token,
             social_type: 'google',
             apple_code: '',
             facebook_token: '',
-            social_id: googleInfo.social_id, // 发送授权码给后端处理
-            social_email: googleInfo.social_email, // 后端将从Google获取
+            social_id: payload['sub'], // 发送授权码给后端处理
+            social_email: payload['email'], // 后端将从Google获取
             social_picture: '', // 后端将从Google获取
-            social_name: googleInfo.social_name, // 后端将从Google获取
+            social_name: payload['name'], // 后端将从Google获取
             version: '1.0',
           });
   
