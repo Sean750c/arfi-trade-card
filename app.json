@@ -2,7 +2,7 @@
   "expo": {
     "name": "CardKing",
     "slug": "cardking",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "orientation": "default",
     "icon": "./assets/images/logo.png",
     "scheme": "cardking",
@@ -17,13 +17,31 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.bsdb.cardking",
       "usesAppleSignIn": true,
-      "associatedDomains": ["applinks:www.cardking.ng", "applinks:cardking.ng"],
+      "associatedDomains": [
+        "applinks:www.cardking.ng",
+        "applinks:cardking.ng"
+      ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification",
+          "fetch",
+          "remote-notification"
+        ],
         "NSUserTrackingUsageDescription": "This data helps us provide relevant content and notifications. We respect your privacy and do not share your information without your permission.",
-        "UNUserNotificationCenterDelegate": true
-      }
+        "UNUserNotificationCenterDelegate": true,
+        "FacebookAppID": "1525365371783998",
+        "FacebookDisplayName": "CardKing",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "fb1525365371783998"
+            ]
+          }
+        ]
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "web": {
       "bundler": "metro",
@@ -39,7 +57,9 @@
         {
           "icon": "./assets/images/notification-icon.png",
           "color": "#008751",
-          "sounds": ["./assets/sounds/notification.mp3"],
+          "sounds": [
+            "./assets/sounds/notification.mp3"
+          ],
           "mode": "production"
         }
       ],
@@ -75,7 +95,7 @@
       "router": {
         "unstable_allowRequireContext": true
       },
-      "EXPO_PUBLIC_API_URL": "https://test-giftcard8-api.gcard8.com", 
+      "EXPO_PUBLIC_API_URL": "https://test-giftcard8-api.gcard8.com",
       "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "791594810994-0n8lvdm11k3hse26khpp5dmhq51d57c3.apps.googleusercontent.com",
       "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "791594810994-bqhvquvepta7ca4de13d782blnec7p6u.apps.googleusercontent.com",
       "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "791594810994-nuplk4snq0mp4tgnd98hijupn17hm9c0.apps.googleusercontent.com",
@@ -101,11 +121,30 @@
               "pathPrefix": "/register"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
+      ],
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "jsEngine": "hermes",
-    "owner": "chaoqunz"
+    "owner": "chaoqunz",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/6e88a397-970f-4337-b705-b85048eb66b6",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
+    }
   }
 }

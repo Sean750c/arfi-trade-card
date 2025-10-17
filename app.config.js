@@ -4,7 +4,7 @@ export default ({ config }) => ({
   ...config,
   name: "CardKing",
   slug: "cardking",
-  version: "1.0.6",
+  version: "1.0.7",
   orientation: "default",
   icon: "./assets/images/logo.png",
   scheme: "cardking",
@@ -14,6 +14,7 @@ export default ({ config }) => ({
     enabled: true,              // 启用 OTA 更新
     checkAutomatically: "ON_LOAD", // App 启动时检查更新
     fallbackToCacheTimeout: 0,  // 启动时立即加载本地缓存，后台拉取更新
+    url: "https://u.expo.dev/6e88a397-970f-4337-b705-b85048eb66b6",
     runtimeVersion: {
       policy: "appVersion"
     }
