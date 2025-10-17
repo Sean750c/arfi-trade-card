@@ -4,15 +4,20 @@ import { useColorScheme, Platform } from 'react-native';
 import { Chrome as Home, Gift, Wallet, User } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
   const { colors } = useTheme();
   const { isInitialized } = useAuthStore();
+  const insets = useSafeAreaInsets();
 
   // Don't render tabs until auth is initialized
   if (!isInitialized) {
     return null;
   }
+
+  const tabBarHeight = Platform.OS === 'ios' ? 49 : 56;
+  const bottomInset = Math.max(insets.bottom, 8);
 
   return (
     <Tabs
@@ -23,8 +28,8 @@ export default function TabLayout() {
           borderTopWidth: 1,
           borderTopColor: colors.border,
           backgroundColor: colors.card,
-          height: (Platform.OS === 'ios' || Platform.OS === 'web') ? 88 : 60,
-          paddingBottom: (Platform.OS === 'ios' || Platform.OS === 'web') ? 28 : 8,
+          height: tabBarHeight + bottomInset,
+          paddingBottom: bottomInset,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
