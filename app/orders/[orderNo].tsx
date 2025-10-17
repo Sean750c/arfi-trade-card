@@ -70,6 +70,7 @@ function OrderDetailScreenContent() {
       case 1:
         return <Clock size={24} color={colors.warning} />;
       case 2:
+      case 4:
         return <CheckCircle size={24} color={colors.success} />;
       case 3:
         return <XCircle size={24} color={colors.error} />;
@@ -431,7 +432,7 @@ function OrderDetailScreenContent() {
                       Amount
                     </Text>
                     <Text style={[styles.keyInfoValue, { color: colors.text }]}>
-                      {keyInfo.currency_symbol}{keyInfo.amount.toFixed(2)}
+                      {user?.currency_symbol}{keyInfo.amount.toFixed(2)}
                     </Text>
                   </View>
                   <View style={styles.keyInfoItem}>
@@ -439,7 +440,7 @@ function OrderDetailScreenContent() {
                       Rate
                     </Text>
                     <Text style={[styles.keyInfoValue, { color: colors.text }]}>
-                      {(keyInfo.purchase_rate * 100).toFixed(1)}%
+                      {(keyInfo.purchase_rate).toFixed(2)}
                     </Text>
                   </View>
                 </View>

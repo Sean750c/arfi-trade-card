@@ -20,6 +20,7 @@ export default function OrderCard({ currencySymbol, currencyName, order, onPress
       case 1: // Pending
         return <Clock size={16} color={colors.warning} />;
       case 2: // Succeed
+      case 4: // Succeed
         return <CheckCircle size={16} color={colors.success} />;
       case 3: // Refused
         return <XCircle size={16} color={colors.error} />;
