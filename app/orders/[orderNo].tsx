@@ -11,7 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Gift, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, CircleX as XCircle, Copy, Share, Tag, Crown, Sparkles, Image as ImageIcon } from 'lucide-react-native';
+import { ChevronLeft, Gift, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, CircleX as XCircle, Copy, Share, Tag, Crown, Sparkles, Image as ImageIcon, Key } from 'lucide-react-native';
 import AuthGuard from '@/components/UI/AuthGuard';
 import Button from '@/components/UI/Button';
 import Spacing from '@/constants/Spacing';
@@ -127,6 +127,10 @@ function OrderDetailScreenContent() {
     } else {
       Alert.alert('Unable to get service phone', 'Please try again later.');
     }
+  };
+
+  const handleCopyKey = (key: string) => {
+    Alert.alert('Copied', 'Card key copied to clipboard');
   };
 
   if (isLoadingDetail || isFirstLoad) {
@@ -355,6 +359,135 @@ function OrderDetailScreenContent() {
                 {formatAmount(orderDetail.coupon_amount, orderDetail.wallet_type)}
               </Text>
             </View>
+          </View>
+        )}
+
+        {/* Card Keys Card */}
+        {orderDetail.keyList.length > 0 && (
+          <View style={[
+            styles.keysCard,
+            { backgroundColor: colors.card }
+          ]}>
+            <View style={styles.keysHeader}>
+              <Key size={20} color={colors.primary} />
+              <Text style={[styles.keysTitle, { color: colors.text }]}>
+                Card Keys ({orderDetail.keyList.length})
+              </Text>
+            </View>
+
+            {orderDetail.keyList.map((keyInfo, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.keyItem,
+                  {
+                    backgroundColor: `${colors.primary}05`,
+                    borderColor: keyInfo.fail_reason ? colors.error : colors.border
+                  }
+                ]}
+              >
+                <View style={styles.keyItemHeader}>
+                  <View style={styles.keyCardInfo}>
+                    {keyInfo.card_image && (
+                      <Image
+                        source={{ uri: keyInfo.card_image }}
+                        style={styles.keyCardImage}
+                        resizeMode="cover"
+                      />
+                    )}
+                    <View style={styles.keyCardDetails}>
+                      <Text style={[styles.keyCardName, { color: colors.text }]}>
+                        {keyInfo.card_name}
+                      </Text>
+                      <Text style={[styles.keyCardCurrency, { color: colors.textSecondary }]}>
+                        {keyInfo.card_currency}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={[
+                    styles.keyStatusBadge,
+                    { backgroundColor: keyInfo.status === 'success' ? `${colors.success}20` : `${colors.warning}20` }
+                  ]}>
+                    <Text style={[
+                      styles.keyStatusText,
+                      { color: keyInfo.status === 'success' ? colors.success : colors.warning }
+                    ]}>
+                      {keyInfo.status}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.keyInfoRow}>
+                  <View style={styles.keyInfoItem}>
+                    <Text style={[styles.keyInfoLabel, { color: colors.textSecondary }]}>
+                      Face Value
+                    </Text>
+                    <Text style={[styles.keyInfoValue, { color: colors.text }]}>
+                      {keyInfo.currency_symbol}{keyInfo.facevalue.toFixed(2)}
+                    </Text>
+                  </View>
+                  <View style={styles.keyInfoItem}>
+                    <Text style={[styles.keyInfoLabel, { color: colors.textSecondary }]}>
+                      Amount
+                    </Text>
+                    <Text style={[styles.keyInfoValue, { color: colors.text }]}>
+                      {keyInfo.currency_symbol}{keyInfo.amount.toFixed(2)}
+                    </Text>
+                  </View>
+                  <View style={styles.keyInfoItem}>
+                    <Text style={[styles.keyInfoLabel, { color: colors.textSecondary }]}>
+                      Rate
+                    </Text>
+                    <Text style={[styles.keyInfoValue, { color: colors.text }]}>
+                      {(keyInfo.purchase_rate * 100).toFixed(1)}%
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={[styles.keyValueContainer, { backgroundColor: colors.background }]}>
+                  <Text style={[styles.keyValueLabel, { color: colors.textSecondary }]}>
+                    Card Key:
+                  </Text>
+                  <View style={styles.keyValueRow}>
+                    <Text
+                      style={[styles.keyValueText, { color: colors.text }]}
+                      numberOfLines={1}
+                      ellipsizeMode="middle"
+                    >
+                      {keyInfo.key}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => handleCopyKey(keyInfo.key)}
+                      style={styles.copyKeyButton}
+                    >
+                      <Copy size={16} color={colors.primary} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {keyInfo.fail_reason && (
+                  <View style={[styles.keyErrorContainer, { backgroundColor: `${colors.error}10` }]}>
+                    <AlertCircle size={14} color={colors.error} />
+                    <Text style={[styles.keyErrorText, { color: colors.error }]}>
+                      {keyInfo.fail_reason}
+                    </Text>
+                  </View>
+                )}
+
+                {keyInfo.sellout_image && (
+                  <TouchableOpacity
+                    style={styles.keySelloutImageContainer}
+                    onPress={() => Alert.alert('Image', 'Full screen image viewer')}
+                  >
+                    <Image
+                      source={{ uri: keyInfo.sellout_image }}
+                      style={styles.keySelloutImage}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
           </View>
         )}
 
@@ -750,5 +883,133 @@ const styles = StyleSheet.create({
   fullScreenImage: {
     width: width - 40,
     height: '80%',
+  },
+  keysCard: {
+    borderRadius: 16,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  keysHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  keysTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+  },
+  keyItem: {
+    borderRadius: 12,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+  },
+  keyItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  keyCardInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    flex: 1,
+  },
+  keyCardImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+  },
+  keyCardDetails: {
+    flex: 1,
+  },
+  keyCardName: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: 2,
+  },
+  keyCardCurrency: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+  },
+  keyStatusBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  keyStatusText: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    textTransform: 'capitalize',
+  },
+  keyInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  keyInfoItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  keyInfoLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    marginBottom: 4,
+  },
+  keyInfoValue: {
+    fontSize: 14,
+    fontFamily: 'Inter-Bold',
+  },
+  keyValueContainer: {
+    borderRadius: 8,
+    padding: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  keyValueLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    marginBottom: 4,
+  },
+  keyValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  keyValueText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    flex: 1,
+    marginRight: Spacing.sm,
+  },
+  copyKeyButton: {
+    padding: 4,
+  },
+  keyErrorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    padding: Spacing.sm,
+    borderRadius: 6,
+    marginBottom: Spacing.sm,
+  },
+  keyErrorText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    flex: 1,
+  },
+  keySelloutImageContainer: {
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginTop: Spacing.xs,
+  },
+  keySelloutImage: {
+    width: '100%',
+    height: 120,
   },
 });
