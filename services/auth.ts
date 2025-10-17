@@ -265,7 +265,7 @@ export class AuthService {
     }
   }
 
-  static async getGoogleInfoByToken(idToken: string, redirectUri: string) {
+  static async getGoogleInfoByToken(code: string, redirectUri: string) {
     const deviceInfo = await getDeviceInfo();
 
     try {
@@ -273,7 +273,7 @@ export class AuthService {
         '/gc/social/getGoogleInfoByToken',
         'POST',
         {
-          id_token: idToken,
+          code: code,
           redirect_uri: redirectUri,
           ...deviceInfo
         }

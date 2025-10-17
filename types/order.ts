@@ -6,6 +6,21 @@ export interface OrderImage {
   type: number;
 }
 
+export interface KeyInfo {
+  key: string;
+  status: string;
+  image_id: number;
+  sellout_image: string;
+  fail_reason: string;
+  amount: number;
+  facevalue: number;
+  purchase_rate: number;
+  card_name: string;
+  card_currency: string;
+  currency_symbol: string;
+  card_image: string;
+}
+
 export interface OrderDetail {
   coupon_code: string;
   coupon_amount: string;
@@ -22,7 +37,7 @@ export interface OrderDetail {
   reach_amount_bonus: number;
   full_amount_bonus: number;
   vip_bonus: number;
-  keyList: any[];
+  keyList: KeyInfo[];
   imageList: OrderImage[];
   order_activity_result: any[];
 }
