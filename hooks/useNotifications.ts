@@ -33,21 +33,14 @@ export function useNotifications() {
   const notificationListener = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
 
-  // Check for devices without Google Play Services
-  const isDeviceWithoutGMS = Platform.OS === 'android' && (
-    Device.brand?.toLowerCase() === 'huawei' ||
-    Device.brand?.toLowerCase() === 'honor' ||
-    Device.manufacturer?.toLowerCase() === 'huawei' ||
-    Device.manufacturer?.toLowerCase() === 'honor'
-  );
+  const isHuawei = Platform.OS === 'android' && Device.brand?.toLowerCase() === 'huawei';
 
   // Register for push notifications
   const registerForPushNotificationsAsync = async (): Promise<string | null> => {
     let token = null;
 
-    // Early return for devices without Google Play Services
-    if (isDeviceWithoutGMS) {
-      console.log('⚠️ Notifications Debug - Device without Google Play Services detected, skipping push notifications');
+    // Early return for Huawei devices to avoid Google Play Services issues
+    if (isHuawei) {
       return null;
     }
 
@@ -65,7 +58,7 @@ export function useNotifications() {
           lightColor: '#008751',
         });
       } catch (error) {
-        console.log('⚠️ Notifications Debug - Failed to create Android notification channel (Google Play Services may not be available):', error);
+        console.error('❌ Notifications Debug - Failed to create Android notification channel:', error);
         return null;
       }
     }
@@ -77,17 +70,22 @@ export function useNotifications() {
         let finalStatus = existingStatus;
 
         if (existingStatus !== 'granted') {
-          try {
-            const { status } = await Notifications.requestPermissionsAsync();
-            finalStatus = status;
-          } catch (permError) {
-            console.log('⚠️ Notifications Debug - Failed to request permissions (Google Play Services may not be available):', permError);
-            return null;
-          }
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
         }
 
         if (finalStatus !== 'granted') {
-          console.log('⚠️ Notifications Debug - Notification permissions not granted');
+          Alert.alert(
+            'Permission Required',
+            'Push notifications are required to receive important updates about your orders and account.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Settings',
+                onPress: () => Notifications.requestPermissionsAsync()
+              }
+            ]
+          );
           return null;
         }
 
@@ -100,11 +98,11 @@ export function useNotifications() {
 
           token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
         } catch (error) {
-          console.log('⚠️ Notifications Debug - Error getting push token (Google Play Services may not be available):', error);
+          console.error('❌ Notifications Debug - Error getting push token:', error);
           return null;
         }
       } catch (error) {
-        console.log('⚠️ Notifications Debug - Failed to initialize notifications (Google Play Services may not be available):', error);
+        console.log('⚠️ Notifications Debug - Error getting push token (Google Play Services may not be available):', error);
         return null;
       }
     } else {
@@ -118,10 +116,10 @@ export function useNotifications() {
   const handleNotificationAction = (actionType: string, data: any) => {
     // 使用NavigationUtils处理通知动作
     let success = false;
-    
+
     // 尝试使用内链代码跳转
     success = NavigationUtils.navigateToInternalRoute(actionType, data);
-    
+
     // 如果跳转失败，默认跳转到首页
     if (!success) {
       router.push('/(tabs)');
@@ -131,10 +129,10 @@ export function useNotifications() {
   // Register FCM token with backend
   const registerTokenWithBackend = async (token: string) => {
     try {
-      
+
       const deviceNo = await generateDeviceId();
       const deviceType = await getDeviceType();
-      
+
       await NotificationService.registerFCMToken({
         token: user?.token,
         push_device_token: token,
@@ -159,7 +157,7 @@ export function useNotifications() {
       }
     });
 
-    if (isDeviceWithoutGMS) {
+    if (isHuawei) {
       return;
     }
 
@@ -172,7 +170,7 @@ export function useNotifications() {
     });
 
     // Listen for notification responses (when user taps notification)
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {      
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       const { notification } = response;
       const data = notification.request.content.data as NotificationData;
 
@@ -205,7 +203,7 @@ export function useNotifications() {
     data?: any,
     seconds: number = 1
   ) => {
-    if (isDeviceWithoutGMS) {
+    if (isHuawei) {
       return;
     }
     await Notifications.scheduleNotificationAsync({
