@@ -111,15 +111,19 @@ export default function RootLayout() {
         await initialize(userToken);
         checkAppStartPopup();
 
-        KochavaMeasurement.instance.registerAndroidAppGuid("kocardking-android-cwnjsaz");
-        KochavaMeasurement.instance.registerIosAppGuid("kocardking-ios-s1der");
-        KochavaMeasurement.instance.start();
+        try {
+          KochavaMeasurement.instance.registerAndroidAppGuid("kocardking-android-cwnjsaz");
+          KochavaMeasurement.instance.registerIosAppGuid("kocardking-ios-s1der");
+          KochavaMeasurement.instance.start();
 
-        // 追踪APP首次打开
-        const hasTrackedFirstOpen = await AsyncStorage.getItem('hasTrackedFirstOpen');
-        if (!hasTrackedFirstOpen) {
-          KochavaTracker.trackAppFirstOpen();
-          await AsyncStorage.setItem('hasTrackedFirstOpen', 'true');
+          // 追踪APP首次打开
+          const hasTrackedFirstOpen = await AsyncStorage.getItem('hasTrackedFirstOpen');
+          if (!hasTrackedFirstOpen) {
+            KochavaTracker.trackAppFirstOpen();
+            await AsyncStorage.setItem('hasTrackedFirstOpen', 'true');
+          }
+        } catch (trackingError) {
+          console.log('Tracking initialization failed (non-critical):', trackingError);
         }
 
         const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');

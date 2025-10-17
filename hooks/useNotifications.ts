@@ -33,14 +33,21 @@ export function useNotifications() {
   const notificationListener = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
 
-  const isHuawei = Platform.OS === 'android' && Device.brand?.toLowerCase() === 'huawei';
+  // Check for devices without Google Play Services
+  const isDeviceWithoutGMS = Platform.OS === 'android' && (
+    Device.brand?.toLowerCase() === 'huawei' ||
+    Device.brand?.toLowerCase() === 'honor' ||
+    Device.manufacturer?.toLowerCase() === 'huawei' ||
+    Device.manufacturer?.toLowerCase() === 'honor'
+  );
 
   // Register for push notifications
   const registerForPushNotificationsAsync = async (): Promise<string | null> => {
     let token = null;
 
-    // Early return for Huawei devices to avoid Google Play Services issues
-    if (isHuawei) {
+    // Early return for devices without Google Play Services
+    if (isDeviceWithoutGMS) {
+      console.log('⚠️ Notifications Debug - Device without Google Play Services detected, skipping push notifications');
       return null;
     }
 
@@ -51,53 +58,53 @@ export function useNotifications() {
 
     if (Platform.OS === 'android') {
       try {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#008751',
-      });
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#008751',
+        });
       } catch (error) {
-        console.error('❌ Notifications Debug - Failed to create Android notification channel:', error);
+        console.log('⚠️ Notifications Debug - Failed to create Android notification channel (Google Play Services may not be available):', error);
         return null;
       }
     }
 
     if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      
-      let finalStatus = existingStatus;
-      
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      
-      if (finalStatus !== 'granted') {
-        Alert.alert(
-          'Permission Required',
-          'Push notifications are required to receive important updates about your orders and account.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Settings', 
-              onPress: () => Notifications.requestPermissionsAsync() 
-            }
-          ]
-        );
-        return null;
-      }
-      
       try {
-        const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
-        
-        if (!projectId) {
-          throw new Error('Project ID not found');
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+
+        let finalStatus = existingStatus;
+
+        if (existingStatus !== 'granted') {
+          try {
+            const { status } = await Notifications.requestPermissionsAsync();
+            finalStatus = status;
+          } catch (permError) {
+            console.log('⚠️ Notifications Debug - Failed to request permissions (Google Play Services may not be available):', permError);
+            return null;
+          }
         }
-        
-        token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+
+        if (finalStatus !== 'granted') {
+          console.log('⚠️ Notifications Debug - Notification permissions not granted');
+          return null;
+        }
+
+        try {
+          const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+
+          if (!projectId) {
+            throw new Error('Project ID not found');
+          }
+
+          token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+        } catch (error) {
+          console.log('⚠️ Notifications Debug - Error getting push token (Google Play Services may not be available):', error);
+          return null;
+        }
       } catch (error) {
-        console.error('❌ Notifications Debug - Error getting push token:', error);
+        console.log('⚠️ Notifications Debug - Failed to initialize notifications (Google Play Services may not be available):', error);
         return null;
       }
     } else {
@@ -152,7 +159,7 @@ export function useNotifications() {
       }
     });
 
-    if (isHuawei) {
+    if (isDeviceWithoutGMS) {
       return;
     }
 
@@ -198,7 +205,7 @@ export function useNotifications() {
     data?: any,
     seconds: number = 1
   ) => {
-    if (isHuawei) {
+    if (isDeviceWithoutGMS) {
       return;
     }
     await Notifications.scheduleNotificationAsync({

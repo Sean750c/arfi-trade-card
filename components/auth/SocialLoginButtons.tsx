@@ -48,13 +48,13 @@ export default function SocialLoginButtons() {
     androidClientId,
     iosClientId,
     webClientId,
-    scopes: ['openid', 'profile', 'email'], // 👈 确保能拿到用户信息
-    responseType: 'code', // 使用授权码流程
+    scopes: ['openid', 'profile', 'email'],
+    responseType: 'code',
   });
   // Facebook Auth Hook
   const clientId = expoConfig?.extra?.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
   const [requestFacebook, responseFacebook, promptAsyncFacebook] = Facebook.useAuthRequest({
-    clientId, // Replace with your Facebook App ID
+    clientId,
   });
 
   // Handle Google Login
