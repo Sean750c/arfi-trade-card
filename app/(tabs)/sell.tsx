@@ -15,7 +15,6 @@ import {
   PanResponder,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Calculator, Crown, ChevronRight, ChevronDown, Trophy, Phone, Camera, X, ArrowLeft, Zap, CircleHelp as HelpCircle, Wallet, CircleCheck as CheckCircle, Tag, Upload, Image as ImageIcon, Clock } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AuthGuard from '@/components/UI/AuthGuard';
@@ -57,7 +56,6 @@ function SellScreenContent() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
   const { initData } = useAppStore();
-  const insets = useSafeAreaInsets();
   const {
     fetchOrderSellDetail,
     orderSellDetail,
@@ -66,10 +64,6 @@ function SellScreenContent() {
   } = useOrderStore();
 
   const { checkOrderCreatedPopup } = usePopupManager();
-
-  // Calculate tab bar height + bottom inset for scroll content
-  const tabBarHeight = Platform.OS === 'ios' ? 49 : 56;
-  const contentPaddingBottom = tabBarHeight + Math.max(insets.bottom, 8) + Spacing.lg;
 
   const currencyName = user?.currency_name || '';
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>([]);
@@ -525,7 +519,7 @@ function SellScreenContent() {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.scrollContent, { paddingBottom: contentPaddingBottom }]}
+          contentContainerStyle={styles.scrollContent}
           removeClippedSubviews={true}
           scrollEventThrottle={16}
         >
@@ -719,7 +713,7 @@ function SellScreenContent() {
         </ScrollView>
 
         {/* Bottom Action Buttons */}
-        <View style={[styles.bottomActions, { paddingBottom: Math.max(insets.bottom, 8) + Spacing.lg }]}>
+        <View style={styles.bottomActions}>
           <TouchableOpacity
             style={[styles.calculatorButton, { backgroundColor: colors.secondary, borderColor: colors.primary }]}
             onPress={() => router.push('/calculator' as any)}
@@ -850,6 +844,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.lg,
+    paddingBottom: 120,
   },
 
   // Header
@@ -1113,8 +1108,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     flexDirection: 'row',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
+    padding: Spacing.lg,
     gap: Spacing.md,
     backgroundColor: 'transparent',
   },

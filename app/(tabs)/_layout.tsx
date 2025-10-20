@@ -5,6 +5,7 @@ import { Chrome as Home, Gift, Wallet, User } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Spacing from '@/constants/Spacing';
 
 export default function TabLayout() {
   const { colors } = useTheme();
@@ -28,9 +29,9 @@ export default function TabLayout() {
           borderTopWidth: 1,
           borderTopColor: colors.border,
           backgroundColor: colors.card,
-          height: tabBarHeight + bottomInset,
+          height: tabBarHeight + bottomInset + Spacing.xs,
           paddingBottom: bottomInset,
-          paddingTop: 8,
+          paddingTop: Spacing.xs,
         },
         tabBarLabelStyle: {
           fontWeight: '500',
