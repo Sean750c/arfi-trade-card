@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { User, Star, Settings, Users, Tag, ShieldCheck, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard, LogIn, Receipt, CircleUser as UserCircle, Camera, Check, X, CreditCard as Edit3, MessageCircle, Bell } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import Button from '@/components/UI/Button';
@@ -40,11 +41,16 @@ export default function ProfileScreen() {
   // const colorScheme = useColorScheme() ?? 'light';
   // const colors = Colors[colorScheme];
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { isAuthenticated, user, logout, isLoading, setUser, reloadUser } = useAuthStore();
   const [updatingAvatar, setUpdatingAvatar] = useState(false);
   const [editingNickname, setEditingNickname] = useState(false);
   const [newNickname, setNewNickname] = useState('');
   const [updatingNickname, setUpdatingNickname] = useState(false);
+
+  // Calculate tab bar height + bottom inset
+  const tabBarHeight = Platform.OS === 'ios' ? 49 : 56;
+  const contentPaddingBottom = tabBarHeight + Math.max(insets.bottom, 8) + Spacing.lg;
 
   useFocusEffect(
     useCallback(() => {
@@ -369,11 +375,11 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaWrapper backgroundColor={colors.background}>
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         removeClippedSubviews={true}
-        contentContainerStyle={{ paddingBottom: Spacing.xl }}
+        contentContainerStyle={{ paddingBottom: contentPaddingBottom }}
       >
         <View style={headerStyle}>
           <Text style={titleStyle}>Profile</Text>

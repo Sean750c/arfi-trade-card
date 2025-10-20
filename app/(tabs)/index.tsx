@@ -8,9 +8,11 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Bell, ChevronDown, Sparkles, Eye, EyeOff, RefreshCw, Ticket } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Spacing from '@/constants/Spacing';
 import PromoBanner from '@/components/home/PromoBanner';
 import QuickActions from '@/components/home/QuickActions';
@@ -25,11 +27,16 @@ import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { isAuthenticated, user, reloadUser } = useAuthStore();
   const { initData, isLoading: initLoading, error: initError, initialize } = useAppStore();
+
+  // Calculate tab bar height + bottom inset
+  const tabBarHeight = Platform.OS === 'ios' ? 49 : 56;
+  const contentPaddingBottom = tabBarHeight + Math.max(insets.bottom, 8) + Spacing.lg;
 
   // 删除 useFocusEffect 里的自动 initialize 逻辑
   // 保留 handleRefresh 按钮和相关逻辑
@@ -64,7 +71,7 @@ export default function HomeScreen() {
     <SafeAreaWrapper backgroundColor={colors.background}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: contentPaddingBottom }]}
       >
 
         {/* Compact Header */}
@@ -283,7 +290,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.lg,
-    paddingBottom: Spacing.xxl,
   },
   header: {
     flexDirection: 'row',

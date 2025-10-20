@@ -67,6 +67,10 @@ function SellScreenContent() {
 
   const { checkOrderCreatedPopup } = usePopupManager();
 
+  // Calculate tab bar height + bottom inset for scroll content
+  const tabBarHeight = Platform.OS === 'ios' ? 49 : 56;
+  const contentPaddingBottom = tabBarHeight + Math.max(insets.bottom, 8) + Spacing.lg;
+
   const currencyName = user?.currency_name || '';
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>([]);
   const [cardInfo, setCardInfo] = useState('');
@@ -521,7 +525,7 @@ function SellScreenContent() {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: contentPaddingBottom }]}
           removeClippedSubviews={true}
           scrollEventThrottle={16}
         >
@@ -846,7 +850,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.lg,
-    paddingBottom: 120,
   },
 
   // Header
