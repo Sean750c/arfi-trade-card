@@ -12,6 +12,7 @@ import {
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ArrowRight } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Spacing from '@/constants/Spacing';
 import Button from '@/components/UI/Button';
 import { useTheme } from '@/theme/ThemeContext';
@@ -45,6 +46,7 @@ export default function OnboardingScreen() {
   const { colors } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const insets = useSafeAreaInsets();
 
   const handleScroll = (event: any) => {
     const slideIndex = Math.round(event.nativeEvent.contentOffset.x / width);
@@ -104,7 +106,7 @@ export default function OnboardingScreen() {
         ))}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) + Spacing.xl }]}>
         <View style={styles.pagination}>
           {slides.map((_, index) => (
             <View
@@ -188,7 +190,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: Spacing.xl,
-    paddingBottom: Platform.OS === 'ios' ? 48 : 24,
   },
   pagination: {
     flexDirection: 'row',
