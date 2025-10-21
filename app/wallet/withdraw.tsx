@@ -27,7 +27,8 @@ import { usePopupManager } from '@/hooks/usePopupManager';
 import { WithdrawService } from '@/services/withdraw';
 import Spacing from '@/constants/Spacing';
 import type { WithdrawInformation } from '@/types/withdraw';
-import Input from '@/components/UI/Input';
+import { useAppReview } from '@/hooks/useAppReview';
+import { useReviewStore } from '@/stores/useReviewStore';
 
 function WithdrawScreenContent() {
   const { colors } = useTheme();
@@ -45,6 +46,9 @@ function WithdrawScreenContent() {
   const [withdrawPassword, setWithdrawPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
+
+  const { recordSignificantEvent, shouldRequestReview } = useAppReview();
+  const { setShowRatingPrompt } = useReviewStore();
 
   const router = useRouter();
 
@@ -206,6 +210,8 @@ function WithdrawScreenContent() {
         [{ text: 'OK' }]
       );
 
+      onWithdrawSuccess();
+
       // Check for withdraw initiated popup
       checkWithdrawInitiatedPopup(result.withdraw_no);
 
@@ -216,6 +222,18 @@ function WithdrawScreenContent() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // 提现成功后
+  const onWithdrawSuccess = async () => {
+    await recordSignificantEvent();
+
+    setTimeout(async () => {
+      const shouldShow = await shouldRequestReview();
+      if (shouldShow) {
+        setShowRatingPrompt(true);
+      }
+    }, 2000);
   };
 
   const formatAmount = (value: number) => {

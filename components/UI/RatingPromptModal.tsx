@@ -42,8 +42,8 @@ export default function RatingPromptModal({
         await StoreReview.requestReview();
       } else {
         const storeUrl = Platform.select({
-          ios: 'https://apps.apple.com/app/id<YOUR_APP_ID>',
-          android: 'https://play.google.com/store/apps/details?id=<YOUR_PACKAGE_NAME>',
+          ios: 'https://apps.apple.com/app/id6748598916',
+          android: 'https://play.google.com/store/apps/details?id=com.bsdb.cardking',
         });
 
         if (storeUrl) {
