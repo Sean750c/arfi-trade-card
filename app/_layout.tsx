@@ -19,6 +19,9 @@ import * as Updates from 'expo-updates';
 import { KochavaMeasurement, KochavaMeasurementEventType } from 'react-native-kochava-measurement';
 import { KochavaTracker } from '@/utils/kochava';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAppReview } from '@/hooks/useAppReview';
+import { useReviewStore } from '@/stores/useReviewStore';
+import RatingPromptModal from '@/components/UI/RatingPromptModal';
 
 function InitializationLoader() {
   const { colors } = useTheme();
@@ -61,6 +64,8 @@ export default function RootLayout() {
   const { fetchCountries } = useCountryStore();
   const { isAuthenticated, user, initialize: initializeAuth, isInitialized } = useAuthStore();
   const { isVisible: popupVisible, popData, closePopup, checkAppStartPopup } = usePopupManager();
+  const { markReviewCompleted } = useAppReview();
+  const { showRatingPrompt, setShowRatingPrompt } = useReviewStore();
 
   useFrameworkReady();
   useAuthProtection();
@@ -172,7 +177,13 @@ export default function RootLayout() {
       {popupVisible && popData && (
         <PopupModal visible={popupVisible} onClose={closePopup} popData={popData} />
       )}
-      
+
+      <RatingPromptModal
+        visible={showRatingPrompt}
+        onClose={() => setShowRatingPrompt(false)}
+        onRated={markReviewCompleted}
+      />
+
     </ThemeProvider>
   );
 }

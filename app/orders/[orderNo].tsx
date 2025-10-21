@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,8 @@ import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import { OrderService } from '@/services/order';
 import { useAppStore } from '@/stores/useAppStore';
 import * as Linking from 'expo-linking';
+import { useAppReview } from '@/hooks/useAppReview';
+import { useReviewStore } from '@/stores/useReviewStore';
 
 const { width } = Dimensions.get('window');
 
@@ -34,11 +36,14 @@ function OrderDetailScreenContent() {
   const { isLoadingDetail, detailError } = useOrderStore();
   const { orderNo } = useLocalSearchParams<{ orderNo: string }>();
   const { initData } = useAppStore();
+  const { recordSignificantEvent, shouldRequestReview } = useAppReview();
+  const { setShowRatingPrompt } = useReviewStore();
 
   const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const hasRequestedReview = useRef(false);
 
   useEffect(() => {
     if (user?.token && orderNo) {
@@ -62,6 +67,32 @@ function OrderDetailScreenContent() {
       console.error('Failed to load order detail:', error);
     } finally {
       setIsFirstLoad(false);
+    }
+  };
+
+  useEffect(() => {
+    if (orderDetail && !hasRequestedReview.current) {
+      const isCompleted = orderDetail.status === 2 || orderDetail.status === 4;
+
+      if (isCompleted) {
+        hasRequestedReview.current = true;
+        checkAndRequestReview();
+      }
+    }
+  }, [orderDetail]);
+
+  const checkAndRequestReview = async () => {
+    try {
+      await recordSignificantEvent();
+
+      setTimeout(async () => {
+        const shouldShow = await shouldRequestReview();
+        if (shouldShow) {
+          setShowRatingPrompt(true);
+        }
+      }, 2000);
+    } catch (error) {
+      console.error('Error checking review prompt:', error);
     }
   };
 
