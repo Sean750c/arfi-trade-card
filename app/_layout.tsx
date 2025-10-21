@@ -22,6 +22,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppReview } from '@/hooks/useAppReview';
 import { useReviewStore } from '@/stores/useReviewStore';
 import RatingPromptModal from '@/components/UI/RatingPromptModal';
+import { useVersionCheck } from '@/hooks/useVersionCheck';
+import VersionUpdateModal from '@/components/UI/VersionUpdateModal';
 
 function InitializationLoader() {
   const { colors } = useTheme();
@@ -66,6 +68,12 @@ export default function RootLayout() {
   const { isVisible: popupVisible, popData, closePopup, checkAppStartPopup } = usePopupManager();
   const { markReviewCompleted } = useAppReview();
   const { showRatingPrompt, setShowRatingPrompt } = useReviewStore();
+  const {
+    versionCheckResult,
+    showUpdateModal,
+    skipVersion,
+    handleUpdate,
+  } = useVersionCheck();
 
   useFrameworkReady();
   useAuthProtection();
@@ -183,6 +191,15 @@ export default function RootLayout() {
         onClose={() => setShowRatingPrompt(false)}
         onRated={markReviewCompleted}
       />
+
+      {versionCheckResult && versionCheckResult.needsUpdate && (
+        <VersionUpdateModal
+          visible={showUpdateModal}
+          versionCheckResult={versionCheckResult}
+          onClose={skipVersion}
+          onUpdate={handleUpdate}
+        />
+      )}
 
     </ThemeProvider>
   );
