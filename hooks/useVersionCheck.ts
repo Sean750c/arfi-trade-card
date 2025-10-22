@@ -53,10 +53,8 @@ export function useVersionCheck() {
 
       setVersionCheckResult(result);
       setHasCheckedVersion(true);
-
       if (result.needsUpdate) {
         const skippedVersion = await AsyncStorage.getItem(STORAGE_KEYS.SKIPPED_VERSION);
-
         if (result.updateType === 'force' || !result.canSkip) {
           setShowUpdateModal(true);
         } else if (skippedVersion !== result.latestVersion) {

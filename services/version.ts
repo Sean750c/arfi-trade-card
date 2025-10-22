@@ -2,9 +2,8 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as Application from 'expo-application';
 import type { AppVersion, VersionCheckResult } from '@/types/version';
-
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+import { APIRequest } from '@/utils/api';
+import { APIResponse } from '@/types';
 
 export class VersionService {
   private static compareVersions(v1: string, v2: string): number {
@@ -42,36 +41,26 @@ export class VersionService {
   static async getLatestVersion(): Promise<AppVersion | null> {
     try {
       const platform = this.getCurrentPlatform();
-
-      if (platform === 'web') {
-        return null;
-      }
-
-      const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/app_versions?is_active=eq.true&or=(platform.eq.${platform},platform.eq.all)&order=build_number.desc&limit=1`,
-        {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-        }
+      const response = await APIRequest.request<APIResponse<AppVersion>>(
+        '/gc/config/getAppVersion',
+        'POST',
+        { platform }
       );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch version info');
+      if (!response.success) {
+        throw new Error(response.msg || 'Failed to fetch version info.');
       }
 
-      const data = await response.json();
-
-      if (data && data.length > 0) {
-        return data[0] as AppVersion;
-      }
-
-      return null;
+      return response.data;
     } catch (error) {
-      console.error('Error fetching latest version:', error);
-      return null;
+      // Handle token expiration errors specifically
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        throw error; // Re-throw token expiration errors
+      }
+
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch version info: ${error.message}`);
+      }
+      throw new Error('Failed to fetch version info');
     }
   }
 
@@ -90,7 +79,6 @@ export class VersionService {
 
     try {
       const latestVersionInfo = await this.getLatestVersion();
-
       if (!latestVersionInfo) {
         return defaultResult;
       }
@@ -98,7 +86,6 @@ export class VersionService {
       const needsUpdate =
         this.compareVersions(latestVersionInfo.version, currentVersion) > 0 ||
         latestVersionInfo.build_number > currentBuildNumber;
-
       if (!needsUpdate) {
         return defaultResult;
       }
