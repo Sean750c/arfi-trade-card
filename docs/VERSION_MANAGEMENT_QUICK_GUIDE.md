@@ -16,6 +16,7 @@ WHERE version = '1.0.0';
 
 ```sql
 -- Step 1: 添加新版本（审核中）
+-- 💡 提示：description 中使用 \n 表示换行，每行建议用 • 或 - 开头
 INSERT INTO app_versions (
   version, build_number, platform, update_type,
   title, description,
@@ -24,7 +25,7 @@ INSERT INTO app_versions (
 ) VALUES (
   '1.2.0', 12, 'all', 'recommend',
   'New Features Available',
-  '• Feature 1\n• Feature 2\n• Bug fixes',
+  '• Added dark mode support\n• Improved performance\n• Fixed bugs\n• Enhanced user experience',
   'https://apps.apple.com/app/id<YOUR_APP_ID>',
   'https://play.google.com/store/apps/details?id=<YOUR_PACKAGE_NAME>',
   false, true
@@ -158,6 +159,28 @@ UPDATE app_versions SET is_active = false WHERE version = '1.2.0';
 UPDATE app_versions SET is_active = true WHERE version = '1.1.0';
 ```
 
+## 💎 UI 设计亮点
+
+新版本更新弹窗采用现代化设计：
+
+### 视觉效果
+- ✨ 渐变背景和图标
+- 🎨 根据更新类型动态配色（强制=红色，推荐=主色调）
+- 📱 圆角卡片设计，阴影效果
+- 🔔 醒目的徽章标识（REQUIRED/RECOMMENDED/OPTIONAL）
+
+### 内容展示
+- 📝 **自动换行**：description 中的 `\n` 自动转换为换行
+- ✓ **列表美化**：以 `•` 或 `-` 开头的行自动显示为带图标的列表项
+- 📊 版本对比：当前版本 vs 最新版本，一目了然
+- 📜 滚动查看：长内容自动支持滚动
+
+### 交互体验
+- 🎯 渐变按钮，视觉吸引力强
+- 👆 清晰的操作选项（立即更新/稍后提醒/跳过）
+- ⚠️ 强制更新时显示警告提示框
+- 🚫 强制更新时隐藏关闭按钮
+
 ## 常见问题
 
 **Q: 更新提示不显示？**
@@ -169,6 +192,11 @@ UPDATE app_versions SET is_active = true WHERE version = '1.1.0';
 - 检查 `is_in_review` 是否为 `true`
 - 检查 `update_type` 是否为 `force`
 - 检查 `min_required_version` 是否设置
+
+**Q: 描述没有换行？**
+- 确保使用 `\n` 而不是实际换行
+- 每行建议用 `•` 或 `-` 开头，会自动显示为列表
+- 示例：`'• Feature 1\n• Feature 2\n• Bug fixes'`
 
 **Q: 如何避免审核被拒？**
 - 提交审核前设置 `is_in_review = true`

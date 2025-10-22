@@ -11,13 +11,14 @@ import {
   Linking,
   ActivityIndicator,
 } from 'react-native';
-import { Download, X, AlertTriangle, Sparkles } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Download, X, AlertTriangle, Sparkles, ChevronRight, CheckCircle } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import type { VersionCheckResult } from '@/types/version';
 import { VersionService } from '@/services/version';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface VersionUpdateModalProps {
   visible: boolean;
@@ -46,26 +47,29 @@ export default function VersionUpdateModal({
       case 'force':
         return {
           icon: AlertTriangle,
-          iconColor: colors.error,
-          title: 'Required Update',
+          gradientColors: ['#FF3B30', '#FF6B5E'],
+          iconBgColors: ['#FF3B3020', '#FF6B5E30'],
+          title: 'Update Required',
           badge: 'REQUIRED',
-          badgeColor: colors.error,
+          badgeColors: ['#FF3B30', '#FF6B5E'],
         };
       case 'recommend':
         return {
           icon: Sparkles,
-          iconColor: colors.primary,
+          gradientColors: [colors.primary, colors.primary + 'CC'],
+          iconBgColors: [colors.primary + '20', colors.primary + '30'],
           title: 'Update Available',
           badge: 'RECOMMENDED',
-          badgeColor: colors.primary,
+          badgeColors: [colors.primary, colors.primary + 'CC'],
         };
       default:
         return {
           icon: Download,
-          iconColor: colors.primary,
-          title: 'New Version Available',
+          gradientColors: [colors.primary, colors.primary + 'CC'],
+          iconBgColors: [colors.primary + '15', colors.primary + '25'],
+          title: 'New Version',
           badge: 'OPTIONAL',
-          badgeColor: colors.textSecondary,
+          badgeColors: [colors.textSecondary, colors.textSecondary + 'CC'],
         };
     }
   };
@@ -102,6 +106,28 @@ export default function VersionUpdateModal({
     }
   };
 
+  const parseDescription = (description: string) => {
+    return description.split('\\n').map((line, index) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) return null;
+
+      const isListItem = trimmedLine.startsWith('•') || trimmedLine.startsWith('-');
+
+      return (
+        <View key={index} style={styles.descriptionLine}>
+          {isListItem && (
+            <View style={[styles.bulletPoint, { backgroundColor: colors.primary }]}>
+              <CheckCircle size={14} color="#FFFFFF" />
+            </View>
+          )}
+          <Text style={[styles.descriptionText, { color: colors.text }]}>
+            {trimmedLine.replace(/^[•\-]\s*/, '')}
+          </Text>
+        </View>
+      );
+    }).filter(Boolean);
+  };
+
   return (
     <Modal
       visible={visible}
@@ -114,47 +140,61 @@ export default function VersionUpdateModal({
           <View style={[styles.content, { backgroundColor: colors.card }]}>
             {canSkip && (
               <TouchableOpacity
-                style={[styles.closeButton, { backgroundColor: colors.border }]}
+                style={[styles.closeButton, { backgroundColor: colors.background }]}
                 onPress={handleSkip}
               >
-                <X size={16} color={colors.text} />
+                <X size={18} color={colors.text} strokeWidth={2.5} />
               </TouchableOpacity>
             )}
 
-            <View style={[styles.iconContainer, { backgroundColor: `${typeInfo.iconColor}15` }]}>
-              <Icon size={48} color={typeInfo.iconColor} />
-            </View>
+            <LinearGradient
+              colors={typeInfo.iconBgColors}
+              style={styles.iconContainer}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.iconInner}>
+                <Icon size={56} color={typeInfo.gradientColors[0]} strokeWidth={2} />
+              </View>
+            </LinearGradient>
 
-            <View style={[styles.badge, { backgroundColor: `${typeInfo.badgeColor}20` }]}>
-              <Text style={[styles.badgeText, { color: typeInfo.badgeColor }]}>
-                {typeInfo.badge}
-              </Text>
-            </View>
+            <LinearGradient
+              colors={typeInfo.badgeColors}
+              style={styles.badge}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.badgeText}>{typeInfo.badge}</Text>
+            </LinearGradient>
 
             <Text style={[styles.title, { color: colors.text }]}>
               {versionInfo.title || typeInfo.title}
             </Text>
 
             <View style={styles.versionContainer}>
-              <View style={styles.versionBox}>
+              <View style={[styles.versionBox, { backgroundColor: colors.background }]}>
                 <Text style={[styles.versionLabel, { color: colors.textSecondary }]}>
                   Current
                 </Text>
                 <Text style={[styles.versionNumber, { color: colors.text }]}>
-                  v{versionCheckResult.currentVersion}
+                  {versionCheckResult.currentVersion}
                 </Text>
               </View>
 
-              <View style={styles.arrow}>
-                <Text style={[styles.arrowText, { color: colors.textSecondary }]}>→</Text>
+              <View style={styles.arrowContainer}>
+                <ChevronRight size={24} color={colors.primary} strokeWidth={3} />
               </View>
 
-              <View style={styles.versionBox}>
-                <Text style={[styles.versionLabel, { color: colors.textSecondary }]}>
+              <View style={[styles.versionBox, {
+                backgroundColor: colors.primary + '15',
+                borderWidth: 2,
+                borderColor: colors.primary + '30',
+              }]}>
+                <Text style={[styles.versionLabel, { color: colors.primary }]}>
                   Latest
                 </Text>
-                <Text style={[styles.versionNumber, { color: colors.primary }]}>
-                  v{versionCheckResult.latestVersion}
+                <Text style={[styles.versionNumber, { color: colors.primary, fontWeight: '700' }]}>
+                  {versionCheckResult.latestVersion}
                 </Text>
               </View>
             </View>
@@ -164,51 +204,68 @@ export default function VersionUpdateModal({
                 style={[styles.descriptionContainer, { backgroundColor: colors.background }]}
                 showsVerticalScrollIndicator={false}
               >
-                <Text style={[styles.description, { color: colors.text }]}>
-                  {versionInfo.description}
+                <Text style={[styles.descriptionTitle, { color: colors.text }]}>
+                  What's New
                 </Text>
+                {parseDescription(versionInfo.description)}
               </ScrollView>
             )}
 
             {isForceUpdate && (
-              <View style={[styles.warningContainer, { backgroundColor: `${colors.error}15` }]}>
-                <AlertTriangle size={16} color={colors.error} />
-                <Text style={[styles.warningText, { color: colors.error }]}>
-                  This update is required to continue using the app
-                </Text>
+              <View style={styles.warningContainer}>
+                <LinearGradient
+                  colors={['#FF3B3015', '#FF6B5E15']}
+                  style={styles.warningGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <View style={styles.warningContent}>
+                    <View style={[styles.warningIcon, { backgroundColor: '#FF3B30' }]}>
+                      <AlertTriangle size={16} color="#FFFFFF" strokeWidth={2.5} />
+                    </View>
+                    <Text style={[styles.warningText, { color: '#FF3B30' }]}>
+                      This update is required to continue
+                    </Text>
+                  </View>
+                </LinearGradient>
               </View>
             )}
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity
-                style={[
-                  styles.updateButton,
-                  {
-                    backgroundColor: isForceUpdate ? colors.error : colors.primary,
-                  },
-                ]}
+                style={styles.updateButtonWrapper}
                 onPress={handleUpdate}
                 disabled={isUpdating}
+                activeOpacity={0.9}
               >
-                {isUpdating ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <>
-                    <Download size={20} color="#FFFFFF" />
-                    <Text style={styles.updateButtonText}>
-                      Update Now
-                    </Text>
-                  </>
-                )}
+                <LinearGradient
+                  colors={isForceUpdate ? ['#FF3B30', '#FF6B5E'] : [colors.primary, colors.primary + 'DD']}
+                  style={styles.updateButton}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  {isUpdating ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <>
+                      <Download size={22} color="#FFFFFF" strokeWidth={2.5} />
+                      <Text style={styles.updateButtonText}>Update Now</Text>
+                    </>
+                  )}
+                </LinearGradient>
               </TouchableOpacity>
 
               {canSkip && (
                 <TouchableOpacity
-                  style={[styles.skipButton, { borderColor: colors.border }]}
+                  style={[styles.skipButton, {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                  }]}
                   onPress={handleSkip}
+                  activeOpacity={0.7}
                 >
-                  <Text style={[styles.skipButtonText, { color: colors.text }]}>
-                    {updateType === 'recommend' ? 'Remind Me Later' : 'Skip'}
+                  <Text style={[styles.skipButtonText, { color: colors.textSecondary }]}>
+                    {updateType === 'recommend' ? 'Remind Me Later' : 'Skip for Now'}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -223,137 +280,214 @@ export default function VersionUpdateModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   container: {
-    width: width - 48,
-    maxWidth: 420,
+    width: width - 40,
+    maxWidth: 440,
   },
   content: {
-    borderRadius: 20,
-    padding: Spacing.xl,
+    borderRadius: 24,
+    padding: Spacing.xl + 4,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 15,
   },
   closeButton: {
     position: 'absolute',
-    top: Spacing.md,
-    right: Spacing.md,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    top: Spacing.lg,
+    right: Spacing.lg,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1,
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   iconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  iconInner: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   badge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: 12,
-    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: 20,
+    marginBottom: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   badgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: Spacing.lg,
+    fontSize: 26,
+    fontWeight: '800',
+    marginBottom: Spacing.xl,
     textAlign: 'center',
+    letterSpacing: 0.3,
   },
   versionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
     width: '100%',
+    paddingHorizontal: Spacing.sm,
   },
   versionBox: {
-    alignItems: 'center',
     flex: 1,
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: 16,
   },
   versionLabel: {
-    fontSize: 12,
+    fontSize: 11,
     marginBottom: Spacing.xs,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   versionNumber: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
-  arrow: {
-    marginHorizontal: Spacing.md,
-  },
-  arrowText: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  arrowContainer: {
+    marginHorizontal: Spacing.sm,
   },
   descriptionContainer: {
-    maxHeight: 150,
+    maxHeight: 180,
     width: '100%',
-    borderRadius: 12,
-    padding: Spacing.md,
+    borderRadius: 16,
+    padding: Spacing.lg,
     marginBottom: Spacing.lg,
   },
-  description: {
+  descriptionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: Spacing.md,
+    letterSpacing: 0.2,
+  },
+  descriptionLine: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.sm,
+    paddingRight: Spacing.sm,
+  },
+  bulletPoint: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.sm,
+    marginTop: 2,
+  },
+  descriptionText: {
+    flex: 1,
     fontSize: 14,
     lineHeight: 20,
+    letterSpacing: 0.1,
   },
   warningContainer: {
+    width: '100%',
+    marginBottom: Spacing.lg,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  warningGradient: {
+    padding: Spacing.md,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#FF3B3025',
+  },
+  warningContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-    padding: Spacing.md,
-    borderRadius: 12,
-    marginBottom: Spacing.lg,
-    width: '100%',
+  },
+  warningIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
   },
   warningText: {
-    fontSize: 13,
     flex: 1,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.1,
   },
   buttonContainer: {
     width: '100%',
     gap: Spacing.md,
+  },
+  updateButtonWrapper: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   updateButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.sm,
-    paddingVertical: Spacing.md + 2,
-    borderRadius: 12,
-    minHeight: 52,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
+    minHeight: 56,
   },
   updateButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   skipButton: {
-    paddingVertical: Spacing.md,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingVertical: Spacing.md + 2,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: 14,
+    borderWidth: 1.5,
     alignItems: 'center',
+    minHeight: 50,
+    justifyContent: 'center',
   },
   skipButtonText: {
     fontSize: 15,
     fontWeight: '600',
+    letterSpacing: 0.2,
   },
 });
