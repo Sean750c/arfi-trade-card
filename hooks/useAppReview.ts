@@ -55,10 +55,14 @@ export function useAppReview() {
       const isAvailable = await StoreReview.isAvailableAsync();
       if (!isAvailable) return false;
 
+      // 是否已经评价过
       const hasRequested = await AsyncStorage.getItem(STORAGE_KEYS.REVIEW_REQUESTED);
+      console.log("检查是否已经评价过:" + hasRequested);
       if (hasRequested === 'true') return false;
 
+      // 90天内是否弹窗过
       const lastPromptedStr = await AsyncStorage.getItem(STORAGE_KEYS.REVIEW_LAST_PROMPTED);
+      console.log("检查90天内是否弹窗过:" + lastPromptedStr);
       if (lastPromptedStr) {
         const lastPrompted = new Date(lastPromptedStr);
         const daysSinceLastPrompt = (Date.now() - lastPrompted.getTime()) / (1000 * 60 * 60 * 24);
@@ -67,21 +71,28 @@ export function useAppReview() {
         }
       }
 
+      // APP启动次数检查
       const launchCountStr = await AsyncStorage.getItem(STORAGE_KEYS.APP_LAUNCH_COUNT);
       const launchCount = launchCountStr ? parseInt(launchCountStr, 10) : 0;
+      console.log("检查APP启动次数检查是否达标:" + launchCount);
       if (launchCount < REVIEW_CONFIG.MIN_LAUNCHES) return false;
 
+      // 安装天数检查
       const firstLaunchStr = await AsyncStorage.getItem(STORAGE_KEYS.FIRST_LAUNCH_DATE);
+      console.log("检查安装天数达标:" + firstLaunchStr);
       if (firstLaunchStr) {
         const firstLaunch = new Date(firstLaunchStr);
         const daysSinceInstall = (Date.now() - firstLaunch.getTime()) / (1000 * 60 * 60 * 24);
         if (daysSinceInstall < REVIEW_CONFIG.MIN_DAYS_SINCE_INSTALL) return false;
       }
 
+      // 关键操作检查
       const eventsCountStr = await AsyncStorage.getItem(STORAGE_KEYS.SIGNIFICANT_EVENTS_COUNT);
       const eventsCount = eventsCountStr ? parseInt(eventsCountStr, 10) : 0;
+      console.log("检查关键操作达标:" + eventsCount);
       if (eventsCount < REVIEW_CONFIG.MIN_SIGNIFICANT_EVENTS) return false;
 
+      console.log("检查通过");
       return true;
     } catch (error) {
       console.error('Error checking review eligibility:', error);
