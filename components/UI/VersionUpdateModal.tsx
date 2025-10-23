@@ -117,7 +117,7 @@ export default function VersionUpdateModal({
         <View key={index} style={styles.descriptionLine}>
           {isListItem && (
             <View style={[styles.bulletPoint, { backgroundColor: colors.primary }]}>
-              <CheckCircle size={14} color="#FFFFFF" />
+              <CheckCircle size={12} color="#FFFFFF" />
             </View>
           )}
           <Text style={[styles.descriptionText, { color: colors.text }]}>
@@ -148,18 +148,18 @@ export default function VersionUpdateModal({
             )}
 
             <LinearGradient
-              colors={typeInfo.iconBgColors}
+              colors={typeInfo.iconBgColors as [string, string]}
               style={styles.iconContainer}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
               <View style={styles.iconInner}>
-                <Icon size={56} color={typeInfo.gradientColors[0]} strokeWidth={2} />
+                <Icon size={30} color={typeInfo.gradientColors[0]} strokeWidth={2} />
               </View>
             </LinearGradient>
 
             <LinearGradient
-              colors={typeInfo.badgeColors}
+              colors={typeInfo.badgeColors as [string, string]}
               style={styles.badge}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
@@ -315,16 +315,16 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   iconContainer: {
-    width: 120,
-    height: 120,
+    width: 60,
+    height: 60,
     borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.lg,
   },
   iconInner: {
-    width: 100,
-    height: 100,
+    width: 50,
+    height: 50,
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: 20,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -343,14 +343,14 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
     letterSpacing: 1,
   },
   title: {
-    fontSize: 26,
+    fontSize: 18,
     fontWeight: '800',
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
     textAlign: 'center',
     letterSpacing: 0.3,
   },
@@ -358,14 +358,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.xl,
     width: '100%',
     paddingHorizontal: Spacing.sm,
   },
   versionBox: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.sm,
     borderRadius: 16,
   },
@@ -377,7 +376,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   versionNumber: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
@@ -389,10 +388,9 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 16,
     padding: Spacing.lg,
-    marginBottom: Spacing.lg,
   },
   descriptionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     marginBottom: Spacing.md,
     letterSpacing: 0.2,
@@ -404,8 +402,8 @@ const styles = StyleSheet.create({
     paddingRight: Spacing.sm,
   },
   bulletPoint: {
-    width: 20,
-    height: 20,
+    width: 18,
+    height: 18,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -425,7 +423,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   warningGradient: {
-    padding: Spacing.md,
+    padding: Spacing.sm,
     borderRadius: 14,
     borderWidth: 1.5,
     borderColor: '#FF3B3025',
@@ -466,9 +464,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.sm,
-    paddingVertical: Spacing.lg,
+    paddingVertical: Spacing.md + 2,
     paddingHorizontal: Spacing.xl,
-    minHeight: 56,
+    minHeight: 52,
   },
   updateButtonText: {
     color: '#FFFFFF',
