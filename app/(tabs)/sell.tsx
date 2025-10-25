@@ -25,7 +25,10 @@ import ActivityModal from '@/components/sell/ActivityModal';
 import OrderCompensationModal from '@/components/sell/OrderCompensationModal';
 import HtmlRenderer from '@/components/UI/HtmlRenderer';
 import SecurityBadges from '@/components/sell/SecurityBadges';
+import EarningsEstimator from '@/components/sell/EarningsEstimator';
+import SmartCouponRecommendation from '@/components/sell/SmartCouponRecommendation';
 import FirstOrderBonus from '@/components/sell/FirstOrderBonus';
+import WalletSelector from '@/components/sell/WalletSelector';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UploadService } from '@/services/upload';
@@ -40,7 +43,6 @@ import * as Linking from 'expo-linking';
 import { CommonService } from '@/services/common';
 import { usePopupManager } from '@/hooks/usePopupManager';
 import { KochavaTracker } from '@/utils/kochava';
-import PriceBreakdown from '@/components/sell/PriceBreakdown';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -639,60 +641,34 @@ function SellScreenContent() {
 
           {/* Wallet Selection */}
           {!hideWalletTabs && (
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Select Wallet</Text>
-              <View style={styles.walletGrid}>
-                <TouchableOpacity
-                  style={[
-                    styles.walletOption,
-                    {
-                      backgroundColor: selectedWallet === currencyName ? colors.primary : colors.card,
-                      borderColor: selectedWallet === currencyName ? colors.primary : colors.border,
-                    },
-                  ]}
-                  onPress={() => setSelectedWallet(currencyName)}
-                >
-                  <View style={[styles.walletIcon, { backgroundColor: selectedWallet === currencyName ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
-                    <Text style={[styles.walletIconText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.primary }]}>{user?.currency_symbol}</Text>
-                  </View>
-                  <Text style={[styles.walletText, { color: selectedWallet === currencyName ? '#FFFFFF' : colors.text }]}> {user?.country_name} {user?.currency_name} </Text>
-                  {selectedWallet === currencyName && (
-                    <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.walletOption,
-                    {
-                      backgroundColor: selectedWallet === 'USDT' ? colors.primary : colors.card,
-                      borderColor: selectedWallet === 'USDT' ? colors.primary : colors.border,
-                    },
-                  ]}
-                  onPress={() => setSelectedWallet('USDT')}
-                >
-                  <View style={[styles.walletIcon, { backgroundColor: selectedWallet === 'USDT' ? 'rgba(255,255,255,0.2)' : `${colors.primary}15` }]}>
-                    <Text style={[styles.walletIconText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.primary }]}>₮</Text>
-                  </View>
-                  <Text style={[styles.walletText, { color: selectedWallet === 'USDT' ? '#FFFFFF' : colors.text }]}> USDT </Text>
-                  {selectedWallet === 'USDT' && (
-                    <CheckCircle size={16} color="#FFFFFF" style={styles.selectedIcon} />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
+            <WalletSelector
+              options={[
+                {
+                  id: currencyName,
+                  name: user?.currency_name || currencyName,
+                  symbol: user?.currency_symbol || '$',
+                  icon: user?.country_name || '',
+                },
+                {
+                  id: 'USDT',
+                  name: 'USDT',
+                  symbol: '₮',
+                  icon: 'Tether',
+                },
+              ]}
+              selectedWallet={selectedWallet}
+              onSelect={setSelectedWallet}
+            />
           )}
 
-          {/* Price Breakdown */}
-          <PriceBreakdown
-            baseAmount={getBaseAmount()}
-            vipBonus={getVipBonus()}
-            couponDiscount={selectedCoupon ? 1.0 : 0}
-            activityBonus={0}
-            firstOrderBonus={user && orderSellDetail?.first_order_bonus || 0}
-            currency={user?.currency_symbol || 'USD'}
+          {/* Earnings Boosts Estimator */}
+          <EarningsEstimator
+            hasVIPBonus={currentVipRate > 0}
+            hasCoupon={!!selectedCoupon}
+            hasFirstOrder={!user?.has_placed_order}
+            vipBonusPercent={currentVipRate}
             onVIPPress={() => setShowVIPModal(true)}
             onCouponPress={() => setShowSmartCouponModal(true)}
-            onActivityPress={() => setShowActivityModal(true)}
           />
 
           {/* Discount Code Section */}
