@@ -269,7 +269,7 @@ export default function HomeScreen() {
 
         {/* New conversion-boosting components */}
         <LiveTransactionFeed />
-        <TodayStats />
+        {/* <TodayStats /> */}
 
         <QuickActions />
         {/* <PromoTimer /> */}

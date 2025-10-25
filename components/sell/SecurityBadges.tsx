@@ -43,7 +43,7 @@ export default function SecurityBadges() {
     {
       icon: <Clock size={20} color="#3B82F6" strokeWidth={2.5} />,
       title: 'Fast Payout',
-      description: 'Within 2 minutes',
+      description: 'Within 5 minutes',
       color: '#3B82F6',
     },
     {
@@ -77,13 +77,6 @@ export default function SecurityBadges() {
           <SecurityBadge key={index} {...badge} />
         ))}
       </View>
-
-      <View style={[styles.trustBanner, { backgroundColor: `${colors.primary}08` }]}>
-        <CheckCircle size={16} color={colors.primary} strokeWidth={2.5} />
-        <Text style={[styles.trustText, { color: colors.text }]}>
-          <Text style={{ fontWeight: '700' }}>2,450+</Text> users traded safely today
-        </Text>
-      </View>
     </View>
   );
 }
@@ -106,7 +99,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   badgesContainer: {
-    paddingHorizontal: Spacing.lg,
     gap: Spacing.sm,
   },
   badge: {

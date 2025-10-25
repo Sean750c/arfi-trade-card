@@ -25,8 +25,6 @@ import ActivityModal from '@/components/sell/ActivityModal';
 import OrderCompensationModal from '@/components/sell/OrderCompensationModal';
 import HtmlRenderer from '@/components/UI/HtmlRenderer';
 import SecurityBadges from '@/components/sell/SecurityBadges';
-import PriceBreakdown from '@/components/sell/PriceBreakdown';
-import SmartCouponRecommendation from '@/components/sell/SmartCouponRecommendation';
 import FirstOrderBonus from '@/components/sell/FirstOrderBonus';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -42,6 +40,7 @@ import * as Linking from 'expo-linking';
 import { CommonService } from '@/services/common';
 import { usePopupManager } from '@/hooks/usePopupManager';
 import { KochavaTracker } from '@/utils/kochava';
+import PriceBreakdown from '@/components/sell/PriceBreakdown';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -241,13 +240,19 @@ function SellScreenContent() {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
-        allowsEditing: true,
+        allowsMultipleSelection: true, // ✅ 允许多选
+        allowsEditing: false, // 🚫 禁用截图/裁剪
         quality: 0.8,
         aspect: [4, 3],
       });
 
-      if (!result.canceled && result.assets[0]) {
-        await processSelectedImage(result.assets[0].uri);
+      // if (!result.canceled && result.assets[0]) {
+      //   await processSelectedImage(result.assets[0].uri);
+      // }
+      if (!result.canceled && result.assets?.length > 0) {
+        for (const asset of result.assets) {
+          await processSelectedImage(asset.uri);
+        }
       }
     } catch (error) {
       console.error('Gallery error:', error);
@@ -280,7 +285,7 @@ function SellScreenContent() {
       if (uploadUrls.length === 0) {
         throw new Error('No upload URL received');
       }
-      
+
       const uploadUrl = uploadUrls[0];
       const imageUrl = uploadUrl.url.split("?")[0];
 
@@ -464,6 +469,21 @@ function SellScreenContent() {
     return `${coupon.code} (+${coupon.symbol}${discountValue.toFixed(2)})`;
   };
 
+  const getBaseAmount = () => {
+    const countryId = user.country_id;
+    if (countryId == 14) {
+      return 10000;
+    } else {
+      return 100;
+    }
+  };
+
+  const getVipBonus = () => {
+    const baseAmount = getBaseAmount();
+    return Number(vipDetail?.rate || 0) * Number(vipDetail?.exp_coefficient || 1) / 100 * baseAmount
+  };
+
+
   // 优化图片预览组件，使用 React.memo 减少重渲染
   const CardPreviewItem = React.memo(({ card }: { card: SelectedCard }) => (
     <View key={card.id} style={styles.cardPreview}>
@@ -537,7 +557,9 @@ function SellScreenContent() {
               <ArrowLeft size={20} color={colors.primary} />
             </TouchableOpacity>
 
-            <View style={styles.headerSpacer} />
+            <View style={styles.headerSpacer} >
+              <Text style={[styles.title, { color: colors.text }]}>Sell Gift Card</Text>
+            </View>
 
             <TouchableOpacity
               onPress={handleContactPress}
@@ -549,15 +571,11 @@ function SellScreenContent() {
           </View>
 
           {/* First Order Bonus Banner */}
-          {user && !user.has_placed_order && (
+          {user && orderSellDetail?.first_order_bonus ? (
             <FirstOrderBonus
-              bonusAmount={5.0}
-              bonusPercentage={5}
+              bonusAmount={orderSellDetail?.first_order_bonus}
             />
-          )}
-
-          {/* Security Badges */}
-          <SecurityBadges />
+          ) : null}
 
           {/* Card Upload Section */}
           <View style={styles.section}>
@@ -666,11 +684,11 @@ function SellScreenContent() {
 
           {/* Price Breakdown */}
           <PriceBreakdown
-            baseAmount={100}
-            vipBonus={currentVipRate > 0 ? 2.5 : 0}
+            baseAmount={getBaseAmount()}
+            vipBonus={getVipBonus()}
             couponDiscount={selectedCoupon ? 1.0 : 0}
             activityBonus={0}
-            firstOrderBonus={user && !user.has_placed_order ? 5.0 : 0}
+            firstOrderBonus={user && orderSellDetail?.first_order_bonus || 0}
             currency={user?.currency_symbol || 'USD'}
             onVIPPress={() => setShowVIPModal(true)}
             onCouponPress={() => setShowSmartCouponModal(true)}
@@ -739,6 +757,9 @@ function SellScreenContent() {
               </TouchableOpacity>
             )}
           </View>
+
+          {/* Security Badges */}
+          <SecurityBadges />
         </ScrollView>
 
         {/* Bottom Action Buttons */}
@@ -810,7 +831,7 @@ function SellScreenContent() {
         )}
 
         {/* Smart Coupon Recommendation Modal */}
-        {showSmartCouponModal && orderSellDetail?.coupon_list && (
+        {/* {showSmartCouponModal && orderSellDetail?.coupon_list && (
           <SmartCouponRecommendation
             visible={showSmartCouponModal}
             onClose={() => setShowSmartCouponModal(false)}
@@ -818,7 +839,7 @@ function SellScreenContent() {
             onSelectCoupon={(coupon) => setSelectedCoupon(coupon)}
             estimatedAmount={100}
           />
-        )}
+        )} */}
 
         {showVIPModal && (
           <VIPModal
@@ -883,7 +904,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: Spacing.lg,
+    padding: Spacing.xl,
     paddingBottom: 120,
   },
 
@@ -902,6 +923,12 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     flex: 1,
+  },
+  title: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '500',
+    paddingLeft: Spacing.md
   },
   contactButton: {
     flexDirection: 'row',

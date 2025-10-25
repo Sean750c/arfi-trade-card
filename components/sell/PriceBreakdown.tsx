@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Crown, Tag, Gift, TrendingUp, Sparkles, ChevronRight } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 interface PriceBreakdownProps {
   baseAmount: number;
@@ -30,6 +31,8 @@ export default function PriceBreakdown({
 }: PriceBreakdownProps) {
   const { colors } = useTheme();
 
+  const { user } = useAuthStore();
+
   const totalBonus = vipBonus + couponDiscount + activityBonus + firstOrderBonus;
   const finalAmount = baseAmount + totalBonus;
   const bonusPercentage = baseAmount > 0 ? ((totalBonus / baseAmount) * 100).toFixed(1) : '0.0';
@@ -53,7 +56,7 @@ export default function PriceBreakdown({
         <View style={styles.row}>
           <Text style={[styles.label, { color: colors.textSecondary }]}>Base Amount</Text>
           <Text style={[styles.value, { color: colors.text }]}>
-            ${baseAmount.toFixed(2)}
+            {baseAmount.toFixed(2)}
           </Text>
         </View>
 
@@ -64,7 +67,7 @@ export default function PriceBreakdown({
 
             {/* VIP Bonus */}
             {vipBonus > 0 ? (
-              <View style={styles.bonusRow}>
+              <TouchableOpacity style={styles.bonusRow} onPress={onVIPPress}>
                 <View style={styles.bonusLeft}>
                   <View style={[styles.bonusIcon, { backgroundColor: '#F59E0B15' }]}>
                     <Crown size={16} color="#F59E0B" strokeWidth={2.5} />
@@ -79,9 +82,9 @@ export default function PriceBreakdown({
                   </View>
                 </View>
                 <Text style={[styles.bonusValue, { color: '#F59E0B' }]}>
-                  +${vipBonus.toFixed(2)}
+                  +{vipBonus.toFixed(2)}
                 </Text>
-              </View>
+              </TouchableOpacity>
             ) : (
               onVIPPress && (
                 <TouchableOpacity style={styles.bonusRow} onPress={onVIPPress}>
@@ -120,7 +123,7 @@ export default function PriceBreakdown({
                   </View>
                 </View>
                 <Text style={[styles.bonusValue, { color: '#10B981' }]}>
-                  +${couponDiscount.toFixed(2)}
+                  +{couponDiscount.toFixed(2)}
                 </Text>
               </View>
             ) : (
@@ -161,7 +164,7 @@ export default function PriceBreakdown({
                   </View>
                 </View>
                 <Text style={[styles.bonusValue, { color: '#8B5CF6' }]}>
-                  +${activityBonus.toFixed(2)}
+                  +{activityBonus.toFixed(2)}
                 </Text>
               </View>
             )}
@@ -183,7 +186,7 @@ export default function PriceBreakdown({
                   </View>
                 </View>
                 <Text style={[styles.bonusValue, { color: '#EF4444' }]}>
-                  +${firstOrderBonus.toFixed(2)}
+                  +{firstOrderBonus.toFixed(2)}
                 </Text>
               </View>
             )}
@@ -206,7 +209,7 @@ export default function PriceBreakdown({
           </View>
           <View style={styles.totalRight}>
             <Text style={[styles.totalAmount, { color: colors.primary }]}>
-              ${finalAmount.toFixed(2)}
+              {finalAmount.toFixed(2)}
             </Text>
             <Text style={[styles.currency, { color: colors.textSecondary }]}>
               {currency}
@@ -222,7 +225,7 @@ export default function PriceBreakdown({
           >
             <Sparkles size={16} color={colors.primary} strokeWidth={2.5} />
             <Text style={[styles.highlightText, { color: colors.primary }]}>
-              You're earning ${totalBonus.toFixed(2)} extra!
+              You're earning {user?.currency_symbol}{totalBonus.toFixed(2)} extra!
             </Text>
           </LinearGradient>
         )}
@@ -248,7 +251,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   content: {
-    marginHorizontal: Spacing.lg,
     borderRadius: 16,
     padding: Spacing.lg,
     shadowColor: '#000',

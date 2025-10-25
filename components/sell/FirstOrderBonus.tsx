@@ -1,22 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Sparkles, Gift, TrendingUp, ChevronRight } from 'lucide-react-native';
+import { Sparkles, Gift } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 interface FirstOrderBonusProps {
   bonusAmount: number;
-  bonusPercentage?: number;
-  onLearnMore?: () => void;
 }
 
 export default function FirstOrderBonus({
   bonusAmount,
-  bonusPercentage = 5,
-  onLearnMore,
 }: FirstOrderBonusProps) {
   const { colors } = useTheme();
+  const { user } = useAuthStore();
 
   return (
     <View style={styles.container}>
@@ -56,11 +54,7 @@ export default function FirstOrderBonus({
             <View style={styles.bonusLeft}>
               <Text style={styles.bonusLabel}>You Get Extra</Text>
               <View style={styles.amountRow}>
-                <Text style={styles.bonusAmount}>+${bonusAmount.toFixed(2)}</Text>
-                <View style={styles.percentageBadge}>
-                  <TrendingUp size={12} color="#FFFFFF" strokeWidth={2.5} />
-                  <Text style={styles.percentageText}>+{bonusPercentage}%</Text>
-                </View>
+                <Text style={styles.bonusAmount}>+{bonusAmount.toFixed(2)}</Text>
               </View>
               <Text style={styles.bonusDesc}>on your first transaction</Text>
             </View>
@@ -86,13 +80,6 @@ export default function FirstOrderBonus({
               <Text style={styles.featureText}>One-time welcome gift</Text>
             </View>
           </View>
-
-          {onLearnMore && (
-            <TouchableOpacity style={styles.learnMoreButton} onPress={onLearnMore}>
-              <Text style={styles.learnMoreText}>How it works</Text>
-              <ChevronRight size={16} color="#FFFFFF" strokeWidth={2.5} />
-            </TouchableOpacity>
-          )}
         </View>
 
         <View style={styles.decorativeCircle1} />
@@ -104,7 +91,6 @@ export default function FirstOrderBonus({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
   },
   card: {

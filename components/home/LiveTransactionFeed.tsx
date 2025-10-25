@@ -124,7 +124,6 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 16,
     padding: Spacing.md,
-    marginHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
