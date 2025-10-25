@@ -22,6 +22,8 @@ import { Country } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import AnnouncementBar from '@/components/home/AnnouncementBar';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
+import LiveTransactionFeed from '@/components/home/LiveTransactionFeed';
+import TodayStats from '@/components/home/TodayStats';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -264,6 +266,11 @@ export default function HomeScreen() {
         {/* 公告栏、Banner、PromoBanner、QuickActions等始终渲染 */}
         <AnnouncementBar />
         <PromoBanner />
+
+        {/* New conversion-boosting components */}
+        <LiveTransactionFeed />
+        <TodayStats />
+
         <QuickActions />
         {/* <PromoTimer /> */}
         {/* <RecentTransactions /> */}

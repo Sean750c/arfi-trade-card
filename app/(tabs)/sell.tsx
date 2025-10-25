@@ -24,6 +24,10 @@ import VIPModal from '@/components/sell/VIPModal';
 import ActivityModal from '@/components/sell/ActivityModal';
 import OrderCompensationModal from '@/components/sell/OrderCompensationModal';
 import HtmlRenderer from '@/components/UI/HtmlRenderer';
+import SecurityBadges from '@/components/sell/SecurityBadges';
+import PriceBreakdown from '@/components/sell/PriceBreakdown';
+import SmartCouponRecommendation from '@/components/sell/SmartCouponRecommendation';
+import FirstOrderBonus from '@/components/sell/FirstOrderBonus';
 import Spacing from '@/constants/Spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { UploadService } from '@/services/upload';
@@ -76,6 +80,7 @@ function SellScreenContent() {
   const [showOverdueModal, setShowOverdueModal] = useState(false);
   const [showSellTipsModal, setShowSellTipsModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSmartCouponModal, setShowSmartCouponModal] = useState(false);
 
 
   // Draggable help button state
@@ -543,6 +548,17 @@ function SellScreenContent() {
             </TouchableOpacity>
           </View>
 
+          {/* First Order Bonus Banner */}
+          {user && !user.has_placed_order && (
+            <FirstOrderBonus
+              bonusAmount={5.0}
+              bonusPercentage={5}
+            />
+          )}
+
+          {/* Security Badges */}
+          <SecurityBadges />
+
           {/* Card Upload Section */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Card Information</Text>
@@ -648,10 +664,23 @@ function SellScreenContent() {
             </View>
           )}
 
+          {/* Price Breakdown */}
+          <PriceBreakdown
+            baseAmount={100}
+            vipBonus={currentVipRate > 0 ? 2.5 : 0}
+            couponDiscount={selectedCoupon ? 1.0 : 0}
+            activityBonus={0}
+            firstOrderBonus={user && !user.has_placed_order ? 5.0 : 0}
+            currency={user?.currency_symbol || 'USD'}
+            onVIPPress={() => setShowVIPModal(true)}
+            onCouponPress={() => setShowSmartCouponModal(true)}
+            onActivityPress={() => setShowActivityModal(true)}
+          />
+
           {/* Discount Code Section */}
           <TouchableOpacity
             style={[styles.section, styles.discountSection, { backgroundColor: colors.card }]}
-            onPress={() => setShowCouponModal(true)}
+            onPress={() => setShowSmartCouponModal(true)}
           >
             <View style={styles.discountContent}>
               <Tag size={20} color={colors.primary} />
@@ -777,6 +806,17 @@ function SellScreenContent() {
             selectedCoupon={selectedCoupon}
             userToken={user?.token || ''}
             walletType={selectedWallet || ''}
+          />
+        )}
+
+        {/* Smart Coupon Recommendation Modal */}
+        {showSmartCouponModal && orderSellDetail?.coupon_list && (
+          <SmartCouponRecommendation
+            visible={showSmartCouponModal}
+            onClose={() => setShowSmartCouponModal(false)}
+            coupons={orderSellDetail.coupon_list}
+            onSelectCoupon={(coupon) => setSelectedCoupon(coupon)}
+            estimatedAmount={100}
           />
         )}
 
