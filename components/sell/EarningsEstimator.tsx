@@ -4,12 +4,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Crown, Tag, Gift, Calculator, Sparkles, ChevronRight, Info } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 interface EarningsEstimatorProps {
   hasVIPBonus: boolean;
   hasCoupon: boolean;
-  hasFirstOrder: boolean;
-  vipBonusPercent?: number;
+  firstOrderBonus: number;
+  vipBonusPercent?: string;
   onVIPPress?: () => void;
   onCouponPress?: () => void;
 }
@@ -17,15 +18,16 @@ interface EarningsEstimatorProps {
 export default function EarningsEstimator({
   hasVIPBonus,
   hasCoupon,
-  hasFirstOrder,
-  vipBonusPercent = 2.5,
+  firstOrderBonus,
+  vipBonusPercent = '0.0',
   onVIPPress,
   onCouponPress,
 }: EarningsEstimatorProps) {
   const { colors } = useTheme();
   const [showInfo, setShowInfo] = useState(false);
+  const { user } = useAuthStore();
 
-  const activeBoosts = [hasVIPBonus, hasCoupon, hasFirstOrder].filter(Boolean).length;
+  const activeBoosts = [hasVIPBonus, hasCoupon, firstOrderBonus > 0].filter(Boolean).length;
   const totalBoosts = 3;
 
   return (
@@ -65,7 +67,7 @@ export default function EarningsEstimator({
         <View style={styles.boosts}>
           {/* VIP Boost */}
           {hasVIPBonus ? (
-            <View style={[styles.boostItem, { backgroundColor: colors.background }]}>
+            <TouchableOpacity style={[styles.boostItem, { backgroundColor: colors.background }]} onPress={onVIPPress}>
               <View style={styles.boostLeft}>
                 <View style={[styles.boostIcon, { backgroundColor: '#F59E0B15' }]}>
                   <Crown size={16} color="#F59E0B" strokeWidth={2.5} />
@@ -82,7 +84,7 @@ export default function EarningsEstimator({
               <View style={[styles.activeBadge, { backgroundColor: '#10B981' }]}>
                 <Text style={styles.activeBadgeText}>ACTIVE</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           ) : (
             onVIPPress && (
               <TouchableOpacity
@@ -152,7 +154,7 @@ export default function EarningsEstimator({
           )}
 
           {/* First Order Boost */}
-          {hasFirstOrder && (
+          {firstOrderBonus > 0 && (
             <View style={[styles.boostItem, { backgroundColor: colors.background }]}>
               <View style={styles.boostLeft}>
                 <View style={[styles.boostIcon, { backgroundColor: '#EF444415' }]}>
@@ -163,7 +165,7 @@ export default function EarningsEstimator({
                     First Order Bonus
                   </Text>
                   <Text style={[styles.boostValue, { color: '#EF4444' }]}>
-                    +5% welcome gift
+                    +{user?.currency_symbol}{firstOrderBonus} welcome gift
                   </Text>
                 </View>
               </View>
@@ -195,7 +197,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   card: {
-    marginHorizontal: Spacing.lg,
     borderRadius: 16,
     padding: Spacing.lg,
     shadowColor: '#000',

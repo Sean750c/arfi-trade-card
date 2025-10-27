@@ -9,7 +9,6 @@ interface WalletOption {
   id: string;
   name: string;
   symbol: string;
-  icon: string;
 }
 
 interface WalletSelectorProps {
@@ -91,14 +90,6 @@ export default function WalletSelector({
                   >
                     {option.name}
                   </Text>
-                  <Text
-                    style={[
-                      styles.label,
-                      { color: colors.textSecondary },
-                    ]}
-                  >
-                    {option.icon}
-                  </Text>
                 </View>
 
                 {isSelected && (
@@ -133,7 +124,6 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.lg,
   },
   option: {
     flex: 1,
@@ -150,7 +140,8 @@ const styles = StyleSheet.create({
   },
   optionContent: {
     padding: Spacing.md,
-    minHeight: 90,
+    flexDirection: 'row',
+    minHeight: 50,
   },
   symbolContainer: {
     width: 44,
@@ -165,7 +156,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   textContainer: {
-    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: Spacing.lg
   },
   name: {
     fontSize: 15,

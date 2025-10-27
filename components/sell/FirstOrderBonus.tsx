@@ -4,17 +4,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Sparkles, Gift } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 interface FirstOrderBonusProps {
   bonusAmount: number;
-  bonusPercentage?: number;
 }
 
 export default function FirstOrderBonus({
   bonusAmount,
-  bonusPercentage = 5,
 }: FirstOrderBonusProps) {
   const { colors } = useTheme();
+  const { user } = useAuthStore();
 
   return (
     <View style={styles.container}>
@@ -50,8 +50,7 @@ export default function FirstOrderBonus({
               <Text style={styles.title}>Welcome Bonus</Text>
             </View>
             <View style={styles.bonusContainer}>
-              <Text style={styles.bonusAmount}>+${bonusAmount.toFixed(2)}</Text>
-              <Text style={styles.bonusPercentage}>+{bonusPercentage}%</Text>
+              <Text style={styles.bonusAmount}>+{user?.currency_symbol}{bonusAmount.toFixed(2)}</Text>
             </View>
           </View>
 
@@ -73,7 +72,6 @@ export default function FirstOrderBonus({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
   },
   card: {

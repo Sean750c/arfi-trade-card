@@ -26,7 +26,6 @@ import OrderCompensationModal from '@/components/sell/OrderCompensationModal';
 import HtmlRenderer from '@/components/UI/HtmlRenderer';
 import SecurityBadges from '@/components/sell/SecurityBadges';
 import EarningsEstimator from '@/components/sell/EarningsEstimator';
-import SmartCouponRecommendation from '@/components/sell/SmartCouponRecommendation';
 import FirstOrderBonus from '@/components/sell/FirstOrderBonus';
 import WalletSelector from '@/components/sell/WalletSelector';
 import Spacing from '@/constants/Spacing';
@@ -424,8 +423,6 @@ function SellScreenContent() {
         'Order Created Successfully! 🎉',
         `Order #${orderResult.order_no.slice(-14)}\n\n` +
         `${uploadedImages.length} image(s) uploaded\n` +
-        `Wallet: ${selectedWallet}\n` +
-        `${selectedCoupon ? `Discount: ${selectedCoupon.code}\n` : ''}` +
         'Your order is being processed. You will receive a notification once it\'s reviewed.',
         [
           { text: 'View Orders', onPress: () => router.push('/orders') },
@@ -647,13 +644,11 @@ function SellScreenContent() {
                   id: currencyName,
                   name: user?.currency_name || currencyName,
                   symbol: user?.currency_symbol || '$',
-                  icon: user?.country_name || '',
                 },
                 {
                   id: 'USDT',
                   name: 'USDT',
                   symbol: '₮',
-                  icon: 'Tether',
                 },
               ]}
               selectedWallet={selectedWallet}
@@ -662,19 +657,19 @@ function SellScreenContent() {
           )}
 
           {/* Earnings Boosts Estimator */}
-          <EarningsEstimator
-            hasVIPBonus={currentVipRate > 0}
+          {/* <EarningsEstimator
+            hasVIPBonus={Number(orderSellDetail?.vip_detail.rate || 0) > 0}
             hasCoupon={!!selectedCoupon}
-            hasFirstOrder={!user?.has_placed_order}
+            firstOrderBonus={orderSellDetail?.first_order_bonus || 0}
             vipBonusPercent={currentVipRate}
             onVIPPress={() => setShowVIPModal(true)}
             onCouponPress={() => setShowSmartCouponModal(true)}
-          />
+          /> */}
 
           {/* Discount Code Section */}
           <TouchableOpacity
             style={[styles.section, styles.discountSection, { backgroundColor: colors.card }]}
-            onPress={() => setShowSmartCouponModal(true)}
+            onPress={() => setShowCouponModal(true)}
           >
             <View style={styles.discountContent}>
               <Tag size={20} color={colors.primary} />
@@ -735,7 +730,7 @@ function SellScreenContent() {
           </View>
 
           {/* Security Badges */}
-          <SecurityBadges />
+          {/* <SecurityBadges /> */}
         </ScrollView>
 
         {/* Bottom Action Buttons */}
