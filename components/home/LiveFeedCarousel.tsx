@@ -4,28 +4,9 @@ import { TrendingUp, CheckCircle, Clock, Volume2, X, ChevronRight } from 'lucide
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useBannerStore } from '@/stores/useBannerStore';
-
-const { width } = Dimensions.get('window');
-
-interface Transaction {
-  id: string;
-  username: string;
-  amount: string;
-  currency: string;
-  timeAgo: string;
-}
-
-interface Announcement {
-  id: string;
-  content: string;
-}
-
-const MOCK_TRANSACTIONS: Transaction[] = [
-  { id: '1', username: 'John ***', amount: '50', currency: 'USD', timeAgo: '2 mins ago' },
-  { id: '2', username: 'Sarah ***', amount: '100', currency: 'EUR', timeAgo: '5 mins ago' },
-  { id: '3', username: 'Mike ***', amount: '75', currency: 'USD', timeAgo: '8 mins ago' },
-  { id: '4', username: 'Lisa ***', amount: '120', currency: 'GBP', timeAgo: '12 mins ago' },
-];
+import { Announcement, Transaction } from '@/types';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { formatDate } from '@/utils/date';
 
 type FeedItem =
   | { type: 'transaction'; data: Transaction }
@@ -35,19 +16,28 @@ const MAX_ANNOUNCEMENT_LENGTH = 80;
 
 export default function LiveFeedCarousel() {
   const { colors } = useTheme();
-  const { announcementContent = [] } = useBannerStore();
+  const { announcement, transaction, fetchLiveContentList } = useBannerStore();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<string | null>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
 
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (user?.token) {
+      const countryId = user.country_id || 14;
+      fetchLiveContentList(countryId);
+    }
+  }, [user?.token]);
+
   // 合并公告和交易数据
   const feedItems: FeedItem[] = [
-    ...announcementContent.map((content, idx) => ({
+    ...announcement.map(item => ({
       type: 'announcement' as const,
-      data: { id: `ann-${idx}`, content },
+      data: item,
     })),
-    ...MOCK_TRANSACTIONS.map(transaction => ({
+    ...transaction.map(transaction => ({
       type: 'transaction' as const,
       data: transaction,
     })),
@@ -109,6 +99,38 @@ export default function LiveFeedCarousel() {
     };
   };
 
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffSec < 60) {
+      return 'Just now';
+    } else if (diffMin < 10) {
+      return `${diffMin} minutes ago`;
+    } else {
+      return `10 minutes ago`;
+    }
+  };
+
+  const hideUsername = (name: string) => {
+    if (!name) return '';
+
+    const len = name.length;
+
+    // 不足 5 个字符的名字，直接全部用 * 替代
+    if (len < 5) {
+      return '*'.repeat(len);
+    }
+
+    // 前后各保留最多 2 个字符
+    const prefix = name.slice(0, 2);
+    const suffix = name.slice(-2);
+
+    return `${prefix}****${suffix}`;
+  };
+
   const renderContent = () => {
     if (currentItem.type === 'transaction') {
       const transaction = currentItem.data;
@@ -129,12 +151,12 @@ export default function LiveFeedCarousel() {
               </View>
               <View style={styles.textContainer}>
                 <Text style={[styles.username, { color: colors.text }]}>
-                  {transaction.username}
+                  {hideUsername(transaction.username)}
                 </Text>
                 <Text style={[styles.details, { color: colors.textSecondary }]} numberOfLines={1}>
                   successfully sold{' '}
                   <Text style={[styles.amount, { color: colors.primary }]}>
-                    ${transaction.amount} {transaction.currency}
+                    {transaction.amount} {transaction.currency}
                   </Text>
                 </Text>
               </View>
@@ -142,7 +164,7 @@ export default function LiveFeedCarousel() {
             <View style={styles.timeContainer}>
               <Clock size={11} color={colors.textSecondary} />
               <Text style={[styles.timeText, { color: colors.textSecondary }]}>
-                {transaction.timeAgo}
+                {formatDate(transaction.timeAgo)}
               </Text>
             </View>
           </View>
@@ -281,7 +303,6 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 16,
     padding: Spacing.md,
-    marginHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -323,7 +344,6 @@ const styles = StyleSheet.create({
   indicator: {
     height: 6,
     borderRadius: 3,
-    transition: 'all 0.3s ease',
   },
   contentContainer: {
     minHeight: 56,

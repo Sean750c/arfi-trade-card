@@ -236,14 +236,14 @@ export default function HomeScreen() {
           onPress={() => router.push('/wallet')}
         />
 
+        {/* Banner */}
+        <PromoBanner />
+
         {/* Live Feed Carousel - 合并公告和交易动态 */}
         <LiveFeedCarousel />
 
         {/* Quick Actions - 核心功能优先展示 */}
         <QuickActions />
-
-        {/* Banner */}
-        <PromoBanner />
 
         {/* <TodayStats /> */}
 

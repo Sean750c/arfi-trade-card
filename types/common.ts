@@ -195,3 +195,23 @@ export interface PopData {
 }
 
 export type PopResponse = APIResponse<PopData>;
+
+export interface Transaction {
+    id: string;
+    username: string;
+    amount: string;
+    currency: string;
+    timeAgo: number;
+}
+
+export interface Announcement {
+    id: string;
+    content: string;
+}
+
+export interface LiveContent {
+    announcement: Announcement[];
+    transaction: Transaction[];
+}
+
+export type LiveContentResponse = APIResponse<LiveContent>; // Updated to use BannerData
