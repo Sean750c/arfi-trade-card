@@ -20,11 +20,10 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useAppStore } from '@/stores/useAppStore';
 import { Country } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
-import AnnouncementBar from '@/components/home/AnnouncementBar';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
-import LiveTransactionFeed from '@/components/home/LiveTransactionFeed';
 import TodayStats from '@/components/home/TodayStats';
 import CompactBalanceCard from '@/components/home/CompactBalanceCard';
+import LiveFeedCarousel from '@/components/home/LiveFeedCarousel';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -237,17 +236,14 @@ export default function HomeScreen() {
           onPress={() => router.push('/wallet')}
         />
 
-        {/* Banner */}
-        <PromoBanner />
-
-        {/* New conversion-boosting components */}
-        <LiveTransactionFeed />
-
-        {/* 公告栏 */}
-        <AnnouncementBar />
+        {/* Live Feed Carousel - 合并公告和交易动态 */}
+        <LiveFeedCarousel />
 
         {/* Quick Actions - 核心功能优先展示 */}
         <QuickActions />
+
+        {/* Banner */}
+        <PromoBanner />
 
         {/* <TodayStats /> */}
 
