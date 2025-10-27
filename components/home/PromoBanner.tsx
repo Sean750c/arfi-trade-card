@@ -177,7 +177,6 @@ export default function PromoBanner() {
 const styles = StyleSheet.create({
   container: {
     height: 160,
-    marginVertical: Spacing.md,
   },
   loadingContainer: {
     justifyContent: 'center',

@@ -29,7 +29,7 @@ import CompactBalanceCard from '@/components/home/CompactBalanceCard';
 export default function HomeScreen() {
   const { colors } = useTheme();
   const [showCountryPicker, setShowCountryPicker] = useState(false);
-  const [balanceVisible, setBalanceVisible] = useState(true);
+  const [balanceVisible, setBalanceVisible] = useState(false);
   const { countries, selectedCountry, setSelectedCountry } = useCountryStore();
   const { isAuthenticated, user, reloadUser } = useAuthStore();
   const { initData, isLoading: initLoading, error: initError, initialize } = useAppStore();
@@ -237,17 +237,18 @@ export default function HomeScreen() {
           onPress={() => router.push('/wallet')}
         />
 
+        {/* Banner */}
+        <PromoBanner />
+
+        {/* New conversion-boosting components */}
+        <LiveTransactionFeed />
+
         {/* 公告栏 */}
         <AnnouncementBar />
 
         {/* Quick Actions - 核心功能优先展示 */}
         <QuickActions />
 
-        {/* Banner */}
-        <PromoBanner />
-
-        {/* New conversion-boosting components */}
-        <LiveTransactionFeed />
         {/* <TodayStats /> */}
 
         {/* <PromoTimer /> */}

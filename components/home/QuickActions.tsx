@@ -213,13 +213,13 @@ export default function QuickActions() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
         <TouchableOpacity style={styles.viewAllButton}>
           <Zap size={16} color={colors.primary} />
           <Text style={[styles.viewAllText, { color: colors.primary }]}>Fast Trade</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       {/* Primary Action - Sell Cards */}
       {primaryAction && renderPrimaryAction(primaryAction)}
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md, // Reduced from lg
+    marginBottom: Spacing.xs, // Reduced from lg
   },
   sectionTitle: {
     fontSize: 20,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
 
   // Primary Action Styles (Sell Cards)
   primaryActionContainer: {
-    marginBottom: Spacing.sm, // Reduced spacing
+    marginBottom: Spacing.xxs, // Reduced spacing
   },
   primaryActionItem: {
     borderRadius: 20, // More rounded for prominence
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   secondaryActionItem: {
     width: '31%', // Three items per row with small gaps
     borderRadius: 16,
-    padding: Spacing.sm, // Reduced padding
+    padding: Spacing.xs, // Reduced padding
     position: 'relative',
     overflow: 'hidden',
     minHeight: 85, // Compact height

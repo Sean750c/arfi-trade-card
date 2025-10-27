@@ -85,8 +85,7 @@ export default function CompactBalanceCard({
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm
   },
   card: {
     borderRadius: 16,
