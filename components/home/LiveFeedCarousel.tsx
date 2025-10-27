@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, Modal, ScrollView, Dimensions } from 'react-native';
-import { TrendingUp, CheckCircle, Clock, Volume2, X, ChevronRight } from 'lucide-react-native';
+import { TrendingUp, CheckCircle, Clock, Volume2, X, ChevronRight, ChevronLeft } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@/theme/ThemeContext';
 import Spacing from '@/constants/Spacing';
 import { useBannerStore } from '@/stores/useBannerStore';
@@ -23,13 +24,16 @@ export default function LiveFeedCarousel() {
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const { user } = useAuthStore();
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (user?.token) {
-      const countryId = user.country_id || 14;
-      fetchLiveContentList(countryId);
-    }
-  }, [user?.token]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user?.token) {
+        const countryId = user.country_id || 14;
+        fetchLiveContentList(countryId);
+      }
+    }, [user?.token, fetchLiveContentList])
+  );
 
   // 合并公告和交易数据
   const feedItems: FeedItem[] = [
@@ -43,49 +47,85 @@ export default function LiveFeedCarousel() {
     })),
   ];
 
+  const animateTransition = (callback: () => void) => {
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: -30,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 30,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start(callback);
+  };
+
   useEffect(() => {
     if (feedItems.length === 0) return;
 
-    const interval = setInterval(() => {
-      Animated.sequence([
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: -30,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.timing(slideAnim, {
-            toValue: 30,
-            duration: 0,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start();
-
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
+    intervalRef.current = setInterval(() => {
+      animateTransition(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
+      });
     }, 3500);
 
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, [fadeAnim, slideAnim, feedItems.length]);
+
+  const handlePrevious = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    animateTransition(() => {
+      setCurrentIndex((prevIndex) => (prevIndex - 1 + feedItems.length) % feedItems.length);
+    });
+    intervalRef.current = setInterval(() => {
+      animateTransition(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
+      });
+    }, 3500);
+  };
+
+  const handleNext = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    animateTransition(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
+    });
+    intervalRef.current = setInterval(() => {
+      animateTransition(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
+      });
+    }, 3500);
+  };
 
   if (feedItems.length === 0) return null;
 
@@ -234,19 +274,39 @@ export default function LiveFeedCarousel() {
       <View style={[styles.container, { backgroundColor: colors.card }]}>
         <View style={styles.header}>
           {renderBadge()}
-          <View style={styles.indicators}>
-            {feedItems.map((_, idx) => (
-              <View
-                key={idx}
-                style={[
-                  styles.indicator,
-                  {
-                    backgroundColor: idx === currentIndex ? colors.primary : colors.border,
-                    width: idx === currentIndex ? 16 : 6,
-                  },
-                ]}
-              />
-            ))}
+          <View style={styles.controls}>
+            <View style={styles.indicators}>
+              {feedItems.map((_, idx) => (
+                <View
+                  key={idx}
+                  style={[
+                    styles.indicator,
+                    {
+                      backgroundColor: idx === currentIndex ? colors.primary : colors.border,
+                      width: idx === currentIndex ? 16 : 6,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+            {feedItems.length > 1 && (
+              <View style={styles.arrows}>
+                <TouchableOpacity
+                  onPress={handlePrevious}
+                  style={[styles.arrowButton, { backgroundColor: colors.background }]}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <ChevronLeft size={16} color={colors.text} strokeWidth={2.5} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleNext}
+                  style={[styles.arrowButton, { backgroundColor: colors.background }]}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <ChevronRight size={16} color={colors.text} strokeWidth={2.5} />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
 
@@ -336,10 +396,27 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.5,
   },
+  controls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   indicators: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+  },
+  arrows: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  arrowButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   indicator: {
     height: 6,
