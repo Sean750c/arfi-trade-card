@@ -251,9 +251,7 @@ function SellScreenContent() {
       //   await processSelectedImage(result.assets[0].uri);
       // }
       if (!result.canceled && result.assets?.length > 0) {
-        for (const asset of result.assets) {
-          await processSelectedImage(asset.uri);
-        }
+        await processBatchImages(result.assets.map(asset => asset.uri));
       }
     } catch (error) {
       console.error('Gallery error:', error);
@@ -261,101 +259,145 @@ function SellScreenContent() {
     }
   };
 
-  const processSelectedImage = async (imageUri: string) => {
+  const processBatchImages = async (imageUris: string[]) => {
     if (!user?.token) {
       Alert.alert('Error', 'Please login to upload images.');
       return;
     }
 
-    const newCard: SelectedCard = {
-      id: Date.now().toString(),
-      localUri: imageUri,
+    if (imageUris.length === 0) return;
+
+    // Create card objects for all images
+    const newCards: SelectedCard[] = imageUris.map((uri, index) => ({
+      id: `${Date.now()}_${index}`,
+      localUri: uri,
       isUploading: true,
       uploadProgress: 0,
-    };
+    }));
 
-    setSelectedCards(prev => [...prev, newCard]);
+    setSelectedCards(prev => [...prev, ...newCards]);
 
     try {
-      // Get upload URL from server
+      // Get upload URLs for all images at once
       const uploadUrls = await UploadService.getUploadUrls({
         token: user.token,
-        image_count: 1,
+        image_count: imageUris.length,
       });
 
-      if (uploadUrls.length === 0) {
-        throw new Error('No upload URL received');
+      if (uploadUrls.length !== imageUris.length) {
+        throw new Error('Mismatch between image count and upload URLs');
       }
 
-      const uploadUrl = uploadUrls[0];
-      const imageUrl = uploadUrl.url.split("?")[0];
-
-      // Update card with upload URL
+      // Update cards with upload URLs
       setSelectedCards(prev =>
-        prev.map(card =>
-          card.id === newCard.id
-            ? {
+        prev.map(card => {
+          const cardIndex = newCards.findIndex(c => c.id === card.id);
+          if (cardIndex !== -1 && uploadUrls[cardIndex]) {
+            const uploadUrl = uploadUrls[cardIndex];
+            const imageUrl = uploadUrl.url.split("?")[0];
+            return {
               ...card,
               uploadUrl: imageUrl,
               objectName: uploadUrl.objectName,
               uploadProgress: 25
-            }
-            : card
-        )
+            };
+          }
+          return card;
+        })
       );
 
-      // Upload image to Google Storage
-      CommonService.analysis('upload_img_before', '1');
-      await UploadService.uploadImageToGoogleStorage(
-        uploadUrl.url,
-        imageUri,
-        (progress) => {
-          // 使用节流来减少进度更新频率
-          const throttledProgress = Math.round(progress * 10) / 10; // 只保留一位小数
+      // Upload all images in parallel
+      CommonService.analysis('upload_img_before', imageUris.length.toString());
+
+      const uploadPromises = newCards.map((card, index) => {
+        const uploadUrl = uploadUrls[index];
+        return UploadService.uploadImageToGoogleStorage(
+          uploadUrl.url,
+          card.localUri!,
+          (progress) => {
+            const throttledProgress = Math.round(progress * 10) / 10;
+            setSelectedCards(prev =>
+              prev.map(c =>
+                c.id === card.id
+                  ? { ...c, uploadProgress: 25 + (throttledProgress * 0.75) }
+                  : c
+              )
+            );
+          }
+        ).then(() => {
+          // Mark this card as uploaded
           setSelectedCards(prev =>
-            prev.map(card =>
-              card.id === newCard.id
-                ? { ...card, uploadProgress: 25 + (throttledProgress * 0.75) }
-                : card
+            prev.map(c =>
+              c.id === card.id
+                ? {
+                  ...c,
+                  isUploading: false,
+                  isUploaded: true,
+                  uploadProgress: 100
+                }
+                : c
             )
           );
-        }
-      );
-      CommonService.analysis('upload_img_success', '1');
+          return card.id;
+        }).catch(error => {
+          // Mark this card as failed
+          setSelectedCards(prev =>
+            prev.map(c =>
+              c.id === card.id
+                ? {
+                  ...c,
+                  isUploading: false,
+                  uploadError: error instanceof Error ? error.message : 'Upload failed'
+                }
+                : c
+            )
+          );
+          throw error;
+        });
+      });
 
-      // Mark as uploaded
-      setSelectedCards(prev =>
-        prev.map(card =>
-          card.id === newCard.id
-            ? {
-              ...card,
-              isUploading: false,
-              isUploaded: true,
-              uploadProgress: 100
-            }
-            : card
-        )
-      );
+      // Wait for all uploads to complete
+      const results = await Promise.allSettled(uploadPromises);
+
+      const successCount = results.filter(r => r.status === 'fulfilled').length;
+      const failCount = results.filter(r => r.status === 'rejected').length;
+
+      CommonService.analysis('upload_img_success', successCount.toString());
+
+      if (failCount > 0) {
+        Alert.alert(
+          'Upload Completed with Errors',
+          `${successCount} of ${imageUris.length} images uploaded successfully. ${failCount} failed.`
+        );
+      }
 
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Batch upload error:', error);
+
+      // Mark all cards as failed
       setSelectedCards(prev =>
-        prev.map(card =>
-          card.id === newCard.id
-            ? {
+        prev.map(card => {
+          if (newCards.some(c => c.id === card.id)) {
+            return {
               ...card,
               isUploading: false,
               uploadError: error instanceof Error ? error.message : 'Upload failed'
-            }
-            : card
-        )
+            };
+          }
+          return card;
+        })
       );
 
       Alert.alert(
         'Upload Failed',
-        error instanceof Error ? error.message : 'Failed to upload image. Please try again.'
+        error instanceof Error ? error.message : 'Failed to upload images. Please try again.'
       );
     }
+  };
+
+  const processSelectedImage = async (imageUri: string) => {
+    // Single image upload - delegate to batch function
+    await processBatchImages([imageUri]);
   };
 
   const removeCard = (cardId: string) => {
