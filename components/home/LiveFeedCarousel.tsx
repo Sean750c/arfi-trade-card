@@ -47,7 +47,7 @@ export default function LiveFeedCarousel() {
     })),
   ];
 
-  const animateTransition = (callback: () => void) => {
+  const animateTransition = () => {
     Animated.sequence([
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -80,16 +80,15 @@ export default function LiveFeedCarousel() {
           useNativeDriver: true,
         }),
       ]),
-    ]).start(callback);
+    ]).start();
   };
 
   useEffect(() => {
     if (feedItems.length === 0) return;
 
     intervalRef.current = setInterval(() => {
-      animateTransition(() => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
-      });
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
+      animateTransition();
     }, 3500);
 
     return () => {
@@ -103,13 +102,11 @@ export default function LiveFeedCarousel() {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-    animateTransition(() => {
-      setCurrentIndex((prevIndex) => (prevIndex - 1 + feedItems.length) % feedItems.length);
-    });
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + feedItems.length) % feedItems.length);
+    animateTransition();
     intervalRef.current = setInterval(() => {
-      animateTransition(() => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
-      });
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
+      animateTransition();
     }, 3500);
   };
 
@@ -117,13 +114,11 @@ export default function LiveFeedCarousel() {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-    animateTransition(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
-    });
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
+    animateTransition();
     intervalRef.current = setInterval(() => {
-      animateTransition(() => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
-      });
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % feedItems.length);
+      animateTransition();
     }, 3500);
   };
 
