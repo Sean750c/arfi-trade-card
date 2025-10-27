@@ -24,7 +24,7 @@ export default function LiveFeedCarousel() {
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const { user } = useAuthStore();
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useFocusEffect(
     React.useCallback(() => {
