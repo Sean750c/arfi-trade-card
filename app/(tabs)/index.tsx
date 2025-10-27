@@ -24,6 +24,7 @@ import AnnouncementBar from '@/components/home/AnnouncementBar';
 import SafeAreaWrapper from '@/components/UI/SafeAreaWrapper';
 import LiveTransactionFeed from '@/components/home/LiveTransactionFeed';
 import TodayStats from '@/components/home/TodayStats';
+import CompactBalanceCard from '@/components/home/CompactBalanceCard';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -226,52 +227,29 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Compact Balance Card for Authenticated Users，结构始终渲染 */}
-        <View style={[
-          styles.balanceCard,
-          { backgroundColor: colors.primary, shadowColor: 'rgba(0, 0, 0, 0.1)' }
-        ]}>
-          <View style={styles.balanceHeader}>
-            <TouchableOpacity
-              style={styles.balanceInfo}
-              onPress={() => router.push('/wallet')}
-            >
-              <Text style={styles.balanceLabel}>Total Balance</Text>
-              <Text style={styles.balanceAmount}>
-                {(user?.currency_symbol || '₦')}{formatBalance(balanceVisible && user ? user.money ?? '0' : '0')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.eyeButton}
-              onPress={toggleBalanceVisibility}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              {balanceVisible ? (
-                <Eye size={20} color="rgba(255, 255, 255, 0.8)" />
-              ) : (
-                <EyeOff size={20} color="rgba(255, 255, 255, 0.8)" />
-              )}
-            </TouchableOpacity>
-          </View>
-          <View style={styles.rebateHeader}>
-            <Text style={styles.rebateBalance}>
-              Rebate {(user?.currency_symbol || '₦')}{formatBalance(balanceVisible && user ? user.rebate_money ?? '0' : '0')}
-            </Text>
-            {/* <Text style={styles.rebateBalance}>
-              Points {(user?.point || '0')}
-            </Text> */}
-          </View>
-        </View>
+        {/* Compact Balance Card */}
+        <CompactBalanceCard
+          balance={user?.money ?? '0'}
+          rebateBalance={user?.rebate_money ?? '0'}
+          currencySymbol={user?.currency_symbol || '₦'}
+          isVisible={balanceVisible}
+          onToggleVisibility={toggleBalanceVisibility}
+          onPress={() => router.push('/wallet')}
+        />
 
-        {/* 公告栏、Banner、PromoBanner、QuickActions等始终渲染 */}
+        {/* 公告栏 */}
         <AnnouncementBar />
+
+        {/* Quick Actions - 核心功能优先展示 */}
+        <QuickActions />
+
+        {/* Banner */}
         <PromoBanner />
 
         {/* New conversion-boosting components */}
         <LiveTransactionFeed />
         {/* <TodayStats /> */}
 
-        <QuickActions />
         {/* <PromoTimer /> */}
         {/* <RecentTransactions /> */}
       </ScrollView>
