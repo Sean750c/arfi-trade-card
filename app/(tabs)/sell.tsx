@@ -1043,8 +1043,8 @@ const styles = StyleSheet.create({
   },
   statusBadge: {
     position: 'absolute',
-    top: 4,
-    left: 4,
+    top: 1,
+    left: 1,
     width: 20,
     height: 20,
     borderRadius: 10,
@@ -1053,8 +1053,8 @@ const styles = StyleSheet.create({
   },
   errorOverlay: {
     position: 'absolute',
-    top: 0,
-    left: 0,
+    top: 1,
+    left: 1,
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(239, 68, 68, 0.9)',
@@ -1080,8 +1080,8 @@ const styles = StyleSheet.create({
   },
   removeCardButton: {
     position: 'absolute',
-    top: -5,
-    right: -5,
+    top: 1,
+    right: 1,
     width: 18,
     height: 18,
     borderRadius: 9,

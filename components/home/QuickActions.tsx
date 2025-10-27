@@ -28,12 +28,12 @@ export default function QuickActions() {
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.02, // 减少缩放幅度
-          duration: 2000, // 增加动画时长
+          duration: 800, // 增加动画时长
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 2000, // 增加动画时长
+          duration: 1000, // 增加动画时长
           useNativeDriver: true,
         }),
       ])
